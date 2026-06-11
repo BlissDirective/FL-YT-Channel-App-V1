@@ -40,3 +40,34 @@ standing rules (Full-App-Development-plan.md §5).
   authenticated ✅. DB password present (tested at first migration).
   Phase 1 migrations will run through GitHub Actions using
   `SUPABASE_PASSWORD`, since the project is outside MCP scope.
+
+## 2026-06-11 — Phase 1
+
+- **Migrations run via a GitHub Actions `db-migrate.yml` workflow**, not the
+  Supabase MCP (the target project `reffwibuitzrkertuuvy` is in a different
+  Supabase org than the MCP token can see). The workflow connects through the
+  Supavisor session pooler (GitHub runners are IPv4-only; the direct
+  `db.<ref>.supabase.co` host is IPv6-only). Pooler host discovered and pinned:
+  `aws-1-us-east-2.pooler.supabase.com` (project is in us-east-2). A
+  `public._migrations` table tracks applied files for idempotency.
+  **0001_init.sql applied successfully** — all 11 tables, indexes, RLS
+  policies, updated_at triggers, and the `media` storage bucket are live.
+- **Supabase project URL is therefore** `https://reffwibuitzrkertuuvy.supabase.co`.
+- **Anon key re-verified (Actions run 4, dispatched with the user's PAT):**
+  still **rejected (401)**. The value decodes as a valid anon JWT for the right
+  project but the server rejects it, which points to a truncated/mis-pasted
+  secret rather than a disabled legacy key (the service_role JWT for the same
+  project works, so legacy JWTs are still enabled). **Action required from
+  user: re-copy the anon (publishable) key into `SUPABASE_ANON_PUBLIC_KEY`.**
+- **Two blockers for *deployed* validation (code is complete and builds):**
+  (1) the anon key above; (2) the Vercel deployment has no Supabase env vars.
+  Vercel deploys come from the Git integration and do **not** read GitHub
+  Actions secrets, and the Vercel MCP exposes no env-var-write tool — so the
+  three public/server Supabase vars must be added in the Vercel project
+  (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`), or a `VERCEL_TOKEN` provided so the build can
+  do it. Until then the deployed app shows the "Finish connecting Supabase"
+  notice by design (it never crashes unconfigured).
+- **Single-operator auth**: email+password with a first-run `bootstrap`
+  action (service-role-gated, refuses once any user exists). No public signup.
+  `/styleguide` and `/login` are the only unauthenticated routes.
