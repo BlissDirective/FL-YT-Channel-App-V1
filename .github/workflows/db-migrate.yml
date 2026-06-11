@@ -27,25 +27,35 @@ jobs:
           PGPASSWORD: ${{ secrets.SUPABASE_PASSWORD }}
         run: |
           set +e
+          which psql || { echo "installing psql"; sudo apt-get -qq update && sudo apt-get -qq install -y postgresql-client; }
           PINNED=$(cat .github/supabase-pooler-host 2>/dev/null || true)
+          # Modern Supabase pooler hosts: aws-{N}-{region}.pooler.supabase.com
           CANDIDATES="$PINNED"
           for prefix in aws-0 aws-1 aws-2; do
-            for region in us-east-1 us-east-2 us-west-1 us-west-2 eu-west-1 eu-west-2 eu-central-1 ap-southeast-1 ap-southeast-2 ap-northeast-1 sa-east-1 ca-central-1; do
-              CANDIDATES="$CANDIDATES $prefix.$region.pooler.supabase.com"
+            for region in us-east-1 us-east-2 us-west-1 us-west-2 \
+                          eu-west-1 eu-west-2 eu-west-3 eu-central-1 eu-central-2 eu-north-1 \
+                          ap-southeast-1 ap-southeast-2 ap-south-1 \
+                          ap-northeast-1 ap-northeast-2 sa-east-1 ca-central-1; do
+              CANDIDATES="$CANDIDATES $prefix-$region.pooler.supabase.com"
             done
           done
           FOUND=""
           for host in $CANDIDATES; do
             [ -z "$host" ] && continue
-            OUT=$(psql "host=$host port=5432 user=postgres.$SUPABASE_PROJECT_REF dbname=postgres sslmode=require connect_timeout=5" -tAc 'select 1' 2>&1)
+            # Skip hosts that don't resolve — avoids slow connect timeouts
+            getent hosts "$host" >/dev/null 2>&1 || continue
+            echo "→ trying $host"
+            OUT=$(psql "host=$host port=5432 user=postgres.$SUPABASE_PROJECT_REF dbname=postgres sslmode=require connect_timeout=8" -tAc 'select 1' 2>&1)
             if [ "$OUT" = "1" ]; then FOUND="$host"; break; fi
-            # Auth errors mean the host is right but the password is wrong — stop and surface it
+            echo "   $host → ${OUT%%$'\n'*}"
             case "$OUT" in *"password authentication failed"*)
               echo "❌ Pooler host $host reached but password rejected — check SUPABASE_PASSWORD secret"; exit 1;;
             esac
           done
           if [ -z "$FOUND" ]; then
-            echo "❌ Could not reach any Supabase pooler host for project $SUPABASE_PROJECT_REF"; exit 1
+            echo "❌ Could not reach any Supabase pooler host for project $SUPABASE_PROJECT_REF"
+            echo "   (Region unknown and not in MCP scope — pin the host in .github/supabase-pooler-host)"
+            exit 1
           fi
           echo "✅ Pooler host: $FOUND"
           echo "host=$FOUND" >> "$GITHUB_OUTPUT"
