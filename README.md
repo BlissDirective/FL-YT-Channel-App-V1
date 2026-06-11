@@ -23,7 +23,7 @@ fal.ai · Remotion · Vercel
 ## Repo layout
 
 ```
-apps/web        Next.js app (dashboard, review queue, API)
+src/            Next.js app (dashboard, review queue, API)
 packages/core   Domain logic: state machine, design tokens
 docs/           Plans & decision log
 ```
