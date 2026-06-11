@@ -15,6 +15,9 @@ on:
           run metadata.
         required: false
         type: string
+  push:
+    branches: [claude/autonomous-youtube-video-app-au70ql]
+    paths: ['.github/workflows/sync-vercel-env.yml']
 
 env:
   PROJECT_ID: prj_rkpoDeBAEVf6P1Es1uko0gsSez9D
