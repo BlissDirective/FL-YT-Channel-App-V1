@@ -30,3 +30,13 @@ standing rules (Full-App-Development-plan.md §5).
   needed until Phases 4–5. Mock adapters cover everything until then.
 - **YouTube Data API key already provided** (`YOUTUBE_DATA_API_V3`) — ahead
   of schedule (Phase 7); verified valid against googleapis.com.
+- **Credential verification results (Actions run 3):** the Supabase keys
+  belong to project ref `reffwibuitzrkertuuvy` (a project outside this
+  session's Supabase MCP scope). `SUPABASE_SECRET_KEY` and
+  `SUPABASE_SERVICE_ROLE_KEY` verified ✅ (both service_role JWTs);
+  `SUPABASE_ANON_PUBLIC_KEY` is **rejected (401)** despite decoding as the
+  anon key for the same project — likely mis-copied or rotated; needs
+  re-copying before Phase 1 auth work. Trigger.dev secret key
+  authenticated ✅. DB password present (tested at first migration).
+  Phase 1 migrations will run through GitHub Actions using
+  `SUPABASE_PASSWORD`, since the project is outside MCP scope.
