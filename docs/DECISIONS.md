@@ -71,3 +71,30 @@ standing rules (Full-App-Development-plan.md §5).
 - **Single-operator auth**: email+password with a first-run `bootstrap`
   action (service-role-gated, refuses once any user exists). No public signup.
   `/styleguide` and `/login` are the only unauthenticated routes.
+
+## 2026-06-11 — Phase 1→2 unblocking + Phase 2
+
+- **Anon key resolved.** The project's JWT secret had been rotated (the new
+  key's `iat` is issue-day), which is why the old stored value 401'd. The
+  user supplied the fresh anon key in-session; it was verified live (an RLS
+  table query returns `[]` for anon, as designed) and the GitHub secret
+  `SUPABASE_ANON_PUBLIC_KEY` was updated via the API (sealed-box encryption;
+  verify-secrets run now fully green). Note: `/rest/v1/` root is
+  service_role-only on this project — verification now uses `/auth/v1/health`.
+- **Supabase URL + anon key committed as client defaults** in
+  `src/lib/supabase/config.ts` (env vars override). These are public-by-design
+  values that ship in the browser bundle of any Supabase app; RLS enforces
+  access and public signup is disabled. This unblocks deployed login UX
+  without waiting on Vercel env vars. The service-role key remains env-only.
+- **`sync-vercel-env.yml` added** (workflow_dispatch): once a `VERCEL_TOKEN`
+  GitHub secret exists, it upserts all provider keys from GitHub secrets into
+  the Vercel project env (production/preview/dev) and triggers a redeploy.
+  Until then it exits gracefully with instructions. This is the chosen
+  mechanism for all future credential rollouts (Phases 4–7 keys included).
+- **Remaining blocker for full deployed validation:** only
+  `SUPABASE_SERVICE_ROLE_KEY` on Vercel (needed by the first-run account
+  bootstrap) — covered the moment `VERCEL_TOKEN` is added and the sync runs.
+- **Phase 2 shipped:** activity feed (derived from video status changes +
+  idea arrivals), monthly spend meter vs. aggregate project budgets, and
+  Supabase Realtime publication + `RealtimeRefresher` (server-rendered pages
+  re-render on any videos/ideas/projects change).
