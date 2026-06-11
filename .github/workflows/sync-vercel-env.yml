@@ -1,0 +1,82 @@
+name: Sync Vercel Env
+
+# Pushes provider credentials from GitHub secrets into the Vercel project's
+# environment variables, then triggers a redeploy so they take effect.
+# Skips gracefully when VERCEL_TOKEN is not configured. Safe to re-run —
+# upsert semantics.
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: prj_rkpoDeBAEVf6P1Es1uko0gsSez9D
+  TEAM_ID: team_o0aj1OpSptKOTS1cEaPklK4R
+  REPO_ID: "1264525203"
+  DEPLOY_REF: claude/autonomous-youtube-video-app-au70ql
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Upsert environment variables
+        env:
+          SUPABASE_ANON_PUBLIC_KEY: ${{ secrets.SUPABASE_ANON_PUBLIC_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TRIGGER_SECRET_KEY: ${{ secrets.TRIGGER_SECRET_KEY }}
+          YOUTUBE_DATA_API_V3: ${{ secrets.YOUTUBE_DATA_API_V3 }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "⚪ VERCEL_TOKEN secret not configured — nothing to do."
+            echo "   Create a token at vercel.com/account/settings/tokens (scope:"
+            echo "   Conrad Steinmeyer's projects) and add it as a GitHub secret"
+            echo "   named VERCEL_TOKEN, then re-run this workflow."
+            exit 0
+          fi
+          PASS=0; FAIL=0; SKIP=0
+          upsert() {
+            NAME="$1"; VALUE="$2"; TYPE="${3:-encrypted}"
+            if [ -z "$VALUE" ]; then
+              echo "⚪ $NAME — no source secret, skipped"; SKIP=$((SKIP+1)); return
+            fi
+            BODY=$(printf '{"key":"%s","value":"%s","type":"%s","target":["production","preview","development"]}' "$NAME" "$VALUE" "$TYPE")
+            CODE=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST \
+              "https://api.vercel.com/v10/projects/$PROJECT_ID/env?teamId=$TEAM_ID&upsert=true" \
+              -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+              -d "$BODY")
+            case "$CODE" in
+              200|201) echo "✅ $NAME synced"; PASS=$((PASS+1));;
+              *) echo "❌ $NAME failed (HTTP $CODE): $(head -c 150 /tmp/r.json)"; FAIL=$((FAIL+1));;
+            esac
+          }
+
+          upsert NEXT_PUBLIC_SUPABASE_URL "https://reffwibuitzrkertuuvy.supabase.co" plain
+          upsert NEXT_PUBLIC_SUPABASE_ANON_KEY "$SUPABASE_ANON_PUBLIC_KEY" plain
+          upsert SUPABASE_SERVICE_ROLE_KEY "$SUPABASE_SERVICE_ROLE_KEY"
+          upsert TRIGGER_SECRET_KEY "$TRIGGER_SECRET_KEY"
+          upsert YOUTUBE_API_KEY "$YOUTUBE_DATA_API_V3"
+          upsert ANTHROPIC_API_KEY "$ANTHROPIC_API_KEY"
+          upsert ELEVENLABS_API_KEY "$ELEVENLABS_API_KEY"
+          upsert FAL_KEY "$FAL_KEY"
+          upsert PEXELS_API_KEY "$PEXELS_API_KEY"
+
+          echo ""
+          echo "==== SYNC: $PASS synced, $FAIL failed, $SKIP skipped ===="
+          [ "$FAIL" -eq 0 ] || exit 1
+
+      - name: Trigger redeploy
+        run: |
+          [ -z "$VERCEL_TOKEN" ] && exit 0
+          CODE=$(curl -s -o /tmp/d.json -w '%{http_code}' -X POST \
+            "https://api.vercel.com/v13/deployments?teamId=$TEAM_ID&forceNew=1" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"name\":\"fl-yt-channel-app-v1\",\"gitSource\":{\"type\":\"github\",\"repoId\":$REPO_ID,\"ref\":\"$DEPLOY_REF\"}}")
+          case "$CODE" in
+            200|201) echo "✅ Redeploy triggered: $(grep -o '"url":"[^"]*"' /tmp/d.json | head -1)";;
+            *) echo "❌ Redeploy failed (HTTP $CODE): $(head -c 200 /tmp/d.json)"; exit 1;;
+          esac
