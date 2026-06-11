@@ -135,8 +135,7 @@ export default function StyleguidePage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardTitle>Pipeline flow</CardTitle>
-          <div className="overflow-x-auto pb-2">
-            <FlowDiagram
+          <FlowDiagram
               nodes={[
                 { key: "ideas", label: "Ideas", icon: Lightbulb, count: 3 },
                 { key: "script", label: "Script", icon: FileText, count: 1 },
@@ -151,7 +150,6 @@ export default function StyleguidePage() {
                 { key: "ready", label: "Ready", icon: Upload, count: 1 },
               ]}
             />
-          </div>
         </Card>
 
         <Card>

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Settings, Sparkles } from "lucide-react";
+import { Bell, LogOut, Settings, Sparkles } from "lucide-react";
+import { signOut } from "@/lib/actions/auth";
 import { cn } from "@/lib/cn";
 
 const NAV_ITEMS = [
@@ -13,6 +14,9 @@ const NAV_ITEMS = [
 
 export function TopNav() {
   const pathname = usePathname();
+
+  // The login screen renders its own centered layout; no nav chrome there.
+  if (pathname === "/login") return null;
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 py-5 sm:px-8">
@@ -63,9 +67,16 @@ export function TopNav() {
         >
           <Settings className="size-4" />
         </Link>
-        <span className="grid size-10 place-items-center rounded-full bg-accent text-sm font-bold text-ink shadow-card">
-          C
-        </span>
+        <form action={signOut}>
+          <button
+            type="submit"
+            aria-label="Sign out"
+            title="Sign out"
+            className="grid size-10 place-items-center rounded-full bg-card text-ink shadow-card transition-colors hover:bg-coral/15 hover:text-coral"
+          >
+            <LogOut className="size-4" />
+          </button>
+        </form>
       </div>
     </header>
   );
