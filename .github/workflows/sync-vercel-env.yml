@@ -7,6 +7,14 @@ name: Sync Vercel Env
 
 on:
   workflow_dispatch:
+    inputs:
+      vercel_token:
+        description: >-
+          Vercel API token (fallback when the VERCEL_TOKEN secret is not
+          configured). Prefer the secret — dispatch inputs are retained in
+          run metadata.
+        required: false
+        type: string
 
 env:
   PROJECT_ID: prj_rkpoDeBAEVf6P1Es1uko0gsSez9D
@@ -18,8 +26,11 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN || inputs.vercel_token }}
     steps:
+      - name: Mask token input
+        run: |
+          [ -z "$VERCEL_TOKEN" ] || echo "::add-mask::$VERCEL_TOKEN"
       - name: Upsert environment variables
         env:
           SUPABASE_ANON_PUBLIC_KEY: ${{ secrets.SUPABASE_ANON_PUBLIC_KEY }}
