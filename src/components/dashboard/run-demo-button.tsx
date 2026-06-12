@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, Rocket } from "lucide-react";
 import { runDemoPipelineAction } from "@/lib/actions/pipeline";
 
@@ -8,6 +9,7 @@ import { runDemoPipelineAction } from "@/lib/actions/pipeline";
 export function RunDemoButton({ projectId }: { projectId: string }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
+  const router = useRouter();
 
   return (
     <div className="flex flex-col items-end gap-1">
@@ -19,6 +21,8 @@ export function RunDemoButton({ projectId }: { projectId: string }) {
             setError(undefined);
             const r = await runDemoPipelineAction(projectId);
             if (!r.ok && r.error) setError(r.error);
+            // Land where the result is: the new idea card in the queue.
+            else router.push(`/projects/${projectId}/review`);
           })
         }
         className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"

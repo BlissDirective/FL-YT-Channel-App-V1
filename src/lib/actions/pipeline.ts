@@ -14,13 +14,26 @@ function refresh(projectId: string) {
   revalidatePath("/settings");
 }
 
+/** Server-action exceptions reach clients as opaque digests in production;
+    convert them to readable inline errors instead. */
+async function guarded(fn: () => Promise<PipelineResult>): Promise<PipelineResult> {
+  try {
+    return await fn();
+  } catch (err) {
+    console.error("pipeline action failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 export async function approveGateAction(
   projectId: string,
   videoId: string,
 ): Promise<PipelineResult> {
-  const result = await decideGate({ videoId, decision: "approved" });
-  refresh(projectId);
-  return { ok: result.ok, error: result.error };
+  return guarded(async () => {
+    const result = await decideGate({ videoId, decision: "approved" });
+    refresh(projectId);
+    return { ok: result.ok, error: result.error };
+  });
 }
 
 export async function requestRevisionAction(
@@ -29,18 +42,22 @@ export async function requestRevisionAction(
   notes: string,
 ): Promise<PipelineResult> {
   if (!notes.trim()) return { ok: false, error: "Add a note so the revision has direction." };
-  const result = await decideGate({ videoId, decision: "revision", notes: notes.trim() });
-  refresh(projectId);
-  return { ok: result.ok, error: result.error };
+  return guarded(async () => {
+    const result = await decideGate({ videoId, decision: "revision", notes: notes.trim() });
+    refresh(projectId);
+    return { ok: result.ok, error: result.error };
+  });
 }
 
 export async function killVideoAction(
   projectId: string,
   videoId: string,
 ): Promise<PipelineResult> {
-  const result = await decideGate({ videoId, decision: "killed" });
-  refresh(projectId);
-  return { ok: result.ok, error: result.error };
+  return guarded(async () => {
+    const result = await decideGate({ videoId, decision: "killed" });
+    refresh(projectId);
+    return { ok: result.ok, error: result.error };
+  });
 }
 
 /** Retry a paused video (after raising a budget cap or clearing the kill
@@ -49,13 +66,19 @@ export async function resumeVideoAction(
   projectId: string,
   videoId: string,
 ): Promise<PipelineResult> {
-  const result = await runPipeline(videoId);
-  refresh(projectId);
-  return { ok: result.ok, error: result.error };
+  return guarded(async () => {
+    const result = await runPipeline(videoId);
+    refresh(projectId);
+    return { ok: result.ok, error: result.error };
+  });
 }
 
 /** "Run demo pipeline" — queues a fresh mock video at the IDEA gate. */
 export async function runDemoPipelineAction(projectId: string): Promise<PipelineResult> {
+  return guarded(() => runDemoPipeline(projectId));
+}
+
+async function runDemoPipeline(projectId: string): Promise<PipelineResult> {
   const supabase = await createClient();
 
   const { count } = await supabase

@@ -1,0 +1,37 @@
+name: DB Diagnose
+
+# Read-only pipeline state snapshot for debugging deployed behavior.
+# Runs whenever this file is touched; results appear in the job log.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/db-diagnose.yml
+
+env:
+  SUPABASE_PROJECT_REF: reffwibuitzrkertuuvy
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Snapshot pipeline state
+        env:
+          PGPASSWORD: ${{ secrets.SUPABASE_PASSWORD }}
+        run: |
+          which psql || { sudo apt-get -qq update && sudo apt-get -qq install -y postgresql-client; }
+          HOST=$(cat .github/supabase-pooler-host)
+          CONN="host=$HOST port=5432 user=postgres.$SUPABASE_PROJECT_REF dbname=postgres sslmode=require"
+          q() { echo ""; echo "==== $1 ===="; psql "$CONN" -c "$2"; }
+
+          q "MIGRATIONS" "select name, applied_at from public._migrations order by name;"
+          q "PROJECTS" "select id, name, status, is_demo, autonomy, budget->>'perVideoUsd' as per_video, budget->>'monthlyUsd' as monthly from projects order by created_at;"
+          q "VIDEOS (newest 15)" "select left(id::text,8) as id, left(title,40) as title, status, paused_reason, total_cost_usd, to_char(created_at,'MM-DD HH24:MI') as created from videos order by created_at desc limit 15;"
+          q "APPROVALS (newest 10)" "select left(video_id::text,8) as video, gate, decision, decided_by, left(coalesce(notes,''),30) as notes, to_char(created_at,'MM-DD HH24:MI') as at from approvals order by created_at desc limit 10;"
+          q "SCRIPTS" "select left(video_id::text,8) as video, version, runtime_sec, to_char(created_at,'MM-DD HH24:MI') as at from scripts order by created_at desc limit 10;"
+          q "ASSETS BY KIND" "select kind, count(*) from assets group by kind order by kind;"
+          q "COST LEDGER (newest 10)" "select provider, left(description,40) as description, usd, to_char(at,'MM-DD HH24:MI') as at from cost_ledger order by at desc limit 10;"
+          q "APP SETTINGS" "select key, value from app_settings;"
+          q "PUSH SUBSCRIPTIONS" "select count(*) from push_subscriptions;"

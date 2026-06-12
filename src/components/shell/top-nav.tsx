@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Bell, LogOut, Settings, Sparkles } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { cn } from "@/lib/cn";
+import { BackButton } from "./back-button";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/" },
@@ -20,14 +21,17 @@ export function TopNav() {
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 py-5 sm:px-8">
-      <Link href="/" className="flex items-center gap-3">
-        <span className="grid size-10 place-items-center rounded-2xl bg-ink text-accent">
-          <Sparkles className="size-5" fill="currentColor" />
-        </span>
-        <span className="text-lg font-bold tracking-tight">
-          Faceless Studio
-        </span>
-      </Link>
+      <div className="flex items-center gap-2">
+        <BackButton />
+        <Link href="/" className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-2xl bg-ink text-accent">
+            <Sparkles className="size-5" fill="currentColor" />
+          </span>
+          <span className="text-lg font-bold tracking-tight">
+            Faceless Studio
+          </span>
+        </Link>
+      </div>
 
       <nav className="hidden items-center gap-1 rounded-full bg-card-warm p-1 shadow-card sm:flex">
         {NAV_ITEMS.map((item) => {

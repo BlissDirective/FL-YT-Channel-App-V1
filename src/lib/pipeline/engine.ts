@@ -115,11 +115,16 @@ async function arriveAtGate(
   project: Project,
   gate: ApprovalGate,
 ): Promise<void> {
-  await sendPushToAll({
-    title: `${GATE_LABELS[gate]} ready for review`,
-    body: `“${video.title}” — ${project.name}`,
-    url: `/projects/${project.id}/review`,
-  });
+  try {
+    await sendPushToAll({
+      title: `${GATE_LABELS[gate]} ready for review`,
+      body: `“${video.title}” — ${project.name}`,
+      url: `/projects/${project.id}/review`,
+    });
+  } catch (err) {
+    // Push is best-effort — never let delivery problems block the pipeline.
+    console.error("web-push delivery failed:", err);
+  }
 
   const mode: AutonomyMode = project.autonomy?.[gate] ?? "assist";
   if (mode !== "autopilot") return;
