@@ -42,7 +42,7 @@ jobs:
           YOUTUBE_DATA_API_V3: ${{ secrets.YOUTUBE_DATA_API_V3 }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-          FAL_KEY: ${{ secrets.FAL_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY || secrets.FAL_AI_FULL_ACCESS_DEVELOPMENT_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
