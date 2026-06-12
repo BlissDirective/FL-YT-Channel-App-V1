@@ -8,6 +8,8 @@ import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { ReviewQueue } from "./review-queue";
 
 export const dynamic = "force-dynamic";
+// Approvals trigger live script/voiceover stages via actions on this route.
+export const maxDuration = 300;
 
 export default async function ReviewPage({
   params,

@@ -94,6 +94,14 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
       {gate === "SCRIPT" && <ScriptBody item={item} />}
       {gate === "ASSETS" && <AssetsBody item={item} />}
       {gate === "FINAL" && <FinalBody item={item} />}
+      {(gate === "SCRIPT" || gate === "ASSETS") && (
+        <a
+          href={`/projects/${projectId}/videos/${video.id}`}
+          className="text-sm font-semibold text-ink underline decoration-accent decoration-2 underline-offset-4"
+        >
+          Open script review — read along, listen, edit →
+        </a>
+      )}
       {!gate && (
         <p className="text-sm text-muted">
           {video.status === "NEEDS_REVISION"

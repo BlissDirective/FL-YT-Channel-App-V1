@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { decideGate, runPipeline } from "@/lib/pipeline/engine";
+import {
+  decideGate,
+  editScriptBeat,
+  editVideoMetadata,
+  runPipeline,
+} from "@/lib/pipeline/engine";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 
 export type PipelineResult = { ok: boolean; error?: string };
@@ -113,6 +118,99 @@ async function runDemoPipeline(projectId: string): Promise<PipelineResult> {
   const result = await runPipeline(video.id);
   refresh(projectId);
   return { ok: result.ok, error: result.error };
+}
+
+/** "Queue topic" — start a real video from a typed topic (Phase 4). */
+export async function queueTopicAction(
+  projectId: string,
+  topic: string,
+): Promise<PipelineResult> {
+  const clean = topic.trim();
+  if (!clean) return { ok: false, error: "Type a topic first." };
+  return guarded(async () => {
+    const supabase = await createClient();
+    const title = clean
+      .replace(/\s+/g, " ")
+      .replace(/^./, (c) => c.toUpperCase());
+    const { data: video, error } = await supabase
+      .from("videos")
+      .insert({ project_id: projectId, title, topic: clean, status: "IDEA" })
+      .select("id")
+      .single();
+    if (error || !video) return { ok: false, error: error?.message ?? "Insert failed" };
+    const result = await runPipeline(video.id);
+    refresh(projectId);
+    return { ok: result.ok, error: result.error };
+  });
+}
+
+export async function editScriptBeatAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  text: string,
+): Promise<PipelineResult> {
+  if (!text.trim()) return { ok: false, error: "Beat text cannot be empty." };
+  return guarded(async () => {
+    const result = await editScriptBeat({ videoId, beatIdx, text: text.trim() });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    refresh(projectId);
+    return result;
+  });
+}
+
+export async function editVideoMetadataAction(
+  projectId: string,
+  videoId: string,
+  title: string,
+  description: string,
+): Promise<PipelineResult> {
+  if (!title.trim()) return { ok: false, error: "Title cannot be empty." };
+  return guarded(async () => {
+    const result = await editVideoMetadata({
+      videoId,
+      title: title.trim(),
+      description,
+    });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    refresh(projectId);
+    return result;
+  });
+}
+
+/** Save a new active version of a project's prompt template. */
+export async function saveTemplateAction(
+  projectId: string,
+  kind: string,
+  body: string,
+): Promise<PipelineResult> {
+  if (!body.trim()) return { ok: false, error: "Template cannot be empty." };
+  return guarded(async () => {
+    const supabase = await createClient();
+    const { data: latest } = await supabase
+      .from("prompt_templates")
+      .select("version")
+      .eq("project_id", projectId)
+      .eq("kind", kind)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    await supabase
+      .from("prompt_templates")
+      .update({ active: false })
+      .eq("project_id", projectId)
+      .eq("kind", kind);
+    const { error } = await supabase.from("prompt_templates").insert({
+      project_id: projectId,
+      kind,
+      version: (latest?.version ?? 0) + 1,
+      body: body.trim(),
+      active: true,
+    });
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/projects/${projectId}/settings`);
+    return { ok: true };
+  });
 }
 
 export async function setKillSwitchAction(enabled: boolean): Promise<void> {

@@ -1,7 +1,16 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { Check, Mic, Palette, Settings2, Sparkles, Target } from "lucide-react";
+import { useActionState, useRef, useState } from "react";
+import {
+  Check,
+  Mic,
+  Palette,
+  Pause,
+  Play,
+  Settings2,
+  Sparkles,
+  Target,
+} from "lucide-react";
 import { createProject, type ProjectResult } from "@/lib/actions/projects";
 import type { Voice } from "@/lib/adapters/voice";
 import { cn } from "@/lib/cn";
@@ -219,28 +228,37 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
         {/* Step 3 — Voice */}
         <div className={cn("space-y-3", step !== 2 && "hidden")}>
           <p className="text-sm text-muted">
-            Pick a channel voice. These are sample voices — your real ElevenLabs
-            library appears here once the voice API key is connected (Phase 4).
+            {voices.some((v) => v.previewUrl)
+              ? "Pick a channel voice from your ElevenLabs library — tap ▶ to hear a preview."
+              : "Pick a channel voice. These are sample voices — your real ElevenLabs library appears here once the voice API key is connected."}
           </p>
           {voices.map((v) => (
-            <button
+            <div
               key={v.id}
-              type="button"
-              onClick={() => setVoiceId(v.id)}
               className={cn(
-                "flex w-full items-center gap-3 rounded-card p-4 text-left transition-colors",
+                "flex w-full items-center gap-3 rounded-card p-4 transition-colors",
                 voiceId === v.id ? "bg-accent-soft" : "bg-card-warm hover:bg-accent-soft/50",
               )}
             >
-              <span className="grid size-10 place-items-center rounded-xl bg-card text-ink shadow-card">
-                <Mic className="size-4" />
-              </span>
-              <span className="flex-1">
-                <span className="block text-sm font-semibold">{v.name}</span>
-                <span className="block text-xs text-muted">{v.description}</span>
-              </span>
-              {voiceId === v.id && <Check className="size-5 text-ink" />}
-            </button>
+              {v.previewUrl ? (
+                <VoicePreviewButton url={v.previewUrl} />
+              ) : (
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-card text-ink shadow-card">
+                  <Mic className="size-4" />
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setVoiceId(v.id)}
+                className="flex flex-1 items-center gap-3 text-left"
+              >
+                <span className="flex-1">
+                  <span className="block text-sm font-semibold">{v.name}</span>
+                  <span className="block text-xs text-muted">{v.description}</span>
+                </span>
+                {voiceId === v.id && <Check className="size-5 shrink-0 text-ink" />}
+              </button>
+            </div>
           ))}
         </div>
 
@@ -337,6 +355,31 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
         )}
       </div>
     </form>
+  );
+}
+
+function VoicePreviewButton({ url }: { url: string }) {
+  const ref = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+  return (
+    <>
+      <audio
+        ref={ref}
+        src={url}
+        preload="none"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
+      />
+      <button
+        type="button"
+        aria-label={playing ? "Pause preview" : "Play preview"}
+        onClick={() => (playing ? ref.current?.pause() : ref.current?.play())}
+        className="grid size-10 shrink-0 place-items-center rounded-xl bg-card text-ink shadow-card hover:bg-accent"
+      >
+        {playing ? <Pause className="size-4" /> : <Play className="size-4" />}
+      </button>
+    </>
   );
 }
 

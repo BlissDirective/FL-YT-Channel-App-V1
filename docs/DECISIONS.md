@@ -124,3 +124,30 @@ standing rules (Full-App-Development-plan.md §5).
   on send. Push is a soft dependency — everything works without keys.
 - **Co-pilot mode currently behaves like Assist** — auto-approval needs the
   Phase 8 QC agent's confidence score; only Autopilot auto-resolves gates.
+
+## Phase 4 (2026-06-12)
+
+- **Key audit before starting:** verify-secrets extended to test Anthropic,
+  ElevenLabs, fal.ai, and Pexels keys live. Result: Anthropic ✅,
+  ElevenLabs ✅ (starter tier), Pexels ✅; the fal key exists as
+  `FAL_AI_FULL_ACCESS_DEVELOPMENT_KEY` (now recognized by the workflows and
+  mapped to `FAL_KEY` for Phase 5).
+- **Script generation** uses `claude-sonnet-4-6` with a forced tool call
+  (`deliver_script`) for structured beats/titles/description/tags/chapters;
+  real cost computed from token usage into the ledger. The per-project
+  prompt template (versioned in `prompt_templates`, editable in project
+  settings) is the brief; `{{placeholders}}` are filled by the engine.
+- **Voiceover** synthesizes per beat (parallel) via ElevenLabs
+  `with-timestamps`, storing MP3s in the private `media` bucket and word
+  timings in asset meta — this powers the read-along highlight and lets the
+  editor re-voice only edited sections. Beat-level files also map cleanly to
+  Remotion's beat sequencer in Phase 6.
+- **Serverless stage budget:** routes that run live stages declare
+  `maxDuration = 300` (Vercel fluid compute). Trigger.dev migration remains
+  planned for when render workloads (Phase 6) exceed this window.
+- **ElevenLabs quota caution:** starter tier ≈ 30k credits/month; one
+  8-minute video ≈ 7k characters. Default demo runs keep using mock voices
+  unless the project has a real voice selected, so quota is only spent
+  deliberately.
+- **Mock fallbacks retained everywhere** (standing rule 4): no keys → the
+  Phase 3 mock pipeline keeps working unchanged.

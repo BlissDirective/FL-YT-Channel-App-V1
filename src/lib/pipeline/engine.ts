@@ -10,8 +10,12 @@ import {
 } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import { sendPushToAll } from "@/lib/push";
-import type { Project, Video } from "@/lib/db/types";
-import { MOCK_COSTS, mockScript } from "./mock-content";
+import { generateScript } from "@/lib/adapters/script";
+import { isVoiceLive, synthesizeSpeech } from "@/lib/adapters/voice";
+import { uploadMedia } from "@/lib/storage";
+import type { Project, ScriptBeat, Video } from "@/lib/db/types";
+import { MOCK_COSTS } from "./mock-content";
+import { DEFAULT_SCRIPT_TEMPLATE } from "./templates";
 
 /**
  * Phase 3 orchestration backbone — a DB-driven engine with the same
@@ -167,19 +171,43 @@ async function nextScriptVersion(db: Db, videoId: string): Promise<number> {
   return (data?.version ?? 0) + 1;
 }
 
-// ── Stage bodies (mock providers) ─────────────────────────────────────
+/** The project's active script template, falling back to the default. */
+export async function getActiveTemplate(
+  db: Db,
+  projectId: string,
+  kind = "script",
+): Promise<string> {
+  const { data } = await db
+    .from("prompt_templates")
+    .select("body")
+    .eq("project_id", projectId)
+    .eq("kind", kind)
+    .eq("active", true)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data?.body as string) || DEFAULT_SCRIPT_TEMPLATE;
+}
+
+// ── Stage bodies (live adapters with mock fallback) ───────────────────
 
 async function runScripting(db: Db, video: Video, project: Project) {
   const notes = await latestNotes(db, video.id);
-  await sleep(STAGE_DELAY_MS);
+  const template = await getActiveTemplate(db, project.id);
 
-  const draft = mockScript({
+  const draft = await generateScript({
     title: video.title,
     topic: video.topic,
+    niche: project.niche,
+    audience: project.audience,
+    angle: project.angle,
     tone: project.tone,
+    format: video.format,
     targetLengthSec: video.target_length_sec,
+    template,
     revisionNotes: notes,
   });
+
   await db.from("scripts").insert({
     video_id: video.id,
     version: await nextScriptVersion(db, video.id),
@@ -188,9 +216,53 @@ async function runScripting(db: Db, video: Video, project: Project) {
     runtime_sec: draft.runtimeSec,
     metadata: draft.metadata,
   });
-  await recordCost(db, video, MOCK_COSTS.scriptGeneration, `“${video.title}”`);
-  await recordCost(db, video, MOCK_COSTS.metadataPackage);
+  await recordCost(
+    db,
+    video,
+    {
+      provider: draft.provider === "anthropic" ? "anthropic" : "mock:anthropic",
+      usd: draft.costUsd,
+      description: `Script draft (${draft.provider === "anthropic" ? "Claude" : "mock"})`,
+    },
+    `“${video.title}”`,
+  );
   await setStatus(db, video.id, "SCRIPT_READY");
+}
+
+/** Synthesize live VO for one beat and persist it as a per-beat asset. */
+export async function synthesizeBeatVo(
+  db: Db,
+  video: Video,
+  project: Project,
+  beat: ScriptBeat,
+): Promise<{ costUsd: number }> {
+  const result = await synthesizeSpeech({
+    text: beat.text,
+    voiceId: project.voice_id ?? "",
+  });
+  const path = `videos/${video.id}/vo-beat-${beat.idx}.mp3`;
+  await uploadMedia(path, result.audio, "audio/mpeg");
+
+  await db
+    .from("assets")
+    .delete()
+    .eq("video_id", video.id)
+    .eq("kind", "vo")
+    .eq("beat_index", beat.idx);
+  await db.from("assets").insert({
+    video_id: video.id,
+    kind: "vo",
+    provider: "elevenlabs",
+    storage_path: path,
+    beat_index: beat.idx,
+    meta: {
+      durationSec: result.durationSec,
+      voice: project.voice_name ?? project.voice_id,
+      words: result.words,
+    },
+    cost_usd: result.costUsd,
+  });
+  return { costUsd: result.costUsd };
 }
 
 async function runAssetGeneration(db: Db, video: Video, project: Project) {
@@ -201,7 +273,7 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     .order("version", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const beats = (script?.beats ?? []) as { idx: number; shotType: string }[];
+  const beats = (script?.beats ?? []) as ScriptBeat[];
 
   // Re-running after a revision replaces the previous attempt's assets.
   await db
@@ -210,16 +282,35 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     .eq("video_id", video.id)
     .in("kind", ["vo", "clip", "thumb", "captions"]);
 
-  await sleep(STAGE_DELAY_MS);
-  await db.from("assets").insert({
-    video_id: video.id,
-    kind: "vo",
-    provider: "mock:elevenlabs",
-    storage_path: `mock/${video.id}/vo.mp3`,
-    meta: { durationSec: video.target_length_sec, voice: project.voice_name ?? "Sage" },
-    cost_usd: MOCK_COSTS.voiceover.usd,
-  });
-  await recordCost(db, video, MOCK_COSTS.voiceover);
+  const liveVoice =
+    isVoiceLive() && project.voice_id && !project.voice_id.startsWith("mock-");
+  if (liveVoice && beats.length > 0) {
+    // Per-beat synthesis in parallel keeps the stage inside the function
+    // window; per-beat files also let the script editor regenerate only
+    // edited sections.
+    const results = await Promise.all(
+      beats.map((beat) => synthesizeBeatVo(db, video, project, beat)),
+    );
+    for (const [i, r] of results.entries()) {
+      await recordCost(
+        db,
+        video,
+        { provider: "elevenlabs", usd: r.costUsd, description: "Voiceover synthesis + timestamps" },
+        `beat ${i + 1}`,
+      );
+    }
+  } else {
+    await sleep(STAGE_DELAY_MS);
+    await db.from("assets").insert({
+      video_id: video.id,
+      kind: "vo",
+      provider: "mock:elevenlabs",
+      storage_path: `mock/${video.id}/vo.mp3`,
+      meta: { durationSec: video.target_length_sec, voice: project.voice_name ?? "Sage" },
+      cost_usd: MOCK_COSTS.voiceover.usd,
+    });
+    await recordCost(db, video, MOCK_COSTS.voiceover);
+  }
 
   for (const beat of beats) {
     const stock = beat.shotType === "stock";
@@ -342,6 +433,106 @@ export async function runPipeline(videoId: string): Promise<EngineResult> {
         return { ok: true }; // APPROVED / TRACKING / KILLED / NEEDS_REVISION
     }
   }
+  return { ok: true };
+}
+
+/** Inline script edit: saves a new script version with the edited beat and
+    re-synthesizes VO for just that beat (live mode only). */
+export async function editScriptBeat(opts: {
+  videoId: string;
+  beatIdx: number;
+  text: string;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+
+  const { data: script } = await db
+    .from("scripts")
+    .select("*")
+    .eq("video_id", video.id)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!script) return { ok: false, error: "No script to edit" };
+
+  const beats = (script.beats as ScriptBeat[]).map((b) =>
+    b.idx === opts.beatIdx ? { ...b, text: opts.text } : b,
+  );
+  await db.from("scripts").insert({
+    video_id: video.id,
+    version: await nextScriptVersion(db, video.id),
+    body: beats.map((b) => b.text).join("\n\n"),
+    beats,
+    runtime_sec: script.runtime_sec,
+    metadata: script.metadata,
+  });
+
+  // Regenerate VO only for the edited section, and only if VO exists yet
+  // (i.e. the video has passed the asset stage at least once).
+  const { data: voAsset } = await db
+    .from("assets")
+    .select("id")
+    .eq("video_id", video.id)
+    .eq("kind", "vo")
+    .eq("beat_index", opts.beatIdx)
+    .maybeSingle();
+  const liveVoice =
+    isVoiceLive() && project.voice_id && !project.voice_id.startsWith("mock-");
+  if (voAsset && liveVoice) {
+    const beat = beats.find((b) => b.idx === opts.beatIdx)!;
+    const r = await synthesizeBeatVo(db, video, project, beat);
+    await recordCost(
+      db,
+      video,
+      { provider: "elevenlabs", usd: r.costUsd, description: "Voiceover re-synthesis (edited beat)" },
+      `beat ${opts.beatIdx + 1}`,
+    );
+  }
+  return { ok: true };
+}
+
+/** Title/description edits from the script review screen — versioned like
+    any other script change. */
+export async function editVideoMetadata(opts: {
+  videoId: string;
+  title: string;
+  description: string;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+
+  const { data: script } = await db
+    .from("scripts")
+    .select("*")
+    .eq("video_id", video.id)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!script) return { ok: false, error: "No script yet" };
+
+  const metadata = {
+    ...(script.metadata as Record<string, unknown>),
+    titles: [
+      opts.title,
+      ...(((script.metadata as { titles?: string[] }).titles ?? []).filter(
+        (t) => t !== opts.title,
+      )),
+    ].slice(0, 3),
+    description: opts.description,
+  };
+  await db.from("scripts").insert({
+    video_id: video.id,
+    version: await nextScriptVersion(db, video.id),
+    body: script.body,
+    beats: script.beats,
+    runtime_sec: script.runtime_sec,
+    metadata,
+  });
+  await db.from("videos").update({ title: opts.title }).eq("id", video.id);
   return { ok: true };
 }
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getMockVoices } from "@/lib/adapters/voice";
+import { getVoices } from "@/lib/adapters/voice";
 import { ProjectWizard } from "./wizard";
 
 export default async function NewProjectPage() {
@@ -12,7 +12,7 @@ export default async function NewProjectPage() {
       </div>
     );
   }
-  const voices = await getMockVoices();
+  const voices = await getVoices();
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 pt-2">

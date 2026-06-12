@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getProject } from "@/lib/db/queries";
+import { createClient } from "@/lib/supabase/server";
+import { DEFAULT_SCRIPT_TEMPLATE } from "@/lib/pipeline/templates";
 import { SettingsForm } from "./settings-form";
+import { TemplateEditor } from "./template-editor";
 
 export default async function ProjectSettingsPage({
   params,
@@ -12,6 +15,17 @@ export default async function ProjectSettingsPage({
   const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
+
+  const supabase = await createClient();
+  const { data: template } = await supabase
+    .from("prompt_templates")
+    .select("body, version")
+    .eq("project_id", id)
+    .eq("kind", "script")
+    .eq("active", true)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 pt-2">
@@ -26,6 +40,12 @@ export default async function ProjectSettingsPage({
         <p className="mt-1 text-sm text-muted">{project.name}</p>
       </div>
       <SettingsForm project={project} />
+      <TemplateEditor
+        projectId={id}
+        initialBody={template?.body ?? DEFAULT_SCRIPT_TEMPLATE}
+        version={template?.version ?? 0}
+        defaultBody={DEFAULT_SCRIPT_TEMPLATE}
+      />
     </div>
   );
 }

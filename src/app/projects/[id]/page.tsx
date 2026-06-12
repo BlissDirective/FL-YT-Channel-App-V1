@@ -25,8 +25,11 @@ import { StatCard } from "@/components/ui/stat-card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { RunDemoButton } from "@/components/dashboard/run-demo-button";
+import { QueueTopic } from "@/components/dashboard/queue-topic";
 
 export const dynamic = "force-dynamic";
+// Live script + voiceover stages run inside actions on this route.
+export const maxDuration = 300;
 
 const STAGE_ICONS = {
   ideas: Lightbulb,
@@ -108,6 +111,8 @@ export default async function ProjectHome({
           </Link>
         </div>
       </div>
+
+      <QueueTopic projectId={id} />
 
       <div className="grid gap-4 sm:grid-cols-4">
         <StatCard icon={Clapperboard} label="Videos" value={String(videos.length)} />
