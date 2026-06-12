@@ -99,6 +99,19 @@ export async function updateProject(
 export async function createDemoProject(): Promise<void> {
   const supabase = await createClient();
 
+  // Idempotent: double-taps before the page revalidates must not create
+  // duplicate demo projects.
+  const { data: existing } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("is_demo", true)
+    .limit(1)
+    .maybeSingle();
+  if (existing) {
+    revalidatePath("/");
+    return;
+  }
+
   const { data: project, error } = await supabase
     .from("projects")
     .insert({
