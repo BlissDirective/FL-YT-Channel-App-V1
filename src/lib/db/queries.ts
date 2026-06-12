@@ -1,5 +1,6 @@
+import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
-import type { Idea, Project, Video } from "./types";
+import type { Asset, CostEntry, Idea, Project, Script, Video } from "./types";
 
 export async function getProjects(): Promise<Project[]> {
   const supabase = await createClient();
@@ -115,6 +116,83 @@ export async function getMonthlyBudgetUsd(): Promise<number> {
     (sum, p) => sum + Number((p.budget as { monthlyUsd?: number })?.monthlyUsd ?? 0),
     0,
   );
+}
+
+export type ReviewItem = {
+  video: Video;
+  script: Script | null;
+  assets: Asset[];
+  idea: Idea | null;
+};
+
+/** Videos needing attention on a project: at a review gate, mid-revision,
+    or paused (budget / kill switch). */
+export async function getReviewItems(projectId: string): Promise<ReviewItem[]> {
+  const supabase = await createClient();
+  const { data: videos } = await supabase
+    .from("videos")
+    .select("*")
+    .eq("project_id", projectId)
+    .order("updated_at", { ascending: false });
+
+  const attention = ((videos as Video[]) ?? []).filter(
+    (v) =>
+      GATE_FOR_STATUS[v.status] !== undefined ||
+      v.status === "NEEDS_REVISION" ||
+      (v.paused_reason && !["KILLED", "APPROVED", "TRACKING"].includes(v.status)),
+  );
+  if (attention.length === 0) return [];
+
+  const ids = attention.map((v) => v.id);
+  const ideaIds = attention.map((v) => v.idea_id).filter(Boolean) as string[];
+  const [{ data: scripts }, { data: assets }, { data: ideas }] = await Promise.all([
+    supabase
+      .from("scripts")
+      .select("*")
+      .in("video_id", ids)
+      .order("version", { ascending: false }),
+    supabase
+      .from("assets")
+      .select("*")
+      .in("video_id", ids)
+      .order("created_at", { ascending: true }),
+    ideaIds.length
+      ? supabase.from("ideas").select("*").in("id", ideaIds)
+      : Promise.resolve({ data: [] as Idea[] }),
+  ]);
+
+  return attention.map((video) => ({
+    video,
+    script:
+      ((scripts as Script[]) ?? []).find((s) => s.video_id === video.id) ?? null,
+    assets: ((assets as Asset[]) ?? []).filter((a) => a.video_id === video.id),
+    idea: ((ideas as Idea[]) ?? []).find((i) => i.id === video.idea_id) ?? null,
+  }));
+}
+
+/** Count of videos waiting at a review gate, for nav badges. */
+export function pendingGateCount(videos: Video[]): number {
+  return videos.filter((v) => GATE_FOR_STATUS[v.status] !== undefined).length;
+}
+
+export async function getCostLedger(limit = 12): Promise<CostEntry[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("cost_ledger")
+    .select("*")
+    .order("at", { ascending: false })
+    .limit(limit);
+  return (data as CostEntry[]) ?? [];
+}
+
+export async function getKillSwitch(): Promise<boolean> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", "kill_switch")
+    .maybeSingle();
+  return Boolean((data?.value as { enabled?: boolean })?.enabled);
 }
 
 export type PortfolioStats = {

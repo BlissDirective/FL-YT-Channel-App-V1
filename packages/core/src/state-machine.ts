@@ -45,6 +45,23 @@ export const ON_APPROVE: Partial<Record<VideoStatus, VideoStatus>> = {
   FINAL_REVIEW: "APPROVED",
 };
 
+/** Stage to re-run when a gate gets a revision request. The pipeline
+    passes the reviewer's notes into the regenerated artifact. */
+export const REVISION_TARGET: Record<ApprovalGate, VideoStatus> = {
+  IDEA: "IDEA",
+  SCRIPT: "SCRIPTING",
+  ASSETS: "GENERATING_ASSETS",
+  FINAL: "ASSEMBLING",
+};
+
+/** Human-readable gate names for cards and notifications. */
+export const GATE_LABELS: Record<ApprovalGate, string> = {
+  IDEA: "Idea",
+  SCRIPT: "Script",
+  ASSETS: "Assets",
+  FINAL: "Final cut",
+};
+
 /** Pipeline stages as displayed on the project FlowDiagram. */
 export const PIPELINE_STAGES = [
   { key: "ideas", label: "Ideas", statuses: ["IDEA", "IDEA_APPROVED"] },

@@ -98,3 +98,29 @@ standing rules (Full-App-Development-plan.md §5).
   idea arrivals), monthly spend meter vs. aggregate project budgets, and
   Supabase Realtime publication + `RealtimeRefresher` (server-rendered pages
   re-render on any videos/ideas/projects change).
+
+## Phase 3 (2026-06-12)
+
+- **Orchestration backbone is DB-driven, not Trigger.dev — for now.**
+  Deploying Trigger.dev tasks requires a personal access token (`tr_pat_…`)
+  for CI deploys; we only hold the runtime `TRIGGER_SECRET_KEY`. Since every
+  Phase 3 stage is a mock that completes in seconds, the engine
+  (`src/lib/pipeline/engine.ts`) runs stages inside server actions with the
+  exact waitpoint semantics the plan assigns to Trigger.dev: stage → gate →
+  stop until a decision (human, or the engine itself in Autopilot) resolves
+  it. Phase 4 moves stage bodies onto Trigger.dev tasks behind this same
+  interface when long-running live provider calls make durability matter.
+- **Approvals are decision records, not pending rows.** The review queue
+  derives from `videos.status` (via `GATE_FOR_STATUS`); `approvals` records
+  every resolution (approve / revision+notes / kill) with `decided_by`
+  (human | autopilot). Avoids pending-row bookkeeping drift.
+- **Budget guard runs before every paid stage** (per-video and monthly
+  caps): the video keeps its status, gets `videos.paused_reason`, and shows
+  a Resume button once caps are raised. Same mechanism backs the global
+  kill switch (`app_settings.kill_switch`).
+- **Web push** uses VAPID keys generated at deploy time and stored only in
+  Vercel env (`NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`);
+  subscriptions live in `push_subscriptions` with expired endpoints pruned
+  on send. Push is a soft dependency — everything works without keys.
+- **Co-pilot mode currently behaves like Assist** — auto-approval needs the
+  Phase 8 QC agent's confidence score; only Autopilot auto-resolves gates.

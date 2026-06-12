@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { TopNav } from "@/components/shell/top-nav";
 import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
@@ -6,6 +6,18 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Faceless Studio",
   description: "Autonomous faceless YouTube channel studio",
+  appleWebApp: {
+    capable: true,
+    title: "Faceless Studio",
+    statusBarStyle: "default",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#EDEBE7",
 };
 
 export default function RootLayout({

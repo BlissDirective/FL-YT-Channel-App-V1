@@ -148,9 +148,9 @@ export default async function Home() {
                 label={`$${stats.monthlyCostUsd.toFixed(0)}`}
               />
               <p className="mt-3 text-xs text-muted">
-                Provider costs are recorded per call once the production
-                pipeline goes live (Phase 3+). Budget caps pause the pipeline
-                before any overspend.
+                Every provider call is recorded here as it happens. Budget
+                caps pause the pipeline before any overspend — see the full
+                ledger in Settings.
               </p>
             </Card>
           </div>

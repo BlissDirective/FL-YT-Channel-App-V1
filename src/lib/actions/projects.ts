@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { mockScript } from "@/lib/pipeline/mock-content";
 import type { BrandKit, Budget } from "@/lib/db/types";
 
 export type ProjectResult = { error?: string };
@@ -128,7 +129,38 @@ export async function createDemoProject(): Promise<void> {
   ];
 
   for (const v of demoVideos) {
-    await supabase.from("videos").insert({ project_id: project.id, ...v });
+    const { data: video } = await supabase
+      .from("videos")
+      .insert({ project_id: project.id, ...v })
+      .select("id")
+      .single();
+    // Videos seeded at or past the script stage get coherent mock artifacts
+    // so the review queue has real content to show.
+    if (video && v.status !== "IDEA") {
+      const draft = mockScript({
+        title: v.title,
+        topic: v.topic,
+        tone: "curious",
+        targetLengthSec: 480,
+      });
+      await supabase.from("scripts").insert({
+        video_id: video.id,
+        version: 1,
+        body: draft.body,
+        beats: draft.beats,
+        runtime_sec: draft.runtimeSec,
+        metadata: draft.metadata,
+      });
+    }
+    if (video && v.status === "FINAL_REVIEW") {
+      await supabase.from("assets").insert({
+        video_id: video.id,
+        kind: "render",
+        provider: "mock:remotion",
+        storage_path: `mock/${video.id}/final.mp4`,
+        meta: { resolution: "1080p", durationSec: 480 },
+      });
+    }
   }
 
   await supabase.from("ideas").insert([

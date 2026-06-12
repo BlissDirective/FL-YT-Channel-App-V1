@@ -42,8 +42,65 @@ export type Video = {
   scheduled_at: string | null;
   youtube_video_id: string | null;
   total_cost_usd: number;
+  paused_reason: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type ScriptBeat = {
+  idx: number;
+  text: string;
+  visualPrompt: string;
+  shotType: "hero" | "broll" | "stock";
+};
+
+export type Script = {
+  id: string;
+  video_id: string;
+  version: number;
+  body: string;
+  beats: ScriptBeat[];
+  runtime_sec: number | null;
+  metadata: {
+    titles?: string[];
+    description?: string;
+    tags?: string[];
+    chapters?: { at: number; label: string }[];
+  };
+  created_at: string;
+};
+
+export type Asset = {
+  id: string;
+  video_id: string;
+  kind: "vo" | "clip" | "thumb" | "render" | "captions" | "music";
+  storage_path: string;
+  provider: string;
+  beat_index: number | null;
+  meta: Record<string, unknown>;
+  cost_usd: number;
+  created_at: string;
+};
+
+export type Approval = {
+  id: string;
+  video_id: string;
+  gate: ApprovalGate;
+  decision: "approved" | "revision" | "killed" | null;
+  decided_by: string | null;
+  notes: string | null;
+  decided_at: string | null;
+  created_at: string;
+};
+
+export type CostEntry = {
+  id: string;
+  project_id: string | null;
+  video_id: string | null;
+  provider: string;
+  description: string;
+  usd: number;
+  at: string;
 };
 
 export type Idea = {
