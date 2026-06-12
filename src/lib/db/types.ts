@@ -80,6 +80,8 @@ export type Asset = {
   meta: Record<string, unknown>;
   cost_usd: number;
   created_at: string;
+  /** Display URL resolved at query time (signed storage URL or external). */
+  url?: string | null;
 };
 
 export type Approval = {

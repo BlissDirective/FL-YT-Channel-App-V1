@@ -151,3 +151,29 @@ standing rules (Full-App-Development-plan.md §5).
   deliberately.
 - **Mock fallbacks retained everywhere** (standing rule 4): no keys → the
   Phase 3 mock pipeline keeps working unchanged.
+
+## Phase 5 (2026-06-12)
+
+- **Per-project voice tiers:** voice ids are namespaced (`kokoro:af_heart`
+  vs raw ElevenLabs ids) so the provider is derivable without a schema
+  change. Kokoro runs on fal.ai at ~$0.02/1k chars (~$0.15 per 8-min video,
+  ~5× cheaper than ElevenLabs turbo) — the "volume tier" for scaling video
+  count. ElevenLabs (user upgrading to Creator) stays the premium tier.
+  Voice is switchable in project settings; the wizard labels tiers.
+- **Kokoro word timings are estimated** (length-weighted distribution with
+  sentence-pause bias) since fal's endpoint returns no timestamps. Good
+  enough for read-along; upgradeable to forced alignment without schema
+  changes.
+- **VO cache (free squeeze):** `vo_cache` stores one file per unique
+  (project, voice, text-hash) under `vo-cache/{project}/`. The default
+  script template now pins an exact standard outro sentence, so every
+  video after the first reuses it at $0; identical re-runs of any beat are
+  also free. Ledger entries say "reused from cache — free" so savings are
+  visible.
+- **Visuals:** stock beats use Pexels (free, hot-linked file URLs in asset
+  meta with poster + credit); hero beats use FLUX dev ($0.025); b-roll and
+  the 3 thumbnail candidates use FLUX schnell ($0.003). Stills pan/zoom in
+  the Phase 6 Remotion render. Every generator degrades per-item to the
+  mock tile on failure — one provider hiccup never fails the stage.
+- **Script tightening** added to the default template ("every sentence must
+  earn its runtime") — shorter scripts cut TTS spend across all providers.

@@ -8,10 +8,13 @@ import {
   type AutonomyMode,
   type VideoStatus,
 } from "@studio/core";
+import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { sendPushToAll } from "@/lib/push";
 import { generateScript } from "@/lib/adapters/script";
-import { isVoiceLive, synthesizeSpeech } from "@/lib/adapters/voice";
+import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
+import { generateImage, isFalLive } from "@/lib/adapters/fal";
+import { searchStockClip } from "@/lib/adapters/stock";
 import { uploadMedia } from "@/lib/storage";
 import type { Project, ScriptBeat, Video } from "@/lib/db/types";
 import { MOCK_COSTS } from "./mock-content";
@@ -229,19 +232,58 @@ async function runScripting(db: Db, video: Video, project: Project) {
   await setStatus(db, video.id, "SCRIPT_READY");
 }
 
-/** Synthesize live VO for one beat and persist it as a per-beat asset. */
+/**
+ * Synthesize live VO for one beat and persist it as a per-beat asset.
+ * Identical text + voice within a project is synthesized once and reused
+ * from `vo_cache` (e.g. the standard outro) — repeats are free.
+ */
 export async function synthesizeBeatVo(
   db: Db,
   video: Video,
   project: Project,
   beat: ScriptBeat,
-): Promise<{ costUsd: number }> {
-  const result = await synthesizeSpeech({
-    text: beat.text,
-    voiceId: project.voice_id ?? "",
-  });
-  const path = `videos/${video.id}/vo-beat-${beat.idx}.mp3`;
-  await uploadMedia(path, result.audio, "audio/mpeg");
+): Promise<{ costUsd: number; cached: boolean; provider: string }> {
+  const voiceId = project.voice_id ?? "";
+  const textHash = createHash("sha256").update(beat.text.trim()).digest("hex");
+
+  const { data: hit } = await db
+    .from("vo_cache")
+    .select("storage_path, duration_sec, words")
+    .eq("project_id", project.id)
+    .eq("voice_id", voiceId)
+    .eq("text_hash", textHash)
+    .maybeSingle();
+
+  let storagePath: string;
+  let durationSec: number;
+  let words: unknown;
+  let costUsd = 0;
+  const provider = voiceProviderFor(voiceId);
+
+  if (hit) {
+    storagePath = hit.storage_path;
+    durationSec = Number(hit.duration_sec ?? 0);
+    words = hit.words ?? [];
+  } else {
+    const result = await synthesizeSpeech({ text: beat.text, voiceId });
+    storagePath = `vo-cache/${project.id}/${textHash.slice(0, 24)}.${result.fileExt}`;
+    await uploadMedia(storagePath, result.audio, result.contentType);
+    durationSec = result.durationSec;
+    words = result.words;
+    costUsd = result.costUsd;
+    await db.from("vo_cache").upsert(
+      {
+        project_id: project.id,
+        voice_id: voiceId,
+        text_hash: textHash,
+        storage_path: storagePath,
+        duration_sec: durationSec,
+        words,
+        cost_usd: costUsd,
+      },
+      { onConflict: "project_id,voice_id,text_hash" },
+    );
+  }
 
   await db
     .from("assets")
@@ -252,17 +294,18 @@ export async function synthesizeBeatVo(
   await db.from("assets").insert({
     video_id: video.id,
     kind: "vo",
-    provider: "elevenlabs",
-    storage_path: path,
+    provider,
+    storage_path: storagePath,
     beat_index: beat.idx,
     meta: {
-      durationSec: result.durationSec,
-      voice: project.voice_name ?? project.voice_id,
-      words: result.words,
+      durationSec,
+      voice: project.voice_name ?? voiceId,
+      words,
+      cached: Boolean(hit),
     },
-    cost_usd: result.costUsd,
+    cost_usd: costUsd,
   });
-  return { costUsd: result.costUsd };
+  return { costUsd, cached: Boolean(hit), provider };
 }
 
 async function runAssetGeneration(db: Db, video: Video, project: Project) {
@@ -282,20 +325,31 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     .eq("video_id", video.id)
     .in("kind", ["vo", "clip", "thumb", "captions"]);
 
-  const liveVoice =
-    isVoiceLive() && project.voice_id && !project.voice_id.startsWith("mock-");
-  if (liveVoice && beats.length > 0) {
-    // Per-beat synthesis in parallel keeps the stage inside the function
-    // window; per-beat files also let the script editor regenerate only
-    // edited sections.
-    const results = await Promise.all(
-      beats.map((beat) => synthesizeBeatVo(db, video, project, beat)),
-    );
-    for (const [i, r] of results.entries()) {
+  // VO, clips, and thumbnails generate in parallel; ledger writes happen
+  // sequentially afterwards (recordCost mutates the running total).
+  const liveVoice = canSynthesize(project.voice_id) && beats.length > 0;
+  const [voResults, clipResults, thumbResults] = await Promise.all([
+    liveVoice
+      ? Promise.all(beats.map((beat) => synthesizeBeatVo(db, video, project, beat)))
+      : Promise.resolve(null),
+    Promise.all(beats.map((beat) => makeBeatClip(video, project, beat))),
+    Promise.all(
+      [0, 1, 2].map((variant) => makeThumbCandidate(video, project, variant)),
+    ),
+  ]);
+
+  if (voResults) {
+    for (const [i, r] of voResults.entries()) {
       await recordCost(
         db,
         video,
-        { provider: "elevenlabs", usd: r.costUsd, description: "Voiceover synthesis + timestamps" },
+        {
+          provider: r.provider,
+          usd: r.costUsd,
+          description: r.cached
+            ? "Voiceover reused from cache — free"
+            : "Voiceover synthesis",
+        },
         `beat ${i + 1}`,
       );
     }
@@ -312,42 +366,186 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     await recordCost(db, video, MOCK_COSTS.voiceover);
   }
 
-  for (const beat of beats) {
-    const stock = beat.shotType === "stock";
-    const cost = stock ? MOCK_COSTS.stockClip : MOCK_COSTS.clip;
+  for (const clip of clipResults) {
+    await db.from("assets").insert(clip.row);
+    await recordCost(db, video, clip.cost, `beat ${(clip.row.beat_index ?? 0) + 1}`);
+  }
+  for (const thumb of thumbResults) {
+    await db.from("assets").insert(thumb.row);
+    await recordCost(db, video, thumb.cost, `candidate ${Number(thumb.row.meta.variant) + 1}`);
+  }
+
+  // Captions: aggregate the per-beat word timings into one track.
+  if (voResults) {
+    const { data: voAssets } = await db
+      .from("assets")
+      .select("beat_index, meta")
+      .eq("video_id", video.id)
+      .eq("kind", "vo")
+      .order("beat_index", { ascending: true });
+    let offset = 0;
+    const track: { w: string; start: number; end: number }[] = [];
+    for (const a of voAssets ?? []) {
+      const meta = a.meta as { durationSec?: number; words?: typeof track };
+      for (const w of meta.words ?? []) {
+        track.push({ w: w.w, start: w.start + offset, end: w.end + offset });
+      }
+      offset += Number(meta.durationSec ?? 0);
+    }
+    const captionsPath = `videos/${video.id}/captions.json`;
+    await uploadMedia(captionsPath, JSON.stringify(track), "application/json");
     await db.from("assets").insert({
+      video_id: video.id,
+      kind: "captions",
+      provider: voiceProviderFor(project.voice_id),
+      storage_path: captionsPath,
+      meta: { words: track.length, durationSec: offset },
+      cost_usd: 0,
+    });
+  } else {
+    await db.from("assets").insert({
+      video_id: video.id,
+      kind: "captions",
+      provider: "mock:elevenlabs",
+      storage_path: `mock/${video.id}/captions.json`,
+      meta: { words: 940 },
+      cost_usd: 0,
+    });
+  }
+  await setStatus(db, video.id, "ASSETS_READY");
+}
+
+type AssetDraft = {
+  row: {
+    video_id: string;
+    kind: string;
+    provider: string;
+    storage_path: string;
+    beat_index?: number;
+    meta: Record<string, unknown>;
+    cost_usd: number;
+  };
+  cost: { provider: string; usd: number; description: string };
+};
+
+/** One beat's visual: stock beats search Pexels (free), hero beats get a
+    premium FLUX render, b-roll gets the fast/cheap FLUX tier. Any provider
+    failure degrades to a mock tile rather than failing the stage. */
+async function makeBeatClip(
+  video: Video,
+  project: Project,
+  beat: ScriptBeat,
+): Promise<AssetDraft> {
+  const prompt = `${beat.visualPrompt}. ${project.brand_kit.thumbnailStyle} style, cinematic 16:9, no text, no watermark`;
+  try {
+    if (beat.shotType === "stock") {
+      const stock = await searchStockClip(beat.visualPrompt);
+      if (stock) {
+        return {
+          row: {
+            video_id: video.id,
+            kind: "clip",
+            provider: "pexels",
+            storage_path: "",
+            beat_index: beat.idx,
+            meta: {
+              shotType: beat.shotType,
+              url: stock.url,
+              posterUrl: stock.posterUrl,
+              durationSec: stock.durationSec,
+              pexelsId: stock.pexelsId,
+              credit: stock.photographer,
+            },
+            cost_usd: 0,
+          },
+          cost: { provider: "pexels", usd: 0, description: "Licensed stock clip — free" },
+        };
+      }
+      // No stock match → fall through to a generated still.
+    }
+    if (isFalLive()) {
+      const quality = beat.shotType === "hero" ? "dev" : "schnell";
+      const img = await generateImage({ prompt, quality });
+      const path = `videos/${video.id}/beat-${beat.idx}.jpg`;
+      await uploadMedia(path, img.image, "image/jpeg");
+      return {
+        row: {
+          video_id: video.id,
+          kind: "clip",
+          provider: "fal.ai",
+          storage_path: path,
+          beat_index: beat.idx,
+          meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}` },
+          cost_usd: img.costUsd,
+        },
+        cost: {
+          provider: "fal.ai",
+          usd: img.costUsd,
+          description: quality === "dev" ? "Hero shot (FLUX dev)" : "B-roll still (FLUX schnell)",
+        },
+      };
+    }
+  } catch (err) {
+    console.error(`beat ${beat.idx} visual generation failed:`, err);
+  }
+  const stock = beat.shotType === "stock";
+  return {
+    row: {
       video_id: video.id,
       kind: "clip",
       provider: stock ? "mock:pexels" : "mock:fal.ai",
       storage_path: `mock/${video.id}/clip-${beat.idx}.mp4`,
       beat_index: beat.idx,
       meta: { shotType: beat.shotType },
-      cost_usd: cost.usd,
-    });
-    await recordCost(db, video, cost, `beat ${beat.idx + 1}`);
-  }
+      cost_usd: stock ? MOCK_COSTS.stockClip.usd : MOCK_COSTS.clip.usd,
+    },
+    cost: stock ? MOCK_COSTS.stockClip : MOCK_COSTS.clip,
+  };
+}
 
-  for (let i = 0; i < 4; i++) {
-    await db.from("assets").insert({
+const THUMB_ANGLES = [
+  "extreme close-up, dramatic lighting, high emotional intensity",
+  "wide symbolic scene, bold central subject, strong silhouette",
+  "conceptual metaphor, minimal composition, one striking focal object",
+];
+
+async function makeThumbCandidate(
+  video: Video,
+  project: Project,
+  variant: number,
+): Promise<AssetDraft> {
+  try {
+    if (isFalLive()) {
+      const prompt = `YouTube thumbnail background for a video titled "${video.title}" in the ${project.niche} niche. ${THUMB_ANGLES[variant]}. ${project.brand_kit.thumbnailStyle} style, color palette ${project.brand_kit.primary} and ${project.brand_kit.secondary}, ultra sharp, 16:9, no text, no watermark`;
+      const img = await generateImage({ prompt, quality: "schnell" });
+      const path = `videos/${video.id}/thumb-${variant}.jpg`;
+      await uploadMedia(path, img.image, "image/jpeg");
+      return {
+        row: {
+          video_id: video.id,
+          kind: "thumb",
+          provider: "fal.ai",
+          storage_path: path,
+          meta: { variant, style: project.brand_kit.thumbnailStyle },
+          cost_usd: img.costUsd,
+        },
+        cost: { provider: "fal.ai", usd: img.costUsd, description: "Thumbnail candidate" },
+      };
+    }
+  } catch (err) {
+    console.error(`thumbnail ${variant} generation failed:`, err);
+  }
+  return {
+    row: {
       video_id: video.id,
       kind: "thumb",
       provider: "mock:fal.ai",
-      storage_path: `mock/${video.id}/thumb-${i}.png`,
-      meta: { variant: i, style: project.brand_kit.thumbnailStyle },
+      storage_path: `mock/${video.id}/thumb-${variant}.png`,
+      meta: { variant, style: project.brand_kit.thumbnailStyle },
       cost_usd: MOCK_COSTS.thumbnail.usd,
-    });
-    await recordCost(db, video, MOCK_COSTS.thumbnail, `candidate ${i + 1}`);
-  }
-
-  await db.from("assets").insert({
-    video_id: video.id,
-    kind: "captions",
-    provider: "mock:elevenlabs",
-    storage_path: `mock/${video.id}/captions.json`,
-    meta: { words: 940 },
-    cost_usd: 0,
-  });
-  await setStatus(db, video.id, "ASSETS_READY");
+    },
+    cost: MOCK_COSTS.thumbnail,
+  };
 }
 
 async function runAssembly(db: Db, video: Video) {
@@ -479,15 +677,19 @@ export async function editScriptBeat(opts: {
     .eq("kind", "vo")
     .eq("beat_index", opts.beatIdx)
     .maybeSingle();
-  const liveVoice =
-    isVoiceLive() && project.voice_id && !project.voice_id.startsWith("mock-");
-  if (voAsset && liveVoice) {
+  if (voAsset && canSynthesize(project.voice_id)) {
     const beat = beats.find((b) => b.idx === opts.beatIdx)!;
     const r = await synthesizeBeatVo(db, video, project, beat);
     await recordCost(
       db,
       video,
-      { provider: "elevenlabs", usd: r.costUsd, description: "Voiceover re-synthesis (edited beat)" },
+      {
+        provider: r.provider,
+        usd: r.costUsd,
+        description: r.cached
+          ? "Voiceover reused from cache — free"
+          : "Voiceover re-synthesis (edited beat)",
+      },
       `beat ${opts.beatIdx + 1}`,
     );
   }

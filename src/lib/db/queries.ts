@@ -1,5 +1,6 @@
 import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
+import { getSignedMediaUrl } from "@/lib/storage";
 import type { Asset, CostEntry, Idea, Project, Script, Video } from "./types";
 
 export async function getProjects(): Promise<Project[]> {
@@ -161,11 +162,22 @@ export async function getReviewItems(projectId: string): Promise<ReviewItem[]> {
       : Promise.resolve({ data: [] as Idea[] }),
   ]);
 
+  // Resolve display URLs: external (Pexels) from meta, private storage via
+  // short-lived signed URLs, mock paths stay null (gradient placeholders).
+  const enriched = await Promise.all(
+    (((assets as Asset[]) ?? [])).map(async (a) => ({
+      ...a,
+      url:
+        (a.meta as { posterUrl?: string }).posterUrl ??
+        (await getSignedMediaUrl(a.storage_path)),
+    })),
+  );
+
   return attention.map((video) => ({
     video,
     script:
       ((scripts as Script[]) ?? []).find((s) => s.video_id === video.id) ?? null,
-    assets: ((assets as Asset[]) ?? []).filter((a) => a.video_id === video.id),
+    assets: enriched.filter((a) => a.video_id === video.id),
     idea: ((ideas as Idea[]) ?? []).find((i) => i.id === video.idea_id) ?? null,
   }));
 }

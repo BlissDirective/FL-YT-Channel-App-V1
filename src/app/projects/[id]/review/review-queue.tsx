@@ -265,9 +265,16 @@ const CLIP_GRADIENTS = [
 ];
 
 function AssetsBody({ item }: { item: ReviewItem }) {
-  const vo = item.assets.find((a) => a.kind === "vo");
+  const voTracks = item.assets.filter((a) => a.kind === "vo");
+  const vo = voTracks[0];
   const clips = item.assets.filter((a) => a.kind === "clip");
   const thumbs = item.assets.filter((a) => a.kind === "thumb");
+  const voDuration = voTracks.reduce(
+    (s, a) => s + Number((a.meta as { durationSec?: number }).durationSec ?? 0),
+    0,
+  );
+  const cachedCount = voTracks.filter((a) => (a.meta as { cached?: boolean }).cached).length;
+  const allMock = item.assets.every((a) => a.provider.startsWith("mock:"));
   return (
     <div className="space-y-3">
       {vo && (
@@ -280,7 +287,8 @@ function AssetsBody({ item }: { item: ReviewItem }) {
               Voiceover · {(vo.meta as { voice?: string }).voice ?? "Voice"}
             </p>
             <p className="text-xs text-muted">
-              {fmtDuration((vo.meta as { durationSec?: number }).durationSec)} · mock synthesis
+              {fmtDuration(voDuration)} · {providerLabel(vo.provider)}
+              {cachedCount > 0 && ` · ${cachedCount} section${cachedCount > 1 ? "s" : ""} reused free`}
             </p>
           </div>
         </div>
@@ -291,18 +299,14 @@ function AssetsBody({ item }: { item: ReviewItem }) {
         </p>
         <div className="grid grid-cols-4 gap-2">
           {clips.map((c, i) => (
-            <div
-              key={c.id}
-              className={cn(
-                "relative aspect-video overflow-hidden rounded-lg bg-gradient-to-br",
-                CLIP_GRADIENTS[i % CLIP_GRADIENTS.length],
+            <MediaTile key={c.id} asset={c} fallbackIdx={i}>
+              {c.provider === "pexels" && (
+                <Play className="absolute inset-0 m-auto size-4 text-white drop-shadow" />
               )}
-            >
-              <Play className="absolute inset-0 m-auto size-4 text-white/90" />
-              <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white/90">
+              <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white drop-shadow">
                 {(c.meta as { shotType?: string }).shotType ?? "clip"}
               </span>
-            </div>
+            </MediaTile>
           ))}
         </div>
       </div>
@@ -312,23 +316,53 @@ function AssetsBody({ item }: { item: ReviewItem }) {
         </p>
         <div className="grid grid-cols-4 gap-2">
           {thumbs.map((t, i) => (
-            <div
-              key={t.id}
-              className={cn(
-                "relative grid aspect-video place-items-center overflow-hidden rounded-lg bg-gradient-to-tr",
-                CLIP_GRADIENTS[(i + 1) % CLIP_GRADIENTS.length],
-              )}
-            >
-              <ImageIcon className="size-4 text-white/90" />
-            </div>
+            <MediaTile key={t.id} asset={t} fallbackIdx={i + 1}>
+              {!t.url && <ImageIcon className="absolute inset-0 m-auto size-4 text-white/90" />}
+            </MediaTile>
           ))}
         </div>
       </div>
-      <p className="text-xs text-muted">
-        Placeholder tiles — real generated media replaces these in Phase 5.
-      </p>
+      {allMock && (
+        <p className="text-xs text-muted">
+          Placeholder tiles — connect provider keys (or pick a real voice) for
+          live media.
+        </p>
+      )}
     </div>
   );
+}
+
+/** Real media when a URL resolved; brand-gradient placeholder otherwise. */
+function MediaTile({
+  asset,
+  fallbackIdx,
+  children,
+}: {
+  asset: ReviewItem["assets"][number];
+  fallbackIdx: number;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative aspect-video overflow-hidden rounded-lg",
+        !asset.url && cn("bg-gradient-to-br", CLIP_GRADIENTS[fallbackIdx % CLIP_GRADIENTS.length]),
+      )}
+    >
+      {asset.url && (
+        // eslint-disable-next-line @next/next/no-img-element -- signed/external URLs, not optimizable
+        <img src={asset.url} alt="" className="size-full object-cover" />
+      )}
+      {children}
+    </div>
+  );
+}
+
+function providerLabel(provider: string): string {
+  if (provider.startsWith("mock:")) return "mock synthesis";
+  if (provider === "kokoro") return "Kokoro (volume tier)";
+  if (provider === "elevenlabs") return "ElevenLabs";
+  return provider;
 }
 
 function FinalBody({ item }: { item: ReviewItem }) {

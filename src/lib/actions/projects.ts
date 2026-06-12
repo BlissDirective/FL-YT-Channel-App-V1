@@ -82,6 +82,8 @@ export async function updateProject(
       angle: String(formData.get("angle") ?? ""),
       tone: String(formData.get("tone") ?? "authoritative"),
       brand_kit: parseBrandKit(formData),
+      voice_id: String(formData.get("voice_id") ?? "") || null,
+      voice_name: String(formData.get("voice_name") ?? "") || null,
       autonomy: parseAutonomy(formData),
       budget: parseBudget(formData),
       status: String(formData.get("status") ?? "active"),

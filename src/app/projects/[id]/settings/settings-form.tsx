@@ -1,14 +1,21 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { Check, Trash2 } from "lucide-react";
+import { useActionState, useRef, useState } from "react";
+import { Check, Play, Trash2 } from "lucide-react";
 import {
   deleteProject,
   updateProject,
   type ProjectResult,
 } from "@/lib/actions/projects";
+import type { Voice } from "@/lib/adapters/voice";
 import type { Project } from "@/lib/db/types";
 import { cn } from "@/lib/cn";
+
+const PROVIDER_LABELS: Record<string, string> = {
+  elevenlabs: "ElevenLabs — premium",
+  kokoro: "Kokoro — volume tier (~5× cheaper)",
+  mock: "Sample voices (no synthesis)",
+};
 
 const TONES = ["authoritative", "curious", "alarming", "calm", "aspirational"];
 const GATES = [
@@ -25,13 +32,22 @@ const AUTONOMY_MODES = [
 
 const INITIAL: ProjectResult = {};
 
-export function SettingsForm({ project }: { project: Project }) {
+export function SettingsForm({
+  project,
+  voices,
+}: {
+  project: Project;
+  voices: Voice[];
+}) {
   const [state, action, pending] = useActionState(updateProject, INITIAL);
   const [saved, setSaved] = useState(false);
   const [autonomy, setAutonomy] = useState<Record<string, string>>({
     ...project.autonomy,
   });
   const [status, setStatus] = useState(project.status);
+  const [voiceId, setVoiceId] = useState(project.voice_id ?? voices[0]?.id ?? "");
+  const selectedVoice = voices.find((v) => v.id === voiceId);
+  const providers = [...new Set(voices.map((v) => v.provider))];
 
   return (
     <div className="space-y-6">
@@ -90,6 +106,44 @@ export function SettingsForm({ project }: { project: Project }) {
               </option>
             ))}
           </select>
+        </Field>
+
+        <input type="hidden" name="voice_id" value={voiceId} />
+        <input type="hidden" name="voice_name" value={selectedVoice?.name ?? ""} />
+        <Field label="Channel voice">
+          <div className="flex items-center gap-2">
+            <select
+              value={voiceId}
+              onChange={(e) => setVoiceId(e.target.value)}
+              className="input flex-1"
+            >
+              {!voices.some((v) => v.id === voiceId) && voiceId && (
+                <option value={voiceId}>
+                  {project.voice_name ?? voiceId} (current)
+                </option>
+              )}
+              {providers.map((p) => (
+                <optgroup key={p} label={PROVIDER_LABELS[p] ?? p}>
+                  {voices
+                    .filter((v) => v.provider === p)
+                    .map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.name} — {v.description}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
+            </select>
+            {selectedVoice?.previewUrl && (
+              <VoicePreview url={selectedVoice.previewUrl} />
+            )}
+          </div>
+          {selectedVoice?.provider === "kokoro" && (
+            <p className="mt-1 text-xs text-muted">
+              Volume tier: ~$0.15 per 8-min video via fal.ai. Word-sync
+              timings are estimated rather than exact.
+            </p>
+          )}
         </Field>
 
         <Field label="Status">
@@ -203,6 +257,23 @@ export function SettingsForm({ project }: { project: Project }) {
         </button>
       </form>
     </div>
+  );
+}
+
+function VoicePreview({ url }: { url: string }) {
+  const ref = useRef<HTMLAudioElement>(null);
+  return (
+    <>
+      <audio ref={ref} src={url} preload="none" />
+      <button
+        type="button"
+        aria-label="Play voice preview"
+        onClick={() => ref.current?.play()}
+        className="grid size-10 shrink-0 place-items-center rounded-xl bg-card-warm text-ink shadow-card hover:bg-accent"
+      >
+        <Play className="size-4" />
+      </button>
+    </>
   );
 }
 

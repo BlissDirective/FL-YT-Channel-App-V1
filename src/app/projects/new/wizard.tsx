@@ -253,7 +253,21 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
                 className="flex flex-1 items-center gap-3 text-left"
               >
                 <span className="flex-1">
-                  <span className="block text-sm font-semibold">{v.name}</span>
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    {v.name}
+                    {v.provider !== "mock" && (
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                          v.provider === "kokoro"
+                            ? "bg-success/15 text-success"
+                            : "bg-accent-soft text-ink",
+                        )}
+                      >
+                        {v.provider === "kokoro" ? "volume · ~5× cheaper" : "premium"}
+                      </span>
+                    )}
+                  </span>
                   <span className="block text-xs text-muted">{v.description}</span>
                 </span>
                 {voiceId === v.id && <Check className="size-5 shrink-0 text-ink" />}
