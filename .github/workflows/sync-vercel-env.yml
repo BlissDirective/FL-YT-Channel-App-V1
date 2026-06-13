@@ -95,10 +95,12 @@ jobs:
       - name: Trigger redeploy
         run: |
           [ -z "$VERCEL_TOKEN" ] && exit 0
+          # target=production so the redeploy promotes to the production alias
+          # (a default redeploy is a preview and never picks up the new env).
           CODE=$(curl -s -o /tmp/d.json -w '%{http_code}' -X POST \
             "https://api.vercel.com/v13/deployments?teamId=$TEAM_ID&forceNew=1" \
             -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
-            -d "{\"name\":\"fl-yt-channel-app-v1\",\"gitSource\":{\"type\":\"github\",\"repoId\":$REPO_ID,\"ref\":\"$DEPLOY_REF\"}}")
+            -d "{\"name\":\"fl-yt-channel-app-v1\",\"target\":\"production\",\"gitSource\":{\"type\":\"github\",\"repoId\":$REPO_ID,\"ref\":\"$DEPLOY_REF\"}}")
           case "$CODE" in
             200|201) echo "✅ Redeploy triggered: $(grep -o '"url":"[^"]*"' /tmp/d.json | head -1)";;
             *) echo "❌ Redeploy failed (HTTP $CODE): $(head -c 200 /tmp/d.json)"; exit 1;;
