@@ -177,3 +177,18 @@ standing rules (Full-App-Development-plan.md §5).
   mock tile on failure — one provider hiccup never fails the stage.
 - **Script tightening** added to the default template ("every sentence must
   earn its runtime") — shorter scripts cut TTS spend across all providers.
+
+## Source Library agent assessment (2026-06-13)
+
+- Assessed a "compliant video scraping agent" (e.g. scrape free GTA 6
+  footage to remix). Verdict: general scraping is not compliantly
+  automatable — "free to find" ≠ "free to use". Specific blockers:
+  publisher IP (Rockstar's policy is non-commercial fan use, bans leaked
+  footage), YouTube CC license laundering, yt-dlp ToS exposure, and —
+  heaviest — YouTube's 2025 "inauthentic content" policy (Jan 2026
+  enforcement terminated 16 faceless channels outright).
+- Approved instead: **Phase 6.5 Source Library agent** — licensed sources
+  only (Pexels, Pixabay, Internet Archive, Wikimedia, gov archives) with
+  Claude relevance + license screening, an attribution ledger feeding the
+  Publish Kit, and human approval at the Assets gate. Gaming niches get a
+  manual press-kit/own-capture lane, never autonomous.

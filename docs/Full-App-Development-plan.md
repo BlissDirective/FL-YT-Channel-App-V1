@@ -270,6 +270,26 @@ product's proof moment.**
 
 ---
 
+### PHASE 6.5 — Source Library agent (licensed footage acquisition)
+**Needs from you:** 🔑 free Pixabay API key (optional: widens the pool beyond Pexels).
+
+**Scope (added 2026-06-13 after the scraping-agent feasibility assessment — see
+DECISIONS.md):** a licensed-source acquisition agent, NOT a general video scraper.
+Per-beat fan-out search across compliant sources only — Pexels (live), Pixabay,
+Internet Archive (PD/CC0 filters), Wikimedia Commons, NASA/gov archives — with
+Claude scoring candidates for visual relevance and verifying license metadata;
+**attribution ledger** per asset (CC-BY credits auto-injected into video
+descriptions in the Publish Kit); candidates surface at the existing Assets gate
+for human approval. Explicitly out of scope: downloading from YouTube (ToS +
+license-laundering risk) and publisher IP (e.g. game footage) — gaming niches use
+official press-kit assets or own-capture lanes, manually gated, never autonomous.
+
+**✅ You validate by:** seeing a stock-beat's candidate strip include Archive/
+Wikimedia footage with license + credit chips, approving one, and finding the
+attribution line already present in the video's description.
+
+---
+
 ### PHASE 7 — Publish Kit & Live Stats Tracking
 **Needs from you:** 🔑 **YouTube Data API key** (setup.md §8 — API key only, no OAuth).
 
