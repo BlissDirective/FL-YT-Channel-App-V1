@@ -56,10 +56,15 @@ jobs:
           PASS=0; FAIL=0; SKIP=0
           upsert() {
             NAME="$1"; VALUE="$2"; TYPE="${3:-encrypted}"
+            # Trim stray CR/LF and surrounding whitespace a pasted secret may
+            # carry — a raw newline mid-value otherwise yields invalid JSON.
+            VALUE=$(printf '%s' "$VALUE" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
             if [ -z "$VALUE" ]; then
               echo "⚪ $NAME — no source secret, skipped"; SKIP=$((SKIP+1)); return
             fi
-            BODY=$(printf '{"key":"%s","value":"%s","type":"%s","target":["production","preview","development"]}' "$NAME" "$VALUE" "$TYPE")
+            # jq builds the body so any value is escaped correctly.
+            BODY=$(jq -nc --arg k "$NAME" --arg v "$VALUE" --arg t "$TYPE" \
+              '{key:$k,value:$v,type:$t,target:["production","preview","development"]}')
             CODE=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST \
               "https://api.vercel.com/v10/projects/$PROJECT_ID/env?teamId=$TEAM_ID&upsert=true" \
               -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
