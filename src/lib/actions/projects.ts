@@ -255,6 +255,33 @@ export async function createDemoProject(): Promise<void> {
   revalidatePath("/");
 }
 
+/**
+ * Seed-data purge (Phase 10 handoff): removes every demo project. Cascades
+ * to its videos, scripts, assets, ideas, approvals, snapshots, insights, and
+ * cost-ledger rows via the FK `on delete cascade`/`set null` rules. Real
+ * projects are never touched.
+ */
+export async function purgeDemoDataAction(): Promise<{ ok: boolean; deleted: number; error?: string }> {
+  const supabase = await createClient();
+  const { data: demos, error: selErr } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("is_demo", true);
+  if (selErr) return { ok: false, deleted: 0, error: selErr.message };
+  if (!demos || demos.length === 0) return { ok: true, deleted: 0 };
+
+  const { error } = await supabase
+    .from("projects")
+    .delete()
+    .eq("is_demo", true);
+  if (error) return { ok: false, deleted: 0, error: error.message };
+
+  revalidatePath("/");
+  revalidatePath("/insights");
+  revalidatePath("/settings");
+  return { ok: true, deleted: demos.length };
+}
+
 export async function deleteProject(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");

@@ -329,3 +329,36 @@ standing rules (Full-App-Development-plan.md §5).
   cost controls). Sentry / Playwright E2E / Lighthouse are noted as the
   remaining hardening items for Phase 10 — they need external accounts/config
   and are better done against the final validated build.
+
+## Phase 10 — Final validation & handoff (2026-06-13)
+
+- **VALIDATION.md** is a click-by-click, non-developer walkthrough of every
+  flow ending in the go-live checklist (purge demo → real project → all gates
+  to Assist → confirm budgets + scheduled jobs). **BACKLOG.md** captures the
+  v1-out-of-scope items (OAuth auto-upload, A/B thumbnails, Shorts schedule,
+  multi-language, teams) plus the deferred hardening.
+- **Seed-data purge** is a Settings "Danger zone" action that deletes
+  `is_demo` projects; FK cascades clean up the dependent rows. Real projects
+  are never matched.
+- **`.mcp.json` uses `${STUDIO_MCP_TOKEN}` expansion, not the literal token** —
+  the repo is public, and the token is an admin credential. The env-var form
+  is committable; the operator exports the secret locally. (Recorded because
+  it deviates from a literal request for safety.)
+
+## Phase 10 hardening — Playwright + Lighthouse (2026-06-13)
+
+- **Playwright E2E** smoke-tests the public golden-path surface — styleguide
+  (proves the whole design system + build render), login form, the auth-gate
+  redirect, and the PWA manifest — against a real `next build && next start`.
+  No secrets: authenticated pipeline flows need a Supabase session + provider
+  keys, so they stay in the by-hand VALIDATION.md; deeper authed E2E (CI test
+  user) is a backlog item. E2E specs are excluded from the app `tsconfig`
+  (Playwright has its own loader) so they don't enter `next build`.
+- **Lighthouse CI** audits `/styleguide` + `/login` (the keyless public pages)
+  via `lighthouserc.json` with `startServerCommand` — self-contained, never
+  races a deploy. Assertions are **warn-level** (reports, doesn't block) until
+  scores are proven stable, then they can become hard gates.
+- **Workflows trigger where heavy development lands:** `e2e.yml` on every PR +
+  push to main + weekly + dispatch; `lighthouse.yml` on push to main + weekly
+  + dispatch. Both pin pnpm via `packageManager` (no `version:` on
+  action-setup, matching CI/render).

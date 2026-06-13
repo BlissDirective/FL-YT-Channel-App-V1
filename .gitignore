@@ -8,3 +8,9 @@ dist/
 !.env.example
 .vercel
 .DS_Store
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/.lighthouseci/

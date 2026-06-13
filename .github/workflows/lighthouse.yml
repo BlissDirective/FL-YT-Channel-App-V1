@@ -1,0 +1,37 @@
+name: Lighthouse
+
+# Lighthouse quality audit (performance, a11y, best-practices, SEO) of the
+# public dashboard surface. Runs on merges to main (heavy development) plus a
+# weekly check and on demand. Self-contained: builds and starts the app, so
+# it never races a deploy. Assertions are "warn" — it reports, doesn't block.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 10 * * 1" # Mondays 10:00 UTC
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          temporaryPublicStorage: true

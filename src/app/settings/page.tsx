@@ -5,6 +5,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { KillSwitch } from "./kill-switch";
 import { NotificationsCard } from "./notifications-card";
 import { CredentialHealthList } from "./credential-health";
+import { PurgeDemoData } from "./danger-zone";
 
 export const dynamic = "force-dynamic";
 
@@ -116,6 +117,13 @@ export default async function SettingsPage() {
           </>
         )}
       </Card>
+
+      {configured && (
+        <Card>
+          <CardTitle>Danger zone</CardTitle>
+          <PurgeDemoData />
+        </Card>
+      )}
     </div>
   );
 }

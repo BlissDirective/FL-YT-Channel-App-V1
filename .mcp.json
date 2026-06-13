@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "studio": {
+      "type": "http",
+      "url": "https://fl-yt-channel-app-v1.vercel.app/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${STUDIO_MCP_TOKEN}"
+      }
+    }
+  }
+}
