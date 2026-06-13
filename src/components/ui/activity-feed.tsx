@@ -31,7 +31,7 @@ export function ActivityFeed({
         return (
           <li
             key={item.id}
-            className="flex items-center gap-3 rounded-card p-2.5 transition-colors hover:bg-card-warm"
+            className="flex items-start gap-3 rounded-card p-2.5 transition-colors hover:bg-card-warm"
           >
             <span
               className={cn(
@@ -42,12 +42,12 @@ export function ActivityFeed({
               <Icon className="size-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{item.title}</p>
+              <p className="text-sm font-medium leading-snug break-words">{item.title}</p>
               {item.detail && (
-                <p className="truncate text-xs text-muted">{item.detail}</p>
+                <p className="mt-0.5 text-xs text-muted break-words">{item.detail}</p>
               )}
             </div>
-            <span className="shrink-0 text-xs tabular-nums text-muted">
+            <span className="mt-0.5 shrink-0 text-xs tabular-nums text-muted">
               {item.time}
             </span>
           </li>

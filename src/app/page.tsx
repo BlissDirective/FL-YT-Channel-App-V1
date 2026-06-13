@@ -136,7 +136,7 @@ export default async function Home() {
             })}
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="space-y-4">
             <Card>
               <CardTitle>Activity</CardTitle>
               {activity.length === 0 ? (
