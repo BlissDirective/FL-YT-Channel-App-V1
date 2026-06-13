@@ -1,5 +1,5 @@
 import { getServiceHealth } from "@/lib/adapters/health";
-import { getCostLedger, getKillSwitch } from "@/lib/db/queries";
+import { getCostLedger, getKillSwitch, getQcAgreement } from "@/lib/db/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { Card, CardTitle } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -12,9 +12,9 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   const services = getServiceHealth();
   const configured = isSupabaseConfigured();
-  const [killSwitch, ledger] = configured
-    ? await Promise.all([getKillSwitch(), getCostLedger(12)])
-    : [false, []];
+  const [killSwitch, ledger, qc] = configured
+    ? await Promise.all([getKillSwitch(), getCostLedger(12), getQcAgreement()])
+    : [false, [], { total: 0, agree: 0, rate: 0 }];
   const shownTotal = ledger.reduce((s, e) => s + Number(e.usd), 0);
 
   return (
@@ -36,6 +36,35 @@ export default async function SettingsPage() {
       <NotificationsCard
         vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY}
       />
+
+      {configured && (
+        <Card>
+          <CardTitle>QC agent agreement</CardTitle>
+          {qc.total === 0 ? (
+            <p className="text-sm text-muted">
+              No overlap yet. As the QC agent scores gates you also decide on, this
+              shows how often it agreed with you — your signal for when it&apos;s
+              safe to raise a gate to Co-pilot or Autopilot.
+            </p>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold tabular-nums">
+                  {Math.round(qc.rate * 100)}%
+                </span>
+                <span className="text-sm text-muted">
+                  agreement over {qc.total} decided gate{qc.total === 1 ? "" : "s"}
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-muted">
+                {qc.rate >= 0.8
+                  ? "High agreement — consider raising your most-trusted gates to Co-pilot."
+                  : "Building confidence — keep reviewing manually until agreement climbs."}
+              </p>
+            </>
+          )}
+        </Card>
+      )}
 
       <Card>
         <CardTitle>Credentials health</CardTitle>

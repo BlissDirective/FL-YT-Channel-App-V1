@@ -118,6 +118,20 @@ export type AnalyticsSnapshot = {
   meta: Record<string, unknown>;
 };
 
+export type Insight = {
+  id: string;
+  project_id: string | null;
+  kind: "optimizer" | "scout";
+  title: string;
+  body: string;
+  evidence: Record<string, unknown>;
+  proposed_template_kind: string | null;
+  proposed_template_body: string | null;
+  status: "new" | "applied" | "dismissed";
+  applied_template_version: number | null;
+  created_at: string;
+};
+
 export type Idea = {
   id: string;
   project_id: string;

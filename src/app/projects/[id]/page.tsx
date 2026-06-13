@@ -27,7 +27,9 @@ import { StatCard } from "@/components/ui/stat-card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { RunDemoButton } from "@/components/dashboard/run-demo-button";
+import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-button";
 import { QueueTopic } from "@/components/dashboard/queue-topic";
+import { ScoutChat } from "@/components/dashboard/scout-chat";
 
 export const dynamic = "force-dynamic";
 // Live script + voiceover stages run inside actions on this route.
@@ -100,6 +102,7 @@ export default async function ProjectHome({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <RunIntelligenceButton projectId={id} />
           <RunDemoButton projectId={id} />
           <Link
             href={`/projects/${id}/review`}
@@ -122,6 +125,8 @@ export default async function ProjectHome({
       </div>
 
       <QueueTopic projectId={id} />
+
+      <ScoutChat projectId={id} />
 
       <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard icon={Clapperboard} label="Videos" value={String(videos.length)} />

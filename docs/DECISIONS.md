@@ -269,3 +269,36 @@ standing rules (Full-App-Development-plan.md §5).
 - **CSV export** is a GET route (`/api/export`, optional `?project=`) reusing
   the session middleware for auth — surfaces on the overview once anything is
   published.
+
+## Phase 8 — Intelligence & Agents (2026-06-13)
+
+- **Four pillars, all mock-first (standing rule 4):** daily intelligence run,
+  Scout research chat, the QC agreement metric, and the weekly Optimizer —
+  each works end-to-end with no keys, then sharpens when ANTHROPIC_API_KEY /
+  YOUTUBE_API_KEY are present.
+- **Intelligence run** (`pipeline/intelligence.ts`): `searchNiche` (YouTube
+  search.list → videos.list for view counts) feeds Claude (Haiku) scoring of
+  *repurposable* ideas — a fresh angle, never a copy. Top picks land as
+  idea-stage videos in the review queue, each linked to an `ideas` row with
+  source stats, so they flow through the existing IDEA gate. Deduped by title.
+  Driven by `Daily Intelligence` GitHub Action → `/api/cron/intelligence`
+  (CRON_SECRET-gated, same scheme as stats), plus a "Run intelligence" button.
+- **Scout** (`adapters/scout.ts`): Sonnet with a `youtube_search` tool in a
+  bounded tool-use loop (≤4 turns) on the project page; findings save as idea
+  cards. No-key path runs the search directly and summarizes it.
+- **QC agreement** (`getQcAgreement`): reuses the Phase-6 `qc_reviews` +
+  `approvals` tables — of gates a human decided that QC also scored, how often
+  QC's predicted call (≥ auto-approve threshold) matched. Surfaced in settings
+  as the signal for when to raise autonomy. No new QC table needed.
+- **Optimizer** (`pipeline/optimizer.ts`): correlates each project's tracked
+  stats with format/length/hook → insight cards in a new `insights` table
+  (migration 0008, realtime-published). An insight may carry a full revised
+  script template; **Apply** writes it as a new active `prompt_templates`
+  version — versioned, so it's revertible — and stamps the insight applied.
+  Weekly `Optimizer` Action → `/api/cron/optimizer`; `/insights` rebuilt from
+  a placeholder into the live cross-project board with Apply/Dismiss.
+- **Demo seed** gains a 2nd tracked video (distinct format/views) so the
+  Optimizer has something to correlate, and one ready-made insight with a
+  template diff so `/insights` and the apply-flow validate out of the box.
+- **No new credentials** — Phase 8 rides the existing Anthropic + YouTube keys
+  (per the plan's credential timeline).

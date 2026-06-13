@@ -1,0 +1,35 @@
+name: Weekly Optimizer
+
+# Weekly performance review: pings the app's cron route, which correlates each
+# project's tracked stats into plain-English insight cards on /insights — some
+# carrying a one-tap prompt-template revision. Runs inside the Next app.
+on:
+  workflow_dispatch:
+  schedule:
+    # 08:00 UTC Mondays.
+    - cron: "0 8 * * 1"
+
+concurrency:
+  group: optimizer-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_URL: ${{ vars.APP_BASE_URL || 'https://fl-yt-channel-app-v1.vercel.app' }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Trigger optimizer run
+        run: |
+          echo "Pinging ${BASE_URL}/api/cron/optimizer"
+          CODE=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST \
+            "${BASE_URL}/api/cron/optimizer" \
+            -H "Authorization: Bearer ${CRON_SECRET}")
+          echo "HTTP $CODE — $(cat /tmp/r.json)"
+          case "$CODE" in
+            200) echo "✅ optimizer run complete";;
+            401) echo "❌ unauthorized — set CRON_SECRET to match the app's env"; exit 1;;
+            *) echo "❌ run failed (HTTP $CODE)"; exit 1;;
+          esac

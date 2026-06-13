@@ -2,11 +2,13 @@ import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
+import { COPILOT_AUTO_APPROVE_SCORE } from "@/lib/adapters/qc";
 import type {
   AnalyticsSnapshot,
   Asset,
   CostEntry,
   Idea,
+  Insight,
   Project,
   Script,
   Video,
@@ -358,6 +360,70 @@ export async function getTrackedStats(projectId?: string): Promise<TrackedStat[]
       capturedAt: snap?.captured_at ?? null,
     };
   });
+}
+
+export type InsightWithProject = Insight & { projectName: string };
+
+/** New (and recently applied) insight cards across projects, for /insights. */
+export async function getInsights(): Promise<InsightWithProject[]> {
+  const supabase = await createClient();
+  const [{ data }, projects] = await Promise.all([
+    supabase
+      .from("insights")
+      .select("*")
+      .neq("status", "dismissed")
+      .order("created_at", { ascending: false })
+      .limit(50),
+    getProjects(),
+  ]);
+  const name = new Map(projects.map((p) => [p.id, p.name]));
+  return ((data as Insight[]) ?? []).map((i) => ({
+    ...i,
+    projectName: i.project_id ? (name.get(i.project_id) ?? "") : "Portfolio",
+  }));
+}
+
+export type QcAgreement = {
+  total: number;
+  agree: number;
+  rate: number; // 0–1
+};
+
+/**
+ * QC-vs-you agreement: of the gates a human decided that QC also scored, how
+ * often did QC's predicted call (score ≥ auto-approve threshold ⇒ approve)
+ * match the human's approve/revise decision. Surfaced in settings so the
+ * operator knows when it's safe to raise autonomy.
+ */
+export async function getQcAgreement(): Promise<QcAgreement> {
+  const supabase = await createClient();
+  const [{ data: qc }, { data: approvals }] = await Promise.all([
+    supabase.from("qc_reviews").select("video_id, gate, score, created_at"),
+    supabase
+      .from("approvals")
+      .select("video_id, gate, decision, decided_by, decided_at")
+      .eq("decided_by", "human")
+      .in("decision", ["approved", "revision"]),
+  ]);
+
+  // Latest QC score per video+gate.
+  const qcByKey = new Map<string, number>();
+  for (const r of (qc ?? []) as { video_id: string; gate: string; score: number }[]) {
+    const key = `${r.video_id}:${r.gate}`;
+    if (!qcByKey.has(key)) qcByKey.set(key, Number(r.score));
+  }
+
+  let total = 0;
+  let agree = 0;
+  for (const a of (approvals ?? []) as { video_id: string; gate: string; decision: string }[]) {
+    const score = qcByKey.get(`${a.video_id}:${a.gate}`);
+    if (score == null) continue;
+    total += 1;
+    const qcApprove = score >= COPILOT_AUTO_APPROVE_SCORE;
+    const humanApprove = a.decision === "approved";
+    if (qcApprove === humanApprove) agree += 1;
+  }
+  return { total, agree, rate: total > 0 ? agree / total : 0 };
 }
 
 /** Full snapshot history for one video, oldest → newest (for the sparkline). */

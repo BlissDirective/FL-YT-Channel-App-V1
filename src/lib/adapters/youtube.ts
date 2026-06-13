@@ -134,3 +134,92 @@ function mockStats(videoId: string): VideoStats {
 export function estimateRevenueUsd(views: number, rpmUsd: number): number {
   return (views / 1000) * rpmUsd;
 }
+
+export type NicheVideo = {
+  videoId: string;
+  title: string;
+  channelTitle: string;
+  publishedAt: string;
+  views: number;
+  url: string;
+};
+
+/**
+ * Niche research search (Phase 8). Returns recent + proven videos for a
+ * query, hydrated with view counts, newest-strongest first. Live via the
+ * YouTube Data API (search.list → videos.list for stats); deterministic
+ * mock results when no key, so the intelligence run and Scout chat work
+ * end-to-end on the default deployment.
+ */
+export async function searchNiche(
+  query: string,
+  max = 12,
+): Promise<NicheVideo[]> {
+  const key = youtubeKey();
+  if (!key) return mockNiche(query, max);
+
+  try {
+    const search = new URL("https://www.googleapis.com/youtube/v3/search");
+    search.searchParams.set("part", "snippet");
+    search.searchParams.set("q", query);
+    search.searchParams.set("type", "video");
+    search.searchParams.set("order", "relevance");
+    search.searchParams.set("maxResults", String(Math.min(max, 25)));
+    search.searchParams.set("relevanceLanguage", "en");
+    search.searchParams.set("key", key);
+    const sres = await fetch(search, { cache: "no-store" });
+    if (!sres.ok) return mockNiche(query, max);
+    const sdata = (await sres.json()) as {
+      items?: { id?: { videoId?: string } }[];
+    };
+    const ids = (sdata.items ?? [])
+      .map((i) => i.id?.videoId)
+      .filter((v): v is string => Boolean(v));
+    if (ids.length === 0) return [];
+
+    const stats = await fetchVideoStats(ids);
+    const byId = new Map(stats.map((s) => [s.videoId, s]));
+    return ids
+      .map((id) => {
+        const s = byId.get(id);
+        return {
+          videoId: id,
+          title: s?.title ?? "Untitled",
+          channelTitle: "",
+          publishedAt: s?.publishedAt ?? "",
+          views: s?.views ?? 0,
+          url: `https://youtu.be/${id}`,
+        };
+      })
+      .sort((a, b) => b.views - a.views);
+  } catch {
+    return mockNiche(query, max);
+  }
+}
+
+function mockNiche(query: string, max: number): NicheVideo[] {
+  const topic = query.replace(/\s+/g, " ").trim().slice(0, 40) || "this niche";
+  const angles = [
+    `The Hidden Truth About ${topic}`,
+    `Why Everyone Is Wrong About ${topic}`,
+    `${topic}: What Nobody Tells You`,
+    `I Tried ${topic} For 30 Days`,
+    `The ${topic} Mistake Costing You Thousands`,
+    `${topic} Explained In 8 Minutes`,
+    `5 ${topic} Secrets The Experts Hide`,
+    `How ${topic} Actually Works`,
+  ];
+  return angles.slice(0, max).map((title, i) => {
+    let h = 0;
+    for (let j = 0; j < title.length; j++) h = (h * 31 + title.charCodeAt(j)) >>> 0;
+    const days = 30 + (h % 520); // 1–18 month proven band
+    return {
+      videoId: `mock${String(h).slice(0, 7)}`,
+      title,
+      channelTitle: `${topic} Channel ${i + 1}`,
+      publishedAt: new Date(Date.now() - days * 86_400_000).toISOString(),
+      views: 40_000 + (h % 1_800_000),
+      url: "https://youtube.com",
+    };
+  });
+}

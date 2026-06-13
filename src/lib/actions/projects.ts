@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { mockScript } from "@/lib/pipeline/mock-content";
+import { DEFAULT_SCRIPT_TEMPLATE } from "@/lib/pipeline/templates";
 import type { BrandKit, Budget } from "@/lib/db/types";
 
 export type ProjectResult = { error?: string };
@@ -141,11 +142,12 @@ export async function createDemoProject(): Promise<void> {
     { title: "Why Banks Fail (And Where Your Money Really Goes)", status: "SCRIPT_READY", topic: "bank failures explained", format: "story" },
     { title: "7 Money Habits That Quietly Make You Rich", status: "GENERATING_ASSETS", topic: "wealth-building habits", format: "list" },
     { title: "The Psychology of Impulse Spending", status: "FINAL_REVIEW", topic: "impulse spending psychology", format: "explainer" },
-    { title: "How Compound Interest Actually Works", status: "TRACKING", topic: "compound interest", format: "explainer", youtube_video_id: "demo00000xx" },
+    { title: "How Compound Interest Actually Works", status: "TRACKING", topic: "compound interest", format: "explainer", youtube_video_id: "demo00000xx", viewScale: 1 },
+    { title: "The Money Story That Hooks Every Viewer", status: "TRACKING", topic: "money storytelling", format: "story", youtube_video_id: "demo00000yy", viewScale: 2.4 },
     { title: "The 50/30/20 Rule Is Wrong — Here's Why", status: "IDEA", topic: "budgeting rules critique", format: "explainer" },
   ];
 
-  for (const v of demoVideos) {
+  for (const { viewScale, ...v } of demoVideos) {
     const { data: video } = await supabase
       .from("videos")
       .insert({ project_id: project.id, ...v })
@@ -200,7 +202,8 @@ export async function createDemoProject(): Promise<void> {
           meta: { selected: true },
         },
       ]);
-      const curve = [420, 980, 1840, 2610, 3300, 4120];
+      const scale = viewScale ?? 1;
+      const curve = [420, 980, 1840, 2610, 3300, 4120].map((v2) => Math.round(v2 * scale));
       await supabase.from("analytics_snapshots").insert(
         curve.map((views, i) => ({
           video_id: video.id,
@@ -213,6 +216,22 @@ export async function createDemoProject(): Promise<void> {
       );
     }
   }
+
+  // A seeded Optimizer insight so /insights is alive on the demo — one with a
+  // one-tap script-template tune the operator can apply (and revert via
+  // versioning).
+  await supabase.from("insights").insert({
+    project_id: project.id,
+    kind: "optimizer",
+    title: "“story” videos outperform — lead with narrative hooks",
+    body:
+      "Your story-format videos average ~2.4× the views of explainers. Bias the next batch toward narrative cold-opens: open on a concrete person/stakes before any teaching. The proposed template revision bakes this in.",
+    evidence: { metric: "avg views by format", videoCount: 2 },
+    proposed_template_kind: "script",
+    proposed_template_body:
+      DEFAULT_SCRIPT_TEMPLATE +
+      "\n\nOPTIMIZER TUNING (applied): Open beat 1 as a narrative cold-open — a specific person and a concrete stake in the first two sentences — before any explanation. Favor story structure over list structure unless the topic demands enumeration.",
+  });
 
   await supabase.from("ideas").insert([
     {

@@ -1,0 +1,36 @@
+name: Daily Intelligence
+
+# Daily idea scouting: pings the app's cron route, which for every active
+# project searches its niche, scores repurposable ideas with Claude, and
+# lands the best as idea cards in the review queue. Runs inside the Next app
+# (plain HTTP), so this job just triggers it.
+on:
+  workflow_dispatch:
+  schedule:
+    # 06:30 UTC daily — fresh idea cards waiting each morning.
+    - cron: "30 6 * * *"
+
+concurrency:
+  group: intelligence-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_URL: ${{ vars.APP_BASE_URL || 'https://fl-yt-channel-app-v1.vercel.app' }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Trigger intelligence run
+        run: |
+          echo "Pinging ${BASE_URL}/api/cron/intelligence"
+          CODE=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST \
+            "${BASE_URL}/api/cron/intelligence" \
+            -H "Authorization: Bearer ${CRON_SECRET}")
+          echo "HTTP $CODE — $(cat /tmp/r.json)"
+          case "$CODE" in
+            200) echo "✅ intelligence run complete";;
+            401) echo "❌ unauthorized — set CRON_SECRET to match the app's env"; exit 1;;
+            *) echo "❌ run failed (HTTP $CODE)"; exit 1;;
+          esac
