@@ -24,6 +24,8 @@ export type Project = {
   voice_name: string | null;
   autonomy: Record<ApprovalGate, AutonomyMode>;
   budget: Budget;
+  /** Niche RPM (USD per 1,000 views) — drives estimated revenue. */
+  rpm_usd: number;
   status: "active" | "paused";
   is_demo: boolean;
   created_at: string;
@@ -41,6 +43,7 @@ export type Video = {
   target_length_sec: number;
   scheduled_at: string | null;
   youtube_video_id: string | null;
+  published_at: string | null;
   total_cost_usd: number;
   paused_reason: string | null;
   created_at: string;
@@ -103,6 +106,16 @@ export type CostEntry = {
   description: string;
   usd: number;
   at: string;
+};
+
+export type AnalyticsSnapshot = {
+  id: string;
+  video_id: string;
+  captured_at: string;
+  views: number;
+  likes: number;
+  comments: number;
+  meta: Record<string, unknown>;
 };
 
 export type Idea = {

@@ -56,6 +56,7 @@ export async function createProject(
       voice_name: String(formData.get("voice_name") ?? "") || null,
       autonomy: parseAutonomy(formData),
       budget: parseBudget(formData),
+      rpm_usd: Number(formData.get("rpm_usd") ?? 2),
     })
     .select("id")
     .single();
@@ -86,6 +87,7 @@ export async function updateProject(
       voice_name: String(formData.get("voice_name") ?? "") || null,
       autonomy: parseAutonomy(formData),
       budget: parseBudget(formData),
+      rpm_usd: Number(formData.get("rpm_usd") ?? 2),
       status: String(formData.get("status") ?? "active"),
     })
     .eq("id", id);
@@ -173,8 +175,42 @@ export async function createDemoProject(): Promise<void> {
         kind: "render",
         provider: "mock:remotion",
         storage_path: `mock/${video.id}/final.mp4`,
-        meta: { resolution: "1080p", durationSec: 480 },
+        meta: { resolution: "1080p", durationSec: 480, variant: "long" },
       });
+    }
+    // The published demo video gets a render, a crowned thumbnail, and a
+    // rising snapshot history so the Publish Kit + tracking dashboards have
+    // real data before any live YouTube id exists.
+    if (video && v.status === "TRACKING") {
+      const publishedAt = new Date(Date.now() - 6 * 86_400_000).toISOString();
+      await supabase.from("videos").update({ published_at: publishedAt }).eq("id", video.id);
+      await supabase.from("assets").insert([
+        {
+          video_id: video.id,
+          kind: "render",
+          provider: "mock:remotion",
+          storage_path: `mock/${video.id}/final.mp4`,
+          meta: { resolution: "1080p", durationSec: 510, variant: "long" },
+        },
+        {
+          video_id: video.id,
+          kind: "thumb",
+          provider: "mock:fal",
+          storage_path: `mock/${video.id}/thumb.jpg`,
+          meta: { selected: true },
+        },
+      ]);
+      const curve = [420, 980, 1840, 2610, 3300, 4120];
+      await supabase.from("analytics_snapshots").insert(
+        curve.map((views, i) => ({
+          video_id: video.id,
+          captured_at: new Date(Date.now() - (curve.length - 1 - i) * 86_400_000).toISOString(),
+          views,
+          likes: Math.round(views * 0.043),
+          comments: Math.round(views * 0.006),
+          meta: { source: "demo" },
+        })),
+      );
     }
   }
 

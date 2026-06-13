@@ -233,3 +233,39 @@ standing rules (Full-App-Development-plan.md §5).
   URL, matching the existing Pexels render path.
 - Gaming niches remain a manual press-kit/own-capture lane — the agent
   surfaces nothing infringing because the sources contain no such footage.
+
+## Phase 7 — Publish Kit & Live Stats Tracking (2026-06-13)
+
+- **API-key-only YouTube Data API** (`src/lib/adapters/youtube.ts`): public
+  `statistics`/`snippet` for a video id need no OAuth, so the app stays out of
+  Google's upload audit entirely — uploads remain manual by design. Accepts
+  the `YOUTUBE_API_KEY` env or the `YOUTUBE_DATA_API_V3` secret alias the
+  Vercel sync already pushes.
+- **Mock stats are deterministic-but-living:** a stable hash seeds each id's
+  baseline and views grow with whole days elapsed, so the tracking dashboards
+  and sparkline work end-to-end before any real channel exists (mock-first
+  rule #4). The demo TRACKING video is seeded with a 6-point rising snapshot
+  history, a render, and a crowned thumbnail.
+- **Snapshot history, not a single counter:** every refresh inserts one
+  `analytics_snapshots` row per tracked video. Latest-per-video drives the
+  portfolio/project totals + estimated revenue; the full series drives the
+  per-video views sparkline (new inline-SVG `Sparkline`, server-renderable,
+  no chart lib). `analytics_snapshots` joined the Realtime publication.
+- **Estimated revenue = views × niche RPM**, RPM configurable per project
+  (`projects.rpm_usd`, default $2.0) in settings — no analytics OAuth, so
+  watch-hours/true RPM aren't available; this is the honest public-data proxy.
+- **Two refresh paths:** on-demand button (`refreshStatsAction`) and a nightly
+  `Stats Refresh` GitHub Action that POSTs `/api/cron/refresh-stats`. The cron
+  route is public in middleware but gated by `CRON_SECRET` (unset = open, for
+  mock/dev). Plain HTTP, so it runs inside the Next app — no render-farm-style
+  worker needed (that one exists only because Remotion needs Chrome).
+- **Publish Kit lives on the video detail page** for APPROVED + TRACKING
+  videos: MP4 (+ Short) and thumbnail downloads, one-tap copy for title/
+  description/tags, an upload checklist (incl. the AI-synthetic-content
+  disclosure reminder + end-screen prompts), and "Mark as uploaded" → paste
+  URL → TRACKING + first snapshot. The copied description is composed
+  server-side: script description + chapter timestamps + the Phase 6.5
+  attribution block, so CC-BY credits ship automatically.
+- **CSV export** is a GET route (`/api/export`, optional `?project=`) reusing
+  the session middleware for auth — surfaces on the overview once anything is
+  published.

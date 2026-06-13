@@ -1,6 +1,8 @@
 import Link from "next/link";
 import {
   Clapperboard,
+  DollarSign,
+  Download,
   Eye,
   FileText,
   FolderPlus,
@@ -9,6 +11,7 @@ import {
   Rocket,
   Sparkles,
   TrendingUp,
+  Upload,
 } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
@@ -27,6 +30,10 @@ import { ProjectCard } from "@/components/dashboard/project-card";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 
 export const dynamic = "force-dynamic";
+
+function compact(n: number): string {
+  return Intl.NumberFormat("en", { notation: "compact" }).format(n);
+}
 
 function timeAgo(iso: string): string {
   const sec = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
@@ -65,15 +72,25 @@ export default async function Home() {
             All your channel projects at a glance
           </p>
         </div>
-        <Link
-          href="/projects/new"
-          className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02]"
-        >
-          <Plus className="size-4" /> New Project
-        </Link>
+        <div className="flex items-center gap-2">
+          {stats.publishedCount > 0 && (
+            <a
+              href="/api/export"
+              className="flex items-center gap-2 rounded-full bg-card px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"
+            >
+              <Download className="size-4" /> Export CSV
+            </a>
+          )}
+          <Link
+            href="/projects/new"
+            className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02]"
+          >
+            <Plus className="size-4" /> New Project
+          </Link>
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard icon={Rocket} label="Projects" value={String(stats.projectCount)} />
         <StatCard
           icon={Clapperboard}
@@ -81,9 +98,15 @@ export default async function Home() {
           value={String(stats.inPipelineCount)}
         />
         <StatCard
-          icon={Eye}
+          icon={Upload}
           label="Published"
           value={String(stats.publishedCount)}
+        />
+        <StatCard icon={Eye} label="Total views" value={compact(stats.totalViews)} />
+        <StatCard
+          icon={DollarSign}
+          label="Est. revenue"
+          value={`$${stats.estRevenueUsd.toFixed(2)}`}
         />
       </div>
 

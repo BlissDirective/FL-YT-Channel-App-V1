@@ -1,7 +1,16 @@
 import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedMediaUrl } from "@/lib/storage";
-import type { Asset, CostEntry, Idea, Project, Script, Video } from "./types";
+import { estimateRevenueUsd } from "@/lib/adapters/youtube";
+import type {
+  AnalyticsSnapshot,
+  Asset,
+  CostEntry,
+  Idea,
+  Project,
+  Script,
+  Video,
+} from "./types";
 
 export async function getProjects(): Promise<Project[]> {
   const supabase = await createClient();
@@ -238,21 +247,26 @@ export type PortfolioStats = {
   publishedCount: number;
   inPipelineCount: number;
   monthlyCostUsd: number;
+  totalViews: number;
+  totalLikes: number;
+  estRevenueUsd: number;
 };
 
 export async function getPortfolioStats(): Promise<PortfolioStats> {
   const supabase = await createClient();
-  const [{ count: projectCount }, videos, { data: ledger }] = await Promise.all([
-    supabase.from("projects").select("*", { count: "exact", head: true }),
-    getVideos(),
-    supabase
-      .from("cost_ledger")
-      .select("usd, at")
-      .gte(
-        "at",
-        new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
-      ),
-  ]);
+  const [{ count: projectCount }, videos, { data: ledger }, tracked] =
+    await Promise.all([
+      supabase.from("projects").select("*", { count: "exact", head: true }),
+      getVideos(),
+      supabase
+        .from("cost_ledger")
+        .select("usd, at")
+        .gte(
+          "at",
+          new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
+        ),
+      getTrackedStats(),
+    ]);
 
   const publishedCount = videos.filter(
     (v) => v.status === "TRACKING" || v.youtube_video_id,
@@ -270,5 +284,91 @@ export async function getPortfolioStats(): Promise<PortfolioStats> {
     publishedCount,
     inPipelineCount,
     monthlyCostUsd,
+    totalViews: tracked.reduce((s, t) => s + t.views, 0),
+    totalLikes: tracked.reduce((s, t) => s + t.likes, 0),
+    estRevenueUsd: tracked.reduce((s, t) => s + t.estRevenueUsd, 0),
   };
+}
+
+export type TrackedStat = {
+  videoId: string;
+  projectId: string;
+  projectName: string;
+  title: string;
+  youtubeVideoId: string;
+  publishedAt: string | null;
+  views: number;
+  likes: number;
+  comments: number;
+  estRevenueUsd: number;
+  capturedAt: string | null;
+};
+
+/**
+ * Latest snapshot per tracked video, joined to its project's RPM for
+ * estimated revenue. Drives the overview totals, project tracking rows,
+ * and the CSV export. Pass a projectId to scope to one project.
+ */
+export async function getTrackedStats(projectId?: string): Promise<TrackedStat[]> {
+  const supabase = await createClient();
+  let vq = supabase
+    .from("videos")
+    .select("id, project_id, title, youtube_video_id, published_at")
+    .not("youtube_video_id", "is", null);
+  if (projectId) vq = vq.eq("project_id", projectId);
+  const { data: videos } = await vq;
+
+  const tracked = (videos ?? []).filter((v) => v.youtube_video_id);
+  if (tracked.length === 0) return [];
+
+  const ids = tracked.map((v) => v.id);
+  const [{ data: snaps }, { data: projects }] = await Promise.all([
+    supabase
+      .from("analytics_snapshots")
+      .select("video_id, views, likes, comments, captured_at")
+      .in("video_id", ids)
+      .order("captured_at", { ascending: false }),
+    supabase.from("projects").select("id, name, rpm_usd"),
+  ]);
+
+  // First row per video is the most recent (query is desc on captured_at).
+  const latest = new Map<string, AnalyticsSnapshot>();
+  for (const s of (snaps as AnalyticsSnapshot[]) ?? []) {
+    if (!latest.has(s.video_id)) latest.set(s.video_id, s);
+  }
+  const projMeta = new Map(
+    (projects ?? []).map((p) => [p.id, { name: p.name, rpm: Number(p.rpm_usd ?? 2) }]),
+  );
+
+  return tracked.map((v) => {
+    const snap = latest.get(v.id);
+    const meta = projMeta.get(v.project_id) ?? { name: "", rpm: 2 };
+    const views = Number(snap?.views ?? 0);
+    return {
+      videoId: v.id,
+      projectId: v.project_id,
+      projectName: meta.name,
+      title: v.title,
+      youtubeVideoId: v.youtube_video_id as string,
+      publishedAt: v.published_at ?? null,
+      views,
+      likes: Number(snap?.likes ?? 0),
+      comments: Number(snap?.comments ?? 0),
+      estRevenueUsd: estimateRevenueUsd(views, meta.rpm),
+      capturedAt: snap?.captured_at ?? null,
+    };
+  });
+}
+
+/** Full snapshot history for one video, oldest → newest (for the sparkline). */
+export async function getVideoSnapshots(
+  videoId: string,
+): Promise<AnalyticsSnapshot[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("analytics_snapshots")
+    .select("*")
+    .eq("video_id", videoId)
+    .order("captured_at", { ascending: true });
+  return (data as AnalyticsSnapshot[]) ?? [];
 }

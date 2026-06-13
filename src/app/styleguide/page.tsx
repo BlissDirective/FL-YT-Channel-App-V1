@@ -20,6 +20,7 @@ import { FlowDiagram } from "@/components/ui/flow-diagram";
 import { PillTabs } from "@/components/ui/pill-tabs";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { SemicircleGauge } from "@/components/ui/semicircle-gauge";
+import { Sparkline } from "@/components/ui/sparkline";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { ToggleRow } from "@/components/ui/toggle-row";
@@ -128,6 +129,13 @@ export default function StyleguidePage() {
               <span className="text-3xl font-bold tabular-nums">92%</span>
               <span className="text-xs text-muted">Optimal</span>
             </SemicircleGauge>
+          </Card>
+          <Card>
+            <CardTitle>Views trend</CardTitle>
+            <div className="flex items-center gap-3">
+              <Sparkline data={[420, 980, 1840, 2610, 3300, 4120]} width={160} height={44} />
+              <span className="text-sm text-muted">4.1K views</span>
+            </div>
           </Card>
         </div>
       </div>

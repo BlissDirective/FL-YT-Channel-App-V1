@@ -1,0 +1,37 @@
+name: Stats Refresh
+
+# Nightly public-stats ingestion: pings the app's cron route, which pulls
+# YouTube view/like/comment counts for every tracked video and writes a
+# fresh analytics snapshot. The work runs inside the Next app (plain HTTP,
+# no Chrome), so this job just triggers it. On-demand via the "Refresh
+# stats" button in the app covers the rest.
+on:
+  workflow_dispatch:
+  schedule:
+    # 07:10 UTC daily — after most channels' overnight activity settles.
+    - cron: "10 7 * * *"
+
+concurrency:
+  group: stats-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_URL: ${{ vars.APP_BASE_URL || 'https://fl-yt-channel-app-v1.vercel.app' }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Trigger stats refresh
+        run: |
+          echo "Pinging ${BASE_URL}/api/cron/refresh-stats"
+          CODE=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST \
+            "${BASE_URL}/api/cron/refresh-stats" \
+            -H "Authorization: Bearer ${CRON_SECRET}")
+          echo "HTTP $CODE — $(cat /tmp/r.json)"
+          case "$CODE" in
+            200) echo "✅ stats refreshed";;
+            401) echo "❌ unauthorized — set the CRON_SECRET secret to match the app's env"; exit 1;;
+            *) echo "❌ refresh failed (HTTP $CODE)"; exit 1;;
+          esac

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   Clapperboard,
   DollarSign,
+  Eye,
   FileText,
   Film,
   Inbox,
@@ -15,6 +16,7 @@ import {
   getIdeas,
   getKillSwitch,
   getProject,
+  getTrackedStats,
   getVideos,
   pendingGateCount,
 } from "@/lib/db/queries";
@@ -39,6 +41,10 @@ const STAGE_ICONS = {
   ready: Upload,
 } as const;
 
+function compact(n: number): string {
+  return Intl.NumberFormat("en", { notation: "compact" }).format(n);
+}
+
 export default async function ProjectHome({
   params,
 }: {
@@ -48,11 +54,14 @@ export default async function ProjectHome({
   const project = await getProject(id);
   if (!project) notFound();
 
-  const [videos, ideas, killSwitch] = await Promise.all([
+  const [videos, ideas, killSwitch, tracked] = await Promise.all([
     getVideos(id),
     getIdeas(id),
     getKillSwitch(),
+    getTrackedStats(id),
   ]);
+  const totalViews = tracked.reduce((s, t) => s + t.views, 0);
+  const estRevenueUsd = tracked.reduce((s, t) => s + t.estRevenueUsd, 0);
   const counts = stageCounts(videos);
   const emphasis = emphasisStage(counts);
   const pending = pendingGateCount(videos);
@@ -114,10 +123,16 @@ export default async function ProjectHome({
 
       <QueueTopic projectId={id} />
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard icon={Clapperboard} label="Videos" value={String(videos.length)} />
         <StatCard icon={Lightbulb} label="New ideas" value={String(newIdeas)} />
         <StatCard icon={Upload} label="Published" value={String(published)} />
+        <StatCard icon={Eye} label="Total views" value={compact(totalViews)} />
+        <StatCard
+          icon={DollarSign}
+          label="Est. revenue"
+          value={`$${estRevenueUsd.toFixed(2)}`}
+        />
         <StatCard
           icon={DollarSign}
           label="Production spend"
@@ -152,24 +167,29 @@ export default async function ProjectHome({
         ) : (
           <ul className="divide-y divide-line">
             {videos.slice(0, 8).map((v) => (
-              <li key={v.id} className="flex items-center justify-between gap-3 py-3">
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                  {v.title}
-                </span>
-                <span className="text-xs tabular-nums text-muted">
-                  ${Number(v.total_cost_usd).toFixed(2)}
-                </span>
-                <StatusChip
-                  tone={
-                    v.status === "KILLED"
-                      ? "coral"
-                      : v.status === "APPROVED" || v.status === "TRACKING"
-                        ? "success"
-                        : "neutral"
-                  }
+              <li key={v.id}>
+                <Link
+                  href={`/projects/${id}/videos/${v.id}`}
+                  className="-mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-canvas"
                 >
-                  {v.status.replace(/_/g, " ").toLowerCase()}
-                </StatusChip>
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                    {v.title}
+                  </span>
+                  <span className="text-xs tabular-nums text-muted">
+                    ${Number(v.total_cost_usd).toFixed(2)}
+                  </span>
+                  <StatusChip
+                    tone={
+                      v.status === "KILLED"
+                        ? "coral"
+                        : v.status === "APPROVED" || v.status === "TRACKING"
+                          ? "success"
+                          : "neutral"
+                    }
+                  >
+                    {v.status.replace(/_/g, " ").toLowerCase()}
+                  </StatusChip>
+                </Link>
               </li>
             ))}
           </ul>

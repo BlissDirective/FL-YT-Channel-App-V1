@@ -215,6 +215,16 @@ export function SettingsForm({
               className="input"
             />
           </Field>
+          <Field label="Niche RPM (USD per 1,000 views)">
+            <input
+              name="rpm_usd"
+              type="number"
+              min={0}
+              step={0.1}
+              defaultValue={project.rpm_usd ?? 2}
+              className="input"
+            />
+          </Field>
         </div>
 
         {state.error && (
