@@ -22,6 +22,8 @@ import {
   killVideoAction,
   requestRevisionAction,
   resumeVideoAction,
+  rerollBeatVisualAction,
+  selectThumbnailAction,
 } from "@/lib/actions/pipeline";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -90,9 +92,13 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
         </div>
       )}
 
+      {item.qc && gate && <QcCard qc={item.qc} />}
+
       {gate === "IDEA" && <IdeaBody item={item} />}
       {gate === "SCRIPT" && <ScriptBody item={item} />}
-      {gate === "ASSETS" && <AssetsBody item={item} />}
+      {gate === "ASSETS" && (
+        <AssetsBody item={item} projectId={projectId} onError={setError} />
+      )}
       {gate === "FINAL" && <FinalBody item={item} />}
       {(gate === "SCRIPT" || gate === "ASSETS") && (
         <a
@@ -199,6 +205,35 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
   );
 }
 
+/** QC agent verdict card (idea #5). */
+function QcCard({ qc }: { qc: NonNullable<ReviewItem["qc"]> }) {
+  const score = Number(qc.score);
+  const tone =
+    score >= 7.5 ? "text-success bg-success/10" : score >= 6 ? "text-ink bg-accent-soft" : "text-coral bg-coral/10";
+  return (
+    <div className="space-y-1.5 rounded-xl bg-canvas p-3">
+      <div className="flex items-center gap-2">
+        <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold", tone)}>
+          QC {score.toFixed(1)}/10
+        </span>
+        {qc.auto_approved && (
+          <span className="text-xs font-semibold text-success">
+            auto-approved (Co-pilot)
+          </span>
+        )}
+      </div>
+      <p className="text-sm">{qc.verdict}</p>
+      {qc.issues.length > 0 && (
+        <ul className="space-y-0.5 text-xs text-muted">
+          {qc.issues.map((issue, i) => (
+            <li key={i}>• {issue}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 // ── Gate-specific card bodies ─────────────────────────────────────────
 
 function IdeaBody({ item }: { item: ReviewItem }) {
@@ -264,7 +299,19 @@ const CLIP_GRADIENTS = [
   "from-[#5BB98C] to-[#A78BFA]",
 ];
 
-function AssetsBody({ item }: { item: ReviewItem }) {
+function AssetsBody({
+  item,
+  projectId,
+  onError,
+}: {
+  item: ReviewItem;
+  projectId: string;
+  onError: (e?: string) => void;
+}) {
+  const [rerolling, setRerolling] = useState<number | null>(null);
+  const [note, setNote] = useState("");
+  const [busyBeat, setBusyBeat] = useState<number | null>(null);
+  const [, startTransition] = useTransition();
   const voTracks = item.assets.filter((a) => a.kind === "vo");
   const vo = voTracks[0];
   const clips = item.assets.filter((a) => a.kind === "clip");
@@ -306,21 +353,107 @@ function AssetsBody({ item }: { item: ReviewItem }) {
               <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white drop-shadow">
                 {(c.meta as { shotType?: string }).shotType ?? "clip"}
               </span>
+              {c.beat_index !== null && (
+                <button
+                  type="button"
+                  aria-label={`Reroll shot ${(c.beat_index ?? 0) + 1}`}
+                  onClick={() =>
+                    setRerolling(rerolling === c.beat_index ? null : c.beat_index)
+                  }
+                  className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/50 text-white hover:bg-black/80"
+                >
+                  {busyBeat === c.beat_index ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-3" />
+                  )}
+                </button>
+              )}
             </MediaTile>
           ))}
         </div>
+        {rerolling !== null && (
+          <div className="mt-2 flex gap-2">
+            <input
+              autoFocus
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={`Reroll shot ${rerolling + 1} — optional steer, e.g. “darker, no people”`}
+              className="min-w-0 flex-1 rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs outline-none focus:border-accent"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const beat = rerolling;
+                const steer = note;
+                setRerolling(null);
+                setNote("");
+                setBusyBeat(beat);
+                startTransition(async () => {
+                  onError(undefined);
+                  const r = await rerollBeatVisualAction(
+                    projectId,
+                    item.video.id,
+                    beat,
+                    steer,
+                  );
+                  setBusyBeat(null);
+                  if (!r.ok) onError(r.error);
+                });
+              }}
+              className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white"
+            >
+              Reroll
+            </button>
+          </div>
+        )}
       </div>
       <div>
         <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
           Thumbnail candidates
         </p>
         <div className="grid grid-cols-4 gap-2">
-          {thumbs.map((t, i) => (
-            <MediaTile key={t.id} asset={t} fallbackIdx={i + 1}>
-              {!t.url && <ImageIcon className="absolute inset-0 m-auto size-4 text-white/90" />}
-            </MediaTile>
-          ))}
+          {thumbs.map((t, i) => {
+            const selected = Boolean((t.meta as { selected?: boolean }).selected);
+            return (
+              <button
+                key={t.id}
+                type="button"
+                aria-label={`Select thumbnail ${i + 1}`}
+                onClick={() =>
+                  startTransition(async () => {
+                    onError(undefined);
+                    const r = await selectThumbnailAction(
+                      projectId,
+                      item.video.id,
+                      t.id,
+                    );
+                    if (!r.ok) onError(r.error);
+                  })
+                }
+                className={cn(
+                  "rounded-lg transition-shadow",
+                  selected && "ring-2 ring-accent ring-offset-2 ring-offset-card",
+                )}
+              >
+                <MediaTile asset={t} fallbackIdx={i + 1}>
+                  {!t.url && (
+                    <ImageIcon className="absolute inset-0 m-auto size-4 text-white/90" />
+                  )}
+                  {selected && (
+                    <span className="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-accent text-ink">
+                      <Check className="size-3" />
+                    </span>
+                  )}
+                </MediaTile>
+              </button>
+            );
+          })}
         </div>
+        <p className="mt-1 text-[11px] text-muted">
+          Tap a thumbnail to crown it — it leads the render and the Publish
+          Kit keeps all 3 for YouTube Test &amp; Compare.
+        </p>
       </div>
       {allMock && (
         <p className="text-xs text-muted">

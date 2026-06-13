@@ -119,11 +119,24 @@ export async function getMonthlyBudgetUsd(): Promise<number> {
   );
 }
 
+export type QcReview = {
+  id: string;
+  video_id: string;
+  gate: string;
+  score: number;
+  verdict: string;
+  issues: string[];
+  strengths: string[];
+  auto_approved: boolean;
+  created_at: string;
+};
+
 export type ReviewItem = {
   video: Video;
   script: Script | null;
   assets: Asset[];
   idea: Idea | null;
+  qc: QcReview | null;
 };
 
 /** Videos needing attention on a project: at a review gate, mid-revision,
@@ -146,21 +159,27 @@ export async function getReviewItems(projectId: string): Promise<ReviewItem[]> {
 
   const ids = attention.map((v) => v.id);
   const ideaIds = attention.map((v) => v.idea_id).filter(Boolean) as string[];
-  const [{ data: scripts }, { data: assets }, { data: ideas }] = await Promise.all([
-    supabase
-      .from("scripts")
-      .select("*")
-      .in("video_id", ids)
-      .order("version", { ascending: false }),
-    supabase
-      .from("assets")
-      .select("*")
-      .in("video_id", ids)
-      .order("created_at", { ascending: true }),
-    ideaIds.length
-      ? supabase.from("ideas").select("*").in("id", ideaIds)
-      : Promise.resolve({ data: [] as Idea[] }),
-  ]);
+  const [{ data: scripts }, { data: assets }, { data: ideas }, { data: qcRows }] =
+    await Promise.all([
+      supabase
+        .from("scripts")
+        .select("*")
+        .in("video_id", ids)
+        .order("version", { ascending: false }),
+      supabase
+        .from("assets")
+        .select("*")
+        .in("video_id", ids)
+        .order("created_at", { ascending: true }),
+      ideaIds.length
+        ? supabase.from("ideas").select("*").in("id", ideaIds)
+        : Promise.resolve({ data: [] as Idea[] }),
+      supabase
+        .from("qc_reviews")
+        .select("*")
+        .in("video_id", ids)
+        .order("created_at", { ascending: false }),
+    ]);
 
   // Resolve display URLs: external (Pexels) from meta, private storage via
   // short-lived signed URLs, mock paths stay null (gradient placeholders).
@@ -173,13 +192,20 @@ export async function getReviewItems(projectId: string): Promise<ReviewItem[]> {
     })),
   );
 
-  return attention.map((video) => ({
-    video,
-    script:
-      ((scripts as Script[]) ?? []).find((s) => s.video_id === video.id) ?? null,
-    assets: enriched.filter((a) => a.video_id === video.id),
-    idea: ((ideas as Idea[]) ?? []).find((i) => i.id === video.idea_id) ?? null,
-  }));
+  return attention.map((video) => {
+    const gate = GATE_FOR_STATUS[video.status];
+    return {
+      video,
+      script:
+        ((scripts as Script[]) ?? []).find((s) => s.video_id === video.id) ?? null,
+      assets: enriched.filter((a) => a.video_id === video.id),
+      idea: ((ideas as Idea[]) ?? []).find((i) => i.id === video.idea_id) ?? null,
+      qc:
+        ((qcRows as QcReview[]) ?? []).find(
+          (q) => q.video_id === video.id && q.gate === gate,
+        ) ?? null,
+    };
+  });
 }
 
 /** Count of videos waiting at a review gate, for nav badges. */

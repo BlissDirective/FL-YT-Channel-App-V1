@@ -12,6 +12,7 @@ import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { sendPushToAll } from "@/lib/push";
 import { generateScript } from "@/lib/adapters/script";
+import { COPILOT_AUTO_APPROVE_SCORE, reviewGate } from "@/lib/adapters/qc";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import { generateImage, isFalLive } from "@/lib/adapters/fal";
 import { searchStockClip } from "@/lib/adapters/stock";
@@ -113,6 +114,46 @@ async function budgetPause(
   return null;
 }
 
+/** Gather what the QC agent needs to judge a gate arrival. */
+async function qcContext(
+  db: Db,
+  video: Video,
+  project: Project,
+  gate: ApprovalGate,
+): Promise<Record<string, unknown>> {
+  const base = {
+    title: video.title,
+    topic: video.topic,
+    format: video.format,
+    niche: project.niche,
+    audience: project.audience,
+    angle: project.angle,
+    tone: project.tone,
+    targetLengthSec: video.target_length_sec,
+  };
+  if (gate === "IDEA") return base;
+  const { data: script } = await db
+    .from("scripts")
+    .select("beats, runtime_sec, metadata")
+    .eq("video_id", video.id)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (gate === "SCRIPT") return { ...base, script };
+  const { data: assets } = await db
+    .from("assets")
+    .select("kind, provider, beat_index, meta, cost_usd")
+    .eq("video_id", video.id);
+  const summary = (assets ?? []).map((a) => ({
+    kind: a.kind,
+    provider: a.provider,
+    beat: a.beat_index,
+    shotType: (a.meta as { shotType?: string }).shotType,
+    durationSec: (a.meta as { durationSec?: number }).durationSec,
+  }));
+  return { ...base, beatsInScript: (script?.beats as unknown[])?.length, assets: summary };
+}
+
 /** A video arrived at a review gate: notify, then either wait for a human
     (Assist / Co-pilot until the Phase 8 QC agent exists) or auto-resolve
     the waitpoint (Autopilot). */
@@ -122,10 +163,43 @@ async function arriveAtGate(
   project: Project,
   gate: ApprovalGate,
 ): Promise<void> {
+  // QC agent reviews every arrival; failures degrade to a neutral verdict
+  // and never block the gate.
+  const mode: AutonomyMode = project.autonomy?.[gate] ?? "assist";
+  let qcScore: number | null = null;
+  try {
+    const review = await reviewGate({
+      gate,
+      context: await qcContext(db, video, project, gate),
+    });
+    qcScore = review.score;
+    const autoApprove =
+      mode === "copilot" && review.score >= COPILOT_AUTO_APPROVE_SCORE;
+    await db.from("qc_reviews").insert({
+      video_id: video.id,
+      gate,
+      score: review.score,
+      verdict: review.verdict,
+      issues: review.issues,
+      strengths: review.strengths,
+      auto_approved: autoApprove,
+    });
+    if (review.costUsd > 0) {
+      await recordCost(
+        db,
+        video,
+        { provider: "anthropic", usd: review.costUsd, description: "QC review" },
+        `${GATE_LABELS[gate]} gate`,
+      );
+    }
+  } catch (err) {
+    console.error("QC review failed:", err);
+  }
+
   try {
     await sendPushToAll({
       title: `${GATE_LABELS[gate]} ready for review`,
-      body: `“${video.title}” — ${project.name}`,
+      body: `“${video.title}” — ${project.name}${qcScore != null ? ` · QC ${qcScore.toFixed(1)}/10` : ""}`,
       url: `/projects/${project.id}/review`,
     });
   } catch (err) {
@@ -133,14 +207,15 @@ async function arriveAtGate(
     console.error("web-push delivery failed:", err);
   }
 
-  const mode: AutonomyMode = project.autonomy?.[gate] ?? "assist";
-  if (mode !== "autopilot") return;
+  const copilotApproved =
+    mode === "copilot" && qcScore != null && qcScore >= COPILOT_AUTO_APPROVE_SCORE;
+  if (mode !== "autopilot" && !copilotApproved) return;
 
   await db.from("approvals").insert({
     video_id: video.id,
     gate,
     decision: "approved",
-    decided_by: "autopilot",
+    decided_by: mode === "autopilot" ? "autopilot" : "qc-agent",
     decided_at: new Date().toISOString(),
   });
   const current = (await getVideo(db, video.id))!;
@@ -631,6 +706,46 @@ export async function runPipeline(videoId: string): Promise<EngineResult> {
         return { ok: true }; // APPROVED / TRACKING / KILLED / NEEDS_REVISION
     }
   }
+  return { ok: true };
+}
+
+/** Idea #3 — reroll a single beat's visual at the Assets gate, optionally
+    steered by a note, without re-running the whole stage. */
+export async function rerollBeatVisual(opts: {
+  videoId: string;
+  beatIdx: number;
+  note?: string;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+
+  const { data: script } = await db
+    .from("scripts")
+    .select("beats")
+    .eq("video_id", video.id)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const beat = ((script?.beats ?? []) as ScriptBeat[]).find(
+    (b) => b.idx === opts.beatIdx,
+  );
+  if (!beat) return { ok: false, error: "Beat not found" };
+
+  const steered = opts.note?.trim()
+    ? { ...beat, visualPrompt: `${beat.visualPrompt}. ${opts.note.trim()}` }
+    : beat;
+  const draft = await makeBeatClip(video, project, steered);
+  await db
+    .from("assets")
+    .delete()
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", opts.beatIdx);
+  await db.from("assets").insert(draft.row);
+  await recordCost(db, video, draft.cost, `reroll beat ${opts.beatIdx + 1}`);
   return { ok: true };
 }
 

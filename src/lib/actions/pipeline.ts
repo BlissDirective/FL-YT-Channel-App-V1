@@ -6,6 +6,7 @@ import {
   decideGate,
   editScriptBeat,
   editVideoMetadata,
+  rerollBeatVisual,
   runPipeline,
 } from "@/lib/pipeline/engine";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
@@ -175,6 +176,45 @@ export async function editVideoMetadataAction(
     revalidatePath(`/projects/${projectId}/videos/${videoId}`);
     refresh(projectId);
     return result;
+  });
+}
+
+/** Reroll one beat's visual at the Assets gate (idea #3). */
+export async function rerollBeatVisualAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  note?: string,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const result = await rerollBeatVisual({ videoId, beatIdx, note });
+    refresh(projectId);
+    return result;
+  });
+}
+
+/** Crown one thumbnail candidate (idea #4 — selection feeds the render
+    and, in Phase 7, the Publish Kit's Test & Compare package). */
+export async function selectThumbnailAction(
+  projectId: string,
+  videoId: string,
+  assetId: string,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const supabase = await createClient();
+    const { data: thumbs } = await supabase
+      .from("assets")
+      .select("id, meta")
+      .eq("video_id", videoId)
+      .eq("kind", "thumb");
+    for (const t of thumbs ?? []) {
+      await supabase
+        .from("assets")
+        .update({ meta: { ...(t.meta as object), selected: t.id === assetId } })
+        .eq("id", t.id);
+    }
+    refresh(projectId);
+    return { ok: true };
   });
 }
 
