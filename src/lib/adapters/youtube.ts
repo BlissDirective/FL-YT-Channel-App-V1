@@ -113,10 +113,15 @@ export async function fetchVideoStats(ids: string[]): Promise<VideoStats[]> {
 function mockStats(videoId: string): VideoStats {
   let h = 0;
   for (let i = 0; i < videoId.length; i++) h = (h * 31 + videoId.charCodeAt(i)) >>> 0;
-  const day = Math.floor(Date.now() / 86_400_000);
+  // Monotonic by design: views grow with the video's age in days and plateau
+  // after a year — they never wrap/drop, so dashboard totals can't lurch
+  // backward between refreshes on mock (no-key) deployments.
+  const epochDay = Math.floor(Date.UTC(2026, 0, 1) / 86_400_000);
+  const today = Math.floor(Date.now() / 86_400_000);
+  const age = Math.min(Math.max(today - epochDay, 0), 365);
   const base = 800 + (h % 4000);
   const perDay = 120 + (h % 900);
-  const views = base + perDay * (day % 90);
+  const views = base + perDay * age;
   return {
     videoId,
     views,

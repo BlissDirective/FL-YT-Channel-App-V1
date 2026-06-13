@@ -87,7 +87,7 @@ export function PublishKit(props: PublishKitProps) {
 }
 
 function TrackingPanel(props: PublishKitProps) {
-  const { snapshots, estRevenueUsd, youtubeVideoId, publishedAt, projectId } = props;
+  const { snapshots, estRevenueUsd, youtubeVideoId, publishedAt, projectId, videoId } = props;
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
   const latest = snapshots[snapshots.length - 1];
@@ -122,7 +122,7 @@ function TrackingPanel(props: PublishKitProps) {
           onClick={() =>
             startTransition(async () => {
               setError(undefined);
-              const r = await refreshStatsAction(projectId);
+              const r = await refreshStatsAction(projectId, videoId);
               if (!r.ok) setError(r.error);
             })
           }

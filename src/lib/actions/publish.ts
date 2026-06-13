@@ -59,15 +59,20 @@ export async function markUploadedAction(
   }
 }
 
-/** On-demand stats pull for one project's tracked videos (a "Refresh" button). */
-export async function refreshStatsAction(projectId: string): Promise<PublishResult> {
+/** On-demand stats pull for one project's tracked videos (a "Refresh" button).
+    `videoId` is the page the button lives on, so its sparkline revalidates too. */
+export async function refreshStatsAction(
+  projectId: string,
+  videoId?: string,
+): Promise<PublishResult> {
   try {
     const { refreshed } = await refreshTrackedStats(projectId);
     revalidatePath("/");
     revalidatePath(`/projects/${projectId}`);
+    if (videoId) revalidatePath(`/projects/${projectId}/videos/${videoId}`);
     return refreshed > 0
       ? { ok: true }
-      : { ok: false, error: "No tracked videos to refresh yet." };
+      : { ok: false, error: "Nothing to refresh — no published videos are being tracked yet." };
   } catch (err) {
     console.error("refreshStats failed:", err);
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
