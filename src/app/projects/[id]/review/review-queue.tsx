@@ -499,22 +499,75 @@ function providerLabel(provider: string): string {
 }
 
 function FinalBody({ item }: { item: ReviewItem }) {
-  const render = item.assets.find((a) => a.kind === "render");
-  const meta = (render?.meta ?? {}) as { resolution?: string; durationSec?: number };
+  const renders = item.assets.filter((a) => a.kind === "render");
+  const long =
+    renders.find((a) => (a.meta as { variant?: string }).variant === "long") ??
+    renders[0];
+  const short = renders.find(
+    (a) => (a.meta as { variant?: string }).variant === "short",
+  );
+  const [showShort, setShowShort] = useState(false);
+  const active = showShort && short ? short : long;
+  const meta = (active?.meta ?? {}) as { resolution?: string; durationSec?: number };
+  const thumb = item.assets.find(
+    (a) => a.kind === "thumb" && (a.meta as { selected?: boolean }).selected,
+  );
+  const chapters = item.script?.metadata?.chapters ?? [];
+
   return (
     <div className="space-y-3">
-      <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-ink">
-        <span className="grid size-12 place-items-center rounded-full bg-accent text-ink">
-          <Play className="size-5" fill="currentColor" />
-        </span>
-        <span className="absolute bottom-2 right-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+      {active?.url ? (
+        <div
+          className={cn(
+            "overflow-hidden rounded-xl bg-ink",
+            showShort ? "mx-auto aspect-[9/16] max-h-80" : "aspect-video",
+          )}
+        >
+          {/* key forces reload when toggling long/short */}
+          <video
+            key={active.id}
+            src={active.url}
+            poster={!showShort ? (thumb?.url ?? undefined) : undefined}
+            controls
+            playsInline
+            className="size-full object-contain"
+          />
+        </div>
+      ) : (
+        <div className="relative grid aspect-video place-items-center overflow-hidden rounded-xl bg-ink">
+          <span className="grid size-12 place-items-center rounded-full bg-accent text-ink">
+            <Play className="size-5" fill="currentColor" />
+          </span>
+          <span className="absolute bottom-2 right-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            {fmtDuration(meta.durationSec)} · {meta.resolution ?? "1080p"}
+          </span>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusChip tone="neutral">
           {fmtDuration(meta.durationSec)} · {meta.resolution ?? "1080p"}
-        </span>
+        </StatusChip>
+        {short?.url && (
+          <button
+            type="button"
+            onClick={() => setShowShort((s) => !s)}
+            className="rounded-full bg-card-warm px-3 py-1.5 text-xs font-semibold text-ink shadow-card hover:bg-accent-soft"
+          >
+            {showShort ? "▶ Watch long-form" : "▶ Watch the Short"}
+          </button>
+        )}
       </div>
-      <p className="text-xs text-muted">
-        Mock render — the in-browser player arrives with Remotion in Phase 6.
-        Approving moves this video to the Ready stage.
-      </p>
+      {!showShort && chapters.length > 0 && (
+        <p className="text-xs text-muted">
+          Chapters: {chapters.map((c) => `${fmtDuration(c.at)} ${c.label}`).join(" · ")}
+        </p>
+      )}
+      {!active?.url && (
+        <p className="text-xs text-muted">
+          Mock render tile — videos with live assets get a real MP4 + Short
+          from the render farm. Approving moves this video to the Ready stage.
+        </p>
+      )}
     </div>
   );
 }

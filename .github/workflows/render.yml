@@ -1,0 +1,39 @@
+name: Render Farm
+
+# Remotion render worker: picks up videos at ASSEMBLING and produces the
+# final MP4 + Short. Cron because the app (serverless) can't run Chrome;
+# free at this scale on Actions minutes.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+  push:
+    paths:
+      - packages/render/**
+      - .github/workflows/render.yml
+
+concurrency:
+  group: render-farm
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install render package deps
+        run: pnpm install --frozen-lockfile --filter @studio/render...
+      - name: Render queue
+        working-directory: packages/render
+        env:
+          SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+        run: pnpm render-queue

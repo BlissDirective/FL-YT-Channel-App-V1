@@ -192,3 +192,22 @@ standing rules (Full-App-Development-plan.md §5).
   Claude relevance + license screening, an attribution ledger feeding the
   Publish Kit, and human approval at the Assets gate. Gaming niches get a
   manual press-kit/own-capture lane, never autonomous.
+
+## Phase 6 (2026-06-13)
+
+- **Render farm = GitHub Actions, not Trigger.dev/Lambda.** Vercel can't run
+  Chrome and Trigger deploys remain blocked without a PAT, so a cron worker
+  (`render.yml`, every 10 min + dispatch) renders the queue with Remotion on
+  ubuntu runners — free at this scale. The engine leaves live-asset videos
+  at ASSEMBLING ("external" waitpoint); the worker uploads MP4s and advances
+  to FINAL_REVIEW. Mock videos still mock-render in-app instantly.
+- **Compositions** (`packages/render`, isolated workspace so the web bundle
+  stays clean): branded intro sting, beat sequencer (Ken Burns stills /
+  looped stock footage, per-beat VO), word-highlight captions, subscribe
+  lower-third at 70%, branded end card; 9:16 **Short** derived from the hook
+  beat (idea #1 — output multiplier at $0 marginal cost).
+- **Beat timeline** (idea #2 foundation): the long-form render asset stores
+  each beat's absolute start/end so Phase 7+ retention curves map to beats.
+- **Deferred from plan scope:** background music bed + auto-ducking (needs a
+  licensed track bundle picked first) — slotted alongside Phase 6.5.
+- Local smoke render validated (315 frames, h264) before first CI run.

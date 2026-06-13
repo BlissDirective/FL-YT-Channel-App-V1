@@ -1,0 +1,55 @@
+import React from "react";
+import { Composition } from "remotion";
+import { LongForm, Short, shortDurationSec } from "./VideoComp";
+import { FPS, longFormDurationSec, type VideoProps } from "./types";
+
+const DEFAULT_PROPS: VideoProps = {
+  title: "Sample Video",
+  projectName: "Studio",
+  brand: { primary: "#F5B829", secondary: "#17150F" },
+  beats: [
+    {
+      idx: 0,
+      text: "This is a sample beat.",
+      durationSec: 4,
+      words: [
+        { w: "This", start: 0.1, end: 0.4 },
+        { w: "is", start: 0.4, end: 0.6 },
+        { w: "a", start: 0.6, end: 0.7 },
+        { w: "sample", start: 0.7, end: 1.2 },
+        { w: "beat.", start: 1.2, end: 1.7 },
+      ],
+      voUrl: null,
+      shotType: "broll",
+    },
+  ],
+};
+
+export const RemotionRoot: React.FC = () => (
+  <>
+    <Composition
+      id="LongForm"
+      component={LongForm}
+      fps={FPS}
+      width={1920}
+      height={1080}
+      durationInFrames={300}
+      defaultProps={DEFAULT_PROPS}
+      calculateMetadata={({ props }) => ({
+        durationInFrames: Math.round(longFormDurationSec(props) * FPS),
+      })}
+    />
+    <Composition
+      id="Short"
+      component={Short}
+      fps={FPS}
+      width={1080}
+      height={1920}
+      durationInFrames={300}
+      defaultProps={DEFAULT_PROPS}
+      calculateMetadata={({ props }) => ({
+        durationInFrames: Math.round(shortDurationSec(props) * FPS),
+      })}
+    />
+  </>
+);

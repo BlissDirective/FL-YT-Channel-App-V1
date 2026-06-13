@@ -623,7 +623,19 @@ async function makeThumbCandidate(
   };
 }
 
-async function runAssembly(db: Db, video: Video) {
+async function runAssembly(db: Db, video: Video): Promise<"external" | void> {
+  // Live-asset videos are rendered by the GitHub Actions farm (cron, ≤10 min
+  // pickup): leave the video at ASSEMBLING; the worker advances it to
+  // FINAL_REVIEW when the MP4 + Short land in Storage.
+  const { data: liveVo } = await db
+    .from("assets")
+    .select("id")
+    .eq("video_id", video.id)
+    .eq("kind", "vo")
+    .not("provider", "like", "mock:%")
+    .limit(1);
+  if (liveVo && liveVo.length > 0) return "external";
+
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", "render");
   await sleep(STAGE_DELAY_MS);
   await db.from("assets").insert({
@@ -699,9 +711,11 @@ export async function runPipeline(videoId: string): Promise<EngineResult> {
       case "GENERATING_ASSETS":
         await runAssetGeneration(db, video, project);
         break;
-      case "ASSEMBLING":
-        await runAssembly(db, video);
+      case "ASSEMBLING": {
+        const result = await runAssembly(db, video);
+        if (result === "external") return { ok: true }; // farm takes over
         break;
+      }
       default:
         return { ok: true }; // APPROVED / TRACKING / KILLED / NEEDS_REVISION
     }
