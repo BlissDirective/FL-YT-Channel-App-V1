@@ -45,6 +45,7 @@ jobs:
           FAL_KEY: ${{ secrets.FAL_KEY || secrets.FAL_AI_FULL_ACCESS_DEVELOPMENT_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          STUDIO_MCP_TOKEN: ${{ secrets.STUDIO_MCP_TOKEN }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "⚪ VERCEL_TOKEN secret not configured — nothing to do."
@@ -85,6 +86,7 @@ jobs:
           upsert FAL_KEY "$FAL_KEY"
           upsert PEXELS_API_KEY "$PEXELS_API_KEY"
           upsert CRON_SECRET "$CRON_SECRET"
+          upsert STUDIO_MCP_TOKEN "$STUDIO_MCP_TOKEN"
 
           echo ""
           echo "==== SYNC: $PASS synced, $FAIL failed, $SKIP skipped ===="

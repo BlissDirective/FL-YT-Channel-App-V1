@@ -1,11 +1,10 @@
-import { getServiceHealth } from "@/lib/adapters/health";
+import { getServiceHealth, TESTABLE_SERVICES } from "@/lib/adapters/health";
 import { getCostLedger, getKillSwitch, getQcAgreement } from "@/lib/db/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { Card, CardTitle } from "@/components/ui/card";
-import { StatusChip } from "@/components/ui/status-chip";
-import { cn } from "@/lib/cn";
 import { KillSwitch } from "./kill-switch";
 import { NotificationsCard } from "./notifications-card";
+import { CredentialHealthList } from "./credential-health";
 
 export const dynamic = "force-dynamic";
 
@@ -71,33 +70,16 @@ export default async function SettingsPage() {
         <p className="mb-4 text-sm text-muted">
           Each service is wired as a mock until its key is present, so the app
           works end-to-end before everything is connected. Keys are read from
-          the deployment environment — values are never shown here.
+          the deployment environment — values are never shown here. Use{" "}
+          <span className="font-medium text-ink">Test</span> to live-ping a
+          connected provider.
         </p>
-        <ul className="divide-y divide-line">
-          {services.map((s) => (
-            <li key={s.key} className="flex items-center justify-between gap-3 py-3">
-              <div className="flex items-center gap-3">
-                <span
-                  className={cn(
-                    "size-2.5 rounded-full",
-                    s.present ? "bg-success" : "bg-muted/40",
-                  )}
-                />
-                <div>
-                  <p className="text-sm font-medium">{s.label}</p>
-                  <p className="text-xs text-muted">Needed by Phase {s.phase}</p>
-                </div>
-              </div>
-              {s.present ? (
-                <StatusChip tone="success">Connected</StatusChip>
-              ) : s.required ? (
-                <StatusChip tone="coral">Missing</StatusChip>
-              ) : (
-                <StatusChip tone="neutral">Mock mode</StatusChip>
-              )}
-            </li>
-          ))}
-        </ul>
+        <CredentialHealthList
+          services={services.map((s) => ({
+            ...s,
+            testable: TESTABLE_SERVICES.includes(s.key as (typeof TESTABLE_SERVICES)[number]),
+          }))}
+        />
       </Card>
 
       <Card>

@@ -302,3 +302,30 @@ standing rules (Full-App-Development-plan.md §5).
   template diff so `/insights` and the apply-flow validate out of the box.
 - **No new credentials** — Phase 8 rides the existing Anthropic + YouTube keys
   (per the plan's credential timeline).
+
+## Phase 9 — Studio MCP server + hardening (2026-06-13)
+
+- **studio-mcp lives inside the Next app** (`/api/mcp`, `src/lib/mcp/`), not a
+  separate process — a streamable-HTTP JSON-RPC endpoint implemented without
+  the MCP SDK (single-response mode: a POST returns one JSON-RPC result, which
+  is spec-compliant and dependency-free). Handles initialize / tools/list /
+  tools/call / ping / initialized.
+- **Scoped bearer auth** (`STUDIO_MCP_TOKEN`): public in middleware, gated in
+  the route; **closed (503) unless the token is set** — an admin-capable
+  endpoint must never be open by default (unlike the cron routes, which no-op
+  safely when open).
+- **Tools use the service-role client.** Since there's no user session on an
+  MCP call, the 10 tools run via the admin client. To let `approve_gate` /
+  `request_revision` drive the real engine, `decideGate`/`runPipeline` gained
+  an optional `db` param (the helpers already threaded `db`) and a `decided_by`
+  tag so MCP-driven approvals are auditable (`decided_by='mcp'`).
+- **propose_template_update proposes, doesn't apply** — it writes an `insights`
+  card with a proposed template body, so the human still applies it with one
+  tap (versioned, revertible). Keeps the agent advisory on prompt changes.
+- **Hardening shipped:** live credential **Test** buttons in Settings
+  (`credential-test.ts` does the cheapest authenticated probe per provider),
+  a `studio_mcp` row in the health panel, full **README** refresh, and a new
+  **operations RUNBOOK** (env, cron schedule, MCP config, troubleshooting,
+  cost controls). Sentry / Playwright E2E / Lighthouse are noted as the
+  remaining hardening items for Phase 10 — they need external accounts/config
+  and are better done against the final validated build.

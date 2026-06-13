@@ -658,8 +658,8 @@ async function runAssembly(db: Db, video: Video): Promise<"external" | void> {
  * the next review gate (or on a budget/kill pause). Safe to call after any
  * decision — it picks up from the video's current status.
  */
-export async function runPipeline(videoId: string): Promise<EngineResult> {
-  const db = await createClient();
+export async function runPipeline(videoId: string, dbArg?: Db): Promise<EngineResult> {
+  const db = dbArg ?? (await createClient());
 
   for (let hop = 0; hop < 8; hop++) {
     const video = await getVideo(db, videoId);
@@ -946,12 +946,16 @@ export async function editVideoMetadata(opts: {
 }
 
 /** Resolve a gate decision, then let the engine continue. */
-export async function decideGate(opts: {
-  videoId: string;
-  decision: "approved" | "revision" | "killed";
-  notes?: string;
-}): Promise<EngineResult> {
-  const db = await createClient();
+export async function decideGate(
+  opts: {
+    videoId: string;
+    decision: "approved" | "revision" | "killed";
+    notes?: string;
+  },
+  dbArg?: Db,
+  decidedBy: "human" | "mcp" = "human",
+): Promise<EngineResult> {
+  const db = dbArg ?? (await createClient());
   const video = await getVideo(db, opts.videoId);
   if (!video) return { ok: false, error: "Video not found" };
 
@@ -962,7 +966,7 @@ export async function decideGate(opts: {
     video_id: video.id,
     gate,
     decision: opts.decision,
-    decided_by: "human",
+    decided_by: decidedBy,
     notes: opts.notes ?? null,
     decided_at: new Date().toISOString(),
   });
@@ -987,11 +991,11 @@ export async function decideGate(opts: {
       return { ok: true };
     }
     await setStatus(db, video.id, target);
-    return runPipeline(video.id);
+    return runPipeline(video.id, db);
   }
 
   const next = ON_APPROVE[video.status];
   if (!next) return { ok: false, error: "No approve transition" };
   await setStatus(db, video.id, next);
-  return runPipeline(video.id);
+  return runPipeline(video.id, db);
 }

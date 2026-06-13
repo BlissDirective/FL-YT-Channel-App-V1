@@ -67,5 +67,22 @@ export function getServiceHealth(): ServiceHealth[] {
       present: has("YOUTUBE_API_KEY") || has("YOUTUBE_DATA_API_V3"),
       required: false,
     },
+    {
+      key: "studio_mcp",
+      label: "Studio MCP server (operate the app from Claude)",
+      phase: "9",
+      present: has("STUDIO_MCP_TOKEN"),
+      required: false,
+    },
   ];
 }
+
+/** Services that support a live "test" ping from the settings panel. */
+export const TESTABLE_SERVICES = [
+  "anthropic",
+  "elevenlabs",
+  "fal",
+  "pexels",
+  "youtube",
+] as const;
+export type TestableService = (typeof TESTABLE_SERVICES)[number];

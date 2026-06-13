@@ -2,9 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
 
-// /api/cron is its own gate (CRON_SECRET) so the nightly Action can reach it
-// without a session.
-const PUBLIC_PATHS = ["/login", "/styleguide", "/api/cron"];
+// /api/cron (CRON_SECRET) and /api/mcp (STUDIO_MCP_TOKEN) carry their own
+// auth, so they bypass the session gate.
+const PUBLIC_PATHS = ["/login", "/styleguide", "/api/cron", "/api/mcp"];
 
 export async function middleware(request: NextRequest) {
   const url = SUPABASE_URL;
