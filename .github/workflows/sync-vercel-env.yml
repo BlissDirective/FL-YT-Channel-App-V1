@@ -16,14 +16,14 @@ on:
         required: false
         type: string
   push:
-    branches: [claude/autonomous-youtube-video-app-au70ql]
+    branches: [main]
     paths: ['.github/workflows/sync-vercel-env.yml']
 
 env:
   PROJECT_ID: prj_rkpoDeBAEVf6P1Es1uko0gsSez9D
   TEAM_ID: team_o0aj1OpSptKOTS1cEaPklK4R
   REPO_ID: "1264525203"
-  DEPLOY_REF: claude/autonomous-youtube-video-app-au70ql
+  DEPLOY_REF: main
 
 jobs:
   sync:
