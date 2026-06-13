@@ -12,11 +12,13 @@ export const maxDuration = 300;
  * feature is testable without configuration.
  */
 async function handle(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
+  // Trim both sides: a secret pasted with a trailing newline (GitHub secrets
+  // keep them) must still match the value the caller sends as a Bearer token.
+  const secret = process.env.CRON_SECRET?.trim();
   if (secret) {
     const auth = request.headers.get("authorization");
-    const fromHeader = auth?.replace(/^Bearer\s+/i, "");
-    const fromQuery = request.nextUrl.searchParams.get("key");
+    const fromHeader = auth?.replace(/^Bearer\s+/i, "").trim();
+    const fromQuery = request.nextUrl.searchParams.get("key")?.trim();
     if (fromHeader !== secret && fromQuery !== secret) {
       return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
     }
