@@ -3,12 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
+  applySourceClip,
   decideGate,
   editScriptBeat,
   editVideoMetadata,
   rerollBeatVisual,
   runPipeline,
 } from "@/lib/pipeline/engine";
+import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 
 export type PipelineResult = { ok: boolean; error?: string };
@@ -174,6 +176,59 @@ export async function editVideoMetadataAction(
       description,
     });
     revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    refresh(projectId);
+    return result;
+  });
+}
+
+/** Phase 6.5 — search compliant sources for a beat and return Claude-ranked
+    candidates with verified licence metadata. */
+export async function findFootageAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  queryOverride?: string,
+): Promise<PipelineResult & { candidates?: SourceCandidate[] }> {
+  return guarded(async () => {
+    const supabase = await createClient();
+    const { data: script } = await supabase
+      .from("scripts")
+      .select("beats")
+      .eq("video_id", videoId)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const beat = ((script?.beats ?? []) as { idx: number; text: string; visualPrompt: string }[]).find(
+      (b) => b.idx === beatIdx,
+    );
+    if (!beat) return { ok: false, error: "Beat not found" };
+
+    const query = (queryOverride?.trim() || beat.visualPrompt || beat.text).slice(0, 100);
+    const found = await searchSources(query);
+    if (found.length === 0) {
+      return {
+        ok: false,
+        error: `No compliant footage found for “${query}”. Try a broader or more concrete search.`,
+      };
+    }
+    const ranked = await rankCandidates({
+      beatText: beat.text,
+      visualPrompt: beat.visualPrompt,
+      candidates: found,
+    });
+    return { ok: true, candidates: ranked.slice(0, 12) };
+  });
+}
+
+/** Phase 6.5 — apply a chosen licensed candidate to a beat. */
+export async function applySourceClipAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  candidate: SourceCandidate,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const result = await applySourceClip({ videoId, beatIdx, candidate });
     refresh(projectId);
     return result;
   });

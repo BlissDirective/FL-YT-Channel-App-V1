@@ -211,3 +211,25 @@ standing rules (Full-App-Development-plan.md §5).
 - **Deferred from plan scope:** background music bed + auto-ducking (needs a
   licensed track bundle picked first) — slotted alongside Phase 6.5.
 - Local smoke render validated (315 frames, h264) before first CI run.
+
+## Phase 6.5 — Source Library agent (2026-06-13)
+
+- **Licensed sources only**, fanned out per beat: Pexels (video), Openverse
+  (CC images, no key, server-side commercial+modification filter), Wikimedia
+  Commons (CC/PD images, no key), Pixabay (optional key). No YouTube/yt-dlp,
+  no publisher IP — per the scraping-agent assessment.
+- **Deterministic licence screening** (`classifyLicense`) is the gatekeeper,
+  not the LLM: rejects NC, ND, and SA (SA excluded so copyleft can't infect
+  the whole render); allows CC0/PD, CC-BY, Pexels, Pixabay. Re-screened
+  server-side on apply — a client can't smuggle a bad licence through.
+- **Claude (Haiku) ranks** candidates for visual relevance and flags likely
+  licence laundering (title/author hints of copyrighted film/game clips).
+  Best-effort; degrades to source order without a key.
+- **Attribution ledger** is derived from clip-asset meta (no new table) via
+  `src/lib/attribution.ts`; CC-BY picks show in an Assets-gate ledger panel
+  now and `buildAttributionBlock()` feeds the Phase 7 Publish Kit description.
+- **Storage policy:** chosen images are copied into the bucket (so the render
+  farm uses them and links can't rot); licensed videos keep their direct file
+  URL, matching the existing Pexels render path.
+- Gaming niches remain a manual press-kit/own-capture lane — the agent
+  surfaces nothing infringing because the sources contain no such footage.

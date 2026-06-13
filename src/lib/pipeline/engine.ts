@@ -16,6 +16,7 @@ import { COPILOT_AUTO_APPROVE_SCORE, reviewGate } from "@/lib/adapters/qc";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import { generateImage, isFalLive } from "@/lib/adapters/fal";
 import { searchStockClip } from "@/lib/adapters/stock";
+import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { uploadMedia } from "@/lib/storage";
 import type { Project, ScriptBeat, Video } from "@/lib/db/types";
 import { MOCK_COSTS } from "./mock-content";
@@ -761,6 +762,83 @@ export async function rerollBeatVisual(opts: {
   await db.from("assets").insert(draft.row);
   await recordCost(db, video, draft.cost, `reroll beat ${opts.beatIdx + 1}`);
   return { ok: true };
+}
+
+/** Phase 6.5 — apply a chosen licensed candidate to a beat. Images are
+    copied into Storage so the render farm uses them and links never rot;
+    videos keep their direct (licensed) file URL. Attribution metadata is
+    stored on the asset for the ledger / Publish Kit. */
+export async function applySourceClip(opts: {
+  videoId: string;
+  beatIdx: number;
+  candidate: SourceCandidate;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const c = opts.candidate;
+
+  // Re-screen the licence server-side — never trust a client-supplied verdict.
+  const lic = classifyLicense(c.license.id, c.license.url);
+  if (!lic) {
+    return { ok: false, error: "That source's licence isn't usable for commercial remix." };
+  }
+
+  const meta: Record<string, unknown> = {
+    shotType: "stock",
+    sourceProvider: c.provider,
+    sourceUrl: c.sourceUrl,
+    author: c.author,
+    license: lic,
+    fromLibrary: true,
+  };
+  let storagePath = "";
+
+  if (c.kind === "video") {
+    meta.url = c.fullUrl; // OffthreadVideo streams the licensed file directly
+    meta.posterUrl = c.thumbUrl;
+    meta.durationSec = c.durationSec;
+  } else {
+    // Download the still into our bucket (small) so the render can pan it.
+    const res = await fetch(c.fullUrl);
+    if (!res.ok) return { ok: false, error: `Couldn't fetch the image (HTTP ${res.status}).` };
+    const buf = Buffer.from(await res.arrayBuffer());
+    const ext = c.fullUrl.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    storagePath = `videos/${video.id}/beat-${opts.beatIdx}-lib.${ext.slice(0, 4)}`;
+    await uploadMedia(storagePath, buf, contentTypeFor(ext));
+    meta.posterUrl = c.thumbUrl;
+    meta.stillImage = true;
+  }
+
+  await db
+    .from("assets")
+    .delete()
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", opts.beatIdx);
+  await db.from("assets").insert({
+    video_id: video.id,
+    kind: "clip",
+    provider: c.provider,
+    storage_path: storagePath,
+    beat_index: opts.beatIdx,
+    meta,
+    cost_usd: 0,
+  });
+  await recordCost(
+    db,
+    video,
+    { provider: c.provider, usd: 0, description: `Licensed ${c.kind} (${lic.label}) — free` },
+    `beat ${opts.beatIdx + 1}`,
+  );
+  return { ok: true };
+}
+
+function contentTypeFor(ext: string): string {
+  if (ext.startsWith("png")) return "image/png";
+  if (ext.startsWith("gif")) return "image/gif";
+  if (ext.startsWith("webp")) return "image/webp";
+  return "image/jpeg";
 }
 
 /** Inline script edit: saves a new script version with the edited beat and

@@ -27,7 +27,9 @@ import {
 } from "@/lib/actions/pipeline";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
+import { attributionsFromAssets } from "@/lib/attribution";
 import { cn } from "@/lib/cn";
+import { SourceLibrary } from "./source-library";
 
 const GATE_ICONS: Record<ApprovalGate, typeof Lightbulb> = {
   IDEA: Lightbulb,
@@ -309,6 +311,7 @@ function AssetsBody({
   onError: (e?: string) => void;
 }) {
   const [rerolling, setRerolling] = useState<number | null>(null);
+  const [libraryBeat, setLibraryBeat] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [busyBeat, setBusyBeat] = useState<number | null>(null);
   const [, startTransition] = useTransition();
@@ -353,25 +356,55 @@ function AssetsBody({
               <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white drop-shadow">
                 {(c.meta as { shotType?: string }).shotType ?? "clip"}
               </span>
+              {(c.meta as { fromLibrary?: boolean }).fromLibrary && (
+                <span className="absolute bottom-1 right-1 rounded bg-success/90 px-1 py-0.5 text-[9px] font-bold text-white">
+                  licensed
+                </span>
+              )}
               {c.beat_index !== null && (
-                <button
-                  type="button"
-                  aria-label={`Reroll shot ${(c.beat_index ?? 0) + 1}`}
-                  onClick={() =>
-                    setRerolling(rerolling === c.beat_index ? null : c.beat_index)
-                  }
-                  className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/50 text-white hover:bg-black/80"
-                >
-                  {busyBeat === c.beat_index ? (
-                    <Loader2 className="size-3 animate-spin" />
-                  ) : (
-                    <RefreshCw className="size-3" />
-                  )}
-                </button>
+                <div className="absolute right-1 top-1 flex gap-1">
+                  <button
+                    type="button"
+                    aria-label={`Find licensed footage for shot ${(c.beat_index ?? 0) + 1}`}
+                    onClick={() => {
+                      setRerolling(null);
+                      setLibraryBeat(
+                        libraryBeat === c.beat_index ? null : c.beat_index,
+                      );
+                    }}
+                    className="grid size-6 place-items-center rounded-full bg-black/50 text-white hover:bg-black/80"
+                  >
+                    <ImageIcon className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Reroll shot ${(c.beat_index ?? 0) + 1}`}
+                    onClick={() => {
+                      setLibraryBeat(null);
+                      setRerolling(rerolling === c.beat_index ? null : c.beat_index);
+                    }}
+                    className="grid size-6 place-items-center rounded-full bg-black/50 text-white hover:bg-black/80"
+                  >
+                    {busyBeat === c.beat_index ? (
+                      <Loader2 className="size-3 animate-spin" />
+                    ) : (
+                      <RefreshCw className="size-3" />
+                    )}
+                  </button>
+                </div>
               )}
             </MediaTile>
           ))}
         </div>
+        {libraryBeat !== null && (
+          <SourceLibrary
+            projectId={projectId}
+            videoId={item.video.id}
+            beatIdx={libraryBeat}
+            onClose={() => setLibraryBeat(null)}
+            onError={onError}
+          />
+        )}
         {rerolling !== null && (
           <div className="mt-2 flex gap-2">
             <input
@@ -455,6 +488,7 @@ function AssetsBody({
           Kit keeps all 3 for YouTube Test &amp; Compare.
         </p>
       </div>
+      <AttributionLedger assets={item.assets} />
       {allMock && (
         <p className="text-xs text-muted">
           Placeholder tiles — connect provider keys (or pick a real voice) for
@@ -496,6 +530,42 @@ function providerLabel(provider: string): string {
   if (provider === "kokoro") return "Kokoro (volume tier)";
   if (provider === "elevenlabs") return "ElevenLabs";
   return provider;
+}
+
+/** Attribution ledger (Phase 6.5) — credits required by CC-BY picks, shown
+    here and injected into the description by the Publish Kit. */
+function AttributionLedger({ assets }: { assets: ReviewItem["assets"] }) {
+  const credits = attributionsFromAssets(assets).filter((a) => a.requiresAttribution);
+  if (credits.length === 0) return null;
+  return (
+    <div className="rounded-xl bg-canvas p-3">
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+        Attribution ledger ({credits.length})
+      </p>
+      <ul className="space-y-1">
+        {credits.map((c, i) => (
+          <li key={i} className="text-[11px] leading-snug text-muted">
+            <span className="font-medium text-ink">{c.title}</span> by {c.author} ·{" "}
+            {c.licenseUrl ? (
+              <a
+                href={c.licenseUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-dotted"
+              >
+                {c.licenseLabel}
+              </a>
+            ) : (
+              c.licenseLabel
+            )}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1.5 text-[10px] text-muted">
+        Auto-added to the video description at publish.
+      </p>
+    </div>
+  );
 }
 
 function FinalBody({ item }: { item: ReviewItem }) {
