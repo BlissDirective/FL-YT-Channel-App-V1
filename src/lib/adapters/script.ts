@@ -6,12 +6,37 @@ import { mockScript } from "@/lib/pipeline/mock-content";
  * Script provider adapter (Anthropic Claude). Live when ANTHROPIC_API_KEY
  * is present; otherwise falls back to the deterministic mock so the
  * pipeline always works (standing rule 4).
+ *
+ * Model is env-switchable via SCRIPT_MODEL (default Sonnet 4.6). Set it to
+ * "claude-opus-4-8" for the flagship-quality writer — ~5x the token cost
+ * (~$0.25–0.30/script vs ~$0.05); pricing below tracks whichever is set.
  */
 
-const MODEL = "claude-sonnet-4-6";
-// USD per million tokens (input, output) — used for the cost ledger.
-const PRICE_IN = 3;
-const PRICE_OUT = 15;
+const MODEL = process.env.SCRIPT_MODEL?.trim() || "claude-sonnet-4-6";
+// USD per million tokens (input, output) per model — for the cost ledger.
+const PRICING: Record<string, { in: number; out: number }> = {
+  "claude-opus-4-8": { in: 15, out: 75 },
+  "claude-sonnet-4-6": { in: 3, out: 15 },
+  "claude-haiku-4-5": { in: 1, out: 5 },
+};
+const PRICE = PRICING[MODEL] ?? { in: 3, out: 15 };
+
+/**
+ * Voice DNA — a system prompt that fights the "AI essay" register: writes
+ * like a real creator with a point of view, varies rhythm, and bans the
+ * tells that make scripts sound machine-written. Tone (per project) decides
+ * how edgy/hype vs. sharp/measured the delivery is.
+ */
+const VOICE_SYSTEM = `You write YouTube scripts that sound like a sharp human creator talking to one viewer — never like an AI essay or a press release.
+
+Hard rules:
+- BANNED phrases (never use, in any form): "delve", "dive in/into", "in today's video", "buckle up", "without further ado", "let's get started", "that's right, folks", "in conclusion", "the world of", "when it comes to", "it's important to note", "needless to say", "look no further", "game-changer", "at the end of the day", "rest assured", "embark", "tapestry", "navigate the", "unlock the secrets".
+- Vary rhythm hard: mix 3-word punches with longer lines. Never three same-length sentences in a row. Use sentence fragments for impact.
+- Real voice: contractions, second person ("you"), a clear opinion, the occasional aside. Confidence over hedging — cut "might", "perhaps", "in many ways".
+- Open cold and mid-thought with a real stake or a bold claim. No throat-clearing, no "welcome back".
+- Specifics beat vibes: concrete names, numbers, moments. Show, don't summarize.
+- Match the channel tone: if it's energetic/hype, go punchy, bold, a little provocative (but never clickbait lies); if authoritative, go sharp and certain; if curious, go conspiratorial and intriguing.
+- It must read like someone SAID it, not wrote it. Read it back in your head — if a sentence sounds like a corporate blog, rewrite it.`;
 
 export type ScriptDraft = {
   body: string;
@@ -137,6 +162,9 @@ export async function generateScript(opts: {
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 4096,
+      // Higher temperature for less robotic, more human phrasing.
+      temperature: 0.9,
+      system: VOICE_SYSTEM,
       tools: [DELIVER_SCRIPT_TOOL],
       tool_choice: { type: "tool", name: "deliver_script" },
       messages: [{ role: "user", content: prompt }],
@@ -162,8 +190,8 @@ export async function generateScript(opts: {
   };
   const beats: ScriptBeat[] = input.beats.map((b, idx) => ({ idx, ...b }));
   const costUsd =
-    (data.usage.input_tokens / 1e6) * PRICE_IN +
-    (data.usage.output_tokens / 1e6) * PRICE_OUT;
+    (data.usage.input_tokens / 1e6) * PRICE.in +
+    (data.usage.output_tokens / 1e6) * PRICE.out;
 
   return {
     body: beats.map((b) => b.text).join("\n\n"),
