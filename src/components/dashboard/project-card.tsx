@@ -2,18 +2,15 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { Project } from "@/lib/db/types";
 import { StatusChip } from "@/components/ui/status-chip";
-import { SemicircleGauge } from "@/components/ui/semicircle-gauge";
 
 export function ProjectCard({
   project,
   videoCount,
   inPipeline,
-  health,
 }: {
   project: Project;
   videoCount: number;
   inPipeline: number;
-  health: number;
 }) {
   return (
     <Link
@@ -46,11 +43,6 @@ export function ProjectCard({
               <p className="text-xs text-muted">in pipeline</p>
             </div>
           </div>
-        </div>
-        <div className="shrink-0">
-          <SemicircleGauge percent={health} size={104} strokeWidth={8}>
-            <span className="text-lg font-bold tabular-nums">{health}%</span>
-          </SemicircleGauge>
         </div>
       </div>
     </Link>

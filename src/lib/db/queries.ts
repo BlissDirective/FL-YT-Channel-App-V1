@@ -234,6 +234,18 @@ export async function getCostLedger(limit = 12): Promise<CostEntry[]> {
   return (data as CostEntry[]) ?? [];
 }
 
+/** Full cost ledger for the dedicated spend log — every recorded provider
+    call / render cost, newest first. Capped generously so the page stays fast. */
+export async function getAllCostEntries(limit = 1000): Promise<CostEntry[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("cost_ledger")
+    .select("*")
+    .order("at", { ascending: false })
+    .limit(limit);
+  return (data as CostEntry[]) ?? [];
+}
+
 export async function getKillSwitch(): Promise<boolean> {
   const supabase = await createClient();
   const { data } = await supabase
