@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Type,
 } from "lucide-react";
-import type { Blueprint, IntelCompetitor } from "@/lib/db/types";
+import type { Blueprint, IntelCompetitor, Perception } from "@/lib/db/types";
 
 function fmtViews(n: number): string {
   return Intl.NumberFormat("en", { notation: "compact" }).format(n);
@@ -42,10 +42,12 @@ export function BlueprintView({
   blueprint,
   competitors = [],
   topic = "",
+  perception,
 }: {
   blueprint: Blueprint;
   competitors?: IntelCompetitor[];
   topic?: string;
+  perception?: Perception | null;
 }) {
   const [copied, setCopied] = useState(false);
   const b = blueprint;
@@ -184,6 +186,26 @@ export function BlueprintView({
               </a>
             ))}
           </div>
+        </Section>
+      )}
+
+      {/* Deep perception timeline */}
+      {perception && perception.notes.length > 0 && (
+        <Section icon={ListOrdered} title={`Frame-by-frame notes (${perception.notes.length})`}>
+          <ol className="max-h-64 space-y-1.5 overflow-y-auto">
+            {perception.notes.map((n, i) => (
+              <li key={i} className="flex gap-2 text-sm">
+                <span className="shrink-0 font-semibold tabular-nums text-lavender">
+                  {n.t}s
+                </span>
+                <span className="text-muted">
+                  {n.sceneDesc}
+                  {n.onScreenText ? ` · “${n.onScreenText}”` : ""}
+                  {n.pacingNote ? ` · ${n.pacingNote}` : ""}
+                </span>
+              </li>
+            ))}
+          </ol>
         </Section>
       )}
 

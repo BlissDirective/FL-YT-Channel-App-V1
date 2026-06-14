@@ -23,6 +23,7 @@ import { COPILOT_AUTO_APPROVE_SCORE, reviewGate } from "@/lib/adapters/qc";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import { generateImage, generateVideo, isFalLive } from "@/lib/adapters/fal";
 import {
+  clampDuration,
   estimateClipCost,
   getVideoModel,
   VIDEO_MONTHLY_CAP_USD,
@@ -813,7 +814,7 @@ export async function generateBeatVideo(opts: {
   }
   const model = getVideoModel(opts.modelId);
   if (!model) return { ok: false, error: "Unknown video model." };
-  const dur = Math.max(1, Math.min(Math.round(opts.durationSec), model.maxDurationSec));
+  const dur = clampDuration(model, opts.durationSec);
 
   const video = await getVideo(db, opts.videoId);
   if (!video) return { ok: false, error: "Video not found" };

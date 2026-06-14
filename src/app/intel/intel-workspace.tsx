@@ -30,6 +30,9 @@ export function IntelWorkspace({
   const [urlInput, setUrlInput] = useState("");
   const [showTranscript, setShowTranscript] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [depth, setDepth] = useState<"quick" | "deep">("quick");
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [vouched, setVouched] = useState(false);
   const [result, setResult] = useState<VideoIntel | null>(null);
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
@@ -50,6 +53,9 @@ export function IntelWorkspace({
         topic,
         competitorUrls: urls,
         transcript,
+        depth,
+        sourceUrl,
+        vouched,
       });
       if (r.ok) setResult(r.intel);
       else setError(r.error);
@@ -81,18 +87,53 @@ export function IntelWorkspace({
                 ))}
               </select>
             </label>
-            <label className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1">
               <span className="text-xs font-medium text-muted">Depth</span>
               <div className="flex gap-1 rounded-full bg-card-warm p-1">
-                <span className="flex-1 rounded-full bg-card px-3 py-1.5 text-center text-sm font-semibold shadow-card">
-                  Quick
-                </span>
-                <span className="flex-1 px-3 py-1.5 text-center text-sm font-medium text-muted">
-                  Deep · soon
-                </span>
+                {(["quick", "deep"] as const).map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDepth(d)}
+                    className={cn(
+                      "flex-1 rounded-full px-3 py-1.5 text-center text-sm font-semibold capitalize transition-colors",
+                      depth === d ? "bg-card text-ink shadow-card" : "text-muted",
+                    )}
+                  >
+                    {d}
+                  </button>
+                ))}
               </div>
-            </label>
+            </div>
           </div>
+
+          {depth === "deep" && (
+            <div className="space-y-2 rounded-card bg-lavender/5 p-3">
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted">
+                  Reference video URL (Gemini analyzes it — no download)
+                </span>
+                <input
+                  value={sourceUrl}
+                  onChange={(e) => setSourceUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=…"
+                  className="input"
+                />
+              </label>
+              <label className="flex cursor-pointer items-start gap-2 text-xs text-muted">
+                <input
+                  type="checkbox"
+                  checked={vouched}
+                  onChange={(e) => setVouched(e.target.checked)}
+                  className="mt-0.5 accent-accent"
+                />
+                <span>
+                  I&apos;m analyzing this for research — notes only, and everything we
+                  generate is 100% original. (No footage is reused.)
+                </span>
+              </label>
+            </div>
+          )}
 
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted">Topic / keywords</span>
@@ -166,10 +207,19 @@ export function IntelWorkspace({
           )}
 
           <div className="flex items-center justify-between gap-3 pt-1">
-            <span className="text-xs text-muted">Metadata + Claude · ~$0.02–0.10 · ~5s</span>
+            <span className="text-xs text-muted">
+              {depth === "deep"
+                ? "Metadata + Gemini perception + Claude · ~$0.10–0.50 · up to a few min"
+                : "Metadata + Claude · ~$0.02–0.10 · ~5s"}
+            </span>
             <button
               type="button"
-              disabled={pending || !projectId || !topic.trim()}
+              disabled={
+                pending ||
+                !projectId ||
+                !topic.trim() ||
+                (depth === "deep" && (!sourceUrl.trim() || !vouched))
+              }
               onClick={run}
               className="flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
             >
@@ -193,6 +243,7 @@ export function IntelWorkspace({
             blueprint={result.blueprint}
             competitors={result.competitors}
             topic={result.topic}
+            perception={result.perception}
           />
         </div>
       )}
@@ -234,6 +285,7 @@ function HistoryItem({ intel }: { intel: VideoIntel }) {
             blueprint={intel.blueprint}
             competitors={intel.competitors}
             topic={intel.topic}
+            perception={intel.perception}
           />
         </div>
       )}

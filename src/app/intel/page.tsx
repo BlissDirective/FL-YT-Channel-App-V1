@@ -5,6 +5,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { IntelWorkspace } from "./intel-workspace";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 export default async function IntelPage({
   searchParams,

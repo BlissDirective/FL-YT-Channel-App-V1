@@ -84,6 +84,8 @@ export async function analyzeVideoIntel(opts: {
   ourTitle?: string;
   competitors: IntelCompetitor[];
   transcript?: string;
+  /** Timestamped frame/perception notes from a deep (Gemini) scan. */
+  perceptionNotes?: string;
 }): Promise<IntelResult> {
   if (!isIntelLive()) {
     return { blueprint: mockBlueprint(opts), costUsd: 0, provider: "mock" };
@@ -105,7 +107,7 @@ We are planning a video on: "${opts.topic}"${opts.ourTitle ? ` (working title: "
 
 Here are top/similar videos in this market (titles + view counts are the signal — higher views relative to age = what's resonating):
 ${compLines || "(no competitor list provided — infer from the niche)"}
-${opts.transcript ? `\nThe operator also provided a transcript of one reference video for deeper structural analysis:\n"""\n${opts.transcript.slice(0, 12000)}\n"""\n` : ""}
+${opts.perceptionNotes ? `\nDeep frame-by-frame perception of a top reference video (timestamped — what's on screen, pacing, structure):\n"""\n${opts.perceptionNotes.slice(0, 14000)}\n"""\n` : ""}${opts.transcript ? `\nReference transcript:\n"""\n${opts.transcript.slice(0, 12000)}\n"""\n` : ""}
 Analyze what works vs. what doesn't in this market, then design a blueprint for OUR ORIGINAL video — never copy their wording or footage; extract the patterns, structure, and gaps. Call deliver_blueprint with the full analysis.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {

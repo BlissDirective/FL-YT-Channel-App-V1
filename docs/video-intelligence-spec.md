@@ -122,16 +122,17 @@ not the synchronous `fal.run`. This runs in the **Actions worker**, not Vercel
 
 **Model registry (fal.ai, June 2026 — pricing indicative, verify live at build)**
 
-| Model | fal id (approx) | ~$/sec | Quality / notes | Audio |
+| Model | fal endpoint (i2v) — PINNED Jun 2026 | ~$/sec | Duration | Audio |
 |---|---|---|---|---|
-| **Seedance 2.0 Fast** | `fal-ai/bytedance/seedance/v2-fast` | ~$0.022 | Budget, production-ready; great default for b-roll | no |
-| **Seedance 2.0** | `fal-ai/bytedance/seedance/v2` | ~$0.07 (≈$0.14 w/ audio) | #1 on Artificial Analysis (with-audio) Feb 2026 | opt |
-| **Kling 3.0** | `fal-ai/kling-video/v3` | ~$0.029+ | Native 4K/60fps, 15s clips, lip-sync | opt |
-| **Veo 3.1** | `fal-ai/veo3` | from ~$0.40 | Premium; only model with native 48kHz synced dialogue | yes |
+| **Seedance 2.0 Fast** | `bytedance/seedance-2.0/fast/image-to-video` | ~$0.022 | 4–15s | no |
+| **Seedance 2.0** | `bytedance/seedance-2.0/image-to-video` | ~$0.07 | 4–15s | opt |
+| **Kling v2.5-turbo Pro** | `fal-ai/kling-video/v2.5-turbo/pro/image-to-video` | ~$0.07 ($0.35/5s +$0.07/s) | 5 / 10s | no |
+| **Veo 3.1** | `fal-ai/veo3.1/image-to-video` | ~$0.40 | 4 / 6 / 8s | yes |
 
-> Note on versions: current line-up is **Veo 3.1**, **Kling 3.0**, **Seedance 2.0**
-> (plus Sora 2, Wan 2.6). There is no "Veo 4." Adding **Seedance 2.0** is just a
-> registry entry — fully supported. The registry is the single place to add/retire
+> Note on versions (verified against fal's live catalog): fal's current Kling is
+> **v2.5-turbo** (not "3.0" — that's marketing), Veo is **3.1** (no "Veo 4"), and
+> **Seedance 2.0** is live. Duration formats differ (number / "5" / "8s"), so the
+> registry encodes each per model. The registry is the single place to add/retire
 > models; cost + quality render straight into the selector.
 
 - Per-second cost metering + **budget guard** before each clip (Kling/Veo are
@@ -450,9 +451,17 @@ cost always visible before you spend.
 
 ---
 
-## 14. Final open item
+## 14. Build status
 
-- **Adopt vs. lift:** ✅ lift. **Gate / accuracy / UI:** specced above. Ready to
-  build **Phase A** (blueprint scan + the §13 launcher/dashboard, Quick depth — no
-  worker, no gate), then **B** (model-registry video gen, $100 cap), then **C**
-  (two-pass deep perception). Phase A can start now.
+- **Phase A — ✅ shipped.** `/intel` workspace + per-video deep link, blueprint
+  scan (metadata + pasted transcript → Claude), `video_intel` table.
+- **Phase B — ✅ shipped.** Model registry (Seedance/Kling/Veo, pinned slugs),
+  `generateVideo` (fal queue), per-beat selector with cost+quality, $100/mo cap.
+- **Phase C — ✅ primary path shipped.** **Deep scan = Gemini native YouTube-URL
+  perception** (no download, no worker, no ffmpeg — the minimal-gate path), folded
+  into the Claude blueprint; timestamped notes render in the dashboard. Runs as a
+  server action (maxDuration 300). Needs `GEMINI_API_KEY` (wired into env-sync).
+- **Phase C.2 — remaining (the worker lane).** The PRECISE fallback: yt-dlp +
+  ffmpeg high-res frame sampling → Claude vision, in the Actions worker, for the
+  cases Gemini-URL can't cover (private/owned files, exact frames). Behind the
+  one-time operator-vouched ack. Recipe lifted from `claude-video-vision`.

@@ -165,6 +165,16 @@ export type Blueprint = {
   angle: string;
 };
 
+export type PerceptionNote = {
+  t: number;
+  sceneDesc: string;
+  onScreenText?: string;
+  shotType?: string;
+  pacingNote?: string;
+};
+
+export type Perception = { notes: PerceptionNote[]; transcript: string };
+
 export type VideoIntel = {
   id: string;
   project_id: string | null;
@@ -174,6 +184,11 @@ export type VideoIntel = {
   transcript: string | null;
   blueprint: Blueprint;
   status: "queued" | "running" | "done" | "error";
+  depth: "quick" | "deep";
+  source_url: string | null;
+  vouched: boolean;
+  perception: Perception | null;
+  error: string | null;
   cost_usd: number;
   created_at: string;
 };

@@ -46,6 +46,7 @@ jobs:
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           STUDIO_MCP_TOKEN: ${{ secrets.STUDIO_MCP_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "⚪ VERCEL_TOKEN secret not configured — nothing to do."
@@ -87,6 +88,7 @@ jobs:
           upsert PEXELS_API_KEY "$PEXELS_API_KEY"
           upsert CRON_SECRET "$CRON_SECRET"
           upsert STUDIO_MCP_TOKEN "$STUDIO_MCP_TOKEN"
+          upsert GEMINI_API_KEY "$GEMINI_API_KEY"
 
           echo ""
           echo "==== SYNC: $PASS synced, $FAIL failed, $SKIP skipped ===="

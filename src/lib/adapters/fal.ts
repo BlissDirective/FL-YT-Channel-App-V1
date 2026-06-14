@@ -1,5 +1,5 @@
 import "server-only";
-import { estimateClipCost, type VideoModel } from "./video-models";
+import { encodeDuration, estimateClipCost, type VideoModel } from "./video-models";
 
 /**
  * fal.ai adapter — Kokoro TTS (the low-cost "volume voice"), FLUX image
@@ -122,7 +122,7 @@ export async function generateVideo(opts: {
   const endpoint = opts.imageUrl ? opts.model.i2v : opts.model.t2v;
   const input: Record<string, unknown> = {
     prompt: opts.prompt,
-    duration: opts.durationSec,
+    duration: encodeDuration(opts.model, opts.durationSec),
   };
   if (opts.imageUrl) input.image_url = opts.imageUrl;
 
