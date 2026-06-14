@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowUpRight, Radar } from "lucide-react";
 import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import { getProject, getVideoSnapshots } from "@/lib/db/queries";
@@ -101,6 +102,24 @@ export default async function VideoDetailPage({
           </StatusChip>
         </div>
       </div>
+
+      <Link
+        href={`/intel?project=${id}&video=${vid}&topic=${encodeURIComponent(v.topic || v.title)}`}
+        className="group flex items-center justify-between gap-3 rounded-card bg-card p-4 shadow-card transition-shadow hover:shadow-float"
+      >
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-2xl bg-lavender/15 text-lavender">
+            <Radar className="size-5" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold">Scan the market for this video</p>
+            <p className="text-xs text-muted">
+              See what works for this topic and turn it into an original blueprint
+            </p>
+          </div>
+        </div>
+        <ArrowUpRight className="size-4 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      </Link>
 
       {publishKit && <PublishKit {...publishKit} />}
 

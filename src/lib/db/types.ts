@@ -143,3 +143,37 @@ export type Idea = {
   status: "new" | "approved" | "dismissed";
   created_at: string;
 };
+
+export type IntelCompetitor = {
+  videoId: string;
+  title: string;
+  channelTitle: string;
+  views: number;
+  url: string;
+  publishedAt: string;
+};
+
+export type Blueprint = {
+  works: string[];
+  doesnt: string[];
+  hooks: { pattern: string; example: string; why: string }[];
+  structure: { label: string; targetSec: number; note: string }[];
+  pacing: string[];
+  gaps: string[];
+  titlePatterns: string[];
+  thumbnailPatterns: string[];
+  angle: string;
+};
+
+export type VideoIntel = {
+  id: string;
+  project_id: string | null;
+  video_id: string | null;
+  topic: string;
+  competitors: IntelCompetitor[];
+  transcript: string | null;
+  blueprint: Blueprint;
+  status: "queued" | "running" | "done" | "error";
+  cost_usd: number;
+  created_at: string;
+};

@@ -120,17 +120,12 @@ export default async function Home() {
               const inPipeline = vids.filter(
                 (v) => !["TRACKING", "APPROVED", "KILLED"].includes(v.status),
               ).length;
-              const health = Math.min(
-                99,
-                60 + vids.length * 6 + (p.voice_id ? 8 : 0),
-              );
               return (
                 <ProjectCard
                   key={p.id}
                   project={p}
                   videoCount={vids.length}
                   inPipeline={inPipeline}
-                  health={health}
                 />
               );
             })}
@@ -156,7 +151,7 @@ export default async function Home() {
             </Card>
 
             <Card>
-              <CardTitle linkout>Monthly spend</CardTitle>
+              <CardTitle href="/costs" linkout>Monthly spend</CardTitle>
               <p className="mb-3 flex items-center gap-1.5 text-sm text-muted">
                 <TrendingUp className="size-4 text-success" />
                 ${stats.monthlyCostUsd.toFixed(2)} of ${monthlyBudget.toFixed(0)}{" "}
@@ -171,9 +166,15 @@ export default async function Home() {
                 label={`$${stats.monthlyCostUsd.toFixed(0)}`}
               />
               <p className="mt-3 text-xs text-muted">
-                Every provider call is recorded here as it happens. Budget
-                caps pause the pipeline before any overspend — see the full
-                ledger in Settings.
+                Every provider call is recorded as it happens. Budget caps
+                pause the pipeline before any overspend —{" "}
+                <Link
+                  href="/costs"
+                  className="font-semibold text-ink underline decoration-accent decoration-2 underline-offset-2"
+                >
+                  open the full spend log
+                </Link>
+                .
               </p>
             </Card>
           </div>

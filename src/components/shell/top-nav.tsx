@@ -10,6 +10,8 @@ import { BackButton } from "./back-button";
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/" },
   { label: "Insights", href: "/insights" },
+  { label: "Market Intel", href: "/intel" },
+  { label: "Spend", href: "/costs" },
   { label: "Styleguide", href: "/styleguide" },
 ];
 
