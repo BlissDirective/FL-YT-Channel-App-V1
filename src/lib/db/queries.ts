@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
 import { COPILOT_AUTO_APPROVE_SCORE } from "@/lib/adapters/qc";
+import { VIDEO_PROVIDER } from "@/lib/adapters/video-models";
 import type {
   AnalyticsSnapshot,
   Asset,
@@ -261,6 +262,22 @@ export async function getVideoIntelList(
   if (opts.videoId) q = q.eq("video_id", opts.videoId);
   const { data } = await q;
   return (data as VideoIntel[]) ?? [];
+}
+
+/** Portfolio-wide AI video-generation spend this calendar month (for the cap). */
+export async function getMonthlyVideoSpendUsd(): Promise<number> {
+  const supabase = await createClient();
+  const monthStart = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1,
+  ).toISOString();
+  const { data } = await supabase
+    .from("cost_ledger")
+    .select("usd")
+    .eq("provider", VIDEO_PROVIDER)
+    .gte("at", monthStart);
+  return (data ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
 }
 
 export async function getKillSwitch(): Promise<boolean> {

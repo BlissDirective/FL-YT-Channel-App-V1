@@ -21,10 +21,16 @@ import {
 } from "@/lib/adapters/script";
 import { COPILOT_AUTO_APPROVE_SCORE, reviewGate } from "@/lib/adapters/qc";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
-import { generateImage, isFalLive } from "@/lib/adapters/fal";
+import { generateImage, generateVideo, isFalLive } from "@/lib/adapters/fal";
+import {
+  estimateClipCost,
+  getVideoModel,
+  VIDEO_MONTHLY_CAP_USD,
+  VIDEO_PROVIDER,
+} from "@/lib/adapters/video-models";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
-import { uploadMedia } from "@/lib/storage";
+import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import type { Project, ScriptBeat, Video } from "@/lib/db/types";
 import { MOCK_COSTS } from "./mock-content";
 import { DEFAULT_SCRIPT_TEMPLATE } from "./templates";
@@ -769,6 +775,119 @@ export async function rerollBeatVisual(opts: {
   await db.from("assets").insert(draft.row);
   await recordCost(db, video, draft.cost, `reroll beat ${opts.beatIdx + 1}`);
   return { ok: true };
+}
+
+// ── Phase B — generated video clips (Kling / Veo / Seedance via fal) ───
+
+export type VideoGenResult =
+  | { ok: true; url: string | null; costUsd: number }
+  | { ok: false; error: string };
+
+/** Portfolio-wide AI video-generation spend this month (drives the cap). */
+async function monthVideoSpend(db: Db): Promise<number> {
+  const monthStart = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1,
+  ).toISOString();
+  const { data } = await db
+    .from("cost_ledger")
+    .select("usd")
+    .eq("provider", VIDEO_PROVIDER)
+    .gte("at", monthStart);
+  return (data ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
+}
+
+/** Generate an original video clip for one beat — image-to-video from our own
+    FLUX keyframe when present, else text-to-video. Guarded by the $100/mo video
+    cap; replaces the beat's existing clip asset and ledgers the spend. */
+export async function generateBeatVideo(opts: {
+  videoId: string;
+  beatIdx: number;
+  modelId: string;
+  durationSec: number;
+}): Promise<VideoGenResult> {
+  const db = await createClient();
+  if (!isFalLive()) {
+    return { ok: false, error: "Video generation needs FAL_KEY (currently mock mode)." };
+  }
+  const model = getVideoModel(opts.modelId);
+  if (!model) return { ok: false, error: "Unknown video model." };
+  const dur = Math.max(1, Math.min(Math.round(opts.durationSec), model.maxDurationSec));
+
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+
+  // $100/mo portfolio cap (estimate-gated before we spend).
+  const est = estimateClipCost(model, dur);
+  const spent = await monthVideoSpend(db);
+  if (spent + est > VIDEO_MONTHLY_CAP_USD) {
+    return {
+      ok: false,
+      error: `Monthly video budget reached ($${VIDEO_MONTHLY_CAP_USD}). $${spent.toFixed(2)} used this month; this clip needs ~$${est.toFixed(2)}.`,
+    };
+  }
+
+  const { data: script } = await db
+    .from("scripts")
+    .select("beats")
+    .eq("video_id", video.id)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const beat = ((script?.beats ?? []) as ScriptBeat[]).find((b) => b.idx === opts.beatIdx);
+  if (!beat) return { ok: false, error: "Beat not found" };
+
+  // Prefer image-to-video from our own keyframe still, if one exists.
+  const { data: still } = await db
+    .from("assets")
+    .select("storage_path, meta")
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", opts.beatIdx)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const isStill = still?.storage_path && !(still.meta as { isVideo?: boolean })?.isVideo;
+  const imageUrl = isStill ? (await getSignedMediaUrl(still!.storage_path)) ?? undefined : undefined;
+
+  const prompt = `${beat.visualPrompt}. ${project.brand_kit.thumbnailStyle} style, cinematic 16:9, no text, no watermark`;
+  const out = await generateVideo({ model, prompt, imageUrl, durationSec: dur });
+
+  const path = `videos/${video.id}/beat-${opts.beatIdx}-video.mp4`;
+  await uploadMedia(path, out.video, "video/mp4");
+
+  await db
+    .from("assets")
+    .delete()
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", opts.beatIdx);
+  await db.from("assets").insert({
+    video_id: video.id,
+    kind: "clip",
+    provider: VIDEO_PROVIDER,
+    storage_path: path,
+    beat_index: opts.beatIdx,
+    meta: {
+      shotType: beat.shotType,
+      isVideo: true,
+      videoModel: model.id,
+      model: model.label,
+      durationSec: dur,
+    },
+    cost_usd: out.costUsd,
+  });
+  await recordCost(
+    db,
+    video,
+    { provider: VIDEO_PROVIDER, usd: out.costUsd, description: `AI video clip (${model.label})` },
+    `beat ${opts.beatIdx + 1}`,
+  );
+
+  return { ok: true, url: await getSignedMediaUrl(path), costUsd: out.costUsd };
 }
 
 /** Phase 6.5 — apply a chosen licensed candidate to a beat. Images are

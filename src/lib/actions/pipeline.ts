@@ -9,11 +9,14 @@ import {
   decideGate,
   editScriptBeat,
   editVideoMetadata,
+  generateBeatVideo,
   proposeBeatRemix,
   proposeScriptRemix,
   rerollBeatVisual,
   runPipeline,
+  type VideoGenResult,
 } from "@/lib/pipeline/engine";
+import { getKillSwitch } from "@/lib/db/queries";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
 import type { ScriptBeat } from "@/lib/db/types";
@@ -166,6 +169,31 @@ export async function editScriptBeatAction(
     refresh(projectId);
     return result;
   });
+}
+
+// ── Phase B — generated video clips ───────────────────────────────────
+
+export async function generateBeatVideoAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  modelId: string,
+  durationSec: number,
+): Promise<VideoGenResult> {
+  try {
+    if (await getKillSwitch()) {
+      return { ok: false, error: "Pipeline is paused (kill switch is on)." };
+    }
+    const r = await generateBeatVideo({ videoId, beatIdx, modelId, durationSec });
+    if (r.ok) {
+      revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+      refresh(projectId);
+    }
+    return r;
+  } catch (err) {
+    console.error("generateBeatVideoAction failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 // ── Script Remix ──────────────────────────────────────────────────────
