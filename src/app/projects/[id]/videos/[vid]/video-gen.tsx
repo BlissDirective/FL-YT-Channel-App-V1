@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Clapperboard, Film, Loader2 } from "lucide-react";
 import { generateBeatVideoAction } from "@/lib/actions/pipeline";
 import {
+  clampDuration,
   estimateClipCost,
   getVideoModel,
   VIDEO_MODELS,
@@ -100,19 +101,19 @@ function BeatRow({
 }) {
   const [modelId, setModelId] = useState(VIDEO_MODELS[0].id);
   const model = getVideoModel(modelId)!;
-  const [duration, setDuration] = useState(Math.min(5, model.maxDurationSec));
+  const defaultDur = (m: typeof model) => m.durations?.[0] ?? m.minDurationSec;
+  const [duration, setDuration] = useState(defaultDur(model));
   const [url, setUrl] = useState<string | null>(existing?.isVideo ? existing.url : null);
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
 
-  const dur = Math.min(duration, model.maxDurationSec);
+  const dur = clampDuration(model, duration);
   const est = estimateClipCost(model, dur);
   const overBudget = est > remaining;
 
   const onModel = (id: string) => {
     setModelId(id);
-    const m = getVideoModel(id)!;
-    if (duration > m.maxDurationSec) setDuration(m.maxDurationSec);
+    setDuration(defaultDur(getVideoModel(id)!));
   };
 
   const generate = () => {
@@ -166,16 +167,30 @@ function BeatRow({
             ))}
           </select>
         </label>
-        <label className="flex w-20 flex-col gap-1">
+        <label className="flex w-24 flex-col gap-1">
           <span className="text-[11px] font-medium text-muted">Secs</span>
-          <input
-            type="number"
-            min={1}
-            max={model.maxDurationSec}
-            value={duration}
-            onChange={(e) => setDuration(Number(e.target.value))}
-            className="input"
-          />
+          {model.durations ? (
+            <select
+              value={dur}
+              onChange={(e) => setDuration(Number(e.target.value))}
+              className="input"
+            >
+              {model.durations.map((d) => (
+                <option key={d} value={d}>
+                  {d}s
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="number"
+              min={model.minDurationSec}
+              max={model.maxDurationSec}
+              value={duration}
+              onChange={(e) => setDuration(Number(e.target.value))}
+              className="input"
+            />
+          )}
         </label>
         <button
           type="button"
