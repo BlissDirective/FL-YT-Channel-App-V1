@@ -12,6 +12,7 @@ import type {
   Project,
   Script,
   Video,
+  VideoIntel,
 } from "./types";
 
 export async function getProjects(): Promise<Project[]> {
@@ -244,6 +245,22 @@ export async function getAllCostEntries(limit = 1000): Promise<CostEntry[]> {
     .order("at", { ascending: false })
     .limit(limit);
   return (data as CostEntry[]) ?? [];
+}
+
+/** Recent market-intelligence scans, newest first (optionally scoped). */
+export async function getVideoIntelList(
+  opts: { projectId?: string; videoId?: string; limit?: number } = {},
+): Promise<VideoIntel[]> {
+  const supabase = await createClient();
+  let q = supabase
+    .from("video_intel")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(opts.limit ?? 30);
+  if (opts.projectId) q = q.eq("project_id", opts.projectId);
+  if (opts.videoId) q = q.eq("video_id", opts.videoId);
+  const { data } = await q;
+  return (data as VideoIntel[]) ?? [];
 }
 
 export async function getKillSwitch(): Promise<boolean> {
