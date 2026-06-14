@@ -26,6 +26,7 @@ export function ToggleRow({
       <button
         type="button"
         role="switch"
+        aria-label={label}
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={cn(

@@ -1,11 +1,14 @@
 import { cn } from "@/lib/cn";
 
+// Chip text is darkened from the brand hues so each badge clears WCAG AA
+// (4.5:1) on its tinted background while staying recognizably green/coral/
+// purple. Backgrounds keep the soft brand tint.
 const TONES = {
-  success: "bg-success-soft text-success",
+  success: "bg-success-soft text-[#1d6b43]",
   neutral: "bg-canvas text-muted",
   warning: "bg-accent-soft text-ink",
-  coral: "bg-coral/15 text-coral",
-  lavender: "bg-lavender/15 text-lavender",
+  coral: "bg-coral/15 text-[#a8442b]",
+  lavender: "bg-lavender/15 text-[#6b4cd6]",
 } as const;
 
 export function StatusChip({

@@ -14,7 +14,7 @@
   --color-lavender: #a78bfa;
   --color-success: #5bb98c;
   --color-success-soft: #ddf0e6;
-  --color-muted: #8a8578;
+  --color-muted: #6b6757; /* AA-contrast (~4.8:1) on the warm backgrounds */
   --color-line: #eeeae2;
 
   --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;

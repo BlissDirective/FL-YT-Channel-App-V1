@@ -35,8 +35,8 @@ export function StatCard({
               className={cn(
                 "rounded-full px-1.5 py-0.5 text-xs font-semibold",
                 delta.startsWith("-")
-                  ? "bg-coral/15 text-coral"
-                  : "bg-success-soft text-success",
+                  ? "bg-coral/15 text-[#a8442b]"
+                  : "bg-success-soft text-[#1d6b43]",
               )}
             >
               {delta}

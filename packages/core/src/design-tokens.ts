@@ -14,7 +14,7 @@ export const tokens = {
   coral: "#F0876C",
   lavender: "#A78BFA",
   success: "#5BB98C",
-  muted: "#8A8578",
+  muted: "#6B6757",
 } as const;
 
 export const chartPalette = [
