@@ -25,7 +25,15 @@ export async function runIntelligence(
     .maybeSingle();
   if (!project) return { created: 0 };
 
-  const query = [project.niche, project.angle].filter(Boolean).join(" ").trim() || "trending";
+  // Search on the niche only — the prose angle makes a noisy YouTube query.
+  // The angle still steers Claude's scoring below. Strip punctuation that
+  // dilutes the search (em-dashes, commas) down to the core terms.
+  const query =
+    (project.niche || "trending")
+      .replace(/[—–-]/g, " ")
+      .replace(/[^\w\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim() || "trending";
   const candidates = await searchNiche(query, 12);
   if (candidates.length === 0) return { created: 0 };
 
