@@ -168,6 +168,51 @@ export const TOOLS: Tool[] = [
     },
   },
   {
+    name: "update_project",
+    description:
+      "Update a project's settings: niche, audience, angle, tone, niche RPM, and per-video/monthly budgets. Only provided fields change.",
+    inputSchema: obj(
+      {
+        projectId: { type: "string" },
+        niche: { type: "string" },
+        audience: { type: "string" },
+        angle: { type: "string" },
+        tone: { type: "string" },
+        rpmUsd: { type: "number", description: "Niche RPM (USD per 1,000 views)." },
+        perVideoBudgetUsd: { type: "number" },
+        monthlyBudgetUsd: { type: "number" },
+      },
+      ["projectId"],
+    ),
+    handler: async (a, db) => {
+      const id = str(a.projectId);
+      const { data: project } = await db
+        .from("projects")
+        .select("budget")
+        .eq("id", id)
+        .maybeSingle();
+      if (!project) return { ok: false, error: "project not found" };
+
+      const patch: Record<string, unknown> = {};
+      if (typeof a.niche === "string") patch.niche = a.niche;
+      if (typeof a.audience === "string") patch.audience = a.audience;
+      if (typeof a.angle === "string") patch.angle = a.angle;
+      if (typeof a.tone === "string") patch.tone = a.tone;
+      if (typeof a.rpmUsd === "number") patch.rpm_usd = a.rpmUsd;
+
+      const budget = (project.budget ?? {}) as { perVideoUsd?: number; monthlyUsd?: number };
+      if (typeof a.perVideoBudgetUsd === "number") budget.perVideoUsd = a.perVideoBudgetUsd;
+      if (typeof a.monthlyBudgetUsd === "number") budget.monthlyUsd = a.monthlyBudgetUsd;
+      if (typeof a.perVideoBudgetUsd === "number" || typeof a.monthlyBudgetUsd === "number") {
+        patch.budget = budget;
+      }
+
+      if (Object.keys(patch).length === 0) return { ok: false, error: "no fields to update" };
+      const { error } = await db.from("projects").update(patch).eq("id", id);
+      return error ? { ok: false, error: error.message } : { ok: true, updated: Object.keys(patch) };
+    },
+  },
+  {
     name: "get_video",
     description: "Full detail for one video: status, latest script metadata, asset counts, latest stats.",
     inputSchema: obj({ videoId: { type: "string" } }, ["videoId"]),

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
+  applyPressKitClip,
   applySourceClip,
   decideGate,
   editScriptBeat,
@@ -229,6 +230,31 @@ export async function applySourceClipAction(
 ): Promise<PipelineResult> {
   return guarded(async () => {
     const result = await applySourceClip({ videoId, beatIdx, candidate });
+    refresh(projectId);
+    return result;
+  });
+}
+
+/** Gaming-compliant lane (Phase 10): attach an official press-kit / own-capture
+    asset to a beat by URL — manually gated, never autonomous. */
+export async function addPressKitAssetAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  asset: { url: string; title: string; author: string; sourceUrl?: string; kind: "image" | "video" },
+): Promise<PipelineResult> {
+  if (!asset.url?.trim()) return { ok: false, error: "Paste the asset URL." };
+  if (!asset.title?.trim()) return { ok: false, error: "Add a short title for the credit line." };
+  return guarded(async () => {
+    const result = await applyPressKitClip({
+      videoId,
+      beatIdx,
+      url: asset.url.trim(),
+      title: asset.title.trim(),
+      author: asset.author.trim(),
+      sourceUrl: asset.sourceUrl?.trim(),
+      kind: asset.kind,
+    });
     refresh(projectId);
     return result;
   });

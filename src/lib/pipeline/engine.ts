@@ -834,6 +834,80 @@ export async function applySourceClip(opts: {
   return { ok: true };
 }
 
+/**
+ * Gaming-compliant lane (Phase 10): attach an official **press-kit** or
+ * **own-capture** asset to a beat by URL. Deliberately skips the automatic
+ * licence screen — this lane is *manually gated*: the operator vouches that
+ * the URL is a publisher-permitted press asset or their own recording. It is
+ * never reachable by the autonomous agent. Attribution is required and flows
+ * into the Publish Kit description.
+ */
+export async function applyPressKitClip(opts: {
+  videoId: string;
+  beatIdx: number;
+  url: string;
+  title: string;
+  author: string;
+  sourceUrl?: string;
+  kind: "image" | "video";
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  if (!/^https?:\/\//i.test(opts.url)) {
+    return { ok: false, error: "Enter a full https:// URL to the asset." };
+  }
+
+  const license = {
+    id: "press-kit",
+    label: "Official press kit / own-capture",
+    url: opts.sourceUrl || undefined,
+    requiresAttribution: true,
+  };
+  const meta: Record<string, unknown> = {
+    shotType: "stock",
+    sourceProvider: "press-kit",
+    sourceUrl: opts.sourceUrl || opts.url,
+    author: opts.author || "Publisher press kit",
+    title: opts.title,
+    license,
+    fromLibrary: true,
+    manualPressKit: true,
+  };
+  let storagePath = "";
+
+  if (opts.kind === "video") {
+    meta.url = opts.url;
+    meta.posterUrl = opts.url;
+  } else {
+    const res = await fetch(opts.url);
+    if (!res.ok) return { ok: false, error: `Couldn't fetch the asset (HTTP ${res.status}).` };
+    const buf = Buffer.from(await res.arrayBuffer());
+    const ext = opts.url.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    storagePath = `videos/${video.id}/beat-${opts.beatIdx}-presskit.${ext.slice(0, 4)}`;
+    await uploadMedia(storagePath, buf, contentTypeFor(ext));
+    meta.posterUrl = opts.url;
+    meta.stillImage = true;
+  }
+
+  await db
+    .from("assets")
+    .delete()
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", opts.beatIdx);
+  await db.from("assets").insert({
+    video_id: video.id,
+    kind: "clip",
+    provider: "press-kit",
+    storage_path: storagePath,
+    beat_index: opts.beatIdx,
+    meta,
+    cost_usd: 0,
+  });
+  return { ok: true };
+}
+
 function contentTypeFor(ext: string): string {
   if (ext.startsWith("png")) return "image/png";
   if (ext.startsWith("gif")) return "image/gif";
