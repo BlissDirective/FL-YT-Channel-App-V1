@@ -333,3 +333,126 @@ coupling — it doesn't look like it.*
 
 *Awaiting: your adopt-vs-lift pick (§10.4) — then Phase A begins (it needs none of
 the worker; Phases B/C build on these decisions).*
+
+> **Decisions update:** lift the recipe ✅. Gate minimized per §11. Accuracy plan
+> §12. UI plan §13.
+
+---
+
+## 11. Minimizing the gate (without pretending the line isn't there)
+
+The goal: *learn what works in the YouTube market; generate 100% our own.* Two
+risk axes — and only one needs a gate:
+
+- **Output / copyright — already ~zero.** Ideas, facts, formats, pacing, and
+  structure aren't copyrightable; analytical "intermediate copying" leans
+  fair-use; we never ship a borrowed frame. Nothing to gate here.
+- **Acquisition / YouTube ToS — the only real constraint.** Downloading via
+  yt-dlp is what ToS restricts; intent doesn't change that. So we **minimize how
+  often we download**, not pretend it's free.
+
+**The minimal-friction design = sanctioned-path-first acquisition:**
+
+| Order | Method | Gate | Why first |
+|---|---|---|---|
+| 1 | **Gemini native YouTube-URL** ingest (Google fetches it) | 🟢 none — official API | We never download; covers most scans |
+| 2 | **Captions / transcript** (Data API + caption tracks) | 🟢 none | Text-only, no media pull |
+| 3 | **Data-API metadata** (titles, chapters, tags, stats, thumbnail) | 🟢 none | Always-on baseline |
+| 4 | **yt-dlp download → ffmpeg frames** | 🟡 one-time ack | Only when we need exact high-res frames |
+
+So **steps 1–3 need no gate at all** — and they already deliver second-by-second
+notes (Gemini) + transcript + structure. The yt-dlp download (step 4) is the
+*only* gated action, and it's now the exception, not the rule.
+
+**The gate, reduced to near-zero friction:**
+- A **one-time per-project "Research mode" acknowledgment** ("I'm analyzing these
+  for research; output is original") — not a per-URL modal. Logged once for the
+  audit trail, then silent.
+- Operator-initiated scans only (no autonomous mass-crawling), sane volume/rate
+  limits, **notes stay private** (never published), **footage never reused**.
+
+That's the honest floor: friction drops to a single checkbox, restriction stays
+defensible, and the high-fidelity download path is there when you want it.
+
+---
+
+## 12. Maximizing frame-analysis accuracy
+
+Cheap breadth + targeted depth — a **two-pass** scan:
+
+1. **Pass 1 — breadth (Gemini native, whole video):** timestamped notes every few
+   seconds + transcript. Cheap, fast, no download. Flags the *interesting*
+   timestamps (hook, cuts, graphics, tone shifts).
+2. **Pass 2 — depth (only on flagged moments):** ffmpeg pulls **exact, high-res
+   frames** at those timestamps → Claude vision for fine detail (on-screen text,
+   editing style, graphics, thumbnail-worthy moments).
+
+Accuracy techniques layered in:
+- **Scene-change extraction** (`select='gt(scene,0.4)'`) — capture every real cut,
+  not uniform samples → semantically complete with fewer frames.
+- **Hook-weighted density** — sample the first ~30s hard (retention-critical),
+  sparser on static stretches.
+- **Resolution by need** — 512px default; bump text/graphics-heavy frames to
+  768px so on-screen text OCRs cleanly via vision.
+- **Multimodal alignment** — pair each frame batch with the matching transcript
+  window so notes fuse what's *seen* + *said*.
+- **Engagement correlation** — overlay Data-API signals (view velocity, like
+  ratio, comment themes) so notes say *what worked*, not just *what happened*.
+
+Net: Gemini gives complete-but-coarse second-by-second coverage; Claude vision
+gives sharp detail exactly where it matters — accurate without an 18,000-frame
+bill.
+
+---
+
+## 13. UI / UX — "Market Intelligence" workspace
+
+Design bar: clean, modern, calm, intuitive — reuse the existing design system
+(warm `Card`/`CardTitle`, `StatCard`, status chips, lucide icons, rounded-2xl,
+soft shadows, amber/lavender accents), mobile-first, progressive disclosure.
+
+**Information architecture**
+- A new **Intelligence** nav destination (a dedicated workspace), **plus** a
+  compact **"Scan the market"** entry point on each video page that deep-links in,
+  pre-filled from that video's topic. Results save to the project.
+
+**1 · Launcher (one clean card)**
+- Search field pre-filled from the video's topic/niche; add competitor **URL
+  chips** or keywords.
+- **Depth toggle:** *Quick* (metadata + Gemini, 🟢 no gate) ↔ *Deep* (+ high-res
+  frames, 🟡 one-time ack).
+- Live **estimated cost + time** badge; **Run scan** primary button.
+- The one-time **Research-mode** acknowledgment lives here (only for Deep, only
+  once per project).
+
+**2 · In-progress (async, non-blocking)**
+- A slim 5-stage progress strip (Acquire → Prep → Perceive → Blueprint → Done),
+  live via the existing Supabase realtime refresher. Leave and come back; skeleton
+  loaders, never a frozen screen.
+
+**3 · Results — the Blueprint dashboard**
+- **What works / What doesn't** — the headline two-column verdict (your core ask).
+- **Hook Lab** — top hook patterns + examples, each with a "use this structure,
+  our words" button → Script Remix.
+- **Structure timeline** — horizontal beat timeline (recommended seconds + notes);
+  the reference video's timestamped notes shown as a scrubbable track (the
+  "second-by-second" feel).
+- **Competitor grid** — cards: thumbnail, title, views/age, like ratio, "did well
+  / fell flat."
+- **Gaps & angle** — what nobody covers → our differentiation wedge.
+- **Title & thumbnail patterns** — what wins in this niche.
+- **Action bar** — *Send to Script Remix* · *Apply to visual prompts* · *Save to
+  insights*. The blueprint flows straight into the tools we built last session.
+
+**Feel:** tabbed Quick/Deep, chips for filters, collapsible sections so the
+dashboard is scannable on a phone, one clear primary action per view, and the
+cost always visible before you spend.
+
+---
+
+## 14. Final open item
+
+- **Adopt vs. lift:** ✅ lift. **Gate / accuracy / UI:** specced above. Ready to
+  build **Phase A** (blueprint scan + the §13 launcher/dashboard, Quick depth — no
+  worker, no gate), then **B** (model-registry video gen, $50 cap), then **C**
+  (two-pass deep perception). Phase A can start now.
