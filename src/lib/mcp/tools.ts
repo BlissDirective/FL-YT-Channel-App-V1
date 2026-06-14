@@ -170,7 +170,7 @@ export const TOOLS: Tool[] = [
   {
     name: "update_project",
     description:
-      "Update a project's settings: niche, audience, angle, tone, niche RPM, and per-video/monthly budgets. Only provided fields change.",
+      "Update a project's settings: niche, audience, angle, tone, niche RPM, per-video/monthly budgets, and brand kit (primary/secondary colors, thumbnail style, font). Only provided fields change.",
     inputSchema: obj(
       {
         projectId: { type: "string" },
@@ -181,6 +181,10 @@ export const TOOLS: Tool[] = [
         rpmUsd: { type: "number", description: "Niche RPM (USD per 1,000 views)." },
         perVideoBudgetUsd: { type: "number" },
         monthlyBudgetUsd: { type: "number" },
+        brandPrimary: { type: "string", description: "Brand primary color (hex) — captions, CTA, thumbnail accent." },
+        brandSecondary: { type: "string", description: "Brand secondary color (hex) — intro/end gradient base." },
+        thumbnailStyle: { type: "string", description: "Thumbnail aesthetic phrase fed to the image model." },
+        brandFont: { type: "string", description: "Brand font key (e.g. bold-sans)." },
       },
       ["projectId"],
     ),
@@ -188,7 +192,7 @@ export const TOOLS: Tool[] = [
       const id = str(a.projectId);
       const { data: project } = await db
         .from("projects")
-        .select("budget")
+        .select("budget, brand_kit")
         .eq("id", id)
         .maybeSingle();
       if (!project) return { ok: false, error: "project not found" };
@@ -206,6 +210,14 @@ export const TOOLS: Tool[] = [
       if (typeof a.perVideoBudgetUsd === "number" || typeof a.monthlyBudgetUsd === "number") {
         patch.budget = budget;
       }
+
+      const brand = (project.brand_kit ?? {}) as Record<string, unknown>;
+      let brandTouched = false;
+      if (typeof a.brandPrimary === "string") { brand.primary = a.brandPrimary; brandTouched = true; }
+      if (typeof a.brandSecondary === "string") { brand.secondary = a.brandSecondary; brandTouched = true; }
+      if (typeof a.thumbnailStyle === "string") { brand.thumbnailStyle = a.thumbnailStyle; brandTouched = true; }
+      if (typeof a.brandFont === "string") { brand.font = a.brandFont; brandTouched = true; }
+      if (brandTouched) patch.brand_kit = brand;
 
       if (Object.keys(patch).length === 0) return { ok: false, error: "no fields to update" };
       const { error } = await db.from("projects").update(patch).eq("id", id);
