@@ -213,7 +213,7 @@ minimal and fully under our compliance gate.
 
 1. **yt-dlp / YouTube ToS** — ✅ **decided:** keep strictly behind the manual
    operator-vouched gate; never autonomous.
-2. **Generated-video budget** — ✅ **decided: $50/mo cap** for Kling/Veo/Seedance,
+2. **Generated-video budget** — ✅ **decided: $100/mo cap** for Kling/Veo/Seedance,
    enforced by the existing budget guard + a per-clip ceiling.
 3. **Perception backend** — ✅ **decided:** **Gemini native-video as primary**
    analysis engine + **download→ffmpeg→Claude-vision** as the precise/fallback
@@ -228,7 +228,7 @@ minimal and fully under our compliance gate.
 ## 9. Build sequencing
 
 1. **Phase A** — blueprint scan wired into Script Remix + visual prompts. *(no new spend; highest value/risk ratio)*
-2. **Phase B** — model-registry video gen (Seedance/Kling/Veo) in the Actions worker, image-to-video from our keyframes, $50/mo guarded.
+2. **Phase B** — model-registry video gen (Seedance/Kling/Veo) in the Actions worker, image-to-video from our keyframes, $100/mo guarded.
 3. **Phase C** — operator-vouched deep perception (Gemini + ffmpeg/Claude) feeding the blueprint.
 
 ---
@@ -454,5 +454,5 @@ cost always visible before you spend.
 
 - **Adopt vs. lift:** ✅ lift. **Gate / accuracy / UI:** specced above. Ready to
   build **Phase A** (blueprint scan + the §13 launcher/dashboard, Quick depth — no
-  worker, no gate), then **B** (model-registry video gen, $50 cap), then **C**
+  worker, no gate), then **B** (model-registry video gen, $100 cap), then **C**
   (two-pass deep perception). Phase A can start now.

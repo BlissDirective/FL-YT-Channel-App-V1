@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import { ArrowUpRight, Radar } from "lucide-react";
 import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
-import { getProject, getVideoSnapshots } from "@/lib/db/queries";
+import {
+  getMonthlyVideoSpendUsd,
+  getProject,
+  getVideoSnapshots,
+} from "@/lib/db/queries";
+import { VIDEO_MONTHLY_CAP_USD } from "@/lib/adapters/video-models";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
 import { buildAttributionBlock } from "@/lib/attribution";
@@ -12,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { ScriptReview } from "./script-review";
+import { VideoGen } from "./video-gen";
 import { PublishKit, type PublishRender } from "./publish-kit";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +79,19 @@ export default async function VideoDetailPage({
             .words ?? []),
       })),
   );
+
+  const clipAssets = allAssets.filter((a) => a.kind === "clip" && a.beat_index !== null);
+  const clips = await Promise.all(
+    beats.map(async (b) => {
+      const a = clipAssets.find((x) => x.beat_index === b.idx);
+      return {
+        idx: b.idx,
+        url: a ? await assetUrl(a) : null,
+        isVideo: Boolean(a && (a.meta as { isVideo?: boolean }).isVideo),
+      };
+    }),
+  );
+  const monthVideoSpent = s ? await getMonthlyVideoSpendUsd() : 0;
 
   const gate = GATE_FOR_STATUS[v.status];
   const isPublishStage = v.status === "APPROVED" || v.status === "TRACKING";
@@ -142,6 +161,21 @@ export default async function VideoDetailPage({
           }}
           beatAudio={beatAudio}
           atGate={gate ?? null}
+        />
+      )}
+
+      {s && beats.length > 0 && (
+        <VideoGen
+          projectId={id}
+          videoId={vid}
+          beats={beats.map((b) => ({
+            idx: b.idx,
+            visualPrompt: b.visualPrompt,
+            shotType: b.shotType,
+          }))}
+          clips={clips}
+          monthSpent={monthVideoSpent}
+          cap={VIDEO_MONTHLY_CAP_USD}
         />
       )}
     </div>

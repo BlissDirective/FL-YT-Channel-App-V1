@@ -1,9 +1,11 @@
 import "server-only";
+import { estimateClipCost, type VideoModel } from "./video-models";
 
 /**
- * fal.ai adapter — Kokoro TTS (the low-cost "volume voice") and FLUX
- * image generation for thumbnails and beat visuals. Live when FAL_KEY is
- * present; callers fall back to mocks otherwise (standing rule 4).
+ * fal.ai adapter — Kokoro TTS (the low-cost "volume voice"), FLUX image
+ * generation for thumbnails/beat visuals, and Kling/Veo/Seedance video
+ * generation (Phase B). Live when FAL_KEY is present; callers fall back to
+ * mocks otherwise (standing rule 4).
  */
 
 // USD estimates for the cost ledger.
@@ -96,5 +98,83 @@ export async function generateImage(opts: {
   return {
     image: await download(url),
     costUsd: quality === "dev" ? FLUX_DEV_USD : FLUX_SCHNELL_USD,
+  };
+}
+
+// ── Kling / Veo / Seedance video generation (queue API) ───────────────
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Generate one video clip via fal's async queue (video models are
+ * long-running). Prefers image-to-video from our own keyframe; falls back to
+ * text-to-video when no keyframe is supplied. Polls until COMPLETED or the
+ * timeout (bounded by the route's maxDuration). Cost is the estimate
+ * `durationSec × model.usdPerSec` (fal bills per second).
+ */
+export async function generateVideo(opts: {
+  model: VideoModel;
+  prompt: string;
+  imageUrl?: string;
+  durationSec: number;
+  timeoutMs?: number;
+}): Promise<{ video: Buffer; costUsd: number; durationSec: number }> {
+  const endpoint = opts.imageUrl ? opts.model.i2v : opts.model.t2v;
+  const input: Record<string, unknown> = {
+    prompt: opts.prompt,
+    duration: opts.durationSec,
+  };
+  if (opts.imageUrl) input.image_url = opts.imageUrl;
+
+  const headers = {
+    Authorization: `Key ${process.env.FAL_KEY}`,
+    "content-type": "application/json",
+  };
+
+  // Submit to the queue.
+  const submit = await fetch(`https://queue.fal.run/${endpoint}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(input),
+  });
+  if (!submit.ok) {
+    throw new Error(`fal ${endpoint} submit ${submit.status}: ${(await submit.text()).slice(0, 200)}`);
+  }
+  const queued = (await submit.json()) as {
+    status_url?: string;
+    response_url?: string;
+  };
+  if (!queued.status_url || !queued.response_url) {
+    throw new Error("fal queue returned no status/response URL");
+  }
+
+  // Poll until done.
+  const deadline = Date.now() + (opts.timeoutMs ?? 230_000);
+  for (;;) {
+    if (Date.now() > deadline) {
+      throw new Error("Video generation timed out — try a shorter clip or run it via the render worker.");
+    }
+    await sleep(5000);
+    const st = await fetch(queued.status_url, { headers, cache: "no-store" });
+    if (!st.ok) continue;
+    const status = (await st.json()) as { status?: string };
+    if (status.status === "COMPLETED") break;
+    if (status.status === "FAILED" || status.status === "ERROR") {
+      throw new Error("fal reported the video job failed");
+    }
+  }
+
+  const resp = await fetch(queued.response_url, { headers, cache: "no-store" });
+  if (!resp.ok) {
+    throw new Error(`fal result ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+  }
+  const result = (await resp.json()) as { video?: { url?: string } };
+  const url = result.video?.url;
+  if (!url) throw new Error("fal returned no video URL");
+
+  return {
+    video: await download(url),
+    costUsd: estimateClipCost(opts.model, opts.durationSec),
+    durationSec: opts.durationSec,
   };
 }
