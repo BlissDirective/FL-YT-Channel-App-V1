@@ -211,24 +211,125 @@ minimal and fully under our compliance gate.
 
 ## 8. Risks & open questions
 
-1. **yt-dlp / YouTube ToS** — keep strictly behind the manual operator-vouched
-   gate; never autonomous. (Confirm you're comfortable with the gated lane.)
-2. **Kling/Veo cost** — $/second; needs a per-video clip cap. What monthly ceiling
-   for generated video?
-3. **Frame backend** — adopt `claude-video-vision` wholesale vs. lift its recipe
-   (recommended). 
-4. **Transcription backend** — local Whisper (free, offline, in the worker) vs.
-   an API. Recommendation: Whisper-local in the worker.
-5. **Output policy guard** — add a hard check that no source frame/clip is ever
-   attached to a render (only our generated assets), enforced in the asset stage.
+1. **yt-dlp / YouTube ToS** — ✅ **decided:** keep strictly behind the manual
+   operator-vouched gate; never autonomous.
+2. **Generated-video budget** — ✅ **decided: $50/mo cap** for Kling/Veo/Seedance,
+   enforced by the existing budget guard + a per-clip ceiling.
+3. **Perception backend** — ✅ **decided:** **Gemini native-video as primary**
+   analysis engine + **download→ffmpeg→Claude-vision** as the precise/fallback
+   path. (See §10.)
+4. **Adopt vs. lift `claude-video-vision`** — comparison in §10.3; recommendation:
+   **lift the recipe.** *(Awaiting your pick.)*
+5. **Output policy guard** — hard check that no source frame/clip ever attaches to
+   a render (only our generated assets), enforced in the asset stage.
 
 ---
 
 ## 9. Build sequencing
 
 1. **Phase A** — blueprint scan wired into Script Remix + visual prompts. *(no new spend; highest value/risk ratio)*
-2. **Phase B** — Kling/Veo `generateVideo()` in the Actions worker, image-to-video from our keyframes, budget-guarded.
-3. **Phase C** — operator-vouched deep perception (frames + transcript) feeding the blueprint, recipe lifted from `claude-video-vision`.
+2. **Phase B** — model-registry video gen (Seedance/Kling/Veo) in the Actions worker, image-to-video from our keyframes, $50/mo guarded.
+3. **Phase C** — operator-vouched deep perception (Gemini + ffmpeg/Claude) feeding the blueprint.
 
-*Awaiting operator sign-off on: gated yt-dlp lane (Q1), video-gen budget cap (Q2),
-and adopt-vs-lift for the frame recipe (Q3) — then Phase A begins.*
+---
+
+## 10. Deep-perception worker pipeline (detailed)
+
+Runs in the **Actions worker** (binaries + long runtime), triggered like the
+render farm. Phase C.
+
+### 10.1 The pipeline, step by step
+
+```
+[web app] insert video_intel job (status=queued, source, vouched=true)
+   │  (workflow_dispatch for near-on-demand, or the 10-min cron)
+   ▼
+[worker] 1. ACQUIRE (gated lane)
+            • operator file → download from Supabase Storage, OR
+            • vouched URL → yt-dlp (cap: ≤ ~15 min, ≤ 720p, timeout, 1 video)
+            • also grab manual/auto captions if present
+         2. PREP (ffmpeg)
+            • adaptive sampling → keyframes, NOT every frame:
+              short clip → ~1–2 fps; long video → 0.2 fps or scene-cuts
+              (select='gt(scene,0.4)'), hard cap ~100 frames @ 512px
+            • audio: ffmpeg -vn -ar 16000 audio.wav  (only if no captions)
+         3. PERCEIVE  (pluggable — PERCEPTION_BACKEND)
+            • PRIMARY  gemini: send the file/URL → timestamped JSON notes
+              (scene desc, on-screen text, shot type, pacing) + transcript
+            • PRECISE  claude-frames: batch ~20 timestamped frames/request
+              → Claude vision deliver_frame_notes tool
+         4. BLUEPRINT (Claude)
+            • merges perception notes + Data-API metadata + stats
+              → deliver_blueprint tool (hooks, beat structure, gaps…)
+         5. PERSIST + COST
+            • write video_intel.blueprint; record gemini + claude cost to
+              cost_ledger; status=done. Web app polls → renders the card.
+```
+
+### 10.2 Capabilities & limitations
+
+**Capabilities**
+- Timestamped *visual* notes (on-screen text, shot types, b-roll style, pacing,
+  hook construction) + timestamped *spoken* transcript.
+- Handles long videos via low-fps / scene-cut sampling or Gemini's native ingest.
+- Entirely inside the compliance gate — output is **notes**, never footage.
+- Cost-bounded by frame cap, resolution, and model choice; every call ledgered.
+
+**Limitations (be honest)**
+- **Not literally every frame.** 30 fps × 10 min = 18,000 frames — infeasible.
+  "Frame-by-frame" = **sampled keyframes + transcript** (≤ ~100 frames/scan).
+- **Async, not instant** — a deep scan is minutes; on the cron it can wait up to
+  ~10 min unless dispatched on demand.
+- **yt-dlp is fragile + ToS-bound** — YouTube changes break it; rate-limits/IP
+  blocks; gated/manual only, never autonomous.
+- **Vision cost scales** with frame count × resolution → the cap matters.
+- **Transcription/perception errors** on music, accents, fast cuts.
+- **Gemini = second vendor** — its own key, cost, limits, and data-handling
+  (content goes to Google); long videos may be internally downsampled to ~1 fps.
+- **Worker-only** — none of this runs in the Vercel app; it's a queued job.
+
+### 10.3 Wiring Gemini in (perception engine)
+
+Division of labor: **Gemini = perception (cheap, native video), Claude =
+blueprint + generation (our creative IP).**
+
+- **Secret:** add `GEMINI_API_KEY`; sync to the worker via the existing env flow.
+  Env-switchable model `GEMINI_MODEL` (a current multimodal Gemini, e.g.
+  2.5-class Flash for speed / Pro for depth).
+- **Call (in the worker, not Vercel):** Google Generative Language API
+  `:generateContent` with the video as a `fileData` part:
+  - file > ~20 MB → upload via the **Files API** first, reference the returned URI;
+  - **public YouTube URL** can be passed directly as a `fileData` URI (Google
+    fetches it) — this is the "no local download" path, still operator-gated.
+- **Prompt** asks for **timestamped JSON** every N seconds: `{t, sceneDesc,
+  onScreenText, shotType, pacingNote}` + a full transcript. Worker parses it.
+- **Hand-off:** Gemini's notes + the Data-API metadata go to Claude's
+  `deliver_blueprint` call → the blueprint. ffmpeg→Claude-vision is the fallback
+  when Gemini is unavailable or when we need a few exact frames analyzed.
+- **Cost:** Gemini video is priced per input token (~tokens/second of video);
+  recorded as `provider: gemini` in the ledger.
+
+### 10.4 Adopt `claude-video-vision` vs. lift the recipe
+
+| Dimension | **Adopt** (run the repo) | **Lift the recipe** (our worker module) |
+|---|---|---|
+| Shape | It's a **Claude-Code plugin / MCP server**, not a library — wrap it in CI | ~100–150 lines: yt-dlp + ffmpeg + Gemini/Claude calls |
+| Dependencies | Its full stack: yt-dlp, ffmpeg, Whisper, Gemini **and** OpenAI backends, MCP layer | Only what we pick (yt-dlp, ffmpeg, Gemini) |
+| Compliance gate | Its yt-dlp will rip any URL — we must fence it | Gating is native — we only call yt-dlp on vouched URLs |
+| Output schema | Its shape; we adapt to it | Our `deliver_blueprint` schema directly |
+| Cost logging | Bolt on after the fact | Built into each call from day one |
+| Maintenance | Track a small external repo (MIT, could go stale) | We own it; no upstream drift |
+| Time to first run | Fast **if** it runs clean in CI; slow if we fight plugin assumptions | Predictable, slightly more upfront code |
+| License | MIT — keep attribution | n/a |
+
+**Recommendation: lift the recipe.** The core is standard ffmpeg flags + model
+calls; we want tight control of the gate, the cost ledger, and the output schema,
+and running a Claude-Code-plugin-shaped MCP server inside a CI worker is more
+friction than value. Keep the repo as the reference implementation (and credit it).
+*Adopt only if its adaptive-sampling/caption-provenance logic proves worth the
+coupling — it doesn't look like it.*
+
+---
+
+*Awaiting: your adopt-vs-lift pick (§10.4) — then Phase A begins (it needs none of
+the worker; Phases B/C build on these decisions).*
