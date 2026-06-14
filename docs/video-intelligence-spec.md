@@ -115,7 +115,25 @@ not the synchronous `fal.run`. This runs in the **Actions worker**, not Vercel
 - `generateVideo({ prompt, imageUrl?, durationSec, model })` in the fal adapter:
   - **text-to-video** from a beat's `visualPrompt`, or
   - **image-to-video** from *our* FLUX keyframe (preferred — more control, on-brand).
-- Model env-switchable: `FAL_VIDEO_MODEL` (e.g. `fal-ai/kling-video/v1.6/standard/image-to-video`, `fal-ai/veo3`).
+- Model **registry** (not a single env var) — each model carries cost/quality
+  metadata so the operator (or the optimizer) picks the best model per
+  segment. Surfaced in the pipeline UI as a selector showing **$/sec + quality
+  + max duration + audio support**.
+
+**Model registry (fal.ai, June 2026 — pricing indicative, verify live at build)**
+
+| Model | fal id (approx) | ~$/sec | Quality / notes | Audio |
+|---|---|---|---|---|
+| **Seedance 2.0 Fast** | `fal-ai/bytedance/seedance/v2-fast` | ~$0.022 | Budget, production-ready; great default for b-roll | no |
+| **Seedance 2.0** | `fal-ai/bytedance/seedance/v2` | ~$0.07 (≈$0.14 w/ audio) | #1 on Artificial Analysis (with-audio) Feb 2026 | opt |
+| **Kling 3.0** | `fal-ai/kling-video/v3` | ~$0.029+ | Native 4K/60fps, 15s clips, lip-sync | opt |
+| **Veo 3.1** | `fal-ai/veo3` | from ~$0.40 | Premium; only model with native 48kHz synced dialogue | yes |
+
+> Note on versions: current line-up is **Veo 3.1**, **Kling 3.0**, **Seedance 2.0**
+> (plus Sora 2, Wan 2.6). There is no "Veo 4." Adding **Seedance 2.0** is just a
+> registry entry — fully supported. The registry is the single place to add/retire
+> models; cost + quality render straight into the selector.
+
 - Per-second cost metering + **budget guard** before each clip (Kling/Veo are
   $/second — the existing cap logic must gate this).
 - Wires into the asset stage as an alternative to stock/FLUX for `hero`/`broll`
@@ -149,6 +167,26 @@ layer."
   calls it.
 - Output: timestamped frame notes + transcript → merged into the Phase A
   blueprint ("second-by-second notes"), which then drives *original* generation.
+
+**How "frame-by-frame for Claude" actually works (and the options)**
+
+The **Claude API does not ingest video files** — it takes text + images. So
+"frame-by-frame analysis" always means: *extract frames → send as images to
+Claude vision*, plus *audio → transcript → text*. Ways to get there:
+
+| Method | How | Trade-off |
+|---|---|---|
+| **Download + ffmpeg** | Pull the file, sample N frames, send images to Claude | Most reliable; the download is the YouTube-ToS-sensitive step → gated lane |
+| **Operator stills/screenshots** | Operator captures key frames during playback and supplies the images | No file download; manual; fine for spot-checks (you can even paste stills into chat for ad-hoc analysis) |
+| **Native-video model for the *analysis* step** | Use **Gemini** (ingests video / some YouTube URLs directly, timestamped) for perception, Claude for the blueprint + generation | Avoids manual frame extraction; adds a second vendor; Gemini still fetches the media |
+| **Transcript-only** | Skip frames; analyze captions/transcript text | Lightest + cleanest for *content* notes; loses *visual* detail |
+
+**Is downloading the only option?** For genuine *visual* frame analysis of a
+video you don't own, you need the pixels somehow — a download (ffmpeg) or
+operator-supplied stills. For *content* notes a transcript avoids it entirely,
+and Gemini's native-video path is the main way to skip manual extraction (at the
+cost of a second model). There is no API that hands you arbitrary YouTube frames
+without first obtaining the media.
 
 **Decision needed:** adopt the repo as a dependency/worker step, **or** lift just
 its ffmpeg-sampling recipe into our own small worker module (fewer moving parts,
