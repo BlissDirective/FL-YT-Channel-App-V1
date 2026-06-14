@@ -4,14 +4,19 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   applyPressKitClip,
+  applyScriptRemix,
   applySourceClip,
   decideGate,
   editScriptBeat,
   editVideoMetadata,
+  proposeBeatRemix,
+  proposeScriptRemix,
   rerollBeatVisual,
   runPipeline,
 } from "@/lib/pipeline/engine";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
+import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
+import type { ScriptBeat } from "@/lib/db/types";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 
 export type PipelineResult = { ok: boolean; error?: string };
@@ -157,6 +162,71 @@ export async function editScriptBeatAction(
   if (!text.trim()) return { ok: false, error: "Beat text cannot be empty." };
   return guarded(async () => {
     const result = await editScriptBeat({ videoId, beatIdx, text: text.trim() });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    refresh(projectId);
+    return result;
+  });
+}
+
+// ── Script Remix ──────────────────────────────────────────────────────
+
+export type RemixActionResult =
+  | { ok: true; remix: ScriptRemix }
+  | { ok: false; error: string };
+export type BeatRemixActionResult =
+  | { ok: true; beat: ScriptBeat; changeSummary: string }
+  | { ok: false; error: string };
+
+/** Propose a whole-script remix from chat notes + settings (no persistence). */
+export async function remixScriptAction(
+  _projectId: string,
+  videoId: string,
+  notes: string,
+  settings: RemixSettings,
+): Promise<RemixActionResult> {
+  if (!notes.trim()) return { ok: false, error: "Add a note describing the remix you want." };
+  try {
+    const r = await proposeScriptRemix({ videoId, notes: notes.trim(), settings });
+    return r.ok ? { ok: true, remix: r.remix } : r;
+  } catch (err) {
+    console.error("remixScriptAction failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Propose a single-section remix (no persistence). */
+export async function remixBeatAction(
+  _projectId: string,
+  videoId: string,
+  beatIdx: number,
+  notes: string,
+  settings: RemixSettings,
+): Promise<BeatRemixActionResult> {
+  if (!notes.trim()) return { ok: false, error: "Add a note describing the remix you want." };
+  try {
+    const r = await proposeBeatRemix({ videoId, beatIdx, notes: notes.trim(), settings });
+    return r.ok
+      ? { ok: true, beat: r.remix.beat, changeSummary: r.remix.changeSummary }
+      : r;
+  } catch (err) {
+    console.error("remixBeatAction failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Accept a proposed whole-script remix → persist as a new script version. */
+export async function applyScriptRemixAction(
+  projectId: string,
+  videoId: string,
+  remix: Pick<ScriptRemix, "beats" | "runtimeSec" | "metadata">,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const result = await applyScriptRemix({
+      videoId,
+      beats: remix.beats,
+      runtimeSec: remix.runtimeSec,
+      metadata: remix.metadata,
+    });
     revalidatePath(`/projects/${projectId}/videos/${videoId}`);
     refresh(projectId);
     return result;

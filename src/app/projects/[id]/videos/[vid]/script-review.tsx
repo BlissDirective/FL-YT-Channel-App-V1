@@ -20,6 +20,7 @@ import {
 import { Card, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import type { BeatAudio } from "./page";
+import { ScriptRemix } from "./script-remix";
 
 type ScriptData = {
   version: number;
@@ -78,6 +79,8 @@ export function ScriptReview({
           ))}
         </div>
       </Card>
+
+      <ScriptRemix projectId={projectId} videoId={videoId} beats={script.beats} />
 
       <MetadataEditor
         projectId={projectId}

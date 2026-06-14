@@ -211,3 +211,261 @@ export async function generateScript(opts: {
 function fillTemplate(template: string, vars: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? "");
 }
+
+// ── Script Remix — operator-directed, settings-driven rewrites ─────────
+
+/** Remix controls surfaced on the script page. creativity 0..1 maps to model
+    temperature; the rest are directive labels resolved below. */
+export type RemixSettings = {
+  creativity: number;
+  toneOverride?: string;
+  verbiage?: string;
+  length?: string;
+};
+
+const VERBIAGE_DIRECTIVE: Record<string, string> = {
+  simple: "plain, everyday words; short sentences a 12-year-old follows easily",
+  conversational: "relaxed, spoken, like talking to a friend",
+  sophisticated: "richer vocabulary and sharper phrasing, still spoken-word",
+  technical: "precise, domain-accurate terminology for an expert audience",
+};
+const LENGTH_DIRECTIVE: Record<string, string> = {
+  tighten: "cut hard — make it noticeably shorter and punchier without losing substance",
+  expand: "develop it further with more detail, examples, and texture (longer)",
+  punchier: "keep the length but quicken the pacing — shorter beats, more momentum",
+  detailed: "keep the length but add concrete specifics, names, and numbers",
+};
+
+function remixTemp(creativity: number): number {
+  const c = Math.min(1, Math.max(0, creativity));
+  return Math.round((0.4 + c * 0.6) * 100) / 100; // 0.40 → 1.00
+}
+
+function settingsBlock(s: RemixSettings): string {
+  const lines: string[] = [];
+  if (s.toneOverride)
+    lines.push(`- Tone: rewrite in a ${s.toneOverride} tone (override the channel default for this remix).`);
+  if (s.verbiage && s.verbiage !== "keep")
+    lines.push(`- Verbiage / reading level: ${VERBIAGE_DIRECTIVE[s.verbiage] ?? s.verbiage}.`);
+  if (s.length && s.length !== "keep")
+    lines.push(`- Length & pacing: ${LENGTH_DIRECTIVE[s.length] ?? s.length}.`);
+  return lines.length ? `\n\nApply these remix settings:\n${lines.join("\n")}` : "";
+}
+
+async function callClaude(
+  body: Record<string, unknown>,
+): Promise<{
+  input: Record<string, unknown>;
+  costUsd: number;
+}> {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": process.env.ANTHROPIC_API_KEY!,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`Claude API error ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  }
+  const data = (await res.json()) as {
+    content: { type: string; input?: Record<string, unknown> }[];
+    usage: { input_tokens: number; output_tokens: number };
+  };
+  const toolUse = data.content.find((c) => c.type === "tool_use");
+  if (!toolUse?.input) throw new Error("Claude returned no remix payload");
+  const costUsd =
+    (data.usage.input_tokens / 1e6) * PRICE.in +
+    (data.usage.output_tokens / 1e6) * PRICE.out;
+  return { input: toolUse.input, costUsd: Math.round(costUsd * 100) / 100 };
+}
+
+const DELIVER_REMIX_TOOL = {
+  ...DELIVER_SCRIPT_TOOL,
+  name: "deliver_remix",
+  description: "Deliver the remixed YouTube script package.",
+  input_schema: {
+    ...DELIVER_SCRIPT_TOOL.input_schema,
+    properties: {
+      ...DELIVER_SCRIPT_TOOL.input_schema.properties,
+      changeSummary: {
+        type: "string",
+        description:
+          "One or two sentences, addressed to the operator, summarizing what you changed and why.",
+      },
+    },
+    required: [...DELIVER_SCRIPT_TOOL.input_schema.required, "changeSummary"],
+  },
+} as const;
+
+export type ScriptRemix = ScriptDraft & { changeSummary: string };
+
+/** Remix the entire script against operator notes + settings. Returns a
+    proposed draft (caller decides whether to persist). */
+export async function remixScript(opts: {
+  title: string;
+  niche: string;
+  audience: string;
+  angle: string;
+  tone: string;
+  beats: ScriptBeat[];
+  metadata: ScriptDraft["metadata"];
+  runtimeSec: number;
+  notes: string;
+  settings: RemixSettings;
+}): Promise<ScriptRemix> {
+  if (!isScriptLive()) {
+    const draft = mockScript({
+      title: opts.title,
+      topic: opts.title,
+      tone: opts.settings.toneOverride || opts.tone,
+      targetLengthSec: opts.runtimeSec || 480,
+      revisionNotes: opts.notes,
+    });
+    return {
+      body: draft.body,
+      beats: draft.beats,
+      runtimeSec: draft.runtimeSec,
+      metadata: draft.metadata as ScriptDraft["metadata"],
+      costUsd: 0,
+      provider: "mock",
+      changeSummary:
+        "Mock remix (no ANTHROPIC_API_KEY): regenerated the script reflecting your notes.",
+    };
+  }
+
+  const scriptText = opts.beats
+    .map((b, i) => `[Section ${i + 1}]\n${b.text}`)
+    .join("\n\n");
+  const prompt = `You are remixing an existing script for "${opts.title}" on a ${opts.niche} channel (audience: ${opts.audience}; channel angle: ${opts.angle}).
+
+CURRENT SCRIPT:
+${scriptText}
+
+CURRENT TITLES: ${(opts.metadata.titles ?? []).join(" | ")}
+
+The operator's notes for this remix:
+"${opts.notes}"${settingsBlock(opts.settings)}
+
+Rewrite the FULL script package to address the notes. Keep the same core topic and roughly ${Math.round((opts.runtimeSec || 480) / 60)} minutes unless the notes/settings say otherwise. Then call deliver_remix with the revised beats, refreshed titles/description/tags/chapters, runtimeSec, and a short changeSummary written to the operator.`;
+
+  const { input, costUsd } = await callClaude({
+    model: MODEL,
+    max_tokens: 4096,
+    temperature: remixTemp(opts.settings.creativity),
+    system: VOICE_SYSTEM,
+    tools: [DELIVER_REMIX_TOOL],
+    tool_choice: { type: "tool", name: "deliver_remix" },
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  const payload = input as {
+    beats: { text: string; visualPrompt: string; shotType: ScriptBeat["shotType"] }[];
+    titles: string[];
+    description: string;
+    tags: string[];
+    chapters: { at: number; label: string }[];
+    runtimeSec: number;
+    changeSummary: string;
+  };
+  const beats: ScriptBeat[] = payload.beats.map((b, idx) => ({ idx, ...b }));
+  return {
+    body: beats.map((b) => b.text).join("\n\n"),
+    beats,
+    runtimeSec: payload.runtimeSec || opts.runtimeSec,
+    metadata: {
+      titles: payload.titles,
+      description: payload.description,
+      tags: payload.tags,
+      chapters: payload.chapters,
+    },
+    costUsd,
+    provider: "anthropic",
+    changeSummary: payload.changeSummary,
+  };
+}
+
+const DELIVER_BEAT_TOOL = {
+  name: "deliver_beat",
+  description: "Deliver one remixed script section.",
+  input_schema: {
+    type: "object",
+    properties: {
+      text: { type: "string", description: "Revised narration for this section, spoken-word style." },
+      visualPrompt: { type: "string", description: "One-line visual direction for this section." },
+      shotType: { type: "string", enum: ["hero", "broll", "stock"] },
+      changeSummary: {
+        type: "string",
+        description: "One sentence to the operator on what you changed in this section.",
+      },
+    },
+    required: ["text", "visualPrompt", "shotType", "changeSummary"],
+  },
+} as const;
+
+export type BeatRemix = {
+  beat: ScriptBeat;
+  changeSummary: string;
+  costUsd: number;
+  provider: "anthropic" | "mock";
+};
+
+/** Remix a single section, with the rest of the script as context. */
+export async function remixBeat(opts: {
+  title: string;
+  niche: string;
+  tone: string;
+  beats: ScriptBeat[];
+  targetIdx: number;
+  notes: string;
+  settings: RemixSettings;
+}): Promise<BeatRemix> {
+  const target = opts.beats.find((b) => b.idx === opts.targetIdx);
+  if (!target) throw new Error("Target section not found");
+
+  if (!isScriptLive()) {
+    return {
+      beat: { ...target },
+      changeSummary:
+        "Mock remix (no ANTHROPIC_API_KEY): section left as-is; add a key to enable live rewrites.",
+      costUsd: 0,
+      provider: "mock",
+    };
+  }
+
+  const context = opts.beats
+    .map((b, i) => `[Section ${i + 1}${b.idx === opts.targetIdx ? " — REMIX THIS ONE" : ""}]\n${b.text}`)
+    .join("\n\n");
+  const prompt = `Script for "${opts.title}" (${opts.niche} channel). Remix ONLY the marked section so it still flows with the sections around it.
+
+${context}
+
+Operator's notes for this section:
+"${opts.notes}"${settingsBlock(opts.settings)}
+
+Call deliver_beat with the revised section text, an updated visualPrompt + shotType, and a one-sentence changeSummary.`;
+
+  const { input, costUsd } = await callClaude({
+    model: MODEL,
+    max_tokens: 1500,
+    temperature: remixTemp(opts.settings.creativity),
+    system: VOICE_SYSTEM,
+    tools: [DELIVER_BEAT_TOOL],
+    tool_choice: { type: "tool", name: "deliver_beat" },
+    messages: [{ role: "user", content: prompt }],
+  });
+  const p = input as {
+    text: string;
+    visualPrompt: string;
+    shotType: ScriptBeat["shotType"];
+    changeSummary: string;
+  };
+  return {
+    beat: { idx: opts.targetIdx, text: p.text, visualPrompt: p.visualPrompt, shotType: p.shotType },
+    changeSummary: p.changeSummary,
+    costUsd,
+    provider: "anthropic",
+  };
+}

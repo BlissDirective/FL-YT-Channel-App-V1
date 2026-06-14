@@ -11,7 +11,14 @@ import {
 import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { sendPushToAll } from "@/lib/push";
-import { generateScript } from "@/lib/adapters/script";
+import {
+  generateScript,
+  remixScript,
+  remixBeat,
+  type RemixSettings,
+  type ScriptRemix,
+  type BeatRemix,
+} from "@/lib/adapters/script";
 import { COPILOT_AUTO_APPROVE_SCORE, reviewGate } from "@/lib/adapters/qc";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import { generateImage, isFalLive } from "@/lib/adapters/fal";
@@ -974,6 +981,126 @@ export async function editScriptBeat(opts: {
       `beat ${opts.beatIdx + 1}`,
     );
   }
+  return { ok: true };
+}
+
+// ── Script Remix ──────────────────────────────────────────────────────
+// "Propose → accept": a remix call produces a proposed revision WITHOUT
+// touching the saved script. The token cost is real either way, so it is
+// logged at propose time; persistence happens only on accept.
+
+async function loadLatestScript(db: Db, videoId: string) {
+  const { data } = await db
+    .from("scripts")
+    .select("*")
+    .eq("video_id", videoId)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data;
+}
+
+export type ScriptRemixResult =
+  | { ok: true; remix: ScriptRemix }
+  | { ok: false; error: string };
+
+export async function proposeScriptRemix(opts: {
+  videoId: string;
+  notes: string;
+  settings: RemixSettings;
+}): Promise<ScriptRemixResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+  const script = await loadLatestScript(db, video.id);
+  if (!script) return { ok: false, error: "No script to remix yet" };
+
+  const remix = await remixScript({
+    title: video.title,
+    niche: project.niche,
+    audience: project.audience,
+    angle: project.angle,
+    tone: project.tone,
+    beats: script.beats as ScriptBeat[],
+    metadata: script.metadata as ScriptRemix["metadata"],
+    runtimeSec: script.runtime_sec ?? video.target_length_sec,
+    notes: opts.notes,
+    settings: opts.settings,
+  });
+  if (remix.costUsd > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: remix.provider, usd: remix.costUsd, description: "Script remix (whole)" },
+      "proposed",
+    );
+  }
+  return { ok: true, remix };
+}
+
+export type BeatRemixResult =
+  | { ok: true; remix: BeatRemix }
+  | { ok: false; error: string };
+
+export async function proposeBeatRemix(opts: {
+  videoId: string;
+  beatIdx: number;
+  notes: string;
+  settings: RemixSettings;
+}): Promise<BeatRemixResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+  const script = await loadLatestScript(db, video.id);
+  if (!script) return { ok: false, error: "No script to remix yet" };
+
+  const remix = await remixBeat({
+    title: video.title,
+    niche: project.niche,
+    tone: project.tone,
+    beats: script.beats as ScriptBeat[],
+    targetIdx: opts.beatIdx,
+    notes: opts.notes,
+    settings: opts.settings,
+  });
+  if (remix.costUsd > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: remix.provider, usd: remix.costUsd, description: "Script remix (section)" },
+      `beat ${opts.beatIdx + 1} proposed`,
+    );
+  }
+  return { ok: true, remix };
+}
+
+/** Accept a whole-script remix: persist it as a new script version. Asset/VO
+    re-sync is intentionally left to the existing per-beat re-voice flow — a
+    whole remix is expected at the SCRIPT review stage, before VO exists. */
+export async function applyScriptRemix(opts: {
+  videoId: string;
+  beats: ScriptBeat[];
+  runtimeSec: number | null;
+  metadata: ScriptRemix["metadata"];
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  if (!opts.beats.length) return { ok: false, error: "Remix has no sections" };
+
+  const beats = opts.beats.map((b, idx) => ({ ...b, idx }));
+  await db.from("scripts").insert({
+    video_id: video.id,
+    version: await nextScriptVersion(db, video.id),
+    body: beats.map((b) => b.text).join("\n\n"),
+    beats,
+    runtime_sec: opts.runtimeSec,
+    metadata: opts.metadata,
+  });
   return { ok: true };
 }
 
