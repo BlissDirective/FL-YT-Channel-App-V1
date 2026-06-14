@@ -9,7 +9,8 @@ import {
   searchNiche,
 } from "@/lib/adapters/youtube";
 import { analyzeVideoIntel } from "@/lib/adapters/video-intel";
-import type { IntelCompetitor, VideoIntel } from "@/lib/db/types";
+import { analyzeYoutubeVideo } from "@/lib/adapters/gemini-video";
+import type { IntelCompetitor, Perception, VideoIntel } from "@/lib/db/types";
 
 export type IntelActionResult =
   | { ok: true; intel: VideoIntel }
@@ -23,9 +24,21 @@ export async function runVideoIntelAction(input: {
   topic: string;
   competitorUrls?: string[];
   transcript?: string;
+  depth?: "quick" | "deep";
+  sourceUrl?: string;
+  vouched?: boolean;
 }): Promise<IntelActionResult> {
   const topic = input.topic.trim();
   if (!topic) return { ok: false, error: "Add a topic or keywords to scan." };
+
+  const depth = input.depth === "deep" ? "deep" : "quick";
+  const sourceUrl = input.sourceUrl?.trim() || "";
+  if (depth === "deep") {
+    if (!sourceUrl) return { ok: false, error: "Deep scan needs a video URL to analyze." };
+    if (!input.vouched) {
+      return { ok: false, error: "Confirm research-use to run a deep scan." };
+    }
+  }
 
   try {
     const supabase = await createClient();
@@ -64,8 +77,33 @@ export async function runVideoIntelAction(input: {
     }
     const competitors = [...byId.values()].sort((a, b) => b.views - a.views).slice(0, 12);
 
-    // 2) Analyze → blueprint.
-    const transcript = input.transcript?.trim() || undefined;
+    // 2) Deep scan: Gemini native-URL perception (no download) folded in.
+    let perception: Perception | null = null;
+    let perceptionNotes: string | undefined;
+    let geminiCost = 0;
+    if (depth === "deep") {
+      const g = await analyzeYoutubeVideo({ url: sourceUrl });
+      perception = g.perception;
+      geminiCost = g.costUsd;
+      perceptionNotes = g.perception.notes
+        .map(
+          (n) =>
+            `[${n.t}s] ${n.sceneDesc}${n.onScreenText ? ` | text: ${n.onScreenText}` : ""}${n.pacingNote ? ` | ${n.pacingNote}` : ""}`,
+        )
+        .join("\n");
+      if (geminiCost > 0) {
+        await supabase.from("cost_ledger").insert({
+          project_id: input.projectId,
+          video_id: input.videoId ?? null,
+          provider: g.provider,
+          description: "Video intel · deep perception (Gemini)",
+          usd: geminiCost,
+        });
+      }
+    }
+
+    // 3) Analyze → blueprint.
+    const transcript = input.transcript?.trim() || perception?.transcript || undefined;
     const { blueprint, costUsd, provider } = await analyzeVideoIntel({
       topic,
       niche: project.niche,
@@ -73,9 +111,10 @@ export async function runVideoIntelAction(input: {
       angle: project.angle,
       competitors,
       transcript,
+      perceptionNotes,
     });
 
-    // 3) Record cost (analysis only; no per-video total to bump here).
+    // 4) Record Claude cost (analysis only; no per-video total to bump here).
     if (costUsd > 0) {
       await supabase.from("cost_ledger").insert({
         project_id: input.projectId,
@@ -86,7 +125,7 @@ export async function runVideoIntelAction(input: {
       });
     }
 
-    // 4) Persist the scan.
+    // 5) Persist the scan.
     const { data, error } = await supabase
       .from("video_intel")
       .insert({
@@ -97,7 +136,11 @@ export async function runVideoIntelAction(input: {
         transcript: transcript ?? null,
         blueprint,
         status: "done",
-        cost_usd: costUsd,
+        depth,
+        source_url: depth === "deep" ? sourceUrl : null,
+        vouched: Boolean(input.vouched),
+        perception,
+        cost_usd: Math.round((costUsd + geminiCost) * 100) / 100,
       })
       .select("*")
       .single();

@@ -451,9 +451,17 @@ cost always visible before you spend.
 
 ---
 
-## 14. Final open item
+## 14. Build status
 
-- **Adopt vs. lift:** ✅ lift. **Gate / accuracy / UI:** specced above. Ready to
-  build **Phase A** (blueprint scan + the §13 launcher/dashboard, Quick depth — no
-  worker, no gate), then **B** (model-registry video gen, $100 cap), then **C**
-  (two-pass deep perception). Phase A can start now.
+- **Phase A — ✅ shipped.** `/intel` workspace + per-video deep link, blueprint
+  scan (metadata + pasted transcript → Claude), `video_intel` table.
+- **Phase B — ✅ shipped.** Model registry (Seedance/Kling/Veo, pinned slugs),
+  `generateVideo` (fal queue), per-beat selector with cost+quality, $100/mo cap.
+- **Phase C — ✅ primary path shipped.** **Deep scan = Gemini native YouTube-URL
+  perception** (no download, no worker, no ffmpeg — the minimal-gate path), folded
+  into the Claude blueprint; timestamped notes render in the dashboard. Runs as a
+  server action (maxDuration 300). Needs `GEMINI_API_KEY` (wired into env-sync).
+- **Phase C.2 — remaining (the worker lane).** The PRECISE fallback: yt-dlp +
+  ffmpeg high-res frame sampling → Claude vision, in the Actions worker, for the
+  cases Gemini-URL can't cover (private/owned files, exact frames). Behind the
+  one-time operator-vouched ack. Recipe lifted from `claude-video-vision`.
