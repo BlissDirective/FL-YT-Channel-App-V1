@@ -2,6 +2,7 @@ import { Radar } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getProjects, getVideoIntelList } from "@/lib/db/queries";
 import { Card, CardTitle } from "@/components/ui/card";
+import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { IntelWorkspace } from "./intel-workspace";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +45,7 @@ export default async function IntelPage({
 
   return (
     <div className="space-y-6 pt-2">
+      <RealtimeRefresher tables={["video_intel"]} />
       <Header />
       <IntelWorkspace
         projects={projects.map((p) => ({ id: p.id, name: p.name }))}

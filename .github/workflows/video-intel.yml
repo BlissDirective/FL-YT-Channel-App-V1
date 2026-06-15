@@ -1,0 +1,45 @@
+name: Video Intel Worker
+
+# Deep-perception worker for the operator-vouched PRECISE frame lane: picks up
+# video_intel rows at status='queued', samples frames (yt-dlp + ffmpeg), runs
+# them through Claude vision, and writes the blueprint. Analysis only.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+  push:
+    paths:
+      - packages/intel/**
+      - .github/workflows/video-intel.yml
+
+concurrency:
+  group: video-intel
+  cancel-in-progress: false
+
+jobs:
+  perceive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg + yt-dlp
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y ffmpeg
+          sudo curl -sL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+          sudo chmod a+rx /usr/local/bin/yt-dlp
+          yt-dlp --version && ffmpeg -version | head -1
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install worker deps
+        run: pnpm install --frozen-lockfile --filter @studio/intel...
+      - name: Run intel queue
+        working-directory: packages/intel
+        env:
+          SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: pnpm intel-queue

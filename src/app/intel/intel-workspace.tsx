@@ -33,6 +33,7 @@ export function IntelWorkspace({
   const [depth, setDepth] = useState<"quick" | "deep">("quick");
   const [sourceUrl, setSourceUrl] = useState("");
   const [vouched, setVouched] = useState(false);
+  const [frames, setFrames] = useState(false);
   const [result, setResult] = useState<VideoIntel | null>(null);
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
@@ -56,6 +57,7 @@ export function IntelWorkspace({
         depth,
         sourceUrl,
         vouched,
+        frames,
       });
       if (r.ok) setResult(r.intel);
       else setError(r.error);
@@ -130,6 +132,18 @@ export function IntelWorkspace({
                 <span>
                   I&apos;m analyzing this for research — notes only, and everything we
                   generate is 100% original. (No footage is reused.)
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-2 text-xs text-muted">
+                <input
+                  type="checkbox"
+                  checked={frames}
+                  onChange={(e) => setFrames(e.target.checked)}
+                  className="mt-0.5 accent-accent"
+                />
+                <span>
+                  Precise high-res frame sampling (runs in the worker — appears in
+                  Recent scans when done). Off = fast Gemini URL analysis.
                 </span>
               </label>
             </div>
@@ -234,7 +248,19 @@ export function IntelWorkspace({
       </Card>
 
       {/* Live result */}
-      {result && (
+      {result && result.status !== "done" && (
+        <Card className="flex items-center gap-3 bg-lavender/5">
+          <Loader2 className="size-5 shrink-0 animate-spin text-lavender" />
+          <div>
+            <p className="text-sm font-semibold">Queued for frame analysis</p>
+            <p className="text-xs text-muted">
+              The worker is sampling frames for “{result.topic}”. It&apos;ll appear
+              in Recent scans below when done (usually a few minutes).
+            </p>
+          </div>
+        </Card>
+      )}
+      {result && result.status === "done" && (
         <div className="space-y-3">
           <h2 className="flex items-center gap-2 text-lg font-bold">
             <Sparkles className="size-4 text-lavender" /> Blueprint — {result.topic}
@@ -271,15 +297,32 @@ function HistoryItem({ intel }: { intel: VideoIntel }) {
         className="flex w-full items-center justify-between gap-3 text-left"
       >
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{intel.topic || "Untitled scan"}</p>
+          <p className="truncate text-sm font-semibold">
+            {intel.topic || "Untitled scan"}
+            {intel.depth === "deep" && (
+              <span className="ml-2 rounded-full bg-lavender/15 px-2 py-0.5 text-[10px] font-semibold text-lavender">
+                deep
+              </span>
+            )}
+            {intel.status !== "done" && (
+              <span className="ml-2 rounded-full bg-card-warm px-2 py-0.5 text-[10px] font-semibold text-muted">
+                {intel.status}
+              </span>
+            )}
+          </p>
           <p className="text-xs text-muted">
             {new Date(intel.created_at).toLocaleString()} · {intel.competitors.length} videos · $
             {Number(intel.cost_usd).toFixed(2)}
           </p>
         </div>
-        <ChevronDown className={cn("size-4 shrink-0 text-muted transition-transform", open && "rotate-180")} />
+        {intel.status === "done" && (
+          <ChevronDown className={cn("size-4 shrink-0 text-muted transition-transform", open && "rotate-180")} />
+        )}
       </button>
-      {open && (
+      {intel.status === "error" && intel.error && (
+        <p className="mt-2 text-xs font-medium text-coral">{intel.error}</p>
+      )}
+      {open && intel.status === "done" && (
         <div className="mt-4">
           <BlueprintView
             blueprint={intel.blueprint}
