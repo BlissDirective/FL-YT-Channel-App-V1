@@ -375,23 +375,53 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
 function VoicePreviewButton({ url }: { url: string }) {
   const ref = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const toggle = () => {
+    const el = ref.current;
+    if (!el) return;
+    if (playing) {
+      el.pause();
+      return;
+    }
+    // Stop any other preview currently playing on the page.
+    document
+      .querySelectorAll<HTMLAudioElement>("audio[data-voice-preview]")
+      .forEach((a) => a !== el && a.pause());
+    setFailed(false);
+    el.play().catch(() => {
+      setFailed(true);
+      setPlaying(false);
+    });
+  };
+
   return (
     <>
       <audio
         ref={ref}
         src={url}
+        data-voice-preview
         preload="none"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
+        onError={() => {
+          setFailed(true);
+          setPlaying(false);
+        }}
       />
       <button
         type="button"
-        aria-label={playing ? "Pause preview" : "Play preview"}
-        onClick={() => (playing ? ref.current?.pause() : ref.current?.play())}
-        className="grid size-10 shrink-0 place-items-center rounded-xl bg-card text-ink shadow-card hover:bg-accent"
+        disabled={failed}
+        aria-label={failed ? "Preview unavailable" : playing ? "Pause preview" : "Play preview"}
+        title={failed ? "Preview unavailable for this voice" : undefined}
+        onClick={toggle}
+        className={cn(
+          "grid size-10 shrink-0 place-items-center rounded-xl bg-card text-ink shadow-card hover:bg-accent",
+          failed && "opacity-40",
+        )}
       >
-        {playing ? <Pause className="size-4" /> : <Play className="size-4" />}
+        {failed ? <Mic className="size-4" /> : playing ? <Pause className="size-4" /> : <Play className="size-4" />}
       </button>
     </>
   );

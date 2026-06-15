@@ -107,7 +107,10 @@ async function elevenLabsVoices(): Promise<Voice[]> {
         .filter(Boolean)
         .join(" · ") || v.category || "ElevenLabs voice",
     provider: "elevenlabs" as const,
-    previewUrl: v.preview_url,
+    // Only surface a real, playable URL — some voices return empty/invalid
+    // previews, which would render a play button that does nothing.
+    previewUrl:
+      v.preview_url && /^https?:\/\//.test(v.preview_url) ? v.preview_url : undefined,
   }));
 }
 
