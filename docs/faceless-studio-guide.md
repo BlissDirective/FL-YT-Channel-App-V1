@@ -151,9 +151,17 @@ The work surface for one video:
   a **whole-script vs. per-section** target. *Propose → accept*: nothing changes
   until you accept; iterate in chat first. A Market-Intelligence brief can be
   **handed straight into this chat** (see §6).
-- **AI Video Generation** — per section, pick a model (cost + quality shown),
-  set duration, see the live estimate, and generate an **original** clip from
-  your keyframe. A **$100/mo** budget bar guards spend.
+- **AI Video Generation** — per section, choose the **shot type**
+  (hero/b-roll/stock), pick a **model** (cost + quality shown), set duration,
+  see the live estimate, and generate an **original** clip from your keyframe.
+  A **$100/mo** budget bar guards spend. Three one-tap helpers:
+  - **Auto-pick types** — Claude classifies each beat as hero / b-roll / stock
+    from the script.
+  - **Auto-pick models** — Veo 3.1 for hero, Seedance 2.0 for b-roll, Seedance
+    2.0 Fast for stock.
+  - **Match time to script** — sets each clip's seconds to that section's spoken
+    length (voiceover duration, or a word-count estimate), capped at the model's
+    max.
 - **Title & description** editor; **Publish Kit** when the video is approved.
 - **Scan the market** — deep-links into Market Intelligence pre-filled for this
   video.
@@ -223,6 +231,18 @@ the brief so you can remix the script against real market research in one click.
 | Pexels | `PEXELS_API_KEY` | Licensed stock b-roll |
 | YouTube Data | `YOUTUBE_API_KEY` | Niche research + public stats |
 | Gemini | `GEMINI_API_KEY` | Deep video-intel perception (native URL + audio) |
+
+**Shot types** (set by the script, editable per beat, auto-classifiable):
+
+| Type | Source | Cost | Looks like |
+|---|---|---|---|
+| **stock** | Real licensed footage from **Pexels** (or generate AI to replace) | Free (Pexels); model price only if you generate | Authentic real-world places, people, objects, events |
+| **b-roll** | AI-generated supporting visual (FLUX still, or an AI video clip) | Cheap image, or the video model's $/sec | Generated illustrative motion/scenes |
+| **hero** | Premium AI-generated signature shot | Premium model $/sec | The hook, big reveals, emotional/visual peaks |
+
+*Stock = real captured footage; b-roll/hero = generated. A beat is `stock`
+because real footage tells it better (and it's free); you only pick a video model
+for a stock beat if you want to **override** Pexels with an AI clip.*
 
 **Compliant source lanes** (the autonomous agent never touches publisher IP):
 1. Autonomous licensed lane (Pexels/Pixabay/Openverse/Wikimedia, CC0/CC-BY).

@@ -168,11 +168,17 @@ export default async function VideoDetailPage({
         <VideoGen
           projectId={id}
           videoId={vid}
-          beats={beats.map((b) => ({
-            idx: b.idx,
-            visualPrompt: b.visualPrompt,
-            shotType: b.shotType,
-          }))}
+          beats={beats.map((b) => {
+            const vo = beatAudio.find((a) => a.idx === b.idx)?.durationSec ?? 0;
+            // Fall back to ~150 wpm (2.5 words/sec) when there's no voiceover yet.
+            const scriptSec = vo > 0 ? vo : Math.max(2, b.text.trim().split(/\s+/).length / 2.5);
+            return {
+              idx: b.idx,
+              visualPrompt: b.visualPrompt,
+              shotType: b.shotType,
+              scriptSec,
+            };
+          })}
           clips={clips}
           monthSpent={monthVideoSpent}
           cap={VIDEO_MONTHLY_CAP_USD}

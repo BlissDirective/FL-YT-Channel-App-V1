@@ -469,3 +469,70 @@ Call deliver_beat with the revised section text, an updated visualPrompt + shotT
     provider: "anthropic",
   };
 }
+
+// ── Shot-type classification (hero / broll / stock) ───────────────────
+
+const CLASSIFY_TOOL = {
+  name: "classify_shots",
+  description: "Assign the best visual type to every beat.",
+  input_schema: {
+    type: "object",
+    properties: {
+      shots: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            idx: { type: "number" },
+            shotType: { type: "string", enum: ["hero", "broll", "stock"] },
+          },
+          required: ["idx", "shotType"],
+        },
+      },
+    },
+    required: ["shots"],
+  },
+} as const;
+
+function heuristicShot(b: { idx: number; text: string; visualPrompt: string }): ScriptBeat["shotType"] {
+  if (b.idx === 0) return "hero";
+  const s = `${b.text} ${b.visualPrompt}`.toLowerCase();
+  if (/\b(real|footage|city|street|people|crowd|factory|lab|archival|historical|map|data|chart|graph|news|interview|protest|building)\b/.test(s))
+    return "stock";
+  return "broll";
+}
+
+/** Classify each beat as hero / broll / stock — the best visual approach for
+    that moment given the script. Live via Claude; heuristic fallback. */
+export async function classifyShotTypes(opts: {
+  niche: string;
+  beats: { idx: number; text: string; visualPrompt: string }[];
+}): Promise<{ classifications: { idx: number; shotType: ScriptBeat["shotType"] }[]; costUsd: number }> {
+  if (!isScriptLive()) {
+    return { classifications: opts.beats.map((b) => ({ idx: b.idx, shotType: heuristicShot(b) })), costUsd: 0 };
+  }
+  const list = opts.beats
+    .map((b) => `[${b.idx}] ${b.text.slice(0, 220)} || visual: ${b.visualPrompt}`)
+    .join("\n");
+  const prompt = `For a ${opts.niche} YouTube video, pick the best visual type for each beat:
+- "hero" = a premium signature generated shot (the hook, big reveals, emotional/visual peaks).
+- "broll" = standard generated supporting visuals.
+- "stock" = real-world licensed footage fits best (actual places, people, factual/archival, real objects/events).
+Beats:
+${list}
+Call classify_shots for EVERY beat idx.`;
+  const { input, costUsd } = await callClaude({
+    model: MODEL,
+    max_tokens: 1024,
+    temperature: 0.2,
+    tools: [CLASSIFY_TOOL],
+    tool_choice: { type: "tool", name: "classify_shots" },
+    messages: [{ role: "user", content: prompt }],
+  });
+  const shots = ((input as { shots?: { idx: number; shotType: ScriptBeat["shotType"] }[] }).shots) ?? [];
+  const map = new Map(shots.map((s) => [s.idx, s.shotType]));
+  return {
+    classifications: opts.beats.map((b) => ({ idx: b.idx, shotType: map.get(b.idx) ?? heuristicShot(b) })),
+    costUsd,
+  };
+}
