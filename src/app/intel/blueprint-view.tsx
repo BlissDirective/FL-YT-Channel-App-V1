@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check,
   Copy,
@@ -12,8 +13,10 @@ import {
   ThumbsUp,
   TrendingUp,
   Type,
+  Wand2,
 } from "lucide-react";
 import type { Blueprint, IntelCompetitor, Perception } from "@/lib/db/types";
+import { REMIX_BRIEF_KEY } from "@/lib/remix-brief";
 
 function fmtViews(n: number): string {
   return Intl.NumberFormat("en", { notation: "compact" }).format(n);
@@ -43,12 +46,17 @@ export function BlueprintView({
   competitors = [],
   topic = "",
   perception,
+  projectId,
+  videoId,
 }: {
   blueprint: Blueprint;
   competitors?: IntelCompetitor[];
   topic?: string;
   perception?: Perception | null;
+  projectId?: string | null;
+  videoId?: string | null;
 }) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const b = blueprint;
 
@@ -56,6 +64,12 @@ export function BlueprintView({
     await navigator.clipboard.writeText(asBrief(b, topic));
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
+  };
+
+  const sendToRemix = () => {
+    if (!projectId || !videoId) return;
+    sessionStorage.setItem(REMIX_BRIEF_KEY, asBrief(b, topic));
+    router.push(`/projects/${projectId}/videos/${videoId}`);
   };
 
   return (
@@ -210,14 +224,25 @@ export function BlueprintView({
       )}
 
       {/* Handoff */}
-      <button
-        type="button"
-        onClick={copy}
-        className="flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white"
-      >
-        {copied ? <Check className="size-4 text-accent" /> : <Copy className="size-4" />}
-        {copied ? "Copied — paste into Script Remix" : "Copy brief for Script Remix"}
-      </button>
+      <div className="flex flex-wrap items-center gap-2">
+        {projectId && videoId && (
+          <button
+            type="button"
+            onClick={sendToRemix}
+            className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-bold text-ink shadow-card transition-transform hover:scale-[1.02]"
+          >
+            <Wand2 className="size-4" /> Send to Script Remix
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={copy}
+          className="flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white"
+        >
+          {copied ? <Check className="size-4 text-accent" /> : <Copy className="size-4" />}
+          {copied ? "Copied" : "Copy brief"}
+        </button>
+      </div>
     </div>
   );
 }
