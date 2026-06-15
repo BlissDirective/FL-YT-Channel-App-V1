@@ -164,6 +164,22 @@ export function SettingsForm({
           </div>
         </Field>
 
+        <Field label="Daily auto-ideas">
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="auto_intelligence"
+              defaultChecked={project.auto_intelligence}
+              className="size-4 accent-accent"
+            />
+            Generate ideas automatically every day
+          </label>
+          <p className="mt-1 text-xs text-muted">
+            Off = you generate ideas on demand from the project page. On = the
+            nightly run lands a fresh batch automatically.
+          </p>
+        </Field>
+
         <Field label="Autonomy per gate">
           <div className="space-y-2">
             {GATES.map((g) => (

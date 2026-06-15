@@ -27,6 +27,8 @@ export type Project = {
   /** Niche RPM (USD per 1,000 views) — drives estimated revenue. */
   rpm_usd: number;
   status: "active" | "paused";
+  /** Opt-in to the nightly auto-idea cron (default off — generate on demand). */
+  auto_intelligence: boolean;
   is_demo: boolean;
   created_at: string;
   updated_at: string;

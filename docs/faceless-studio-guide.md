@@ -145,7 +145,11 @@ for the Assets gate (compliant footage + the press-kit/own-capture lane).
 ### Video page (`/projects/[id]/videos/[vid]`)
 The work surface for one video:
 - **Script review** — read/play each beat with synced word highlighting; edit a
-  beat (and re-voice just that section).
+  beat (and re-voice just that section). **Approve script & set up video**
+  auto-classifies shot types and drops you into the AI Video Generation setup
+  (models + timings pre-filled). You review/tweak, then **Approve video settings
+  → generate** advances the video into production — nothing generates until you
+  approve the settings.
 - **Script Remix** — a chat with Claude to rewrite the script. Controls:
   **creativity**, **tone**, **verbiage/reading level**, **length & pacing**, and
   a **whole-script vs. per-section** target. *Propose → accept*: nothing changes
@@ -209,8 +213,11 @@ the brief so you can remix the script against real market research in one click.
 
 ## 7. Intelligence & agents
 
-- **Daily intelligence run** — per project, scouts the niche on keywords and
-  lands scored, repurposable idea cards. (Cron: every day.)
+- **Generate ideas (on demand)** — scouts the niche and lands a batch of ~3
+  scored idea-stage videos at the Idea gate (approve/reject there). Pick
+  **Short / Long / Either** to set each idea's target runtime. The nightly
+  auto-run is **opt-in per project** (Settings → "Daily auto-ideas"), off by
+  default — you're in control of when ideas are generated.
 - **Scout chat** — ask it to tear down top channels or surface proven topics; it
   pulls real titles + view counts.
 - **Optimizer** — reviews performance and proposes prompt-template revisions.

@@ -8,10 +8,16 @@ import { scoutChat, type ScoutMessage } from "@/lib/adapters/scout";
 
 export type Result = { ok: boolean; error?: string };
 
-/** "Run intelligence now" — scout + score fresh idea cards into the queue. */
-export async function runIntelligenceNowAction(projectId: string): Promise<Result> {
+/** "Generate ideas" — scout + score a fresh batch of idea cards into the queue
+    at the Idea gate (approve/reject there). Length sets the videos' target
+    runtime: short ≈ 45s, long/either ≈ 8 min (either defaults to long). */
+export async function runIntelligenceNowAction(
+  projectId: string,
+  length: "short" | "long" | "either" = "either",
+): Promise<Result> {
   try {
-    const { created } = await runIntelligence(projectId);
+    const targetLengthSec = length === "short" ? 45 : 480;
+    const { created } = await runIntelligence(projectId, { targetLengthSec });
     revalidatePath("/");
     revalidatePath(`/projects/${projectId}`);
     revalidatePath(`/projects/${projectId}/review`);
