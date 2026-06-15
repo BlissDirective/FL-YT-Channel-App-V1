@@ -270,6 +270,8 @@ export function IntelWorkspace({
             competitors={result.competitors}
             topic={result.topic}
             perception={result.perception}
+            projectId={result.project_id}
+            videoId={result.video_id}
           />
         </div>
       )}
@@ -329,6 +331,8 @@ function HistoryItem({ intel }: { intel: VideoIntel }) {
             competitors={intel.competitors}
             topic={intel.topic}
             perception={intel.perception}
+            projectId={intel.project_id}
+            videoId={intel.video_id}
           />
         </div>
       )}

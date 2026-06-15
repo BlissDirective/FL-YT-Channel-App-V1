@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { REMIX_BRIEF_KEY } from "@/lib/remix-brief";
 import { Check, Loader2, Sparkles, Wand2, X } from "lucide-react";
 import type { ScriptBeat } from "@/lib/db/types";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
@@ -71,6 +72,18 @@ export function ScriptRemix({
   });
 
   const say = (m: Msg) => setMessages((prev) => [...prev, m]);
+
+  // Pre-load a brief handed over from Market Intelligence → open + prefill once.
+  useEffect(() => {
+    const brief = sessionStorage.getItem(REMIX_BRIEF_KEY);
+    if (brief) {
+      setOpen(true);
+      setInput(
+        `Remix this script using my market research below. Keep it original.\n\n${brief}`,
+      );
+      sessionStorage.removeItem(REMIX_BRIEF_KEY);
+    }
+  }, []);
 
   const send = () => {
     const note = input.trim();

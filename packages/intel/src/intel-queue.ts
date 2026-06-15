@@ -25,9 +25,13 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
 const MODEL = process.env.INTEL_VISION_MODEL?.trim() || "claude-sonnet-4-6";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
 const FRAME_INTERVAL_SEC = 6; // one sampled frame every N seconds
 const MAX_FRAMES = 20; // hard cap → bounded vision cost (first ~2 min)
+const AUDIO_SECONDS = 180; // transcribe the first N seconds (bounded cost)
 const PRICE = { in: 3, out: 15 }; // $/1M tokens (sonnet) — ledger estimate
+const GEMINI_USD_PER_1M = 0.5; // blended estimate for the ledger
 
 type Json = Record<string, unknown>;
 
@@ -127,8 +131,8 @@ function run(cmd: string, args: string[], cwd?: string) {
   execFileSync(cmd, args, { cwd, stdio: "pipe", timeout: 180_000 });
 }
 
-/** Download + sample frames. Returns [{ t, b64 }]. */
-function sampleFrames(url: string, dir: string): { t: number; b64: string }[] {
+/** Download the source once (gated lane: vouched URL only). */
+function downloadVideo(url: string, dir: string): string {
   const input = join(dir, "input.mp4");
   run("yt-dlp", [
     "-q",
@@ -138,6 +142,11 @@ function sampleFrames(url: string, dir: string): { t: number; b64: string }[] {
     "-o", input,
     url,
   ]);
+  return input;
+}
+
+/** Sample keyframes from the downloaded file. Returns [{ t, b64 }]. */
+function sampleFrames(input: string, dir: string): { t: number; b64: string }[] {
   run("ffmpeg", [
     "-hide_banner", "-loglevel", "error",
     "-i", input,
@@ -149,6 +158,58 @@ function sampleFrames(url: string, dir: string): { t: number; b64: string }[] {
     .filter((f) => f.startsWith("f") && f.endsWith(".jpg"))
     .sort()
     .map((f, i) => ({ t: i * FRAME_INTERVAL_SEC, b64: readFileSync(join(dir, f)).toString("base64") }));
+}
+
+/** Extract the first AUDIO_SECONDS as small mono mp3 and transcribe via Gemini.
+    Skips gracefully when GEMINI_API_KEY is unset or extraction fails. */
+async function transcribeAudio(
+  input: string,
+  dir: string,
+): Promise<{ transcript: string; costUsd: number }> {
+  if (!GEMINI_API_KEY) return { transcript: "", costUsd: 0 };
+  const audio = join(dir, "audio.mp3");
+  try {
+    run("ffmpeg", [
+      "-hide_banner", "-loglevel", "error",
+      "-i", input,
+      "-t", String(AUDIO_SECONDS),
+      "-vn", "-ac", "1", "-ar", "16000", "-b:a", "32k",
+      audio,
+    ]);
+  } catch {
+    return { transcript: "", costUsd: 0 };
+  }
+  try {
+    const b64 = readFileSync(audio).toString("base64");
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { inlineData: { mimeType: "audio/mp3", data: b64 } },
+                { text: "Transcribe this audio verbatim. Return only the transcript text." },
+              ],
+            },
+          ],
+          generationConfig: { temperature: 0 },
+        }),
+      },
+    );
+    if (!res.ok) return { transcript: "", costUsd: 0 };
+    const data = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+      usageMetadata?: { totalTokenCount?: number };
+    };
+    const transcript = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const tokens = data.usageMetadata?.totalTokenCount ?? 0;
+    return { transcript, costUsd: Math.round((tokens / 1e6) * GEMINI_USD_PER_1M * 100) / 100 };
+  } catch {
+    return { transcript: "", costUsd: 0 };
+  }
 }
 
 async function processRow(row: {
@@ -168,8 +229,11 @@ async function processRow(row: {
   const dir = mkdtempSync(join(tmpdir(), "intel-"));
   let totalCost = 0;
   try {
-    const frames = sampleFrames(row.source_url, dir);
+    const input = downloadVideo(row.source_url, dir);
+    const frames = sampleFrames(input, dir);
     if (frames.length === 0) throw new Error("ffmpeg produced no frames");
+    const { transcript, costUsd: audioCost } = await transcribeAudio(input, dir);
+    totalCost += audioCost;
 
     // Claude vision → timestamped notes.
     const content: unknown[] = [
@@ -202,7 +266,7 @@ ${compLines || "(none)"}
 
 Frame-by-frame perception of a reference video:
 ${perceptionText}
-
+${transcript ? `\nReference transcript:\n"""\n${transcript.slice(0, 12000)}\n"""\n` : ""}
 Design a blueprint for OUR ORIGINAL video. Call deliver_blueprint.`,
       BLUEPRINT_TOOL,
     );
@@ -213,7 +277,7 @@ Design a blueprint for OUR ORIGINAL video. Call deliver_blueprint.`,
       .update({
         status: "done",
         blueprint: bp.input,
-        perception: { notes, transcript: "" },
+        perception: { notes, transcript },
         cost_usd: Math.round(totalCost * 100) / 100,
         error: null,
       })
