@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check,
   Loader2,
@@ -13,7 +14,7 @@ import {
 import type { ApprovalGate } from "@studio/core";
 import type { ScriptBeat } from "@/lib/db/types";
 import {
-  approveGateAction,
+  autoClassifyShotTypesAction,
   editScriptBeatAction,
   editVideoMetadataAction,
 } from "@/lib/actions/pipeline";
@@ -358,28 +359,33 @@ function ApproveBar({
   videoId: string;
   onError: (e?: string) => void;
 }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   return (
-    <div className="sticky bottom-4 flex justify-center">
+    <div className="sticky bottom-4 flex flex-col items-center gap-1">
       <button
         type="button"
         disabled={isPending}
         onClick={() =>
           startTransition(async () => {
             onError(undefined);
-            const r = await approveGateAction(projectId, videoId);
-            if (!r.ok) onError(r.error);
+            // Auto-classify shot types, then drop into the AI Video Generation
+            // setup (models + timings auto-populate there). The video stays at
+            // the Script gate until you "Approve video settings".
+            const r = await autoClassifyShotTypesAction(projectId, videoId);
+            if (!r.ok) {
+              onError(r.error);
+              return;
+            }
+            router.push(`/projects/${projectId}/videos/${videoId}?setup=1#videogen`);
           })
         }
         className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
       >
-        {isPending ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          <Check className="size-4" />
-        )}
-        {isPending ? "Generating voiceover…" : "Approve script → generate assets"}
+        {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+        {isPending ? "Setting up video…" : "Approve script & set up video"}
       </button>
+      <p className="text-xs text-muted">Next: review video settings, then approve to generate</p>
     </div>
   );
 }

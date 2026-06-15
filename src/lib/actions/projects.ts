@@ -90,6 +90,7 @@ export async function updateProject(
       budget: parseBudget(formData),
       rpm_usd: Number(formData.get("rpm_usd") ?? 2),
       status: String(formData.get("status") ?? "active"),
+      auto_intelligence: formData.get("auto_intelligence") === "on",
     })
     .eq("id", id);
 

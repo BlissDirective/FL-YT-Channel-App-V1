@@ -38,10 +38,13 @@ async function assetUrl(a: Asset): Promise<string | null> {
 
 export default async function VideoDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; vid: string }>;
+  searchParams: Promise<{ setup?: string }>;
 }) {
   const { id, vid } = await params;
+  const { setup } = await searchParams;
   const supabase = await createClient();
   const [project, { data: video }, { data: script }, { data: assets }] =
     await Promise.all([
@@ -165,9 +168,12 @@ export default async function VideoDetailPage({
       )}
 
       {s && beats.length > 0 && (
+        <div id="videogen">
         <VideoGen
           projectId={id}
           videoId={vid}
+          autoSetup={setup === "1"}
+          atScriptGate={gate === "SCRIPT"}
           beats={beats.map((b) => {
             const vo = beatAudio.find((a) => a.idx === b.idx)?.durationSec ?? 0;
             // Fall back to ~150 wpm (2.5 words/sec) when there's no voiceover yet.
@@ -183,6 +189,7 @@ export default async function VideoDetailPage({
           monthSpent={monthVideoSpent}
           cap={VIDEO_MONTHLY_CAP_USD}
         />
+        </div>
       )}
     </div>
   );

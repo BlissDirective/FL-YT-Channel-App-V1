@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Clapperboard, Film, Loader2, Sparkles, Timer, Wand2 } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Check, Clapperboard, Film, Loader2, Sparkles, Timer, Wand2 } from "lucide-react";
 import {
+  approveGateAction,
   autoClassifyShotTypesAction,
   generateBeatVideoAction,
   setBeatShotTypeAction,
@@ -43,6 +45,8 @@ export function VideoGen({
   clips,
   monthSpent,
   cap,
+  autoSetup = false,
+  atScriptGate = false,
 }: {
   projectId: string;
   videoId: string;
@@ -50,10 +54,17 @@ export function VideoGen({
   clips: ClipInfo[];
   monthSpent: number;
   cap: number;
+  /** Just approved the script → open + auto-populate models/timings. */
+  autoSetup?: boolean;
+  /** Video is still at the Script gate → show "Approve video settings". */
+  atScriptGate?: boolean;
 }) {
+  const router = useRouter();
   const clipByIdx = new Map(clips.map((c) => [c.idx, c]));
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoSetup);
   const [spent, setSpent] = useState(monthSpent);
+  const [approving, startApprove] = useTransition();
+  const [approveError, setApproveError] = useState<string>();
 
   // Lifted per-beat state so the bulk buttons can drive every row.
   const [shotTypes, setShotTypes] = useState<Record<number, string>>(
@@ -137,6 +148,25 @@ export function VideoGen({
     });
   };
 
+  const approveVideoSettings = () => {
+    setApproveError(undefined);
+    startApprove(async () => {
+      const r = await approveGateAction(projectId, videoId);
+      if (r.ok) router.refresh();
+      else setApproveError(r.error);
+    });
+  };
+
+  // Just approved the script → populate models + timings (types are already
+  // classified server-side) so the operator reviews real choices, not defaults.
+  useEffect(() => {
+    if (autoSetup) {
+      autoPickModels();
+      matchTimeToScript();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Card>
       <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between">
@@ -187,6 +217,25 @@ export function VideoGen({
               />
             ))}
           </div>
+
+          {atScriptGate && (
+            <div className="sticky bottom-4 rounded-card border border-accent/40 bg-accent-soft/70 p-3 shadow-card">
+              <p className="mb-2 text-xs font-medium text-ink">
+                Review the per-section settings above, then approve to generate the
+                voiceover &amp; visuals and move this video into production.
+              </p>
+              <button
+                type="button"
+                disabled={approving}
+                onClick={approveVideoSettings}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-bold text-white disabled:opacity-50"
+              >
+                {approving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                {approving ? "Generating…" : "Approve video settings → generate"}
+              </button>
+              {approveError && <p className="mt-2 text-xs font-medium text-coral">{approveError}</p>}
+            </div>
+          )}
         </div>
       )}
     </Card>

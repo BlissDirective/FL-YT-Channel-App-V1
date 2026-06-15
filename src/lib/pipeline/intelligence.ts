@@ -13,7 +13,7 @@ import { scoreIdeas } from "@/lib/adapters/intelligence";
  */
 export async function runIntelligence(
   projectId: string,
-  opts: { limit?: number } = {},
+  opts: { limit?: number; targetLengthSec?: number } = {},
 ): Promise<{ created: number }> {
   const limit = opts.limit ?? 3;
   const db = createAdminClient();
@@ -79,6 +79,7 @@ export async function runIntelligence(
       topic: idea.source.sourceTitle ?? idea.title,
       format: idea.format,
       status: "IDEA",
+      ...(opts.targetLengthSec ? { target_length_sec: opts.targetLengthSec } : {}),
     });
     created += 1;
   }
@@ -98,10 +99,12 @@ export async function runIntelligence(
 /** Run the intelligence pass for every active project (the nightly cron). */
 export async function runIntelligenceAllProjects(): Promise<{ created: number; projects: number }> {
   const db = createAdminClient();
+  // Opt-in only: the nightly cron runs for projects that enabled auto-ideas.
   const { data: projects } = await db
     .from("projects")
     .select("id")
-    .eq("status", "active");
+    .eq("status", "active")
+    .eq("auto_intelligence", true);
   let created = 0;
   for (const p of projects ?? []) {
     const r = await runIntelligence(p.id);
