@@ -173,7 +173,7 @@ export default async function VideoDetailPage({
           projectId={id}
           videoId={vid}
           autoSetup={setup === "1"}
-          atScriptGate={gate === "SCRIPT"}
+          videoStatus={v.status}
           beats={beats.map((b) => {
             const vo = beatAudio.find((a) => a.idx === b.idx)?.durationSec ?? 0;
             // Fall back to ~150 wpm (2.5 words/sec) when there's no voiceover yet.

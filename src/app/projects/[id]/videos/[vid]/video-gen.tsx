@@ -7,6 +7,7 @@ import {
   approveGateAction,
   autoClassifyShotTypesAction,
   generateBeatVideoAction,
+  resumeVideoAction,
   setBeatShotTypeAction,
 } from "@/lib/actions/pipeline";
 import {
@@ -46,7 +47,7 @@ export function VideoGen({
   monthSpent,
   cap,
   autoSetup = false,
-  atScriptGate = false,
+  videoStatus,
 }: {
   projectId: string;
   videoId: string;
@@ -56,9 +57,14 @@ export function VideoGen({
   cap: number;
   /** Just approved the script → open + auto-populate models/timings. */
   autoSetup?: boolean;
-  /** Video is still at the Script gate → show "Approve video settings". */
-  atScriptGate?: boolean;
+  /** Current video status — decides the "approve & continue" CTA. */
+  videoStatus: string;
 }) {
+  // Show the "approve & generate" CTA while the video can still be advanced
+  // into / through asset production. SCRIPT_READY = at the script gate (approve
+  // advances it); GENERATING_ASSETS = mid/stuck (resume continues it).
+  const atScriptGate = videoStatus === "SCRIPT_READY";
+  const canProceed = atScriptGate || videoStatus === "GENERATING_ASSETS";
   const router = useRouter();
   const clipByIdx = new Map(clips.map((c) => [c.idx, c]));
   const [open, setOpen] = useState(autoSetup);
@@ -151,19 +157,34 @@ export function VideoGen({
   const approveVideoSettings = () => {
     setApproveError(undefined);
     startApprove(async () => {
-      const r = await approveGateAction(projectId, videoId);
+      // At the script gate: approve advances it (and runs assets). Already in
+      // GENERATING_ASSETS (e.g. stuck): resume continues the pipeline.
+      const r = atScriptGate
+        ? await approveGateAction(projectId, videoId)
+        : await resumeVideoAction(projectId, videoId);
       if (r.ok) router.refresh();
       else setApproveError(r.error);
     });
   };
 
+  // Apply models + timings together (one pass — avoids reading stale model
+  // state) so a "set up" lands consistent, in-range choices for every beat.
+  const autoSetupApply = () => {
+    const nextModels: Record<number, string> = {};
+    const nextDur: Record<number, number> = {};
+    for (const b of beats) {
+      const id = bestModelFor(shotTypes[b.idx]);
+      nextModels[b.idx] = id;
+      nextDur[b.idx] = clampDuration(getVideoModel(id)!, b.scriptSec);
+    }
+    setModels((m) => ({ ...m, ...nextModels }));
+    setDurations((d) => ({ ...d, ...nextDur }));
+  };
+
   // Just approved the script → populate models + timings (types are already
   // classified server-side) so the operator reviews real choices, not defaults.
   useEffect(() => {
-    if (autoSetup) {
-      autoPickModels();
-      matchTimeToScript();
-    }
+    if (autoSetup) autoSetupApply();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -218,11 +239,12 @@ export function VideoGen({
             ))}
           </div>
 
-          {atScriptGate && (
-            <div className="sticky bottom-4 rounded-card border border-accent/40 bg-accent-soft/70 p-3 shadow-card">
+          {canProceed && (
+            <div className="rounded-card border border-accent/40 bg-accent-soft/70 p-3 shadow-card">
               <p className="mb-2 text-xs font-medium text-ink">
-                Review the per-section settings above, then approve to generate the
-                voiceover &amp; visuals and move this video into production.
+                {atScriptGate
+                  ? "Review the per-section settings above, then approve to generate the voiceover & visuals and move this video into production."
+                  : "Settings look good? Generate the voiceover & visuals and continue this video through production."}
               </p>
               <button
                 type="button"
@@ -231,7 +253,11 @@ export function VideoGen({
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-bold text-white disabled:opacity-50"
               >
                 {approving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-                {approving ? "Generating…" : "Approve video settings → generate"}
+                {approving
+                  ? "Generating…"
+                  : atScriptGate
+                    ? "Approve video settings → generate"
+                    : "Generate assets & continue"}
               </button>
               {approveError && <p className="mt-2 text-xs font-medium text-coral">{approveError}</p>}
             </div>
@@ -318,7 +344,12 @@ function BeatRow({
             </option>
           ))}
         </select>
-        <span className="text-[11px] text-muted">script ≈ {Math.round(beat.scriptSec)}s</span>
+        <span className="text-[11px] text-muted">
+          script ≈ {Math.round(beat.scriptSec)}s
+          {Math.round(beat.scriptSec) > model.maxDurationSec && (
+            <span className="text-muted/80"> · clips cap at {model.maxDurationSec}s</span>
+          )}
+        </span>
       </div>
       <p className="mb-3 line-clamp-2 text-xs text-muted">{beat.visualPrompt}</p>
 
