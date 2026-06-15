@@ -1,0 +1,18 @@
+{
+  "name": "@studio/intel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Video Intelligence deep-perception worker (GitHub Actions). yt-dlp + ffmpeg frame sampling -> Claude vision -> blueprint. Not imported by the web app.",
+  "scripts": {
+    "intel-queue": "tsx src/intel-queue.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4.19.3",
+    "typescript": "^5"
+  }
+}

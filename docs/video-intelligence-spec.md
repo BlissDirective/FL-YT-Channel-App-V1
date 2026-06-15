@@ -461,7 +461,12 @@ cost always visible before you spend.
   perception** (no download, no worker, no ffmpeg — the minimal-gate path), folded
   into the Claude blueprint; timestamped notes render in the dashboard. Runs as a
   server action (maxDuration 300). Needs `GEMINI_API_KEY` (wired into env-sync).
-- **Phase C.2 — remaining (the worker lane).** The PRECISE fallback: yt-dlp +
-  ffmpeg high-res frame sampling → Claude vision, in the Actions worker, for the
-  cases Gemini-URL can't cover (private/owned files, exact frames). Behind the
-  one-time operator-vouched ack. Recipe lifted from `claude-video-vision`.
+- **Phase C.2 — ✅ shipped (the worker lane).** `@studio/intel` worker +
+  `video-intel.yml` workflow: claims `video_intel` rows at `status='queued'`,
+  yt-dlp downloads (≤720p), ffmpeg samples keyframes (1/6s, ≤20 frames @ 512px),
+  Claude vision → timestamped notes, Claude → blueprint, flips to `done`. The
+  Deep panel's "Precise frame sampling" toggle enqueues; `/intel` realtime-refreshes
+  so it flips live. Recipe lifted from `claude-video-vision` (no MCP/yt-dlp deps
+  we don't want). Behind the one-time operator-vouched ack.
+  - *Bounds:* first ~2 min of video (frame cap), visual notes only (audio
+    transcription is a follow-up); cron picks up jobs every ~10 min.

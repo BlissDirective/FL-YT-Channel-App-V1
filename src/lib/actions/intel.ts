@@ -10,7 +10,19 @@ import {
 } from "@/lib/adapters/youtube";
 import { analyzeVideoIntel } from "@/lib/adapters/video-intel";
 import { analyzeYoutubeVideo } from "@/lib/adapters/gemini-video";
-import type { IntelCompetitor, Perception, VideoIntel } from "@/lib/db/types";
+import type { Blueprint, IntelCompetitor, Perception, VideoIntel } from "@/lib/db/types";
+
+const EMPTY_BLUEPRINT: Blueprint = {
+  works: [],
+  doesnt: [],
+  hooks: [],
+  structure: [],
+  pacing: [],
+  gaps: [],
+  titlePatterns: [],
+  thumbnailPatterns: [],
+  angle: "",
+};
 
 export type IntelActionResult =
   | { ok: true; intel: VideoIntel }
@@ -27,6 +39,8 @@ export async function runVideoIntelAction(input: {
   depth?: "quick" | "deep";
   sourceUrl?: string;
   vouched?: boolean;
+  /** Deep + precise frame sampling → enqueue for the Actions worker. */
+  frames?: boolean;
 }): Promise<IntelActionResult> {
   const topic = input.topic.trim();
   if (!topic) return { ok: false, error: "Add a topic or keywords to scan." };
@@ -76,6 +90,29 @@ export async function runVideoIntelAction(input: {
       });
     }
     const competitors = [...byId.values()].sort((a, b) => b.views - a.views).slice(0, 12);
+
+    // Precise frame sampling → enqueue a job for the Video Intel worker.
+    if (depth === "deep" && input.frames) {
+      const { data, error } = await supabase
+        .from("video_intel")
+        .insert({
+          project_id: input.projectId,
+          video_id: input.videoId ?? null,
+          topic,
+          competitors,
+          blueprint: EMPTY_BLUEPRINT,
+          status: "queued",
+          depth: "deep",
+          source_url: sourceUrl,
+          vouched: true,
+          cost_usd: 0,
+        })
+        .select("*")
+        .single();
+      if (error) return { ok: false, error: error.message };
+      revalidatePath("/intel");
+      return { ok: true, intel: data as VideoIntel };
+    }
 
     // 2) Deep scan: Gemini native-URL perception (no download) folded in.
     let perception: Perception | null = null;
