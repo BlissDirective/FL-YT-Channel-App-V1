@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { PIPELINE_STAGES } from "@studio/core";
 import {
-  getIdeas,
   getKillSwitch,
   getProject,
   getTrackedStats,
@@ -56,9 +55,8 @@ export default async function ProjectHome({
   const project = await getProject(id);
   if (!project) notFound();
 
-  const [videos, ideas, killSwitch, tracked] = await Promise.all([
+  const [videos, killSwitch, tracked] = await Promise.all([
     getVideos(id),
-    getIdeas(id),
     getKillSwitch(),
     getTrackedStats(id),
   ]);
@@ -67,7 +65,6 @@ export default async function ProjectHome({
   const counts = stageCounts(videos);
   const emphasis = emphasisStage(counts);
   const pending = pendingGateCount(videos);
-  const newIdeas = ideas.filter((i) => i.status === "new").length;
   const published = videos.filter(
     (v) => v.status === "TRACKING" || v.youtube_video_id,
   ).length;
@@ -129,8 +126,12 @@ export default async function ProjectHome({
       <ScoutChat projectId={id} />
 
       <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <StatCard icon={Clapperboard} label="Videos" value={String(videos.length)} />
-        <StatCard icon={Lightbulb} label="New ideas" value={String(newIdeas)} />
+        <StatCard icon={Lightbulb} label="Ideas" value={String(counts.ideas)} />
+        <StatCard
+          icon={Film}
+          label="In production"
+          value={String(counts.script + counts.assets + counts.render)}
+        />
         <StatCard icon={Upload} label="Published" value={String(published)} />
         <StatCard icon={Eye} label="Total views" value={compact(totalViews)} />
         <StatCard
@@ -147,17 +148,16 @@ export default async function ProjectHome({
 
       <Card>
         <CardTitle>Production pipeline</CardTitle>
-        <Link href={`/projects/${id}/review`} className="block">
-          <FlowDiagram
-            nodes={PIPELINE_STAGES.map((s) => ({
-              key: s.key,
-              label: s.label,
-              icon: STAGE_ICONS[s.key as keyof typeof STAGE_ICONS],
-              count: counts[s.key],
-              emphasis: s.key === emphasis,
-            }))}
-          />
-        </Link>
+        <FlowDiagram
+          nodes={PIPELINE_STAGES.map((s) => ({
+            key: s.key,
+            label: s.label,
+            icon: STAGE_ICONS[s.key as keyof typeof STAGE_ICONS],
+            count: counts[s.key],
+            emphasis: s.key === emphasis,
+            href: `/projects/${id}/review?stage=${s.key}`,
+          }))}
+        />
         <p className="mt-4 text-sm text-muted">
           {pending > 0
             ? `${pending} video${pending === 1 ? "" : "s"} waiting at a review gate — open the review queue to decide.`
