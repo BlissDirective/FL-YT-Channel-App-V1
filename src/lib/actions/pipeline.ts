@@ -6,6 +6,7 @@ import {
   applyPressKitClip,
   applyScriptRemix,
   applySourceClip,
+  autoClassifyShotTypes,
   decideGate,
   editScriptBeat,
   editVideoMetadata,
@@ -14,6 +15,8 @@ import {
   proposeScriptRemix,
   rerollBeatVisual,
   runPipeline,
+  setBeatShotType,
+  type ClassifyResult,
   type VideoGenResult,
 } from "@/lib/pipeline/engine";
 import { getKillSwitch } from "@/lib/db/queries";
@@ -169,6 +172,35 @@ export async function editScriptBeatAction(
     refresh(projectId);
     return result;
   });
+}
+
+// ── Beat shot-type ────────────────────────────────────────────────────
+
+export async function setBeatShotTypeAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  shotType: ScriptBeat["shotType"],
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await setBeatShotType({ videoId, beatIdx, shotType });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
+  });
+}
+
+export async function autoClassifyShotTypesAction(
+  projectId: string,
+  videoId: string,
+): Promise<ClassifyResult> {
+  try {
+    const r = await autoClassifyShotTypes({ videoId });
+    if (r.ok) revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
+  } catch (err) {
+    console.error("autoClassifyShotTypesAction failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 // ── Phase B — generated video clips ───────────────────────────────────

@@ -15,6 +15,7 @@ import {
   generateScript,
   remixScript,
   remixBeat,
+  classifyShotTypes,
   type RemixSettings,
   type ScriptRemix,
   type BeatRemix,
@@ -776,6 +777,52 @@ export async function rerollBeatVisual(opts: {
   await db.from("assets").insert(draft.row);
   await recordCost(db, video, draft.cost, `reroll beat ${opts.beatIdx + 1}`);
   return { ok: true };
+}
+
+// ── Beat shot-type (hero / broll / stock) ─────────────────────────────
+// shotType is metadata (it doesn't change VO), so we update the latest
+// script row in place rather than spawning a new version.
+
+export async function setBeatShotType(opts: {
+  videoId: string;
+  beatIdx: number;
+  shotType: ScriptBeat["shotType"];
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const script = await loadLatestScript(db, opts.videoId);
+  if (!script) return { ok: false, error: "No script to edit" };
+  const beats = (script.beats as ScriptBeat[]).map((b) =>
+    b.idx === opts.beatIdx ? { ...b, shotType: opts.shotType } : b,
+  );
+  await db.from("scripts").update({ beats }).eq("id", script.id);
+  return { ok: true };
+}
+
+export type ClassifyResult =
+  | { ok: true; shots: { idx: number; shotType: ScriptBeat["shotType"] }[] }
+  | { ok: false; error: string };
+
+export async function autoClassifyShotTypes(opts: { videoId: string }): Promise<ClassifyResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+  const script = await loadLatestScript(db, video.id);
+  if (!script) return { ok: false, error: "No script to classify" };
+
+  const beats = script.beats as ScriptBeat[];
+  const { classifications, costUsd } = await classifyShotTypes({
+    niche: project.niche,
+    beats: beats.map((b) => ({ idx: b.idx, text: b.text, visualPrompt: b.visualPrompt })),
+  });
+  const map = new Map(classifications.map((c) => [c.idx, c.shotType]));
+  const updated = beats.map((b) => ({ ...b, shotType: map.get(b.idx) ?? b.shotType }));
+  await db.from("scripts").update({ beats: updated }).eq("id", script.id);
+  if (costUsd > 0) {
+    await recordCost(db, video, { provider: "anthropic", usd: costUsd, description: "Auto-classify shot types" });
+  }
+  return { ok: true, shots: classifications };
 }
 
 // ── Phase B — generated video clips (Kling / Veo / Seedance via fal) ───
