@@ -399,6 +399,26 @@ export async function synthesizeBeatVo(
   return { costUsd, cached: Boolean(hit), provider };
 }
 
+/** Run an async fn over items with bounded concurrency — keeps us under
+    provider rate/concurrency limits (e.g. ElevenLabs caps simultaneous TTS
+    requests, which otherwise 429s and strands the whole stage). */
+async function mapLimit<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T, i: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < items.length) {
+      const i = cursor++;
+      results[i] = await fn(items[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
 async function runAssetGeneration(db: Db, video: Video, project: Project) {
   const { data: script } = await db
     .from("scripts")
@@ -420,8 +440,10 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   // sequentially afterwards (recordCost mutates the running total).
   const liveVoice = canSynthesize(project.voice_id) && beats.length > 0;
   const [voResults, clipResults, thumbResults] = await Promise.all([
+    // VO is the only unguarded provider call here — cap concurrency so a long
+    // script can't 429 ElevenLabs and reject the whole stage.
     liveVoice
-      ? Promise.all(beats.map((beat) => synthesizeBeatVo(db, video, project, beat)))
+      ? mapLimit(beats, 2, (beat) => synthesizeBeatVo(db, video, project, beat))
       : Promise.resolve(null),
     Promise.all(beats.map((beat) => makeBeatClip(video, project, beat))),
     Promise.all(
@@ -717,23 +739,36 @@ export async function runPipeline(videoId: string, dbArg?: Db): Promise<EngineRe
         await db.from("videos").update({ paused_reason: null }).eq("id", videoId);
     }
 
-    switch (video.status) {
-      case "IDEA_APPROVED":
-        await setStatus(db, videoId, "SCRIPTING");
-        break;
-      case "SCRIPTING":
-        await runScripting(db, video, project);
-        break;
-      case "GENERATING_ASSETS":
-        await runAssetGeneration(db, video, project);
-        break;
-      case "ASSEMBLING": {
-        const result = await runAssembly(db, video);
-        if (result === "external") return { ok: true }; // farm takes over
-        break;
+    try {
+      switch (video.status) {
+        case "IDEA_APPROVED":
+          await setStatus(db, videoId, "SCRIPTING");
+          break;
+        case "SCRIPTING":
+          await runScripting(db, video, project);
+          break;
+        case "GENERATING_ASSETS":
+          await runAssetGeneration(db, video, project);
+          break;
+        case "ASSEMBLING": {
+          const result = await runAssembly(db, video);
+          if (result === "external") return { ok: true }; // farm takes over
+          break;
+        }
+        default:
+          return { ok: true }; // APPROVED / TRACKING / KILLED / NEEDS_REVISION
       }
-      default:
-        return { ok: true }; // APPROVED / TRACKING / KILLED / NEEDS_REVISION
+    } catch (err) {
+      // A thrown stage (e.g. a live provider error) must never leave the video
+      // silently stuck. Record a visible, retryable pause reason instead.
+      const msg = err instanceof Error ? err.message : String(err);
+      const stage = video.status.replace(/_/g, " ").toLowerCase();
+      await db
+        .from("videos")
+        .update({ paused_reason: `${stage} failed: ${msg.slice(0, 180)}` })
+        .eq("id", videoId);
+      console.error(`pipeline stage ${video.status} failed for ${videoId}:`, err);
+      return { ok: false, error: msg };
     }
   }
   return { ok: true };
