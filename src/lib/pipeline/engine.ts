@@ -226,6 +226,9 @@ async function arriveAtGate(
 
   const copilotApproved =
     mode === "copilot" && qcScore != null && qcScore >= COPILOT_AUTO_APPROVE_SCORE;
+  // Full Auto owns advancement past the Assets gate (it pauses here so the
+  // generated clips can replace the stills before the render runs).
+  if (gate === "ASSETS" && video.auto_finish) return;
   if (mode !== "autopilot" && !copilotApproved) return;
 
   await db.from("approvals").insert({
@@ -239,7 +242,9 @@ async function arriveAtGate(
   const next = ON_APPROVE[current.status];
   if (next) {
     await setStatus(db, video.id, next);
-    await runPipeline(video.id);
+    // Thread the same client — a fresh createClient() runs unauthenticated
+    // under the service role (MCP/cron/autopilot), which RLS blocks → stall.
+    await runPipeline(video.id, db);
   }
 }
 
@@ -1035,10 +1040,14 @@ export async function fullAutoGenerate(
     };
   }
 
-  // 3) Approve the script gate → runs VO + stock + base stills → ASSETS_READY.
+  // 3) Mark auto-finish FIRST so the Assets gate holds (arriveAtGate sees it)
+  //    while clips generate — the worker advances to render once they land.
+  await db.from("videos").update({ auto_finish: true }).eq("id", opts.videoId);
+
+  // 4) Approve the script gate → runs VO + stock + base stills → ASSETS_READY.
   await decideGate({ videoId: opts.videoId, decision: "approved" }, db);
 
-  // 4) Enqueue a smart-mix clip job per non-stock section.
+  // 5) Enqueue a smart-mix clip job per non-stock section.
   let enqueued = 0;
   for (const b of beats) {
     const job = tierJobForSection(opts.tier, b.shotType, secFor(b));
@@ -1055,10 +1064,6 @@ export async function fullAutoGenerate(
     });
     enqueued += 1;
   }
-
-  // 5) Mark for auto-finish → the worker advances to render when clips land,
-  //    then the pipeline pauses at Final review (no auto-approve of Final).
-  await db.from("videos").update({ auto_finish: true }).eq("id", opts.videoId);
   return { ok: true, enqueued, estCostUsd };
 }
 

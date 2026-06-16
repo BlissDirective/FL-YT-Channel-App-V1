@@ -186,6 +186,10 @@ export const TOOLS: Tool[] = [
         brandSecondary: { type: "string", description: "Brand secondary color (hex) — intro/end gradient base." },
         thumbnailStyle: { type: "string", description: "Thumbnail aesthetic phrase fed to the image model." },
         brandFont: { type: "string", description: "Brand font key (e.g. bold-sans)." },
+        autonomy: {
+          type: "object",
+          description: "Per-gate autonomy, e.g. {\"SCRIPT\":\"assist\"}. Keys IDEA|SCRIPT|ASSETS|FINAL, values assist|copilot|autopilot.",
+        },
       },
       ["projectId"],
     ),
@@ -193,7 +197,7 @@ export const TOOLS: Tool[] = [
       const id = str(a.projectId);
       const { data: project } = await db
         .from("projects")
-        .select("budget, brand_kit")
+        .select("budget, brand_kit, autonomy")
         .eq("id", id)
         .maybeSingle();
       if (!project) return { ok: false, error: "project not found" };
@@ -219,6 +223,13 @@ export const TOOLS: Tool[] = [
       if (typeof a.thumbnailStyle === "string") { brand.thumbnailStyle = a.thumbnailStyle; brandTouched = true; }
       if (typeof a.brandFont === "string") { brand.font = a.brandFont; brandTouched = true; }
       if (brandTouched) patch.brand_kit = brand;
+
+      if (a.autonomy && typeof a.autonomy === "object" && !Array.isArray(a.autonomy)) {
+        patch.autonomy = {
+          ...((project.autonomy ?? {}) as Record<string, unknown>),
+          ...(a.autonomy as Record<string, unknown>),
+        };
+      }
 
       if (Object.keys(patch).length === 0) return { ok: false, error: "no fields to update" };
       const { error } = await db.from("projects").update(patch).eq("id", id);
