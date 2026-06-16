@@ -15,13 +15,16 @@ export function tierJobForSection(
   if (shotType === "stock") return null;
   const sec = Math.max(4, Math.round(scriptSec));
   if (tier === "base") {
+    // Slow-pan (hold) instead of repetitive loops.
     return shotType === "hero"
-      ? { model: "seedance-2", targetSec: Math.min(sec, 15), heroHold: false }
-      : { model: "seedance-2-fast", targetSec: Math.min(sec, 8), heroHold: false };
+      ? { model: "seedance-2", targetSec: Math.min(sec, 15), heroHold: true }
+      : { model: "seedance-2-fast", targetSec: Math.min(sec, 8), heroHold: true };
   }
   if (tier === "mid") {
-    // Seedance 2.0 stitched to 30s for both b-roll and hero.
-    return { model: "seedance-2", targetSec: Math.min(sec, 30), heroHold: false };
+    // Cheaper longer b-roll on Seedance Fast; keep Seedance 2.0 for the hero.
+    return shotType === "hero"
+      ? { model: "seedance-2", targetSec: Math.min(sec, 30), heroHold: false }
+      : { model: "seedance-2-fast", targetSec: Math.min(sec, 30), heroHold: false };
   }
   // platinum: b-roll Seedance 2.0 to 60s; hero Veo 3.1 8s + slow-pan hold.
   return shotType === "hero"
@@ -30,8 +33,8 @@ export function tierJobForSection(
 }
 
 export const AUTO_TIERS: { id: AutoTier; label: string; blurb: string }[] = [
-  { id: "base", label: "Base", blurb: "Fast b-roll + Seedance 2.0 hero — cheapest, rapid" },
-  { id: "mid", label: "Mid", blurb: "Seedance 2.0 stitched to 30s — longer, more engaging" },
+  { id: "base", label: "Base", blurb: "Fast b-roll + Seedance 2.0 hero, slow-pan (no loops) — cheapest" },
+  { id: "mid", label: "Mid", blurb: "Seedance Fast b-roll to 30s + Seedance 2.0 hero — longer, cheaper" },
   { id: "platinum", label: "Platinum", blurb: "Seedance 2.0 b-roll to 60s + Veo 3.1 hero (slow-pan)" },
 ];
 
