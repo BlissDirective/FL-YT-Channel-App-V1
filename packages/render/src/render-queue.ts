@@ -13,6 +13,7 @@ import { createClient } from "@supabase/supabase-js";
 import { bundle } from "@remotion/bundler";
 import { ensureBrowser, renderMedia, selectComposition } from "@remotion/renderer";
 import { beatTimeline, longFormDurationSec, type RenderBeat, type VideoProps } from "./types";
+import { uploadVideo, youtubeUploadConfigured } from "./youtube";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -113,6 +114,16 @@ async function renderOne(
   const { props, video } = built;
   const outDir = mkdtempSync(join(tmpdir(), "render-"));
   const timeline = beatTimeline(props);
+  // Script-derived metadata for a YouTube upload (description + tags).
+  const { data: scriptRow } = await db
+    .from("scripts")
+    .select("metadata")
+    .eq("video_id", videoId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sm = (scriptRow?.metadata ?? {}) as { description?: string; tags?: string[] };
+  const scriptMeta = { description: sm.description ?? "", tags: sm.tags ?? [] };
 
   for (const variant of ["long", "short"] as const) {
     const compId = variant === "long" ? "LongForm" : "Short";
@@ -140,32 +151,66 @@ async function renderOne(
       crf: 23,
       x264Preset: "faster",
     });
-    const file = readFileSync(out);
-    const storagePath = `videos/${videoId}/${variant === "long" ? "final" : "short-0"}.mp4`;
-    const { error: upErr } = await db.storage
-      .from("media")
-      .upload(storagePath, file, { contentType: "video/mp4", upsert: true });
-    if (upErr) throw new Error(`upload failed: ${upErr.message}`);
+    const durationSec =
+      variant === "long"
+        ? Math.round(longFormDurationSec(props))
+        : Math.round(props.beats[0]?.durationSec ?? 0) + 2;
+    const baseMeta = {
+      variant,
+      resolution: variant === "long" ? "1080p" : "1080x1920",
+      durationSec,
+      // Retention curves map back to script beats through this (idea #2).
+      beats: variant === "long" ? timeline : undefined,
+    };
+
+    // Long-form cuts exceed Supabase's upload limit. When YouTube OAuth is
+    // configured, push the long-form straight to YouTube (unlisted draft) and
+    // skip Storage; the Short (small) always goes to Storage. Any YouTube
+    // failure falls back to Storage so the render still completes.
+    let ytId: string | null = null;
+    if (variant === "long" && youtubeUploadConfigured()) {
+      try {
+        ytId = await uploadVideo({
+          filePath: out,
+          title: video.title,
+          description: scriptMeta.description,
+          tags: scriptMeta.tags,
+        });
+        console.log(`📺 ${video.title}: uploaded long-form to YouTube (unlisted) → ${ytId}`);
+      } catch (err) {
+        console.error(`⚠️  YouTube upload failed, falling back to Storage: ${String(err).slice(0, 160)}`);
+      }
+    }
 
     await db.from("assets").delete().eq("video_id", videoId).eq("kind", "render")
       .filter("meta->>variant", "eq", variant);
-    await db.from("assets").insert({
-      video_id: videoId,
-      kind: "render",
-      provider: "remotion",
-      storage_path: storagePath,
-      meta: {
-        variant,
-        resolution: variant === "long" ? "1080p" : "1080x1920",
-        durationSec:
-          variant === "long"
-            ? Math.round(longFormDurationSec(props))
-            : Math.round(props.beats[0]?.durationSec ?? 0) + 2,
-        // Retention curves map back to script beats through this (idea #2).
-        beats: variant === "long" ? timeline : undefined,
-      },
-      cost_usd: 0,
-    });
+
+    if (ytId) {
+      await db.from("assets").insert({
+        video_id: videoId,
+        kind: "render",
+        provider: "youtube",
+        storage_path: null,
+        meta: { ...baseMeta, youtubeId: ytId, url: `https://youtu.be/${ytId}` },
+        cost_usd: 0,
+      });
+      await db.from("videos").update({ youtube_video_id: ytId }).eq("id", videoId);
+    } else {
+      const file = readFileSync(out);
+      const storagePath = `videos/${videoId}/${variant === "long" ? "final" : "short-0"}.mp4`;
+      const { error: upErr } = await db.storage
+        .from("media")
+        .upload(storagePath, file, { contentType: "video/mp4", upsert: true });
+      if (upErr) throw new Error(`upload failed: ${upErr.message}`);
+      await db.from("assets").insert({
+        video_id: videoId,
+        kind: "render",
+        provider: "remotion",
+        storage_path: storagePath,
+        meta: baseMeta,
+        cost_usd: 0,
+      });
+    }
   }
 
   await db.from("cost_ledger").insert({

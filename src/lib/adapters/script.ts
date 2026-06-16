@@ -21,6 +21,55 @@ const PRICING: Record<string, { in: number; out: number }> = {
 };
 const PRICE = PRICING[MODEL] ?? { in: 3, out: 15 };
 
+// Spoken narration rate (words/min) and the fixed intro+outro overhead the
+// render adds on top of the beats — both used to turn a target runtime into a
+// word budget and to enforce the length cap. Keep INTRO/OUTRO in sync with
+// packages/render/src/types.ts (INTRO_SEC + OUTRO_SEC).
+const WORDS_PER_MIN = 150;
+const INTRO_OUTRO_SEC = 6.5;
+
+const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+
+/** Word budget for a target runtime: content words (minus intro/outro), a
+    soft floor, the hard ceiling, and a rough beat count (~130 words/beat). */
+export function scriptWordBudget(targetLengthSec: number) {
+  // 5% headroom so real VO (which can read slower than 150 wpm) still lands
+  // under the target rather than spilling over the hard cap.
+  const contentSec = Math.max(30, (targetLengthSec - INTRO_OUTRO_SEC) * 0.95);
+  const target = Math.round((contentSec / 60) * WORDS_PER_MIN);
+  return {
+    target,
+    min: Math.round(target * 0.82),
+    max: target, // hard ceiling — keeping content ≤ this keeps runtime ≤ target
+    beats: Math.max(4, Math.round(target / 130)),
+  };
+}
+
+/** Estimated spoken runtime (sec) for a set of beats, incl. intro/outro. */
+function estimateRuntimeSec(beats: ScriptBeat[]): number {
+  const words = beats.reduce((n, b) => n + wordCount(b.text), 0);
+  return Math.round((words / WORDS_PER_MIN) * 60 + INTRO_OUTRO_SEC);
+}
+
+/** Hard length cap: drop trailing content beats (always keeping the hook and
+    the fixed outro) until total narration fits the target runtime. */
+export function capScriptToBudget(beats: ScriptBeat[], targetLengthSec: number): ScriptBeat[] {
+  if (beats.length <= 2) return beats;
+  const { max } = scriptWordBudget(targetLengthSec);
+  const outro = beats[beats.length - 1];
+  const content = beats.slice(0, -1);
+  const kept: ScriptBeat[] = [];
+  let words = 0;
+  for (const b of content) {
+    const w = wordCount(b.text);
+    if (kept.length >= 1 && words + w > max) break; // keep at least the hook
+    kept.push(b);
+    words += w;
+  }
+  if (kept.length === content.length) return beats; // nothing trimmed
+  return [...kept, outro].map((b, idx) => ({ ...b, idx }));
+}
+
 /**
  * Voice DNA — a system prompt that fights the "AI essay" register: writes
  * like a real creator with a point of view, varies rhythm, and bans the
@@ -138,6 +187,7 @@ export async function generateScript(opts: {
     };
   }
 
+  const budget = scriptWordBudget(opts.targetLengthSec);
   const prompt = fillTemplate(opts.template, {
     title: opts.title,
     topic: opts.topic,
@@ -147,6 +197,10 @@ export async function generateScript(opts: {
     tone: opts.tone,
     format: opts.format,
     target_minutes: String(Math.round(opts.targetLengthSec / 60)),
+    target_words: String(budget.target),
+    min_words: String(budget.min),
+    max_words: String(budget.max),
+    beat_count: String(budget.beats),
     revision_notes: opts.revisionNotes
       ? `\n\nIMPORTANT — the previous draft was rejected with these reviewer notes; address them directly:\n"${opts.revisionNotes}"`
       : "",
@@ -188,7 +242,11 @@ export async function generateScript(opts: {
     chapters: { at: number; label: string }[];
     runtimeSec: number;
   };
-  const beats: ScriptBeat[] = input.beats.map((b, idx) => ({ idx, ...b }));
+  const rawBeats: ScriptBeat[] = input.beats.map((b, idx) => ({ idx, ...b }));
+  // Hard cap: even with the word-budget prompt the model can run long, so trim
+  // trailing content beats (keeping the hook and the fixed outro) until the
+  // narration fits the target runtime. This is what guarantees the length cap.
+  const beats = capScriptToBudget(rawBeats, opts.targetLengthSec);
   const costUsd =
     (data.usage.input_tokens / 1e6) * PRICE.in +
     (data.usage.output_tokens / 1e6) * PRICE.out;
@@ -196,7 +254,7 @@ export async function generateScript(opts: {
   return {
     body: beats.map((b) => b.text).join("\n\n"),
     beats,
-    runtimeSec: input.runtimeSec || opts.targetLengthSec,
+    runtimeSec: estimateRuntimeSec(beats),
     metadata: {
       titles: input.titles,
       description: input.description,
