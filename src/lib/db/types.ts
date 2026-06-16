@@ -29,6 +29,8 @@ export type Project = {
   status: "active" | "paused";
   /** Opt-in to the nightly auto-idea cron (default off — generate on demand). */
   auto_intelligence: boolean;
+  /** Confirm-before-generate threshold for pricey clips (USD; default 3). */
+  clip_confirm_usd: number;
   is_demo: boolean;
   created_at: string;
   updated_at: string;
@@ -185,6 +187,7 @@ export type ClipJob = {
   method: "veo-extend" | "stitch" | "stitch-seamless";
   model: string;
   target_sec: number;
+  hero_hold: boolean;
   status: "queued" | "running" | "done" | "error";
   result_path: string | null;
   cost_usd: number;

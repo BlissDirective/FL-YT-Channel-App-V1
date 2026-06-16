@@ -62,8 +62,14 @@ async function buildProps(videoId: string): Promise<{
     const clipMeta = (clip?.meta ?? {}) as {
       url?: string;
       stillImage?: boolean;
+      isVideo?: boolean;
+      heroHold?: boolean;
       durationSec?: number;
     };
+    // Generated video clips live in Storage (no meta.url) — sign the path and
+    // treat as video. Stills are signed as images. External (Pexels) use url.
+    const clipSigned = clip?.storage_path ? await sign(clip.storage_path) : null;
+    const isVideoClip = Boolean(clipMeta.isVideo || clipMeta.url);
     beats.push({
       idx: sb.idx,
       text: sb.text,
@@ -71,11 +77,10 @@ async function buildProps(videoId: string): Promise<{
       durationSec: Number(voMeta.durationSec ?? 5),
       words: voMeta.words ?? [],
       voUrl: vo ? await sign(vo.storage_path) : null,
-      videoUrl: clipMeta.url ?? undefined,
+      videoUrl: clipMeta.url ?? (clipMeta.isVideo ? (clipSigned ?? undefined) : undefined),
       videoDurationSec: clipMeta.durationSec,
-      imageUrl: clip?.storage_path
-        ? ((await sign(clip.storage_path)) ?? undefined)
-        : undefined,
+      heroHold: Boolean(clipMeta.heroHold),
+      imageUrl: !isVideoClip ? (clipSigned ?? undefined) : undefined,
     });
   }
   // A render without narration would be silent — treat as not ready.

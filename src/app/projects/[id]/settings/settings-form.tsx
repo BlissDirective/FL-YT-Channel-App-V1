@@ -180,6 +180,21 @@ export function SettingsForm({
           </p>
         </Field>
 
+        <Field label="Confirm video clips over ($)">
+          <input
+            type="number"
+            name="clip_confirm_usd"
+            min={0}
+            step={0.5}
+            defaultValue={project.clip_confirm_usd}
+            className="input"
+          />
+          <p className="mt-1 text-xs text-muted">
+            Any AI video clip estimated above this prompts a confirm before it
+            spends. Default $3.
+          </p>
+        </Field>
+
         <Field label="Autonomy per gate">
           <div className="space-y-2">
             {GATES.map((g) => (

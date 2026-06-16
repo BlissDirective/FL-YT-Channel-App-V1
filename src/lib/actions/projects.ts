@@ -91,6 +91,7 @@ export async function updateProject(
       rpm_usd: Number(formData.get("rpm_usd") ?? 2),
       status: String(formData.get("status") ?? "active"),
       auto_intelligence: formData.get("auto_intelligence") === "on",
+      clip_confirm_usd: Number(formData.get("clip_confirm_usd") ?? 3),
     })
     .eq("id", id);
 

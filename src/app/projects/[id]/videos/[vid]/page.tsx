@@ -191,6 +191,7 @@ export default async function VideoDetailPage({
           jobs={clipJobs.map((j) => ({ beatIdx: j.beat_idx, status: j.status, method: j.method }))}
           monthSpent={monthVideoSpent}
           cap={VIDEO_MONTHLY_CAP_USD}
+          confirmOverUsd={Number(project.clip_confirm_usd ?? 3)}
         />
         </div>
       )}

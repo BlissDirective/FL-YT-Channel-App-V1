@@ -8,10 +8,12 @@ export type RenderBeat = {
   voUrl: string | null;
   /** Still image (FLUX) — gets a slow Ken Burns move. */
   imageUrl?: string;
-  /** Stock footage (Pexels) — looped/trimmed to the beat. */
+  /** Stock or generated footage — looped/held to the beat. */
   videoUrl?: string;
   /** Source footage length, so loops cut cleanly. */
   videoDurationSec?: number;
+  /** Hero clip: slow-pan + stretch to fill the section instead of looping. */
+  heroHold?: boolean;
   shotType: string;
 };
 

@@ -23,6 +23,11 @@ import {
 const FONT =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
+/** Hero-hold playback rate: a short premium clip is slowed (and Ken-Burns
+    panned) so it stretches cinematically over a long section instead of
+    looping obviously. */
+const HERO_RATE = 0.5;
+
 /** Long-form 16:9 composition: branded intro sting → beat sequencer
     (visuals cut to VO with word captions) → CTA lower-third at 70% →
     branded end card. */
@@ -95,7 +100,24 @@ const BeatScene: React.FC<{
   const kenBurns = interpolate(frame, [0, durationInFrames], [1.02, 1.12]);
   return (
     <AbsoluteFill>
-      {beat.videoUrl ? (
+      {beat.videoUrl && beat.heroHold ? (
+        // Hero clip: slow + continuous Ken Burns pan to fill the section.
+        <AbsoluteFill style={{ transform: `scale(${kenBurns})` }}>
+          <Loop
+            durationInFrames={Math.max(
+              1,
+              Math.floor(((beat.videoDurationSec ?? 8) / HERO_RATE) * FPS),
+            )}
+          >
+            <OffthreadVideo
+              src={beat.videoUrl}
+              muted
+              playbackRate={HERO_RATE}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </Loop>
+        </AbsoluteFill>
+      ) : beat.videoUrl ? (
         <Loop
           durationInFrames={Math.max(
             1,

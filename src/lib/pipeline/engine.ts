@@ -30,6 +30,7 @@ import {
   VIDEO_MONTHLY_CAP_USD,
   VIDEO_PROVIDER,
 } from "@/lib/adapters/video-models";
+import { estimateTierCost, tierJobForSection, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
@@ -959,6 +960,7 @@ export async function enqueueLongClip(opts: {
   model: string;
   targetSec: number;
   estCostUsd: number;
+  heroHold?: boolean;
 }): Promise<EnqueueResult> {
   const db = await createClient();
   const video = await getVideo(db, opts.videoId);
@@ -979,12 +981,93 @@ export async function enqueueLongClip(opts: {
       method: opts.method,
       model: opts.model,
       target_sec: opts.targetSec,
+      hero_hold: Boolean(opts.heroHold),
       status: "queued",
     })
     .select("id")
     .single();
   if (error || !data) return { ok: false, error: error?.message ?? "Could not queue clip" };
   return { ok: true, jobId: data.id as string };
+}
+
+// ── Full Auto-Generate — one tap → whole video, pause at Final ────────
+
+export type FullAutoResult =
+  | { ok: true; enqueued: number; estCostUsd: number }
+  | { ok: false; error: string };
+
+export async function fullAutoGenerate(opts: {
+  videoId: string;
+  tier: AutoTier;
+}): Promise<FullAutoResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  if (video.status !== "SCRIPT_READY") {
+    return { ok: false, error: "Full Auto runs from the Script gate — approve later stages manually." };
+  }
+
+  // 1) Classify shot types so the smart mix targets the right sections.
+  await autoClassifyShotTypes({ videoId: opts.videoId });
+
+  const script = await loadLatestScript(db, opts.videoId);
+  const beats = (script?.beats ?? []) as ScriptBeat[];
+  const voDur = await voDurations(db, opts.videoId);
+  const secFor = (b: ScriptBeat) =>
+    voDur.get(b.idx) || Math.max(4, b.text.trim().split(/\s+/).length / 2.5);
+
+  // 2) Budget pre-check across all sections.
+  const estCostUsd = estimateTierCost(
+    opts.tier,
+    beats.map((b) => ({ shotType: b.shotType, scriptSec: secFor(b) })),
+  );
+  const spent = await monthVideoSpend(db);
+  if (spent + estCostUsd > VIDEO_MONTHLY_CAP_USD) {
+    return {
+      ok: false,
+      error: `This run (~$${estCostUsd.toFixed(2)}) would exceed the $${VIDEO_MONTHLY_CAP_USD}/mo cap ($${spent.toFixed(2)} used).`,
+    };
+  }
+
+  // 3) Approve the script gate → runs VO + stock + base stills → ASSETS_READY.
+  await decideGate({ videoId: opts.videoId, decision: "approved" }, db);
+
+  // 4) Enqueue a smart-mix clip job per non-stock section.
+  let enqueued = 0;
+  for (const b of beats) {
+    const job = tierJobForSection(opts.tier, b.shotType, secFor(b));
+    if (!job) continue; // stock → keep free Pexels footage
+    await db.from("clip_jobs").insert({
+      video_id: opts.videoId,
+      project_id: video.project_id,
+      beat_idx: b.idx,
+      method: "stitch",
+      model: job.model,
+      target_sec: job.targetSec,
+      hero_hold: job.heroHold,
+      status: "queued",
+    });
+    enqueued += 1;
+  }
+
+  // 5) Mark for auto-finish → the worker advances to render when clips land,
+  //    then the pipeline pauses at Final review (no auto-approve of Final).
+  await db.from("videos").update({ auto_finish: true }).eq("id", opts.videoId);
+  return { ok: true, enqueued, estCostUsd };
+}
+
+/** Per-beat voiceover durations (seconds), keyed by beat index. */
+async function voDurations(db: Db, videoId: string): Promise<Map<number, number>> {
+  const { data } = await db
+    .from("assets")
+    .select("beat_index, meta")
+    .eq("video_id", videoId)
+    .eq("kind", "vo");
+  const m = new Map<number, number>();
+  for (const a of data ?? []) {
+    if (a.beat_index !== null) m.set(a.beat_index, Number((a.meta as { durationSec?: number }).durationSec ?? 0));
+  }
+  return m;
 }
 
 // ── Phase B — generated video clips (Kling / Veo / Seedance via fal) ───
