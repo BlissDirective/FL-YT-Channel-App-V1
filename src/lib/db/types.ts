@@ -50,6 +50,8 @@ export type Video = {
   published_at: string | null;
   total_cost_usd: number;
   paused_reason: string | null;
+  /** Full Auto: worker advances to render when the last clip lands. */
+  auto_finish: boolean;
   created_at: string;
   updated_at: string;
 };
