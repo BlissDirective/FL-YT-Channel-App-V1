@@ -31,6 +31,8 @@ const PRICE_PER_SEC: Record<string, number> = {
   "seedance-2-fast": 0.022,
   "seedance-2": 0.07,
   "kling-2-5-turbo": 0.07,
+  "ltx-2": 0.04,
+  "wan-2-2": 0.08,
   "veo-3-1": 0.4,
   "veo-3-1-extend": 0.4,
 };
@@ -38,12 +40,16 @@ const SEG_MAX: Record<string, number> = {
   "seedance-2-fast": 15,
   "seedance-2": 15,
   "kling-2-5-turbo": 10,
+  "ltx-2": 20,
+  "wan-2-2": 5,
   "veo-3-1": 8,
 };
 const ENDPOINT_I2V: Record<string, string> = {
   "seedance-2-fast": "bytedance/seedance-2.0/fast/image-to-video",
   "seedance-2": "bytedance/seedance-2.0/image-to-video",
   "kling-2-5-turbo": "fal-ai/kling-video/v2.5-turbo/pro/image-to-video",
+  "ltx-2": "fal-ai/ltx-2/image-to-video/fast",
+  "wan-2-2": "fal-ai/wan/v2.2-a14b/image-to-video",
   "veo-3-1": "fal-ai/veo3.1/image-to-video",
   "veo-3-1-extend": "fal-ai/veo3.1/image-to-video",
 };

@@ -48,6 +48,15 @@ type JobInfo = { beatIdx: number; status: string; method: string };
 
 const SHOT_TYPES: ShotType[] = ["hero", "broll", "stock"];
 
+/** Clips estimated over this require an explicit confirm before spending. */
+const CONFIRM_OVER_USD = 3;
+function confirmPricey(est: number): boolean {
+  if (est <= CONFIRM_OVER_USD || typeof window === "undefined") return true;
+  return window.confirm(
+    `This clip is about $${est.toFixed(2)} — over the $${CONFIRM_OVER_USD} confirm threshold. Generate it?`,
+  );
+}
+
 /** Best model for a shot type when auto-picking: Veo for hero signature shots,
     Seedance 2.0 (audio + top quality) for b-roll, cheap Fast for stock fills. */
 function bestModelFor(shot: string): string {
@@ -179,6 +188,7 @@ export function VideoGen({
 
   // ── Long clips (Veo-extend / auto-stitch) → queued worker job ────────
   const queueLong = (idx: number, method: "veo-extend" | "stitch" | "stitch-seamless", model: string, targetSec: number, est: number) => {
+    if (!confirmPricey(est)) return;
     setErrors((e) => ({ ...e, [idx]: undefined }));
     startPersist(async () => {
       const r = await enqueueLongClipAction(projectId, videoId, idx, method, model, targetSec, est);
@@ -194,6 +204,7 @@ export function VideoGen({
       queueLong(idx, "veo-extend", model.id, durations[idx], estimateExtendCost(durations[idx]));
       return;
     }
+    if (!confirmPricey(estimateClipCost(model, durations[idx]))) return;
     setErrors((e) => ({ ...e, [idx]: undefined }));
     setBusyIdx(idx);
     startPersist(async () => {
