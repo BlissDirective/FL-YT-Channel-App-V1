@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   Clapperboard,
   DollarSign,
+  Download,
   Eye,
   FileText,
   Film,
@@ -111,6 +112,12 @@ export default async function ProjectHome({
                 {pending}
               </span>
             )}
+          </Link>
+          <Link
+            href={`/projects/${id}/downloads`}
+            className="flex items-center gap-2 rounded-full bg-card px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"
+          >
+            <Download className="size-4" /> Downloads
           </Link>
           <Link
             href={`/projects/${id}/settings`}
