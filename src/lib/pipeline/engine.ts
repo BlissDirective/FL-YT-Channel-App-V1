@@ -30,7 +30,7 @@ import {
   VIDEO_MONTHLY_CAP_USD,
   VIDEO_PROVIDER,
 } from "@/lib/adapters/video-models";
-import { estimateTierCost, tierJobForSection, type AutoTier } from "@/lib/adapters/auto-tiers";
+import { selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
@@ -1021,16 +1021,20 @@ export async function fullAutoGenerate(
   // 1) Classify shot types so the smart mix targets the right sections.
   await autoClassifyShotTypes({ videoId: opts.videoId }, db);
 
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
   const script = await loadLatestScript(db, opts.videoId);
   const beats = (script?.beats ?? []) as ScriptBeat[];
   const voDur = await voDurations(db, opts.videoId);
   const secFor = (b: ScriptBeat) =>
     voDur.get(b.idx) || Math.max(4, b.text.trim().split(/\s+/).length / 2.5);
 
-  // 2) Budget pre-check across all sections.
-  const estCostUsd = estimateTierCost(
+  // 2) Pick which beats get AI video, honouring the AI-clip cap (economy) and
+  //    the hard per-video budget. Un-picked beats keep their free still/stock.
+  const { clips, totalUsd: estCostUsd } = selectClipBeats(
     opts.tier,
-    beats.map((b) => ({ shotType: b.shotType, scriptSec: secFor(b) })),
+    beats.map((b) => ({ idx: b.idx, shotType: b.shotType, scriptSec: secFor(b) })),
+    { clipCap: Number(project.ai_clip_cap ?? 3), maxUsd: Number(project.max_video_usd ?? 4) },
   );
   const spent = await monthVideoSpend(db);
   if (spent + estCostUsd > VIDEO_MONTHLY_CAP_USD) {
@@ -1047,24 +1051,20 @@ export async function fullAutoGenerate(
   // 4) Approve the script gate → runs VO + stock + base stills → ASSETS_READY.
   await decideGate({ videoId: opts.videoId, decision: "approved" }, db);
 
-  // 5) Enqueue a smart-mix clip job per non-stock section.
-  let enqueued = 0;
-  for (const b of beats) {
-    const job = tierJobForSection(opts.tier, b.shotType, secFor(b));
-    if (!job) continue; // stock → keep free Pexels footage
+  // 5) Enqueue a clip job only for the selected beats.
+  for (const c of clips) {
     await db.from("clip_jobs").insert({
       video_id: opts.videoId,
       project_id: video.project_id,
-      beat_idx: b.idx,
+      beat_idx: c.idx,
       method: "stitch",
-      model: job.model,
-      target_sec: job.targetSec,
-      hero_hold: job.heroHold,
+      model: c.job.model,
+      target_sec: c.job.targetSec,
+      hero_hold: c.job.heroHold,
       status: "queued",
     });
-    enqueued += 1;
   }
-  return { ok: true, enqueued, estCostUsd };
+  return { ok: true, enqueued: clips.length, estCostUsd };
 }
 
 /**
@@ -1115,6 +1115,7 @@ export async function retryClips(
     .update({ status: "queued", error: null })
     .eq("video_id", opts.videoId)
     .eq("status", "error")
+    .lt("attempts", 3) // don't requeue jobs that already exhausted their retries
     .select("id");
   return { ok: true, regenerated, requeued: (requeuedRows ?? []).length };
 }
