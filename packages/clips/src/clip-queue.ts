@@ -59,7 +59,11 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const run = (cmd: string, args: string[], cwd?: string) =>
   execFileSync(cmd, args, { cwd, stdio: "pipe", timeout: 180_000 });
 
-async function falQueue(endpoint: string, input: Record<string, unknown>): Promise<string> {
+const POLL_MS = 280_000;
+const MAX_ATTEMPTS = 3;
+type FalHandle = { requestId: string; statusUrl: string; responseUrl: string };
+
+async function falSubmit(endpoint: string, input: Record<string, unknown>): Promise<FalHandle> {
   const headers = { Authorization: `Key ${FAL_KEY}`, "content-type": "application/json" };
   const sub = await fetch(`https://queue.fal.run/${endpoint}`, {
     method: "POST",
@@ -67,23 +71,64 @@ async function falQueue(endpoint: string, input: Record<string, unknown>): Promi
     body: JSON.stringify(input),
   });
   if (!sub.ok) throw new Error(`fal ${endpoint} submit ${sub.status}: ${(await sub.text()).slice(0, 160)}`);
-  const q = (await sub.json()) as { status_url?: string; response_url?: string };
+  const q = (await sub.json()) as { request_id?: string; status_url?: string; response_url?: string };
   if (!q.status_url || !q.response_url) throw new Error("fal queue: no status/response url");
-  const deadline = Date.now() + 280_000;
+  return { requestId: q.request_id ?? "", statusUrl: q.status_url, responseUrl: q.response_url };
+}
+
+async function falPoll(h: FalHandle): Promise<string> {
+  const headers = { Authorization: `Key ${FAL_KEY}` };
+  const deadline = Date.now() + POLL_MS;
   for (;;) {
     if (Date.now() > deadline) throw new Error("fal job timed out");
     await sleep(5000);
-    const st = await fetch(q.status_url, { headers });
+    const st = await fetch(h.statusUrl, { headers });
     if (!st.ok) continue;
     const s = (await st.json()) as { status?: string };
     if (s.status === "COMPLETED") break;
     if (s.status === "FAILED" || s.status === "ERROR") throw new Error("fal job failed");
   }
-  const resp = await fetch(q.response_url, { headers });
+  const resp = await fetch(h.responseUrl, { headers });
   if (!resp.ok) throw new Error(`fal result ${resp.status}`);
   const out = (await resp.json()) as { video?: { url?: string } };
   if (!out.video?.url) throw new Error("fal returned no video url");
   return out.video.url;
+}
+
+/** Submit + wait. Used for multi-segment / veo chains (not resume-tracked). */
+async function falOnce(endpoint: string, input: Record<string, unknown>): Promise<string> {
+  return falPoll(await falSubmit(endpoint, input));
+}
+
+/**
+ * Single-clip generate that survives our poll giving up. fal bills on
+ * *completion*, so if we submitted and then timed out waiting, the job is
+ * still running (and will be charged) — re-submitting would pay twice. We
+ * persist the fal handle on submit; on a retry we resume that same generation
+ * instead of starting a new one. (Handles are only saved after a *successful*
+ * submit, which means the keyframe was valid — so a resume never reuses a
+ * generation made from a since-replaced placeholder.)
+ */
+async function genResumable(job: Job, endpoint: string, input: Record<string, unknown>): Promise<string> {
+  if (job.fal_request_id && job.fal_response_url) {
+    try {
+      const headers = { Authorization: `Key ${FAL_KEY}` };
+      const statusUrl = `${job.fal_response_url}/status`;
+      const st = await fetch(statusUrl, { headers });
+      if (st.ok) {
+        const s = (await st.json()) as { status?: string };
+        if (s.status !== "FAILED" && s.status !== "ERROR") {
+          console.log(`↩️  ${job.id}: resuming in-flight fal job ${job.fal_request_id}`);
+          return await falPoll({ requestId: job.fal_request_id, statusUrl, responseUrl: job.fal_response_url });
+        }
+      }
+    } catch {
+      // fall through to a fresh submit
+    }
+  }
+  const h = await falSubmit(endpoint, input);
+  await db.from("clip_jobs").update({ fal_request_id: h.requestId, fal_response_url: h.responseUrl }).eq("id", job.id);
+  return falPoll(h);
 }
 
 async function download(url: string, path: string) {
@@ -117,18 +162,21 @@ type Job = {
   model: string;
   target_sec: number;
   hero_hold: boolean;
+  attempts: number;
+  fal_request_id: string | null;
+  fal_response_url: string | null;
 };
 
 /** Veo-3.1: base 8s i2v, then chained extends (+7s) until >= target (<=30s). */
 async function makeVeoExtend(prompt: string, imageUrl: string | null, target: number, dir: string): Promise<string> {
-  let url = await falQueue(ENDPOINT_I2V["veo-3-1"], {
+  let url = await falOnce(ENDPOINT_I2V["veo-3-1"], {
     prompt,
     duration: "8s",
     ...(imageUrl ? { image_url: imageUrl } : {}),
   });
   let total = 8;
   while (total < Math.min(target, 30)) {
-    url = await falQueue(VEO_EXTEND_ENDPOINT, { video_url: url, prompt });
+    url = await falOnce(VEO_EXTEND_ENDPOINT, { video_url: url, prompt });
     total += 7;
   }
   const out = join(dir, "out.mp4");
@@ -137,8 +185,11 @@ async function makeVeoExtend(prompt: string, imageUrl: string | null, target: nu
 }
 
 /** Auto-stitch: N base clips, concatenated. Seamless chains each clip's last
-    frame into the next clip's start image so there's no visible cut. */
+    frame into the next clip's start image so there's no visible cut. A single
+    segment (the common, timeout-prone case) is resume-tracked; multi-segment
+    chains restart on retry. */
 async function makeStitch(
+  job: Job,
   prompt: string,
   model: string,
   imageUrl: string | null,
@@ -149,11 +200,21 @@ async function makeStitch(
   const segMax = SEG_MAX[model] ?? 15;
   const count = Math.max(1, Math.ceil(target / segMax));
   const endpoint = ENDPOINT_I2V[model] ?? ENDPOINT_I2V["seedance-2-fast"];
+  if (count === 1) {
+    const url = await genResumable(job, endpoint, {
+      prompt,
+      duration: model.startsWith("veo") ? `${target}s` : target,
+      ...(imageUrl ? { image_url: imageUrl } : {}),
+    });
+    const out = join(dir, "out.mp4");
+    await download(url, out);
+    return out;
+  }
   const segPaths: string[] = [];
   let nextImage = imageUrl;
   for (let i = 0; i < count; i++) {
     const segSec = Math.min(segMax, target - i * segMax);
-    const url = await falQueue(endpoint, {
+    const url = await falOnce(endpoint, {
       prompt,
       duration: model.startsWith("veo") ? `${segSec}s` : segSec,
       ...(nextImage ? { image_url: nextImage } : {}),
@@ -219,7 +280,7 @@ async function processJob(job: Job) {
     const file =
       job.method === "veo-extend"
         ? await makeVeoExtend(prompt, imageUrl, job.target_sec, dir)
-        : await makeStitch(prompt, job.model, imageUrl, job.target_sec, job.method === "stitch-seamless", dir);
+        : await makeStitch(job, prompt, job.model, imageUrl, job.target_sec, job.method === "stitch-seamless", dir);
 
     const path = `videos/${job.video_id}/beat-${job.beat_idx}-long.mp4`;
     await db.storage.from(BUCKET).upload(path, readFileSync(file), { contentType: "video/mp4", upsert: true });
@@ -242,6 +303,12 @@ async function processJob(job: Job) {
       description: `Long clip (${job.method}) — section ${job.beat_idx + 1}`,
       usd: costUsd,
     });
+    // Keep the video's running total in sync so the dashboard reflects true
+    // spend (the app's recordCost can't see worker-side generations).
+    await db
+      .from("videos")
+      .update({ total_cost_usd: Number(video.total_cost_usd ?? 0) + costUsd })
+      .eq("id", job.video_id);
     await db.from("clip_jobs").update({ status: "done", result_path: path, cost_usd: costUsd, error: null }).eq("id", job.id);
     console.log(`✅ ${job.id}: ${job.method} ${job.target_sec}s → $${costUsd.toFixed(2)}`);
     await maybeFinish(job.video_id);
@@ -289,13 +356,15 @@ async function main() {
       if (i === 0) console.log("No queued clip jobs.");
       return;
     }
-    await db.from("clip_jobs").update({ status: "running" }).eq("id", job.id);
+    const attempts = Number(job.attempts ?? 0) + 1;
+    await db.from("clip_jobs").update({ status: "running", attempts }).eq("id", job.id);
     try {
-      await processJob(job as Job);
+      await processJob({ ...(job as Job), attempts });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error(`❌ ${job.id}: ${msg}`);
-      await db.from("clip_jobs").update({ status: "error", error: msg }).eq("id", job.id);
+      const capped = attempts >= MAX_ATTEMPTS ? ` (gave up after ${MAX_ATTEMPTS} attempts)` : "";
+      console.error(`❌ ${job.id}: ${msg}${capped}`);
+      await db.from("clip_jobs").update({ status: "error", error: `${msg}${capped}` }).eq("id", job.id);
     }
   }
 }

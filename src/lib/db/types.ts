@@ -31,6 +31,11 @@ export type Project = {
   auto_intelligence: boolean;
   /** Confirm-before-generate threshold for pricey clips (USD; default 3). */
   clip_confirm_usd: number;
+  /** Hard per-video budget (USD); the smart-mix downgrades beats to free
+      stills/stock rather than exceed it. Default 4. */
+  max_video_usd: number;
+  /** Max AI-video beats per video in the economy mix (rest stay stills/stock). */
+  ai_clip_cap: number;
   is_demo: boolean;
   created_at: string;
   updated_at: string;
