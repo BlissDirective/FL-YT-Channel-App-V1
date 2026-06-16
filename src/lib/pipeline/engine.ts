@@ -1067,7 +1067,58 @@ export async function fullAutoGenerate(
   return { ok: true, enqueued, estCostUsd };
 }
 
-/** Per-beat voiceover durations (seconds), keyed by beat index. */
+/**
+ * Retry a video's clip jobs after a provider outage (e.g. fal balance
+ * exhausted). Any beat whose keyframe degraded to a mock placeholder is
+ * re-rendered as a real still now that the provider is live again (cheap —
+ * skips beats that already hold a real still or a finished video clip), then
+ * the errored clip jobs are requeued for the worker. VO is untouched.
+ */
+export async function retryClips(
+  opts: { videoId: string },
+  dbArg?: Db,
+): Promise<{ ok: true; regenerated: number; requeued: number } | { ok: false; error: string }> {
+  const db = dbArg ?? (await createClient());
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+
+  const script = await loadLatestScript(db, opts.videoId);
+  const beats = (script?.beats ?? []) as ScriptBeat[];
+  const { data: existing } = await db
+    .from("assets")
+    .select("beat_index, provider, meta")
+    .eq("video_id", opts.videoId)
+    .eq("kind", "clip");
+
+  let regenerated = 0;
+  for (const beat of beats) {
+    const cur = (existing ?? []).find((a) => a.beat_index === beat.idx);
+    // Keep finished video clips and real (non-mock) stills/stock as-is.
+    if ((cur?.meta as { isVideo?: boolean } | undefined)?.isVideo) continue;
+    if (cur && !String(cur.provider).startsWith("mock")) continue;
+    const draft = await makeBeatClip(video, project, beat);
+    await db
+      .from("assets")
+      .delete()
+      .eq("video_id", opts.videoId)
+      .eq("kind", "clip")
+      .eq("beat_index", beat.idx);
+    await db.from("assets").insert(draft.row);
+    await recordCost(db, video, draft.cost, `beat ${beat.idx + 1} (retry)`);
+    regenerated += 1;
+  }
+
+  const { data: requeuedRows } = await db
+    .from("clip_jobs")
+    .update({ status: "queued", error: null })
+    .eq("video_id", opts.videoId)
+    .eq("status", "error")
+    .select("id");
+  return { ok: true, regenerated, requeued: (requeuedRows ?? []).length };
+}
+
 async function voDurations(db: Db, videoId: string): Promise<Map<number, number>> {
   const { data } = await db
     .from("assets")

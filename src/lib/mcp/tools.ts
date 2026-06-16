@@ -1,7 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { GATE_FOR_STATUS, GATE_LABELS } from "@studio/core";
-import { decideGate, fullAutoGenerate } from "@/lib/pipeline/engine";
+import { decideGate, fullAutoGenerate, retryClips } from "@/lib/pipeline/engine";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import { runIntelligence } from "@/lib/pipeline/intelligence";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
@@ -333,6 +333,16 @@ export const TOOLS: Tool[] = [
       const tier = (["base", "mid", "platinum"].includes(str(a.tier)) ? str(a.tier) : "base") as AutoTier;
       return fullAutoGenerate({ videoId: str(a.videoId), tier }, db as never);
     },
+  },
+  {
+    name: "retry_clips",
+    description:
+      "Retry a video's failed clip jobs after a provider outage (e.g. fal balance topped up). Re-renders any keyframe that degraded to a placeholder, then requeues the errored clip jobs for the worker. Voiceover and existing real assets are kept.",
+    inputSchema: obj(
+      { videoId: { type: "string", description: "Video whose clip jobs errored." } },
+      ["videoId"],
+    ),
+    handler: async (a, db) => retryClips({ videoId: str(a.videoId) }, db as never),
   },
 ];
 
