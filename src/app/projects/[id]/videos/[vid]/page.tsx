@@ -4,6 +4,7 @@ import { ArrowUpRight, Radar } from "lucide-react";
 import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import {
+  getClipJobs,
   getMonthlyVideoSpendUsd,
   getProject,
   getVideoSnapshots,
@@ -95,6 +96,7 @@ export default async function VideoDetailPage({
     }),
   );
   const monthVideoSpent = s ? await getMonthlyVideoSpendUsd() : 0;
+  const clipJobs = s && beats.length > 0 ? await getClipJobs(vid) : [];
 
   const gate = GATE_FOR_STATUS[v.status];
   const isPublishStage = v.status === "APPROVED" || v.status === "TRACKING";
@@ -105,7 +107,7 @@ export default async function VideoDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pt-2">
-      <RealtimeRefresher tables={["videos", "scripts", "assets", "analytics_snapshots"]} />
+      <RealtimeRefresher tables={["videos", "scripts", "assets", "analytics_snapshots", "clip_jobs"]} />
       <div>
         <Link
           href={`/projects/${id}/review`}
@@ -186,6 +188,7 @@ export default async function VideoDetailPage({
             };
           })}
           clips={clips}
+          jobs={clipJobs.map((j) => ({ beatIdx: j.beat_idx, status: j.status, method: j.method }))}
           monthSpent={monthVideoSpent}
           cap={VIDEO_MONTHLY_CAP_USD}
         />

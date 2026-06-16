@@ -177,6 +177,21 @@ export type PerceptionNote = {
 
 export type Perception = { notes: PerceptionNote[]; transcript: string };
 
+export type ClipJob = {
+  id: string;
+  video_id: string;
+  project_id: string | null;
+  beat_idx: number;
+  method: "veo-extend" | "stitch" | "stitch-seamless";
+  model: string;
+  target_sec: number;
+  status: "queued" | "running" | "done" | "error";
+  result_path: string | null;
+  cost_usd: number;
+  error: string | null;
+  created_at: string;
+};
+
 export type VideoIntel = {
   id: string;
   project_id: string | null;
