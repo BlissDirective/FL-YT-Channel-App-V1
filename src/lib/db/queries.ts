@@ -264,6 +264,54 @@ export async function getVideoIntelList(
   return (data as VideoIntel[]) ?? [];
 }
 
+export type DownloadRow = {
+  videoId: string;
+  title: string;
+  status: string;
+  long: string | null;
+  short: string | null;
+  thumb: string | null;
+};
+
+/** Every video in a project with a finished render, ready to download for a
+    manual YouTube upload. */
+export async function getProjectDownloads(projectId: string): Promise<DownloadRow[]> {
+  const supabase = await createClient();
+  const { data: videos } = await supabase
+    .from("videos")
+    .select("id, title, status, updated_at")
+    .eq("project_id", projectId)
+    .order("updated_at", { ascending: false });
+  const list = (videos as { id: string; title: string; status: string }[]) ?? [];
+  if (list.length === 0) return [];
+
+  const { data: assets } = await supabase
+    .from("assets")
+    .select("video_id, kind, storage_path, meta")
+    .in("video_id", list.map((v) => v.id))
+    .in("kind", ["render", "thumb"]);
+
+  const rows: DownloadRow[] = [];
+  for (const v of list) {
+    const mine = (assets ?? []).filter((a) => a.video_id === v.id);
+    const long = mine.find((a) => a.kind === "render" && (a.meta as { variant?: string }).variant !== "short");
+    const short = mine.find((a) => a.kind === "render" && (a.meta as { variant?: string }).variant === "short");
+    const thumb =
+      mine.find((a) => a.kind === "thumb" && (a.meta as { selected?: boolean }).selected) ??
+      mine.find((a) => a.kind === "thumb");
+    if (!long && !short) continue; // nothing rendered yet
+    rows.push({
+      videoId: v.id,
+      title: v.title,
+      status: v.status,
+      long: long ? await getSignedMediaUrl(long.storage_path) : null,
+      short: short ? await getSignedMediaUrl(short.storage_path) : null,
+      thumb: thumb ? await getSignedMediaUrl(thumb.storage_path) : null,
+    });
+  }
+  return rows;
+}
+
 /** Pending/recent long-clip jobs for a video (drives per-section status). */
 export async function getClipJobs(videoId: string): Promise<import("./types").ClipJob[]> {
   const supabase = await createClient();

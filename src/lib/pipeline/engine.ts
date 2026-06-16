@@ -840,8 +840,11 @@ export type ClassifyResult =
   | { ok: true; shots: { idx: number; shotType: ScriptBeat["shotType"] }[] }
   | { ok: false; error: string };
 
-export async function autoClassifyShotTypes(opts: { videoId: string }): Promise<ClassifyResult> {
-  const db = await createClient();
+export async function autoClassifyShotTypes(
+  opts: { videoId: string },
+  dbArg?: Db,
+): Promise<ClassifyResult> {
+  const db = dbArg ?? (await createClient());
   const video = await getVideo(db, opts.videoId);
   if (!video) return { ok: false, error: "Video not found" };
   const project = await getProject(db, video.project_id);
@@ -996,11 +999,14 @@ export type FullAutoResult =
   | { ok: true; enqueued: number; estCostUsd: number }
   | { ok: false; error: string };
 
-export async function fullAutoGenerate(opts: {
-  videoId: string;
-  tier: AutoTier;
-}): Promise<FullAutoResult> {
-  const db = await createClient();
+export async function fullAutoGenerate(
+  opts: {
+    videoId: string;
+    tier: AutoTier;
+  },
+  dbArg?: Db,
+): Promise<FullAutoResult> {
+  const db = dbArg ?? (await createClient());
   const video = await getVideo(db, opts.videoId);
   if (!video) return { ok: false, error: "Video not found" };
   if (video.status !== "SCRIPT_READY") {
@@ -1008,7 +1014,7 @@ export async function fullAutoGenerate(opts: {
   }
 
   // 1) Classify shot types so the smart mix targets the right sections.
-  await autoClassifyShotTypes({ videoId: opts.videoId });
+  await autoClassifyShotTypes({ videoId: opts.videoId }, db);
 
   const script = await loadLatestScript(db, opts.videoId);
   const beats = (script?.beats ?? []) as ScriptBeat[];

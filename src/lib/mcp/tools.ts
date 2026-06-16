@@ -1,7 +1,8 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { GATE_FOR_STATUS, GATE_LABELS } from "@studio/core";
-import { decideGate } from "@/lib/pipeline/engine";
+import { decideGate, fullAutoGenerate } from "@/lib/pipeline/engine";
+import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import { runIntelligence } from "@/lib/pipeline/intelligence";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
 
@@ -304,6 +305,22 @@ export const TOOLS: Tool[] = [
         .select("id")
         .single();
       return { ok: true, insightId: data?.id };
+    },
+  },
+  {
+    name: "full_auto_generate",
+    description:
+      "Run Full Auto-Generate on a SCRIPT_READY video: classify shot types, approve the script (VO + free stock + keyframes), enqueue smart-mix clip jobs per section, and auto-finish to render (pauses at Final review). tier = base | mid | platinum.",
+    inputSchema: obj(
+      {
+        videoId: { type: "string", description: "Video at the Script gate (SCRIPT_READY)." },
+        tier: { type: "string", description: "base | mid | platinum (default base)." },
+      },
+      ["videoId"],
+    ),
+    handler: async (a, db) => {
+      const tier = (["base", "mid", "platinum"].includes(str(a.tier)) ? str(a.tier) : "base") as AutoTier;
+      return fullAutoGenerate({ videoId: str(a.videoId), tier }, db as never);
     },
   },
 ];
