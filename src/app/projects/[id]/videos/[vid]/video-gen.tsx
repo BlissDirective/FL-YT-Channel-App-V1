@@ -15,6 +15,7 @@ import {
   Timer,
   Trash2,
   Wand2,
+  Zap,
 } from "lucide-react";
 import {
   addSectionAction,
@@ -22,12 +23,14 @@ import {
   autoClassifyShotTypesAction,
   deleteSectionAction,
   enqueueLongClipAction,
+  fullAutoGenerateAction,
   generateBeatVideoAction,
   mergeSectionsAction,
   moveSectionAction,
   resumeVideoAction,
   setBeatShotTypeAction,
 } from "@/lib/actions/pipeline";
+import { AUTO_TIERS, estimateTierCost, type AutoTier } from "@/lib/adapters/auto-tiers";
 import {
   clampDuration,
   estimateClipCost,
@@ -48,12 +51,11 @@ type JobInfo = { beatIdx: number; status: string; method: string };
 
 const SHOT_TYPES: ShotType[] = ["hero", "broll", "stock"];
 
-/** Clips estimated over this require an explicit confirm before spending. */
-const CONFIRM_OVER_USD = 3;
-function confirmPricey(est: number): boolean {
-  if (est <= CONFIRM_OVER_USD || typeof window === "undefined") return true;
+/** Clips estimated over the project's threshold require an explicit confirm. */
+function confirmPricey(est: number, threshold: number): boolean {
+  if (est <= threshold || typeof window === "undefined") return true;
   return window.confirm(
-    `This clip is about $${est.toFixed(2)} — over the $${CONFIRM_OVER_USD} confirm threshold. Generate it?`,
+    `This is about $${est.toFixed(2)} — over your $${threshold} confirm threshold. Proceed?`,
   );
 }
 
@@ -78,6 +80,7 @@ export function VideoGen({
   jobs,
   monthSpent,
   cap,
+  confirmOverUsd,
   autoSetup = false,
   videoStatus,
 }: {
@@ -88,6 +91,7 @@ export function VideoGen({
   jobs: JobInfo[];
   monthSpent: number;
   cap: number;
+  confirmOverUsd: number;
   /** Just approved the script → open + auto-populate models/timings. */
   autoSetup?: boolean;
   /** Current video status — decides the "approve & continue" CTA. */
@@ -105,6 +109,8 @@ export function VideoGen({
   const [approving, startApprove] = useTransition();
   const [approveError, setApproveError] = useState<string>();
   const [stitchOpen, setStitchOpen] = useState(false);
+  const [autoRunning, startAuto] = useTransition();
+  const [autoError, setAutoError] = useState<string>();
 
   // Lifted per-beat state so the bulk buttons can drive every row.
   const [shotTypes, setShotTypes] = useState<Record<number, string>>(
@@ -188,12 +194,22 @@ export function VideoGen({
 
   // ── Long clips (Veo-extend / auto-stitch) → queued worker job ────────
   const queueLong = (idx: number, method: "veo-extend" | "stitch" | "stitch-seamless", model: string, targetSec: number, est: number) => {
-    if (!confirmPricey(est)) return;
+    if (!confirmPricey(est, confirmOverUsd)) return;
     setErrors((e) => ({ ...e, [idx]: undefined }));
     startPersist(async () => {
       const r = await enqueueLongClipAction(projectId, videoId, idx, method, model, targetSec, est);
       if (r.ok) router.refresh();
       else setErrors((e) => ({ ...e, [idx]: r.error }));
+    });
+  };
+
+  const runFullAuto = (tier: AutoTier, est: number) => {
+    if (!confirmPricey(est, confirmOverUsd)) return;
+    setAutoError(undefined);
+    startAuto(async () => {
+      const r = await fullAutoGenerateAction(projectId, videoId, tier);
+      if (r.ok) router.refresh();
+      else setAutoError(r.error);
     });
   };
 
@@ -204,7 +220,7 @@ export function VideoGen({
       queueLong(idx, "veo-extend", model.id, durations[idx], estimateExtendCost(durations[idx]));
       return;
     }
-    if (!confirmPricey(estimateClipCost(model, durations[idx]))) return;
+    if (!confirmPricey(estimateClipCost(model, durations[idx]), confirmOverUsd)) return;
     setErrors((e) => ({ ...e, [idx]: undefined }));
     setBusyIdx(idx);
     startPersist(async () => {
@@ -266,6 +282,14 @@ export function VideoGen({
 
       {open && (
         <div className="space-y-4">
+          {atScriptGate && (
+            <FullAutoPanel
+              beats={beats}
+              running={autoRunning}
+              error={autoError}
+              onRun={runFullAuto}
+            />
+          )}
           <div>
             <p className="mb-2 flex items-center justify-between text-sm text-muted">
               <span>Video budget this month</span>
@@ -548,6 +572,57 @@ function BeatRow({
           <Plus className="size-3" /> Narrated
         </button>
       </div>
+    </div>
+  );
+}
+
+function FullAutoPanel({
+  beats,
+  running,
+  error,
+  onRun,
+}: {
+  beats: Beat[];
+  running: boolean;
+  error?: string;
+  onRun: (tier: AutoTier, est: number) => void;
+}) {
+  const [tier, setTier] = useState<AutoTier>("base");
+  const est = estimateTierCost(
+    tier,
+    beats.map((b) => ({ shotType: b.shotType, scriptSec: b.scriptSec })),
+  );
+  return (
+    <div className="rounded-card border border-accent/50 bg-accent-soft/50 p-3 shadow-card">
+      <p className="mb-1 flex items-center gap-2 text-sm font-bold">
+        <Zap className="size-4 text-accent" /> Full Auto-Generate
+      </p>
+      <p className="mb-2 text-xs text-muted">
+        One tap → classify shot types, generate every section (smart mix, stock
+        stays free), render, then pause at Final review for your check.
+      </p>
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="flex flex-1 flex-col gap-1">
+          <span className="text-[11px] font-medium text-muted">Quality tier</span>
+          <select value={tier} onChange={(e) => setTier(e.target.value as AutoTier)} className="input">
+            {AUTO_TIERS.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.label} — {t.blurb}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          disabled={running}
+          onClick={() => onRun(tier, est)}
+          className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+        >
+          {running ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />}
+          {running ? "Starting…" : `Run · ~$${est.toFixed(2)}`}
+        </button>
+      </div>
+      {error && <p className="mt-2 text-xs font-medium text-coral">{error}</p>}
     </div>
   );
 }

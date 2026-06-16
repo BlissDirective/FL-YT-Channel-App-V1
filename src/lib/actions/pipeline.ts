@@ -13,6 +13,7 @@ import {
   editScriptBeat,
   editVideoMetadata,
   enqueueLongClip,
+  fullAutoGenerate,
   generateBeatVideo,
   mergeBeats,
   moveBeat,
@@ -23,8 +24,10 @@ import {
   setBeatShotType,
   type ClassifyResult,
   type EnqueueResult,
+  type FullAutoResult,
   type VideoGenResult,
 } from "@/lib/pipeline/engine";
+import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import { getKillSwitch } from "@/lib/db/queries";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
@@ -287,6 +290,24 @@ export async function enqueueLongClipAction(
     return r;
   } catch (err) {
     console.error("enqueueLongClipAction failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export async function fullAutoGenerateAction(
+  projectId: string,
+  videoId: string,
+  tier: AutoTier,
+): Promise<FullAutoResult> {
+  try {
+    const r = await fullAutoGenerate({ videoId, tier });
+    if (r.ok) {
+      revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+      refresh(projectId);
+    }
+    return r;
+  } catch (err) {
+    console.error("fullAutoGenerateAction failed:", err);
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }

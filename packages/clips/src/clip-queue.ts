@@ -116,6 +116,7 @@ type Job = {
   method: "veo-extend" | "stitch" | "stitch-seamless";
   model: string;
   target_sec: number;
+  hero_hold: boolean;
 };
 
 /** Veo-3.1: base 8s i2v, then chained extends (+7s) until >= target (<=30s). */
@@ -231,7 +232,7 @@ async function processJob(job: Job) {
       provider: VIDEO_PROVIDER,
       storage_path: path,
       beat_index: job.beat_idx,
-      meta: { isVideo: true, longClip: true, method: job.method, model: job.model, durationSec: job.target_sec },
+      meta: { isVideo: true, longClip: true, heroHold: job.hero_hold, method: job.method, model: job.model, durationSec: job.target_sec },
       cost_usd: costUsd,
     });
     await db.from("cost_ledger").insert({
@@ -243,9 +244,36 @@ async function processJob(job: Job) {
     });
     await db.from("clip_jobs").update({ status: "done", result_path: path, cost_usd: costUsd, error: null }).eq("id", job.id);
     console.log(`✅ ${job.id}: ${job.method} ${job.target_sec}s → $${costUsd.toFixed(2)}`);
+    await maybeFinish(job.video_id);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+}
+
+/** Full Auto: once a video's last clip lands, advance it to render. The render
+    farm then produces the cut and stops at Final review (no auto-approve). */
+async function maybeFinish(videoId: string) {
+  const { data: video } = await db
+    .from("videos")
+    .select("auto_finish, status")
+    .eq("id", videoId)
+    .maybeSingle();
+  if (!video?.auto_finish || video.status !== "ASSETS_READY") return;
+  const { count } = await db
+    .from("clip_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("video_id", videoId)
+    .in("status", ["queued", "running"]);
+  if ((count ?? 0) > 0) return; // more clips still pending
+  await db.from("approvals").insert({
+    video_id: videoId,
+    gate: "ASSETS",
+    decision: "approved",
+    decided_by: "system",
+    decided_at: new Date().toISOString(),
+  });
+  await db.from("videos").update({ status: "ASSEMBLING", auto_finish: false }).eq("id", videoId);
+  console.log(`▶️  ${videoId}: all clips done → ASSEMBLING (render → Final review)`);
 }
 
 async function main() {
