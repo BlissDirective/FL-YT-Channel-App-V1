@@ -34,7 +34,7 @@ import { selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
-import type { Project, ScriptBeat, Video } from "@/lib/db/types";
+import type { CustomSpec, Project, ScriptBeat, Video } from "@/lib/db/types";
 import { MOCK_COSTS } from "./mock-content";
 import { DEFAULT_SCRIPT_TEMPLATE } from "./templates";
 
@@ -1008,6 +1008,8 @@ export async function fullAutoGenerate(
   opts: {
     videoId: string;
     tier: AutoTier;
+    /** Custom-tier recipe (models + lengths + price cap). Ignored otherwise. */
+    custom?: CustomSpec;
   },
   dbArg?: Db,
 ): Promise<FullAutoResult> {
@@ -1029,18 +1031,32 @@ export async function fullAutoGenerate(
   const secFor = (b: ScriptBeat) =>
     voDur.get(b.idx) || Math.max(4, b.text.trim().split(/\s+/).length / 2.5);
 
-  // 2) Pick which beats get AI video, honouring the tier's accent cap and the
-  //    hard per-video budget. Un-picked beats keep their free still/stock.
-  //    Economy further respects the project's ai_clip_cap; the other tiers use
-  //    their own built-in caps (see tierClipCap).
-  const { clips, totalUsd: estCostUsd } = selectClipBeats(
+  // 2) Plan which beats get AI video: hero bookends + length-scaled b-roll,
+  //    packed under the per-video budget. Un-picked beats keep their free
+  //    still/stock. Economy honours the project's ai_clip_cap; Custom uses its
+  //    own models + price cap (and pauses rather than downgrading on overrun).
+  const custom = opts.tier === "custom" ? opts.custom : undefined;
+  if (opts.tier === "custom" && !custom) {
+    return { ok: false, error: "Custom tier needs a model recipe (hero, b-roll, lengths, price cap)." };
+  }
+  const maxUsd = custom ? custom.maxUsd : Number(project.max_video_usd ?? 8);
+  const selection = selectClipBeats(
     opts.tier,
     beats.map((b) => ({ idx: b.idx, shotType: b.shotType, scriptSec: secFor(b) })),
     {
       clipCap: opts.tier === "economy" ? Number(project.ai_clip_cap ?? 3) : undefined,
-      maxUsd: Number(project.max_video_usd ?? 7),
+      maxUsd,
+      custom,
     },
   );
+  // Custom pauses (does not silently downgrade) when the plan exceeds the cap.
+  if (custom && selection.overBudget) {
+    return {
+      ok: false,
+      error: `Your selections (~$${selection.requestedUsd.toFixed(2)}) exceed the $${maxUsd.toFixed(2)} price cap. Raise the cap, or pick cheaper models / shorter clips.`,
+    };
+  }
+  const { clips, totalUsd: estCostUsd } = selection;
   const spent = await monthVideoSpend(db);
   if (spent + estCostUsd > VIDEO_MONTHLY_CAP_USD) {
     return {

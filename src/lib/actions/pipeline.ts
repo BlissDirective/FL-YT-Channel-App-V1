@@ -31,7 +31,7 @@ import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import { getKillSwitch } from "@/lib/db/queries";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
-import type { ScriptBeat } from "@/lib/db/types";
+import type { CustomSpec, ScriptBeat } from "@/lib/db/types";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 
 export type PipelineResult = { ok: boolean; error?: string };
@@ -298,9 +298,10 @@ export async function fullAutoGenerateAction(
   projectId: string,
   videoId: string,
   tier: AutoTier,
+  custom?: CustomSpec,
 ): Promise<FullAutoResult> {
   try {
-    const r = await fullAutoGenerate({ videoId, tier });
+    const r = await fullAutoGenerate({ videoId, tier, custom });
     if (r.ok) {
       revalidatePath(`/projects/${projectId}/videos/${videoId}`);
       refresh(projectId);
@@ -308,6 +309,26 @@ export async function fullAutoGenerateAction(
     return r;
   } catch (err) {
     console.error("fullAutoGenerateAction failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Persist a Custom-tier recipe as the project's reusable default. */
+export async function saveCustomSpecAction(
+  projectId: string,
+  spec: CustomSpec,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("projects")
+      .update({ custom_spec: spec })
+      .eq("id", projectId);
+    if (error) return { ok: false, error: error.message };
+    refresh(projectId);
+    return { ok: true };
+  } catch (err) {
+    console.error("saveCustomSpecAction failed:", err);
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }

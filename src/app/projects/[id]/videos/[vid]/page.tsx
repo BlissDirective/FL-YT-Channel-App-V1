@@ -192,6 +192,7 @@ export default async function VideoDetailPage({
           monthSpent={monthVideoSpent}
           cap={VIDEO_MONTHLY_CAP_USD}
           confirmOverUsd={Number(project.clip_confirm_usd ?? 3)}
+          customDefault={project.custom_spec ?? null}
         />
         </div>
       )}

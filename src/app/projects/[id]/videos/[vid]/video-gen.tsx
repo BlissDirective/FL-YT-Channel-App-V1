@@ -28,9 +28,11 @@ import {
   mergeSectionsAction,
   moveSectionAction,
   resumeVideoAction,
+  saveCustomSpecAction,
   setBeatShotTypeAction,
 } from "@/lib/actions/pipeline";
-import { AUTO_TIERS, estimateTierCost, type AutoTier } from "@/lib/adapters/auto-tiers";
+import { AUTO_TIERS, estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
+import type { CustomSpec } from "@/lib/db/types";
 import {
   clampDuration,
   estimateClipCost,
@@ -81,6 +83,7 @@ export function VideoGen({
   monthSpent,
   cap,
   confirmOverUsd,
+  customDefault,
   autoSetup = false,
   videoStatus,
 }: {
@@ -92,6 +95,8 @@ export function VideoGen({
   monthSpent: number;
   cap: number;
   confirmOverUsd: number;
+  /** Project's saved Custom-tier recipe, if any (seeds the Custom panel). */
+  customDefault: CustomSpec | null;
   /** Just approved the script → open + auto-populate models/timings. */
   autoSetup?: boolean;
   /** Current video status — decides the "approve & continue" CTA. */
@@ -203,11 +208,15 @@ export function VideoGen({
     });
   };
 
-  const runFullAuto = (tier: AutoTier, est: number) => {
+  const runFullAuto = (tier: AutoTier, est: number, custom?: CustomSpec) => {
     if (!confirmPricey(est, confirmOverUsd)) return;
+    // Veo is the premium ($0.40/s) model — always confirm its projected cost.
+    if (custom && [custom.heroModel, custom.brollModel].some((m) => m.startsWith("veo-"))) {
+      if (typeof window !== "undefined" && !window.confirm(`This Custom run uses Veo (premium) — about $${est.toFixed(2)}. Continue?`)) return;
+    }
     setAutoError(undefined);
     startAuto(async () => {
-      const r = await fullAutoGenerateAction(projectId, videoId, tier);
+      const r = await fullAutoGenerateAction(projectId, videoId, tier, custom);
       if (r.ok) router.refresh();
       else setAutoError(r.error);
     });
@@ -284,9 +293,11 @@ export function VideoGen({
         <div className="space-y-4">
           {atScriptGate && (
             <FullAutoPanel
+              projectId={projectId}
               beats={beats}
               running={autoRunning}
               error={autoError}
+              customDefault={customDefault}
               onRun={runFullAuto}
             />
           )}
@@ -576,22 +587,54 @@ function BeatRow({
   );
 }
 
+const DEFAULT_CUSTOM: CustomSpec = {
+  heroModel: "seedance-2",
+  brollModel: "seedance-2-fast",
+  heroSec: 10,
+  brollSec: 8,
+  maxUsd: 8,
+};
+
 function FullAutoPanel({
+  projectId,
   beats,
   running,
   error,
+  customDefault,
   onRun,
 }: {
+  projectId: string;
   beats: Beat[];
   running: boolean;
   error?: string;
-  onRun: (tier: AutoTier, est: number) => void;
+  customDefault: CustomSpec | null;
+  onRun: (tier: AutoTier, est: number, custom?: CustomSpec) => void;
 }) {
   const [tier, setTier] = useState<AutoTier>("base");
-  const est = estimateTierCost(
-    tier,
-    beats.map((b) => ({ shotType: b.shotType, scriptSec: b.scriptSec })),
-  );
+  const [custom, setCustom] = useState<CustomSpec>(customDefault ?? DEFAULT_CUSTOM);
+  const [saving, startSave] = useTransition();
+  const [saved, setSaved] = useState(false);
+
+  const sections = beats.map((b) => ({ shotType: b.shotType, scriptSec: b.scriptSec }));
+  // Custom shows its full requested price (so the operator can size the cap);
+  // the other tiers show the budget-packed estimate that will actually bill.
+  const sel =
+    tier === "custom"
+      ? selectClipBeats("custom", beats.map((b) => ({ idx: b.idx, shotType: b.shotType, scriptSec: b.scriptSec })), { maxUsd: custom.maxUsd, custom })
+      : null;
+  const est = tier === "custom" ? (sel?.requestedUsd ?? 0) : estimateTierCost(tier, sections);
+  const overCap = tier === "custom" && (sel?.overBudget ?? false);
+
+  const setC = (patch: Partial<CustomSpec>) => {
+    setCustom((c) => ({ ...c, ...patch }));
+    setSaved(false);
+  };
+  const saveDefault = () =>
+    startSave(async () => {
+      const r = await saveCustomSpecAction(projectId, custom);
+      if (r.ok) setSaved(true);
+    });
+
   return (
     <div className="rounded-card border border-accent/50 bg-accent-soft/50 p-3 shadow-card">
       <p className="mb-1 flex items-center gap-2 text-sm font-bold">
@@ -614,16 +657,90 @@ function FullAutoPanel({
         </label>
         <button
           type="button"
-          disabled={running}
-          onClick={() => onRun(tier, est)}
+          disabled={running || overCap}
+          onClick={() => onRun(tier, est, tier === "custom" ? custom : undefined)}
           className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
         >
           {running ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />}
           {running ? "Starting…" : `Run · ~$${est.toFixed(2)}`}
         </button>
       </div>
+
+      {tier === "custom" && (
+        <div className="mt-3 grid grid-cols-2 gap-2 rounded-card border border-line bg-surface/60 p-3">
+          <ModelSelect label="Hero model" value={custom.heroModel} onChange={(v) => setC({ heroModel: v })} />
+          <ModelSelect label="B-roll model" value={custom.brollModel} onChange={(v) => setC({ brollModel: v })} />
+          <NumField label="Hero length (s)" value={custom.heroSec} min={4} max={30} onChange={(v) => setC({ heroSec: v })} />
+          <NumField label="B-roll length (s)" value={custom.brollSec} min={4} max={30} onChange={(v) => setC({ brollSec: v })} />
+          <NumField label="Price cap ($)" value={custom.maxUsd} min={1} max={100} step={0.5} onChange={(v) => setC({ maxUsd: v })} />
+          <div className="flex items-end">
+            <button
+              type="button"
+              onClick={saveDefault}
+              disabled={saving}
+              className="rounded-full border border-line px-3 py-2 text-xs font-semibold text-muted hover:bg-surface disabled:opacity-50"
+            >
+              {saving ? "Saving…" : saved ? "Saved ✓" : "Save as project default"}
+            </button>
+          </div>
+          {overCap && (
+            <p className="col-span-2 text-xs font-medium text-coral">
+              ~${(sel?.requestedUsd ?? 0).toFixed(2)} exceeds your ${custom.maxUsd.toFixed(2)} cap. Raise the cap, or pick cheaper models / shorter clips.
+            </p>
+          )}
+          <p className="col-span-2 text-[11px] text-muted">
+            Two heroes bookend the video (start + end); b-roll fills the middle at ~1 per minute.
+          </p>
+        </div>
+      )}
       {error && <p className="mt-2 text-xs font-medium text-coral">{error}</p>}
     </div>
+  );
+}
+
+function ModelSelect({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[11px] font-medium text-muted">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="input">
+        {VIDEO_MODELS.map((m) => (
+          <option key={m.id} value={m.id}>
+            {m.label} — ${m.usdPerSec.toFixed(3)}/s
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function NumField({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[11px] font-medium text-muted">{label}</span>
+      <input
+        type="number"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="input"
+      />
+    </label>
   );
 }
 

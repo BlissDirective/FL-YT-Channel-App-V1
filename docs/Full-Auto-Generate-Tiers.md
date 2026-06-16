@@ -45,10 +45,29 @@ narration chars → VO ≈ **$1.05**; Claude script ≈ **$0.06**; stills + stoc
 | **Economy** | ElevenLabs Std | Stills/stock + Ken Burns | **2–3 accents** | Seedance Fast 8s | **~$1.55** |
 | **Premium** | ElevenLabs Std | Stills/stock + Ken Burns | **5–6 accents** (3–4 b-roll, 1–2 hero) | B-roll: Seedance Fast 5–10s · Hero: Seedance 2.0 8–15s | **~$3.00** |
 | **Platinum** | ElevenLabs Std | Stills/stock + Ken Burns | **6–8 accents** (3–6 b-roll, 1–2 hero) | B-roll: Seedance 2.0 8–15s · Hero: Kling v2.5-turbo Pro 8–10s* | **~$5.90** |
-| **Custom** | ElevenLabs Std | Operator-chosen mix | Operator-chosen, per beat | Any model in the registry (incl. Veo 3.1) | Live estimate, capped |
+| **Custom** | ElevenLabs Std | Operator-chosen mix | Hero bookends + length-scaled b-roll | Operator picks hero + b-roll model | Live estimate, price-capped |
 
 \* Kling v2.5-turbo Pro maxes at **10s** (`maxDurationSec: 10`), so a Platinum
 hero requested at "8–15s" clamps to **8–10s**. See §5.
+
+The accent counts above are the **~7-min snapshot** — they are not fixed.
+
+### Length scaling & hero placement (all motion tiers)
+
+Accent counts scale with narration length so a tier fits short- and long-form
+alike (`selectClipBeats` in `src/lib/adapters/auto-tiers.ts`):
+
+- **Hero bookends (Premium / Platinum / Custom):** the **first and last**
+  eligible (non-stock) beats are forced to `hero`, so the video opens and
+  closes on a signature shot. Below **3 eligible beats** this collapses to a
+  single opening hero.
+- **B-roll density:** the middle fills at **~1 accent per 60s** of narration,
+  spread evenly. A 90s short → 2 heroes + ~1 b-roll; a 7-min → 2 heroes + ~7
+  b-roll; a 20-min → 2 heroes + ~18 b-roll (budget-trimmed — see §3.4).
+- **Economy** doesn't bookend; it places `min(ai_clip_cap, ~1/60s)` accents,
+  capped at 3.
+- **Long-form Platinum (> 6 min):** b-roll drops Seedance 2.0 → **Seedance
+  Fast** to keep a long video affordable under the budget.
 
 ---
 
@@ -87,15 +106,14 @@ hero requested at "8–15s" clamps to **8–10s**. See §5.
 ### 3.4 Platinum
 - **VO:** ElevenLabs Std.
 - **Visuals:** stills/stock + Ken Burns.
-- **AI video:** **6–8 accents** —
-  - **B-roll (3–6):** Seedance 2.0, **8–15s**.
-  - **Hero (1–2):** Kling v2.5-turbo Pro, **8–10s** (clamped from 8–15s).
-- **Cost:** b-roll ~4.5 × $0.84 ≈ $3.78 + hero ~1.5 × $0.70 ≈ $1.05 → ~**$4.83**
-  AI video → **~$5.90/video**.
-- **⚠ Budget note:** this exceeds the current **$4 default per-video cap**
-  (`max_video_usd`). Platinum must ship with a higher default cap (suggest
-  **$7**) or `selectClipBeats()` will silently downgrade beats to stills to
-  stay under budget. See §5.
+- **AI video:** **2 hero bookends + ~1 b-roll/min** (see Length scaling) —
+  - **Hero (2):** Kling v2.5-turbo Pro, **8–10s**, at the first & last beat.
+  - **B-roll:** Seedance 2.0, **8–15s** (≤ 6 min) → **Seedance Fast**, 5–10s
+    (> 6 min) to stay affordable.
+- **Cost (7-min):** 2 hero (~$1.4) + ~7 Fast b-roll (~$1.3) ≈ **~$2.7** AI
+  video. A 4-min on Seedance 2.0 b-roll runs higher (~$4.8); the **$8** cap
+  (`max_video_usd`, raised from $4 in migration 0017) keeps it from silently
+  downgrading.
 - **Use when:** flagship/cornerstone uploads where the cinematic hero matters.
 
 > Note: Veo 3.1 is **no longer** in any standard tier — the top hero model is
@@ -103,22 +121,24 @@ hero requested at "8–15s" clamps to **8–10s**. See §5.
 > guard, so a $0.40/s model can never run unintentionally from a one-click tier.
 
 ### 3.5 Custom
-Full operator control, still one-click once configured.
-- **VO:** ElevenLabs Std.
-- **Per beat / per section:** choose any registry model (Seedance Fast,
-  Seedance 2.0, Kling, LTX-2, Wan 2.2, **Veo 3.1 / Veo Extended**) **or** keep
-  it as stock/still. Set clip length per beat within each model's min/max.
-- **Price cap:** operator sets a **per-video USD cap**.
-- **Cap behavior — pause & notify (not silent downgrade):** if the selected
-  models/durations would exceed the cap, Full Auto **pauses before enqueuing
-  any clip job** and notifies the operator to either (a) raise the cap or
-  (b) change models/durations. Nothing is billed until the operator resolves
-  it. This differs from the standard tiers, which downgrade to stills to fit
-  the budget automatically.
-- **Veo confirm:** selecting Veo 3.1 / Veo Extended additionally surfaces a
-  confirm dialog with the projected cost before the run starts.
-- **Save as default:** Custom selections are **per-video**, with an optional
-  "save as project default" so a project can reuse a custom recipe.
+Operator-driven, still one-click once configured. The panel (`FullAutoPanel`
+in `video-gen.tsx`) exposes:
+- **Hero model** + **B-roll model** — any registry model (Seedance Fast,
+  Seedance 2.0, Kling, LTX-2, Wan 2.2, **Veo 3.1 / Veo Extended**).
+- **Hero length** + **B-roll length** (clamped to each model's range).
+- **Price cap** — a hard per-video USD ceiling.
+
+Placement follows the same **hero-bookend + ~1 b-roll/min** structure as the
+standard tiers, using the chosen models.
+- **Cap behavior — pause & notify (not silent downgrade):** when the projected
+  plan (`selectClipBeats(...).requestedUsd`) exceeds the cap, the Run button is
+  disabled and `fullAutoGenerate` returns a pause message — **nothing is
+  enqueued or billed** — telling the operator to raise the cap or pick cheaper
+  models / shorter clips. (Standard tiers instead downgrade overflow to stills.)
+- **Veo confirm:** picking Veo as hero or b-roll surfaces a confirm dialog with
+  the projected cost before the run starts.
+- **Save as project default:** the recipe is chosen per-video but can be saved
+  to `projects.custom_spec` (`saveCustomSpecAction`) and reused.
 - **Use when:** a specific shot needs a specific model, or for one-off premium
   (Veo) work.
 
@@ -144,58 +164,45 @@ generated video, unchanged).
 
 ---
 
-## 5. Implementation notes
+## 5. Implementation status
 
-These are the concrete changes to land this spec; they are not yet built.
+All of the following has been built.
 
-1. **Tier enum (`AutoTier`).** Replace `"economy" | "base" | "mid" |
-   "platinum"` with `"base" | "economy" | "premium" | "platinum" | "custom"`.
-   Update `AUTO_TIERS` labels/blurbs and `FullAutoPanel`.
+1. **Tier enum (`AutoTier`).** ✅ Now `base | economy | premium | platinum |
+   custom`; `AUTO_TIERS`, `FullAutoPanel`, MCP tool, and UI default updated.
 
-2. **`tierJobForSection()` rewrite** to the §3 matrix:
-   - `base` → return `null` for all beats (no AI video).
-   - `economy` → `seedance-2-fast`, 8s, capped at 2–3 accents.
+2. **`tierJobForSection()` rewrite** ✅ to the §3 matrix, length-aware:
+   - `base` → `null` (no AI video).
+   - `economy` → `seedance-2-fast` 8s.
    - `premium` → b-roll `seedance-2-fast` 5–10s; hero `seedance-2` 8–15s.
-   - `platinum` → b-roll `seedance-2` 8–15s; hero `kling-2-5-turbo`,
-     `clampDuration` to 8–10s.
+   - `platinum` → hero `kling-2-5-turbo` (10s); b-roll `seedance-2` 8–15s,
+     switching to `seedance-2-fast` over 6 min.
+   - `custom` → operator's hero/b-roll models + lengths.
 
-3. **Accent caps.** `tierCapsClipCount()` should cap **economy (2–3)**,
-   **premium (5–6)**, and **platinum (6–8)** — currently only economy is
-   capped. Pass the cap into `selectClipBeats({ clipCap })`.
+3. **Length scaling** ✅ in `selectClipBeats`: hero bookends (first + last
+   eligible beat, floor to 1 under 3 beats), b-roll at ~1/60s spread evenly,
+   economy capped at `ai_clip_cap` (≤3). Replaces the old fixed per-tier caps.
 
-4. **Per-video budget defaults.** Raise `max_video_usd` for Platinum to ~**$7**
-   (its ~$4.83 AI spend exceeds today's $4 default and would trigger silent
-   downgrades).
+4. **Per-video budget** ✅ default raised `4 → 8` (`max_video_usd`,
+   migration 0017); engine fallback uses 8.
 
-5. **Custom tier.** New per-video config object (b-roll model, hero model,
-   per-beat durations, stock/gen choices, price cap). On launch, compute the
-   estimate via `selectClipBeats`; if `totalUsd > cap`, **pause and notify**
-   instead of enqueuing (distinct from the standard tiers' fit-to-budget
-   downgrade). Add a Veo confirm dialog. Support "save as project default."
+5. **Custom tier** ✅ `CustomSpec` ({heroModel, brollModel, heroSec, brollSec,
+   maxUsd}) on `projects.custom_spec` (migration 0018). `FullAutoPanel` Custom
+   sub-panel: model/length/cap inputs, live `requestedUsd`, **pause-and-notify**
+   on overrun (Run disabled + engine refuses), **Veo confirm** dialog, and
+   **save-as-project-default** (`saveCustomSpecAction`).
 
-6. **Kling clamp.** Kling's `durations: [5, 10]` already make `clampDuration`
-   snap a 12s request to 10s — no extra guard needed, but the UI copy should
-   say "8–10s" for Platinum hero so the estimate isn't misleading.
-
-### Migration
+### Migrations
 
 The chosen tier is passed per-run to `fullAutoGenerate()` and **never
-persisted** — there is no stored `tier` column on `videos` or `projects`. So
-the enum rename (`economy/base/mid/platinum` → `base/economy/premium/platinum/
-custom`) is **code-only**; no historical row-remap is required. Note the names
-are reused with new meanings: the old `base`/`mid` are retired, and the new
-`base` is the free (no-AI-video) floor.
+persisted** — there is no stored `tier` column. So the enum rename
+(`economy/base/mid/platinum` → `base/economy/premium/platinum/custom`) is
+**code-only**; no historical row-remap. The old `base`/`mid` are retired and
+`base` is reused as the free (no-AI-video) floor.
 
-The one data change the revision needs is **per-video budget headroom**
-(`supabase/migrations/0017_tier_revision_budget.sql`):
-
-```sql
-alter table projects alter column max_video_usd set default 7;
-update projects set max_video_usd = 7 where max_video_usd = 4;
-```
-
-Platinum's ~$4.8 AI spend exceeds the old $4 default and would otherwise be
-silently downgraded to stills. Raising the ceiling doesn't increase spend on
-Base (no AI video) or Economy (bounded by `ai_clip_cap`) — it only stops
-throttling the premium tiers. Projects with a custom (non-`4`) budget are left
-untouched.
+- **`0017_tier_revision_budget.sql`** — `max_video_usd` default `4 → 8` and
+  lifts projects still on the legacy `$4` (custom budgets untouched). Raising
+  the ceiling never increases Base (no AI video) or Economy (capped) spend; it
+  only stops throttling the premium tiers.
+- **`0018_custom_tier_spec.sql`** — adds `projects.custom_spec jsonb` (the
+  saved Custom recipe; null until set).

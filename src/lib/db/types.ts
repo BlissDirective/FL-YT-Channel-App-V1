@@ -7,6 +7,18 @@ export type BrandKit = {
   font: string;
 };
 
+/** Operator-chosen recipe for the Custom Full-Auto tier. Hero beats bookend
+    the video (start + end); b-roll fills the middle at the standard density.
+    A run is paused (not downgraded) when its projected cost exceeds maxUsd. */
+export type CustomSpec = {
+  heroModel: string;
+  brollModel: string;
+  heroSec: number;
+  brollSec: number;
+  /** Hard per-video price cap (USD); overrun pauses and notifies. */
+  maxUsd: number;
+};
+
 export type Budget = {
   perVideoUsd: number;
   monthlyUsd: number;
@@ -32,11 +44,13 @@ export type Project = {
   /** Confirm-before-generate threshold for pricey clips (USD; default 3). */
   clip_confirm_usd: number;
   /** Hard per-video budget (USD); the smart-mix downgrades beats to free
-      stills/stock rather than exceed it. Default 7 (Platinum headroom). */
+      stills/stock rather than exceed it. Default 8 (Platinum/Custom headroom). */
   max_video_usd: number;
   /** Max AI-video accents per video in the economy tier (rest stay
-      stills/stock); other tiers use their own built-in caps. */
+      stills/stock); other tiers scale accent count with length. */
   ai_clip_cap: number;
+  /** Saved default recipe for the Custom Full-Auto tier (null until set). */
+  custom_spec: CustomSpec | null;
   is_demo: boolean;
   created_at: string;
   updated_at: string;
