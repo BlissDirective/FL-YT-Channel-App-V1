@@ -1029,12 +1029,17 @@ export async function fullAutoGenerate(
   const secFor = (b: ScriptBeat) =>
     voDur.get(b.idx) || Math.max(4, b.text.trim().split(/\s+/).length / 2.5);
 
-  // 2) Pick which beats get AI video, honouring the AI-clip cap (economy) and
-  //    the hard per-video budget. Un-picked beats keep their free still/stock.
+  // 2) Pick which beats get AI video, honouring the tier's accent cap and the
+  //    hard per-video budget. Un-picked beats keep their free still/stock.
+  //    Economy further respects the project's ai_clip_cap; the other tiers use
+  //    their own built-in caps (see tierClipCap).
   const { clips, totalUsd: estCostUsd } = selectClipBeats(
     opts.tier,
     beats.map((b) => ({ idx: b.idx, shotType: b.shotType, scriptSec: secFor(b) })),
-    { clipCap: Number(project.ai_clip_cap ?? 3), maxUsd: Number(project.max_video_usd ?? 4) },
+    {
+      clipCap: opts.tier === "economy" ? Number(project.ai_clip_cap ?? 3) : undefined,
+      maxUsd: Number(project.max_video_usd ?? 7),
+    },
   );
   const spent = await monthVideoSpend(db);
   if (spent + estCostUsd > VIDEO_MONTHLY_CAP_USD) {

@@ -32,9 +32,10 @@ export type Project = {
   /** Confirm-before-generate threshold for pricey clips (USD; default 3). */
   clip_confirm_usd: number;
   /** Hard per-video budget (USD); the smart-mix downgrades beats to free
-      stills/stock rather than exceed it. Default 4. */
+      stills/stock rather than exceed it. Default 7 (Platinum headroom). */
   max_video_usd: number;
-  /** Max AI-video beats per video in the economy mix (rest stay stills/stock). */
+  /** Max AI-video accents per video in the economy tier (rest stay
+      stills/stock); other tiers use their own built-in caps. */
   ai_clip_cap: number;
   is_demo: boolean;
   created_at: string;

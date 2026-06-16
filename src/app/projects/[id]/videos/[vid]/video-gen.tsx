@@ -587,7 +587,7 @@ function FullAutoPanel({
   error?: string;
   onRun: (tier: AutoTier, est: number) => void;
 }) {
-  const [tier, setTier] = useState<AutoTier>("economy");
+  const [tier, setTier] = useState<AutoTier>("base");
   const est = estimateTierCost(
     tier,
     beats.map((b) => ({ shotType: b.shotType, scriptSec: b.scriptSec })),

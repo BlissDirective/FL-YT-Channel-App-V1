@@ -177,17 +177,25 @@ These are the concrete changes to land this spec; they are not yet built.
    snap a 12s request to 10s — no extra guard needed, but the UI copy should
    say "8–10s" for Platinum hero so the estimate isn't misleading.
 
-### Migration (retire `mid`; remap existing videos)
+### Migration
 
-Old tier values stored on existing videos/projects map by AI-spend level:
+The chosen tier is passed per-run to `fullAutoGenerate()` and **never
+persisted** — there is no stored `tier` column on `videos` or `projects`. So
+the enum rename (`economy/base/mid/platinum` → `base/economy/premium/platinum/
+custom`) is **code-only**; no historical row-remap is required. Note the names
+are reused with new meanings: the old `base`/`mid` are retired, and the new
+`base` is the free (no-AI-video) floor.
 
-| Old tier | New tier | Rationale |
-|----------|----------|-----------|
-| `economy` | `economy` | Both = a few cheap Seedance Fast accents |
-| `base` | `premium` | Old base clipped most beats (fast b-roll + Seedance 2 hero) |
-| `mid` | `premium` | Longer Seedance Fast b-roll + Seedance 2 hero |
-| `platinum` | `platinum` | Top tier → top tier (hero swaps Veo → Kling) |
+The one data change the revision needs is **per-video budget headroom**
+(`supabase/migrations/0017_tier_revision_budget.sql`):
 
-The new **`base` (free)** tier has no old equivalent — it's the new floor.
-Apply the remap in a migration so historical records resolve to valid enum
-values.
+```sql
+alter table projects alter column max_video_usd set default 7;
+update projects set max_video_usd = 7 where max_video_usd = 4;
+```
+
+Platinum's ~$4.8 AI spend exceeds the old $4 default and would otherwise be
+silently downgraded to stills. Raising the ceiling doesn't increase spend on
+Base (no AI video) or Economy (bounded by `ai_clip_cap`) — it only stops
+throttling the premium tiers. Projects with a custom (non-`4`) budget are left
+untouched.
