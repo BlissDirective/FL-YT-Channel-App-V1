@@ -6,7 +6,7 @@
  * FINAL_REVIEW. Mock-asset videos are handled in-app and never reach here.
  */
 import { mkdtempSync, readFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { cpus, tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
@@ -130,6 +130,15 @@ async function renderOne(
       outputLocation: out,
       inputProps: props,
       timeoutInMilliseconds: 120000,
+      // Render frames across all runner cores (Remotion defaults to ~half) and
+      // use a faster x264 preset — a 13-min cut was overrunning the 30-min job
+      // at the default settings. jpeg frames keep capture fast; crf 23 is
+      // visually clean at a fraction of the encode time/size of the crf-18 default.
+      concurrency: Math.max(2, cpus().length),
+      imageFormat: "jpeg",
+      jpegQuality: 80,
+      crf: 23,
+      x264Preset: "faster",
     });
     const file = readFileSync(out);
     const storagePath = `videos/${videoId}/${variant === "long" ? "final" : "short-0"}.mp4`;
