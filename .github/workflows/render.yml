@@ -37,4 +37,11 @@ jobs:
         env:
           SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+          # Optional — when set, long-form cuts upload straight to YouTube
+          # (unlisted draft) instead of Supabase Storage. Falls back to Storage
+          # if unset or on failure.
+          YOUTUBE_OAUTH_CLIENT_ID: ${{ secrets.YOUTUBE_OAUTH_CLIENT_ID }}
+          YOUTUBE_OAUTH_CLIENT_SECRET: ${{ secrets.YOUTUBE_OAUTH_CLIENT_SECRET }}
+          YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
+          YOUTUBE_UPLOAD_PRIVACY: ${{ vars.YOUTUBE_UPLOAD_PRIVACY }}
         run: pnpm render-queue
