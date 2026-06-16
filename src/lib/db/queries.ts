@@ -264,6 +264,18 @@ export async function getVideoIntelList(
   return (data as VideoIntel[]) ?? [];
 }
 
+/** Pending/recent long-clip jobs for a video (drives per-section status). */
+export async function getClipJobs(videoId: string): Promise<import("./types").ClipJob[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("clip_jobs")
+    .select("*")
+    .eq("video_id", videoId)
+    .order("created_at", { ascending: false })
+    .limit(60);
+  return (data as import("./types").ClipJob[]) ?? [];
+}
+
 /** Portfolio-wide AI video-generation spend this calendar month (for the cap). */
 export async function getMonthlyVideoSpendUsd(): Promise<number> {
   const supabase = await createClient();

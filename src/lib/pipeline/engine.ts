@@ -335,6 +335,8 @@ export async function synthesizeBeatVo(
   beat: ScriptBeat,
 ): Promise<{ costUsd: number; cached: boolean; provider: string }> {
   const voiceId = project.voice_id ?? "";
+  // Visual-only sections have no narration — nothing to synthesize.
+  if (!beat.text.trim()) return { costUsd: 0, cached: false, provider: voiceProviderFor(voiceId) };
   const textHash = createHash("sha256").update(beat.text.trim()).digest("hex");
 
   const { data: hit } = await db
@@ -858,6 +860,131 @@ export async function autoClassifyShotTypes(opts: { videoId: string }): Promise<
     await recordCost(db, video, { provider: "anthropic", usd: costUsd, description: "Auto-classify shot types" });
   }
   return { ok: true, shots: classifications };
+}
+
+// ── Section (beat) editing — add / delete / move / merge ──────────────
+// Beats live in the latest script's `beats` jsonb; edits update it in place
+// and re-index. Visual-only sections carry empty narration (skipped by VO).
+
+function reindex(beats: ScriptBeat[]): ScriptBeat[] {
+  return beats.map((b, i) => ({ ...b, idx: i }));
+}
+
+async function saveBeats(db: Db, scriptId: string, beats: ScriptBeat[]) {
+  await db.from("scripts").update({ beats: reindex(beats) }).eq("id", scriptId);
+}
+
+export async function addBeat(opts: {
+  videoId: string;
+  afterIdx: number;
+  beat: { text: string; visualPrompt: string; shotType: ScriptBeat["shotType"] };
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const script = await loadLatestScript(db, opts.videoId);
+  if (!script) return { ok: false, error: "No script to edit" };
+  const beats = (script.beats as ScriptBeat[]).slice();
+  const pos = Math.min(Math.max(opts.afterIdx + 1, 0), beats.length);
+  beats.splice(pos, 0, { idx: pos, ...opts.beat });
+  await saveBeats(db, script.id, beats);
+  return { ok: true };
+}
+
+export async function deleteBeat(opts: { videoId: string; beatIdx: number }): Promise<EngineResult> {
+  const db = await createClient();
+  const script = await loadLatestScript(db, opts.videoId);
+  if (!script) return { ok: false, error: "No script to edit" };
+  const beats = (script.beats as ScriptBeat[]).filter((b) => b.idx !== opts.beatIdx);
+  if (beats.length === 0) return { ok: false, error: "A video needs at least one section" };
+  await saveBeats(db, script.id, beats);
+  // Drop any assets tied to the removed section.
+  await db.from("assets").delete().eq("video_id", opts.videoId).eq("beat_index", opts.beatIdx);
+  return { ok: true };
+}
+
+export async function moveBeat(opts: {
+  videoId: string;
+  beatIdx: number;
+  dir: "up" | "down";
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const script = await loadLatestScript(db, opts.videoId);
+  if (!script) return { ok: false, error: "No script to edit" };
+  const beats = (script.beats as ScriptBeat[]).slice().sort((a, b) => a.idx - b.idx);
+  const i = beats.findIndex((b) => b.idx === opts.beatIdx);
+  const j = opts.dir === "up" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= beats.length) return { ok: true }; // edge — no-op
+  [beats[i], beats[j]] = [beats[j], beats[i]];
+  await saveBeats(db, script.id, beats);
+  return { ok: true };
+}
+
+/** Merge sections start..end into one (concatenated narration, first beat's
+    visual direction). Used by the auto-stitch "merge sections" flow. */
+export async function mergeBeats(opts: {
+  videoId: string;
+  startIdx: number;
+  endIdx: number;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const script = await loadLatestScript(db, opts.videoId);
+  if (!script) return { ok: false, error: "No script to edit" };
+  const lo = Math.min(opts.startIdx, opts.endIdx);
+  const hi = Math.max(opts.startIdx, opts.endIdx);
+  const beats = (script.beats as ScriptBeat[]).slice().sort((a, b) => a.idx - b.idx);
+  if (lo < 0 || hi >= beats.length || hi <= lo) return { ok: false, error: "Pick a valid section range" };
+  const span = beats.slice(lo, hi + 1);
+  const merged: ScriptBeat = {
+    idx: lo,
+    text: span.map((b) => b.text).filter(Boolean).join(" "),
+    visualPrompt: span[0].visualPrompt,
+    shotType: span[0].shotType,
+  };
+  const next = [...beats.slice(0, lo), merged, ...beats.slice(hi + 1)];
+  await saveBeats(db, script.id, next);
+  // Old per-section assets in the merged range are now stale.
+  for (let k = lo; k <= hi; k++) {
+    await db.from("assets").delete().eq("video_id", opts.videoId).eq("beat_index", k);
+  }
+  return { ok: true };
+}
+
+// ── Long-clip jobs (Veo-extend / auto-stitch) → background worker ──────
+
+export type EnqueueResult = { ok: true; jobId: string } | { ok: false; error: string };
+
+export async function enqueueLongClip(opts: {
+  videoId: string;
+  beatIdx: number;
+  method: "veo-extend" | "stitch" | "stitch-seamless";
+  model: string;
+  targetSec: number;
+  estCostUsd: number;
+}): Promise<EnqueueResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const spent = await monthVideoSpend(db);
+  if (spent + opts.estCostUsd > VIDEO_MONTHLY_CAP_USD) {
+    return {
+      ok: false,
+      error: `Monthly video budget reached ($${VIDEO_MONTHLY_CAP_USD}). $${spent.toFixed(2)} used; this clip needs ~$${opts.estCostUsd.toFixed(2)}.`,
+    };
+  }
+  const { data, error } = await db
+    .from("clip_jobs")
+    .insert({
+      video_id: opts.videoId,
+      project_id: video.project_id,
+      beat_idx: opts.beatIdx,
+      method: opts.method,
+      model: opts.model,
+      target_sec: opts.targetSec,
+      status: "queued",
+    })
+    .select("id")
+    .single();
+  if (error || !data) return { ok: false, error: error?.message ?? "Could not queue clip" };
+  return { ok: true, jobId: data.id as string };
 }
 
 // ── Phase B — generated video clips (Kling / Veo / Seedance via fal) ───

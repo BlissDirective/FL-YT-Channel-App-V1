@@ -1,0 +1,37 @@
+name: Long Clip Worker
+
+# Produces long clips (Veo-3.1 extend / auto-stitch) for queued clip_jobs.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+  push:
+    paths:
+      - packages/clips/**
+      - .github/workflows/clips.yml
+
+concurrency:
+  group: long-clips
+  cancel-in-progress: false
+
+jobs:
+  clips:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg
+        run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg && ffmpeg -version | head -1
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @studio/clips...
+      - name: Run clip queue
+        working-directory: packages/clips
+        env:
+          SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY || secrets.FAL_AI_FULL_ACCESS_DEVELOPMENT_KEY }}
+        run: pnpm clip-queue

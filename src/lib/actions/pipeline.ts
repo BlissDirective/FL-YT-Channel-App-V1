@@ -3,20 +3,26 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
+  addBeat,
   applyPressKitClip,
   applyScriptRemix,
   applySourceClip,
   autoClassifyShotTypes,
   decideGate,
+  deleteBeat,
   editScriptBeat,
   editVideoMetadata,
+  enqueueLongClip,
   generateBeatVideo,
+  mergeBeats,
+  moveBeat,
   proposeBeatRemix,
   proposeScriptRemix,
   rerollBeatVisual,
   runPipeline,
   setBeatShotType,
   type ClassifyResult,
+  type EnqueueResult,
   type VideoGenResult,
 } from "@/lib/pipeline/engine";
 import { getKillSwitch } from "@/lib/db/queries";
@@ -199,6 +205,88 @@ export async function autoClassifyShotTypesAction(
     return r;
   } catch (err) {
     console.error("autoClassifyShotTypesAction failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+// ── Section (storyboard) editing ──────────────────────────────────────
+
+const sectionRefresh = (projectId: string, videoId: string) => {
+  revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+};
+
+export async function addSectionAction(
+  projectId: string,
+  videoId: string,
+  afterIdx: number,
+  mode: "visual" | "narrated",
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const beat =
+      mode === "visual"
+        ? { text: "", visualPrompt: "New B-roll moment — describe the visual.", shotType: "broll" as const }
+        : { text: "New section — write the narration here.", visualPrompt: "New section visual.", shotType: "broll" as const };
+    const r = await addBeat({ videoId, afterIdx, beat });
+    sectionRefresh(projectId, videoId);
+    return r;
+  });
+}
+
+export async function deleteSectionAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await deleteBeat({ videoId, beatIdx });
+    sectionRefresh(projectId, videoId);
+    return r;
+  });
+}
+
+export async function moveSectionAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  dir: "up" | "down",
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await moveBeat({ videoId, beatIdx, dir });
+    sectionRefresh(projectId, videoId);
+    return r;
+  });
+}
+
+export async function mergeSectionsAction(
+  projectId: string,
+  videoId: string,
+  startIdx: number,
+  endIdx: number,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await mergeBeats({ videoId, startIdx, endIdx });
+    sectionRefresh(projectId, videoId);
+    return r;
+  });
+}
+
+// ── Long-clip jobs (Veo-extend / auto-stitch) ─────────────────────────
+
+export async function enqueueLongClipAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  method: "veo-extend" | "stitch" | "stitch-seamless",
+  model: string,
+  targetSec: number,
+  estCostUsd: number,
+): Promise<EnqueueResult> {
+  try {
+    const r = await enqueueLongClip({ videoId, beatIdx, method, model, targetSec, estCostUsd });
+    if (r.ok) revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
+  } catch (err) {
+    console.error("enqueueLongClipAction failed:", err);
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }

@@ -33,6 +33,9 @@ export type VideoModel = {
   durationStyle: DurationStyle;
   audio: boolean;
   bestFor: string;
+  /** Long-clip model that runs in the background worker (Veo-3.1 extend
+      chains base 8s + 7s segments to ~30s). */
+  longClip?: boolean;
 };
 
 export const VIDEO_MODELS: VideoModel[] = [
@@ -90,7 +93,25 @@ export const VIDEO_MODELS: VideoModel[] = [
     audio: true,
     bestFor: "Premium; native synced dialogue — signature shots only",
   },
+  {
+    id: "veo-3-1-extend",
+    label: "Veo 3.1 Extended (long)",
+    i2v: "fal-ai/veo3.1/image-to-video",
+    t2v: "fal-ai/veo3.1",
+    usdPerSec: 0.4,
+    quality: "premium",
+    minDurationSec: 8,
+    maxDurationSec: 30,
+    durations: [8, 15, 22, 29], // base 8s + 7s extend segments (fal caps ~30s)
+    durationStyle: "secs",
+    audio: true,
+    bestFor: "Seamless long hero shots (8–29s, native audio) — premium cost",
+    longClip: true,
+  },
 ];
+
+/** fal extend endpoint used by the worker to chain Veo segments. */
+export const VEO_EXTEND_ENDPOINT = "fal-ai/veo3.1/extend-video";
 
 export function getVideoModel(id: string): VideoModel | undefined {
   return VIDEO_MODELS.find((m) => m.id === id);
@@ -123,4 +144,25 @@ export const VIDEO_PROVIDER = "fal-video";
 
 export function estimateClipCost(model: VideoModel, durationSec: number): number {
   return Math.round(model.usdPerSec * clampDuration(model, durationSec) * 100) / 100;
+}
+
+// ── Long clips ────────────────────────────────────────────────────────
+
+/** Base model for auto-stitch segments (cheap b-roll filler by default). */
+export const STITCH_BASE_MODEL_ID = "seedance-2-fast";
+
+/** Number of base segments needed to reach a target length via stitching. */
+export function stitchSegments(model: VideoModel, targetSec: number): number {
+  return Math.max(1, Math.ceil(targetSec / model.maxDurationSec));
+}
+
+/** Stitch cost — billed per second of generated footage (sum of segments). */
+export function estimateStitchCost(model: VideoModel, targetSec: number): number {
+  return Math.round(model.usdPerSec * Math.max(1, targetSec) * 100) / 100;
+}
+
+/** Veo-extend cost — premium per-second across the chained segments. */
+export function estimateExtendCost(targetSec: number): number {
+  const model = getVideoModel("veo-3-1-extend")!;
+  return Math.round(model.usdPerSec * clampDuration(model, targetSec) * 100) / 100;
 }

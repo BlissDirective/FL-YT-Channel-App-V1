@@ -2,18 +2,39 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Clapperboard, Film, Loader2, Sparkles, Timer, Wand2 } from "lucide-react";
 import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  Clapperboard,
+  Film,
+  Layers,
+  Loader2,
+  Plus,
+  Sparkles,
+  Timer,
+  Trash2,
+  Wand2,
+} from "lucide-react";
+import {
+  addSectionAction,
   approveGateAction,
   autoClassifyShotTypesAction,
+  deleteSectionAction,
+  enqueueLongClipAction,
   generateBeatVideoAction,
+  mergeSectionsAction,
+  moveSectionAction,
   resumeVideoAction,
   setBeatShotTypeAction,
 } from "@/lib/actions/pipeline";
 import {
   clampDuration,
   estimateClipCost,
+  estimateExtendCost,
+  estimateStitchCost,
   getVideoModel,
+  STITCH_BASE_MODEL_ID,
   VIDEO_MODELS,
 } from "@/lib/adapters/video-models";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -23,6 +44,7 @@ import { cn } from "@/lib/cn";
 type ShotType = "hero" | "broll" | "stock";
 type ClipInfo = { idx: number; url: string | null; isVideo: boolean };
 type Beat = { idx: number; visualPrompt: string; shotType: string; scriptSec: number };
+type JobInfo = { beatIdx: number; status: string; method: string };
 
 const SHOT_TYPES: ShotType[] = ["hero", "broll", "stock"];
 
@@ -44,6 +66,7 @@ export function VideoGen({
   videoId,
   beats,
   clips,
+  jobs,
   monthSpent,
   cap,
   autoSetup = false,
@@ -53,6 +76,7 @@ export function VideoGen({
   videoId: string;
   beats: Beat[];
   clips: ClipInfo[];
+  jobs: JobInfo[];
   monthSpent: number;
   cap: number;
   /** Just approved the script → open + auto-populate models/timings. */
@@ -71,6 +95,7 @@ export function VideoGen({
   const [spent, setSpent] = useState(monthSpent);
   const [approving, startApprove] = useTransition();
   const [approveError, setApproveError] = useState<string>();
+  const [stitchOpen, setStitchOpen] = useState(false);
 
   // Lifted per-beat state so the bulk buttons can drive every row.
   const [shotTypes, setShotTypes] = useState<Record<number, string>>(
@@ -139,7 +164,36 @@ export function VideoGen({
     });
   };
 
+  // Sections with a queued/running long-clip job.
+  const pendingByIdx = new Map(
+    jobs.filter((j) => j.status === "queued" || j.status === "running").map((j) => [j.beatIdx, j.status]),
+  );
+
+  // ── Section editing ─────────────────────────────────────────────────
+  const sectionEdit = (fn: () => Promise<unknown>) => startPersist(async () => { await fn(); router.refresh(); });
+  const addSection = (afterIdx: number, mode: "visual" | "narrated") =>
+    sectionEdit(() => addSectionAction(projectId, videoId, afterIdx, mode));
+  const deleteSection = (idx: number) => sectionEdit(() => deleteSectionAction(projectId, videoId, idx));
+  const moveSection = (idx: number, dir: "up" | "down") =>
+    sectionEdit(() => moveSectionAction(projectId, videoId, idx, dir));
+
+  // ── Long clips (Veo-extend / auto-stitch) → queued worker job ────────
+  const queueLong = (idx: number, method: "veo-extend" | "stitch" | "stitch-seamless", model: string, targetSec: number, est: number) => {
+    setErrors((e) => ({ ...e, [idx]: undefined }));
+    startPersist(async () => {
+      const r = await enqueueLongClipAction(projectId, videoId, idx, method, model, targetSec, est);
+      if (r.ok) router.refresh();
+      else setErrors((e) => ({ ...e, [idx]: r.error }));
+    });
+  };
+
   const generate = (idx: number) => {
+    const model = getVideoModel(models[idx])!;
+    // Long-clip models (Veo-extend) run in the background worker, not inline.
+    if (model.longClip) {
+      queueLong(idx, "veo-extend", model.id, durations[idx], estimateExtendCost(durations[idx]));
+      return;
+    }
     setErrors((e) => ({ ...e, [idx]: undefined }));
     setBusyIdx(idx);
     startPersist(async () => {
@@ -216,13 +270,27 @@ export function VideoGen({
             <BulkButton icon={Sparkles} onClick={autoPickTypes} busy={classifying} label="Auto-pick types" />
             <BulkButton icon={Wand2} onClick={autoPickModels} label="Auto-pick models" />
             <BulkButton icon={Timer} onClick={matchTimeToScript} label="Match time to script" />
+            <BulkButton icon={Layers} onClick={() => setStitchOpen((o) => !o)} label="Auto-stitch clip mode" />
           </div>
 
+          {stitchOpen && (
+            <AutoStitchPanel
+              beats={beats}
+              remaining={remaining}
+              onLengthen={(idx, method, target, est) =>
+                queueLong(idx, method, STITCH_BASE_MODEL_ID, target, est)}
+              onMerge={(start, end) =>
+                sectionEdit(() => mergeSectionsAction(projectId, videoId, start, end))}
+            />
+          )}
+
           <div className="space-y-3">
-            {beats.map((b) => (
+            {beats.map((b, i) => (
               <BeatRow
                 key={b.idx}
                 beat={b}
+                index={i}
+                total={beats.length}
                 shot={shotTypes[b.idx] as ShotType}
                 modelId={models[b.idx]}
                 duration={durations[b.idx]}
@@ -230,11 +298,15 @@ export function VideoGen({
                 existing={clipByIdx.get(b.idx)}
                 remaining={remaining}
                 busy={busyIdx === b.idx}
+                pending={pendingByIdx.get(b.idx)}
                 error={errors[b.idx]}
                 onShot={(s) => setShot(b.idx, s)}
                 onModel={(id) => setModel(b.idx, id)}
                 onDuration={(n) => setDurations((d) => ({ ...d, [b.idx]: n }))}
                 onGenerate={() => generate(b.idx)}
+                onDelete={() => deleteSection(b.idx)}
+                onMove={(dir) => moveSection(b.idx, dir)}
+                onAddAfter={(mode) => addSection(b.idx, mode)}
               />
             ))}
           </div>
@@ -294,6 +366,8 @@ function BulkButton({
 
 function BeatRow({
   beat,
+  index,
+  total,
   shot,
   modelId,
   duration,
@@ -301,13 +375,19 @@ function BeatRow({
   existing,
   remaining,
   busy,
+  pending,
   error,
   onShot,
   onModel,
   onDuration,
   onGenerate,
+  onDelete,
+  onMove,
+  onAddAfter,
 }: {
   beat: Beat;
+  index: number;
+  total: number;
   shot: ShotType;
   modelId: string;
   duration: number;
@@ -315,15 +395,19 @@ function BeatRow({
   existing?: ClipInfo;
   remaining: number;
   busy: boolean;
+  pending?: string;
   error?: string;
   onShot: (s: ShotType) => void;
   onModel: (id: string) => void;
   onDuration: (n: number) => void;
   onGenerate: () => void;
+  onDelete: () => void;
+  onMove: (dir: "up" | "down") => void;
+  onAddAfter: (mode: "visual" | "narrated") => void;
 }) {
   const model = getVideoModel(modelId)!;
   const dur = clampDuration(model, duration);
-  const est = estimateClipCost(model, dur);
+  const est = model.longClip ? estimateExtendCost(dur) : estimateClipCost(model, dur);
   const overBudget = est > remaining;
   const url = resultUrl ?? (existing?.isVideo ? existing.url : null);
 
@@ -332,6 +416,18 @@ function BeatRow({
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted">
           Section {beat.idx + 1}
+        </span>
+        {/* Section controls */}
+        <span className="flex items-center gap-0.5">
+          <IconBtn label="Move up" disabled={index === 0} onClick={() => onMove("up")}>
+            <ArrowUp className="size-3" />
+          </IconBtn>
+          <IconBtn label="Move down" disabled={index === total - 1} onClick={() => onMove("down")}>
+            <ArrowDown className="size-3" />
+          </IconBtn>
+          <IconBtn label="Delete section" onClick={onDelete}>
+            <Trash2 className="size-3 text-coral" />
+          </IconBtn>
         </span>
         <select
           value={shot}
@@ -363,6 +459,12 @@ function BeatRow({
         <p className="mb-3 rounded-lg bg-card-warm px-2.5 py-1.5 text-[11px] text-muted">
           Stock beats use free licensed Pexels footage by default. Generate AI video
           only to replace it — that incurs the model cost below.
+        </p>
+      )}
+      {pending && (
+        <p className="mb-3 flex items-center gap-1.5 rounded-lg bg-lavender/10 px-2.5 py-1.5 text-[11px] font-medium text-lavender">
+          <Loader2 className="size-3.5 animate-spin" /> Long clip {pending} — the worker is
+          building it; it&apos;ll appear here when done.
         </p>
       )}
 
@@ -401,16 +503,216 @@ function BeatRow({
         </label>
         <button
           type="button"
-          disabled={busy || overBudget}
+          disabled={busy || overBudget || Boolean(pending)}
           onClick={onGenerate}
           title={overBudget ? "Would exceed the monthly video budget" : undefined}
           className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
         >
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Clapperboard className="size-4" />}
-          ${est.toFixed(2)}
+          {model.longClip ? `Queue · $${est.toFixed(2)}` : `$${est.toFixed(2)}`}
         </button>
       </div>
+      {model.longClip && (
+        <p className="mt-1.5 text-[11px] text-muted">
+          Long clip ({dur}s) renders in the background worker (Veo-3.1 extend).
+        </p>
+      )}
       {error && <p className="mt-2 text-xs font-medium text-coral">{error}</p>}
+
+      {/* Add a section after this one */}
+      <div className="mt-3 flex items-center gap-2 border-t border-line pt-2">
+        <span className="text-[11px] text-muted">Add section:</span>
+        <button
+          type="button"
+          onClick={() => onAddAfter("visual")}
+          className="flex items-center gap-1 rounded-full bg-card-warm px-2.5 py-1 text-[11px] font-semibold text-ink hover:bg-accent-soft"
+        >
+          <Plus className="size-3" /> Visual-only
+        </button>
+        <button
+          type="button"
+          onClick={() => onAddAfter("narrated")}
+          className="flex items-center gap-1 rounded-full bg-card-warm px-2.5 py-1 text-[11px] font-semibold text-ink hover:bg-accent-soft"
+        >
+          <Plus className="size-3" /> Narrated
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function IconBtn({
+  label,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="grid size-6 place-items-center rounded-full text-muted hover:bg-card hover:text-ink disabled:opacity-30"
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Auto-stitch panel: lengthen one section, or merge adjacent sections ──
+
+function AutoStitchPanel({
+  beats,
+  remaining,
+  onLengthen,
+  onMerge,
+}: {
+  beats: Beat[];
+  remaining: number;
+  onLengthen: (idx: number, method: "stitch" | "stitch-seamless", targetSec: number, est: number) => void;
+  onMerge: (startIdx: number, endIdx: number) => void;
+}) {
+  const [tab, setTab] = useState<"lengthen" | "merge">("lengthen");
+  const [sectionIdx, setSectionIdx] = useState(beats[0]?.idx ?? 0);
+  const [targetSec, setTargetSec] = useState(30);
+  const [seamless, setSeamless] = useState(false);
+  const [mergeStart, setMergeStart] = useState(beats[0]?.idx ?? 0);
+  const [mergeEnd, setMergeEnd] = useState(beats[Math.min(1, beats.length - 1)]?.idx ?? 0);
+
+  const base = getVideoModel(STITCH_BASE_MODEL_ID)!;
+  const est = estimateStitchCost(base, targetSec);
+  const segs = Math.max(1, Math.ceil(targetSec / base.maxDurationSec));
+  const overBudget = est > remaining;
+
+  // Heuristic recommendation: the longest run of adjacent b-roll/stock sections.
+  const recommend = (() => {
+    let best: [number, number] | null = null;
+    let runStart = 0;
+    for (let i = 1; i <= beats.length; i++) {
+      const cont = i < beats.length && beats[i].shotType !== "hero" && beats[i - 1].shotType !== "hero";
+      if (!cont) {
+        if (i - 1 - runStart >= 1) {
+          if (!best || i - 1 - runStart > best[1] - best[0]) best = [beats[runStart].idx, beats[i - 1].idx];
+        }
+        runStart = i;
+      }
+    }
+    return best;
+  })();
+
+  return (
+    <div className="rounded-card border border-lavender/40 bg-lavender/5 p-3">
+      <div className="mb-3 flex gap-1 rounded-full bg-card-warm p-0.5">
+        {(["lengthen", "merge"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={cn(
+              "flex-1 rounded-full px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
+              tab === t ? "bg-card text-ink shadow-card" : "text-muted",
+            )}
+          >
+            {t === "lengthen" ? "Lengthen a section" : "Merge sections"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "lengthen" ? (
+        <div className="space-y-2">
+          <p className="text-[11px] text-muted">
+            Auto-stitch {segs} × {base.maxDurationSec}s {base.label} clips into one ~{targetSec}s clip
+            for a section.
+          </p>
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-[11px] font-medium text-muted">Section</span>
+              <select value={sectionIdx} onChange={(e) => setSectionIdx(Number(e.target.value))} className="input">
+                {beats.map((b) => (
+                  <option key={b.idx} value={b.idx}>
+                    Section {b.idx + 1} (script ≈ {Math.round(b.scriptSec)}s)
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex w-20 flex-col gap-1">
+              <span className="text-[11px] font-medium text-muted">Secs</span>
+              <input
+                type="number"
+                min={16}
+                max={120}
+                value={targetSec}
+                onChange={(e) => setTargetSec(Number(e.target.value))}
+                className="input"
+              />
+            </label>
+          </div>
+          <label className="flex cursor-pointer items-center gap-2 text-[11px] text-muted">
+            <input type="checkbox" checked={seamless} onChange={(e) => setSeamless(e.target.checked)} className="accent-accent" />
+            Seamless (chain last frame → next clip; no visible cut)
+          </label>
+          <button
+            type="button"
+            disabled={overBudget}
+            onClick={() => onLengthen(sectionIdx, seamless ? "stitch-seamless" : "stitch", targetSec, est)}
+            className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            <Layers className="size-4" /> Queue long clip · ${est.toFixed(2)}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-[11px] text-muted">
+            Merge adjacent sections into one (their narration combines); then queue a long
+            clip for the merged section.
+          </p>
+          {recommend && (
+            <button
+              type="button"
+              onClick={() => {
+                setMergeStart(recommend[0]);
+                setMergeEnd(recommend[1]);
+              }}
+              className="rounded-full bg-card-warm px-2.5 py-1 text-[11px] font-semibold text-ink hover:bg-accent-soft"
+            >
+              Recommended: merge sections {recommend[0] + 1}–{recommend[1] + 1}
+            </button>
+          )}
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-[11px] font-medium text-muted">From</span>
+              <select value={mergeStart} onChange={(e) => setMergeStart(Number(e.target.value))} className="input">
+                {beats.map((b) => (
+                  <option key={b.idx} value={b.idx}>Section {b.idx + 1}</option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-[11px] font-medium text-muted">To</span>
+              <select value={mergeEnd} onChange={(e) => setMergeEnd(Number(e.target.value))} className="input">
+                {beats.map((b) => (
+                  <option key={b.idx} value={b.idx}>Section {b.idx + 1}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <button
+            type="button"
+            disabled={mergeEnd <= mergeStart}
+            onClick={() => onMerge(mergeStart, mergeEnd)}
+            className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            <Layers className="size-4" /> Merge sections {mergeStart + 1}–{mergeEnd + 1}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
