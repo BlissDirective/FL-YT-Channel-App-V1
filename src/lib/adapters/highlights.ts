@@ -248,6 +248,8 @@ Call deliver_highlights with at least ${SHORT_HOOK_MIN_HIGHLIGHTS} highlights on
  * Guarantee the hook beat carries at least SHORT_HOOK_MIN_HIGHLIGHTS highlights
  * (it becomes a standalone Short). Tops up from the hook's own narration with
  * high-energy styling when the model under-delivers, then re-ids the full set.
+ * If the hook is visual-only (no/thin narration), it borrows phrases from the
+ * next beat — still anchored to the hook so they appear in the Short.
  */
 function withHookGuarantee(
   highlights: CuratedHighlight[],
@@ -261,13 +263,25 @@ function withHookGuarantee(
     const onHook = highlights.filter((h) => h.beatIdx === hook.idx);
     const need = SHORT_HOOK_MIN_HIGHLIGHTS - onHook.length;
     if (need > 0) {
+      const used = onHook.map((h) => h.text);
+      let phrases = liftPhrases(hook.text, need, used);
+      // Visual-only / thin hook: borrow from the next beat's narration so the
+      // Short still gets its highlights (kept on the hook beat to render there).
+      if (phrases.length < need) {
+        const next = beats.find((b) => b.idx === HOOK_BEAT_IDX + 1);
+        if (next) {
+          phrases = [
+            ...phrases,
+            ...liftPhrases(next.text, need - phrases.length, [
+              ...used,
+              ...phrases.map((p) => p.text),
+            ]),
+          ];
+        }
+      }
       const hookStyles: HighlightPreset[] = ["sticker-tag", "color-flash-pop", "word-pop"];
       const hookPos: HighlightPosition[] = ["center", "upper-third"];
-      const topUps: CuratedHighlight[] = liftPhrases(
-        hook.text,
-        need,
-        onHook.map((h) => h.text),
-      ).map((p, i) => ({
+      const topUps: CuratedHighlight[] = phrases.map((p, i) => ({
         id: "hook_tmp",
         beatIdx: hook.idx,
         text: p.text,
