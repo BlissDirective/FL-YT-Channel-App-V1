@@ -1,5 +1,39 @@
 export type WordTiming = { w: string; start: number; end: number };
 
+// ── Kinetic Highlights ────────────────────────────────────────────────
+// Keep these unions in sync with src/lib/db/types.ts (the app owns curation;
+// this package owns rendering and can't import app code).
+
+export type HighlightPreset =
+  | "word-pop"
+  | "highlight-box-swipe"
+  | "stat-card"
+  | "quote-card"
+  | "typewriter"
+  | "color-flash-pop"
+  | "sticker-tag"
+  | "underline-swipe";
+
+export type HighlightPosition = "center" | "upper-third" | "lower-third-safe";
+export type HighlightIntensity = "subtle" | "med" | "high";
+
+/** A highlight resolved for rendering: curated fields + beat-local timing
+    (startMs/endMs relative to the beat's audio) computed in buildProps. */
+export type Highlight = {
+  id: string;
+  text: string;
+  emphasisWord?: string;
+  stylePreset: HighlightPreset;
+  fontFamily: string;
+  emphasisColor?: string;
+  position: HighlightPosition;
+  intensity: HighlightIntensity;
+  maxLines: number;
+  /** Beat-local milliseconds. */
+  startMs: number;
+  endMs: number;
+};
+
 export type RenderBeat = {
   idx: number;
   text: string;
@@ -15,6 +49,8 @@ export type RenderBeat = {
   /** Hero clip: slow-pan + stretch to fill the section instead of looping. */
   heroHold?: boolean;
   shotType: string;
+  /** Curated kinetic-highlight overlays anchored to this beat. */
+  highlights?: Highlight[];
 };
 
 export type VideoProps = {

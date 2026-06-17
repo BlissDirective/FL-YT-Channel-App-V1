@@ -19,6 +19,8 @@ import {
   type RenderBeat,
   type VideoProps,
 } from "./types";
+import { HighlightLayer } from "./highlights/HighlightLayer";
+import { HighlightFonts } from "./highlights/fonts";
 
 const FONT =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -36,6 +38,7 @@ export const LongForm: React.FC<VideoProps> = (props) => {
   let cursor = INTRO_SEC;
   return (
     <AbsoluteFill style={{ backgroundColor: props.brand.secondary, fontFamily: FONT }}>
+      <HighlightFonts />
       <Sequence durationInFrames={Math.round(INTRO_SEC * FPS)}>
         <IntroSting {...props} />
       </Sequence>
@@ -73,6 +76,7 @@ export const Short: React.FC<VideoProps> = (props) => {
   const dur = Math.round(Math.max(1, beat.durationSec) * FPS);
   return (
     <AbsoluteFill style={{ backgroundColor: props.brand.secondary, fontFamily: FONT }}>
+      <HighlightFonts />
       <Sequence durationInFrames={dur}>
         <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical />
       </Sequence>
@@ -161,6 +165,7 @@ const BeatScene: React.FC<{
         size={captionSize}
         vertical={vertical}
       />
+      <HighlightLayer highlights={beat.highlights} brand={brand} vertical={vertical} />
     </AbsoluteFill>
   );
 };

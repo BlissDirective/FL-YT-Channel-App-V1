@@ -22,6 +22,9 @@ import {
   rerollBeatVisual,
   runPipeline,
   setBeatShotType,
+  setHighlightOptions,
+  curateHighlightsForVideo,
+  saveHighlights,
   type ClassifyResult,
   type EnqueueResult,
   type FullAutoResult,
@@ -31,7 +34,7 @@ import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import { getKillSwitch } from "@/lib/db/queries";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
-import type { CustomSpec, ScriptBeat } from "@/lib/db/types";
+import type { CuratedHighlight, CustomSpec, ScriptBeat } from "@/lib/db/types";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 
 export type PipelineResult = { ok: boolean; error?: string };
@@ -439,6 +442,44 @@ export async function editVideoMetadataAction(
     revalidatePath(`/projects/${projectId}/videos/${videoId}`);
     refresh(projectId);
     return result;
+  });
+}
+
+// ── Kinetic Highlights ────────────────────────────────────────────────
+
+export async function setHighlightOptionsAction(
+  projectId: string,
+  videoId: string,
+  enabled: boolean,
+  count: number,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await setHighlightOptions({ videoId, enabled, count });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
+  });
+}
+
+export async function curateHighlightsAction(
+  projectId: string,
+  videoId: string,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await curateHighlightsForVideo({ videoId });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
+  });
+}
+
+export async function saveHighlightsAction(
+  projectId: string,
+  videoId: string,
+  highlights: CuratedHighlight[],
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await saveHighlights({ videoId, highlights });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
   });
 }
 

@@ -12,7 +12,13 @@ import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import { bundle } from "@remotion/bundler";
 import { ensureBrowser, renderMedia, selectComposition } from "@remotion/renderer";
-import { beatTimeline, longFormDurationSec, type RenderBeat, type VideoProps } from "./types";
+import {
+  beatTimeline,
+  longFormDurationSec,
+  type Highlight,
+  type RenderBeat,
+  type VideoProps,
+} from "./types";
 import { uploadVideo, youtubeUploadConfigured } from "./youtube";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
@@ -28,6 +34,45 @@ const sign = async (path: string): Promise<string | null> => {
   const { data } = await db.storage.from("media").createSignedUrl(path, 7200);
   return data?.signedUrl ?? null;
 };
+
+/** Curated highlight as stored on the video (no timing — resolved here). */
+type CuratedHighlight = Omit<Highlight, "startMs" | "endMs"> & { beatIdx: number };
+
+const normWord = (w: string) => w.toLowerCase().replace(/[^\p{L}\p{N}$%.]/gu, "");
+
+/**
+ * Resolve curated highlights to beat-local timing using the beat's word
+ * timestamps: a highlight appears when its emphasis word is spoken and holds
+ * long enough to read. Falls back to ~20% into the beat when the word can't
+ * be located (e.g. a rewritten phrase with no shared token).
+ */
+function resolveHighlights(
+  curated: CuratedHighlight[],
+  words: { w: string; start: number; end: number }[],
+  durationSec: number,
+): Highlight[] {
+  const beatMs = Math.max(0, durationSec * 1000);
+  return curated.map((h) => {
+    const wordCount = h.text.trim().split(/\s+/).filter(Boolean).length;
+    const readMs = Math.max(1600, wordCount * 340);
+
+    let startMs = Math.round(beatMs * 0.2);
+    const emph = h.emphasisWord ? normWord(h.emphasisWord.split(/\s+/)[0] ?? "") : "";
+    if (emph && words.length) {
+      const hit =
+        words.find((w) => normWord(w.w) === emph) ??
+        words.find((w) => normWord(w.w).includes(emph) && emph.length >= 3);
+      if (hit) startMs = Math.round(hit.start * 1000);
+    }
+
+    let endMs = startMs + readMs;
+    if (beatMs > 0) {
+      endMs = Math.min(endMs, beatMs - 50);
+      if (endMs - startMs < 800) startMs = Math.max(0, endMs - readMs);
+    }
+    return { ...h, startMs, endMs };
+  });
+}
 
 async function buildProps(videoId: string): Promise<{
   props: VideoProps;
@@ -52,6 +97,11 @@ async function buildProps(videoId: string): Promise<{
   if (!project || !script || !assets) return null;
 
   const scriptBeats = script.beats as { idx: number; text: string; shotType: string }[];
+  // Curated highlights live on the video (opt-in); timing is resolved per beat
+  // below from the beat's word timestamps.
+  const curated = (
+    video.enable_highlights ? ((video.highlights as CuratedHighlight[] | null) ?? []) : []
+  );
   const beats: RenderBeat[] = [];
   for (const sb of scriptBeats) {
     const vo = assets.find((a) => a.kind === "vo" && a.beat_index === sb.idx);
@@ -71,17 +121,24 @@ async function buildProps(videoId: string): Promise<{
     // treat as video. Stills are signed as images. External (Pexels) use url.
     const clipSigned = clip?.storage_path ? await sign(clip.storage_path) : null;
     const isVideoClip = Boolean(clipMeta.isVideo || clipMeta.url);
+    const durationSec = Number(voMeta.durationSec ?? 5);
+    const words = voMeta.words ?? [];
     beats.push({
       idx: sb.idx,
       text: sb.text,
       shotType: sb.shotType,
-      durationSec: Number(voMeta.durationSec ?? 5),
-      words: voMeta.words ?? [],
+      durationSec,
+      words,
       voUrl: vo ? await sign(vo.storage_path) : null,
       videoUrl: clipMeta.url ?? (clipMeta.isVideo ? (clipSigned ?? undefined) : undefined),
       videoDurationSec: clipMeta.durationSec,
       heroHold: Boolean(clipMeta.heroHold),
       imageUrl: !isVideoClip ? (clipSigned ?? undefined) : undefined,
+      highlights: resolveHighlights(
+        curated.filter((h) => h.beatIdx === sb.idx),
+        words,
+        durationSec,
+      ),
     });
   }
   // A render without narration would be silent — treat as not ready.
