@@ -2,6 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { LongForm, Short, shortDurationSec } from "./VideoComp";
 import { FPS, longFormDurationSec, type VideoProps } from "./types";
+import { HighlightPreview } from "./highlights/Preview";
 
 const DEFAULT_PROPS: VideoProps = {
   title: "Sample Video",
@@ -50,6 +51,15 @@ export const RemotionRoot: React.FC = () => (
       calculateMetadata={({ props }) => ({
         durationInFrames: Math.round(shortDurationSec(props) * FPS),
       })}
+    />
+    {/* Dev-only: eyeball all 8 highlight presets at once. */}
+    <Composition
+      id="HighlightPreview"
+      component={HighlightPreview}
+      fps={FPS}
+      width={1920}
+      height={1080}
+      durationInFrames={150}
     />
   </>
 );

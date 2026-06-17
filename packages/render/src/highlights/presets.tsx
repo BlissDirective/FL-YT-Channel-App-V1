@@ -124,6 +124,7 @@ const HighlightBoxSwipe: React.FC<HighlightRenderProps> = ({ hl, brand, vertical
               style={{
                 position: "relative",
                 display: "inline-block",
+                isolation: "isolate",
                 padding: emph ? "0 10px" : 0,
                 color: emph && swipe > 0.5 ? brand.secondary : "#fff",
                 WebkitTextStroke: emph && swipe > 0.5 ? "0" : undefined,
@@ -138,11 +139,11 @@ const HighlightBoxSwipe: React.FC<HighlightRenderProps> = ({ hl, brand, vertical
                     borderRadius: 10,
                     transform: `scaleX(${swipe})`,
                     transformOrigin: "left center",
-                    zIndex: -1,
+                    zIndex: 0,
                   }}
                 />
               )}
-              {w}
+              <span style={{ position: "relative", zIndex: 1 }}>{w}</span>
               {i < words.length - 1 ? " " : ""}
             </span>
           );
