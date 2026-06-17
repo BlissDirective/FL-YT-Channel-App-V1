@@ -14,6 +14,14 @@ Source of truth in code:
 - Tier picker UI → `FullAutoPanel` in
   `src/app/projects/[id]/videos/[vid]/video-gen.tsx`
 
+> **Kinetic highlights are on by default for every tier.** Full Auto-Generate
+> enables curated burned-in highlight text and curates it from the script at
+> run time (a small Claude call, logged to the cost ledger). Timing syncs to
+> the VO word timestamps at render; the hook beat always carries ≥2 highlights
+> so the derived Short lands hard. The operator can edit or clear them in the
+> highlights editor on the video page. Curation is skipped if highlights were
+> already enabled at the Script gate (no double cost).
+
 ---
 
 ## 1. Concepts & terminology

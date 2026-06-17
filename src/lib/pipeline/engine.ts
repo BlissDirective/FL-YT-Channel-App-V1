@@ -1113,6 +1113,21 @@ export async function fullAutoGenerate(
     };
   }
 
+  // Default kinetic highlights ON for auto-generated videos (the operator can
+  // still edit/clear them in the highlights editor). Curate now from the
+  // script — timing is resolved from the VO word timings at render. Skip if the
+  // operator already enabled them (runScripting curated at the Script gate),
+  // and never block the run on it.
+  if (!video.enable_highlights) {
+    try {
+      await db.from("videos").update({ enable_highlights: true }).eq("id", opts.videoId);
+      video.enable_highlights = true;
+      await runHighlightCuration(db, video, project, beats);
+    } catch (err) {
+      console.error("full-auto highlight curation failed:", err);
+    }
+  }
+
   // 3) Mark auto-finish FIRST so the Assets gate holds (arriveAtGate sees it)
   //    while clips generate — the worker advances to render once they land.
   await db.from("videos").update({ auto_finish: true }).eq("id", opts.videoId);
