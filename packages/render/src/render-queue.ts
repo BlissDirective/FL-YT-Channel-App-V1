@@ -44,15 +44,19 @@ const normWord = (w: string) => w.toLowerCase().replace(/[^\p{L}\p{N}$%.]/gu, ""
  * Resolve curated highlights to beat-local timing using the beat's word
  * timestamps: a highlight appears when its emphasis word is spoken and holds
  * long enough to read. Falls back to ~20% into the beat when the word can't
- * be located (e.g. a rewritten phrase with no shared token).
+ * be located (e.g. a rewritten phrase with no shared token). Multiple
+ * highlights on one beat (the hook always has ≥2 for the Short) are then
+ * de-overlapped so they play in sequence rather than stacking on screen.
  */
+const HL_GAP_MS = 200;
+
 function resolveHighlights(
   curated: CuratedHighlight[],
   words: { w: string; start: number; end: number }[],
   durationSec: number,
 ): Highlight[] {
   const beatMs = Math.max(0, durationSec * 1000);
-  return curated.map((h) => {
+  const resolved = curated.map((h) => {
     const wordCount = h.text.trim().split(/\s+/).filter(Boolean).length;
     const readMs = Math.max(1600, wordCount * 340);
 
@@ -72,6 +76,24 @@ function resolveHighlights(
     }
     return { ...h, startMs, endMs };
   });
+
+  // De-overlap within the beat: keep highlights sequential with a small gap so
+  // two never share the screen. Push later ones back; clamp to the beat.
+  resolved.sort((a, b) => a.startMs - b.startMs);
+  for (let i = 1; i < resolved.length; i++) {
+    const prev = resolved[i - 1];
+    const cur = resolved[i];
+    if (cur.startMs < prev.endMs + HL_GAP_MS) {
+      const readMs = Math.max(1600, cur.text.trim().split(/\s+/).filter(Boolean).length * 340);
+      cur.startMs = prev.endMs + HL_GAP_MS;
+      cur.endMs = cur.startMs + readMs;
+    }
+    if (beatMs > 0 && cur.endMs > beatMs - 50) {
+      cur.endMs = beatMs - 50;
+      if (cur.startMs > cur.endMs - 600) cur.startMs = Math.max(0, cur.endMs - 600);
+    }
+  }
+  return resolved;
 }
 
 async function buildProps(videoId: string): Promise<{

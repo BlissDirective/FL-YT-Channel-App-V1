@@ -64,6 +64,15 @@ export function defaultHighlightCount(targetLengthSec: number): number {
   return Math.max(2, Math.min(8, Math.round(targetLengthSec / 45)));
 }
 
+/**
+ * The hook beat (index 0) is republished on its own as a vertical Short — our
+ * single biggest discovery/growth surface — so it must always carry at least
+ * this many highlights. The Short composition renders only beat 0, so a bare
+ * hook means a bare Short.
+ */
+export const HOOK_BEAT_IDX = 0;
+export const SHORT_HOOK_MIN_HIGHLIGHTS = 2;
+
 export type HighlightCuration = {
   highlights: CuratedHighlight[];
   costUsd: number;
@@ -138,11 +147,16 @@ export async function curateHighlights(opts: {
   brandPrimary: string;
 }): Promise<HighlightCuration> {
   const font = fontForNiche(opts.niche);
-  const target = Math.max(1, opts.targetCount);
+  const target = Math.max(opts.targetCount, SHORT_HOOK_MIN_HIGHLIGHTS);
 
   if (!isHighlightLive()) {
     return {
-      highlights: heuristicHighlights(opts.beats, target, font, opts.brandPrimary),
+      highlights: withHookGuarantee(
+        heuristicHighlights(opts.beats, target, font, opts.brandPrimary),
+        opts.beats,
+        font,
+        opts.brandPrimary,
+      ),
       costUsd: 0,
       provider: "mock",
     };
@@ -153,14 +167,16 @@ export async function curateHighlights(opts: {
     .join("\n\n");
   const prompt = `You are the on-screen-text director for a ${opts.niche} YouTube video titled "${opts.title}" (${opts.format}; tone: ${opts.tone}).
 
-Pick the ${target} MOST attention-grabbing moments to reinforce with bold burned-in on-screen text. Less is more — only moments that genuinely earn a viewer's eyes: a shocking statistic, a surprising fact, a quotable line, the hook, or the payoff. Spread them across the script; never two in the same beat back-to-back.
+Pick the ${target} MOST attention-grabbing moments to reinforce with bold burned-in on-screen text. Less is more — only moments that genuinely earn a viewer's eyes: a shocking statistic, a surprising fact, a quotable line, the hook, or the payoff.
+
+CRITICAL — Beat 0 (the hook) is ALSO published on its own as a vertical Short, our single biggest channel-growth driver. Place AT LEAST ${SHORT_HOOK_MIN_HIGHLIGHTS} of your most scroll-stopping highlights on Beat 0, each tied to a DIFFERENT spoken moment, using the highest-energy styles (sticker-tag, color-flash-pop, word-pop) at "high" intensity. They must be bold, unique, and impossible to scroll past. Then spread the remaining highlights across later beats; never two back-to-back in the same later beat.
 
 For each, rewrite the moment into a punchy ALL-CAPS phrase of 2–6 words (condense — do NOT paste the narration), choose an emphasis word that is actually spoken in that beat, and pick the style preset that fits the moment.
 
 SCRIPT:
 ${script}
 
-Call deliver_highlights with up to ${target} highlights.`;
+Call deliver_highlights with at least ${SHORT_HOOK_MIN_HIGHLIGHTS} highlights on Beat 0 and ${target} total.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -202,7 +218,8 @@ Call deliver_highlights with up to ${target} highlights.`;
   const validBeats = new Set(opts.beats.map((b) => b.idx));
   const highlights: CuratedHighlight[] = raw
     .filter((h) => validBeats.has(h.beatIdx) && h.text?.trim())
-    .slice(0, target)
+    // Allow the hook's extra highlights through the cap (≥2 there by design).
+    .slice(0, target + SHORT_HOOK_MIN_HIGHLIGHTS)
     .map((h, i) => ({
       id: `hl_${i + 1}`,
       beatIdx: h.beatIdx,
@@ -221,10 +238,52 @@ Call deliver_highlights with up to ${target} highlights.`;
     (data.usage.output_tokens / 1e6) * PRICE.out;
 
   return {
-    highlights,
+    highlights: withHookGuarantee(highlights, opts.beats, font, opts.brandPrimary),
     costUsd: Math.round(costUsd * 100) / 100,
     provider: "anthropic",
   };
+}
+
+/**
+ * Guarantee the hook beat carries at least SHORT_HOOK_MIN_HIGHLIGHTS highlights
+ * (it becomes a standalone Short). Tops up from the hook's own narration with
+ * high-energy styling when the model under-delivers, then re-ids the full set.
+ */
+function withHookGuarantee(
+  highlights: CuratedHighlight[],
+  beats: ScriptBeat[],
+  font: string,
+  brandPrimary: string,
+): CuratedHighlight[] {
+  const hook = beats.find((b) => b.idx === HOOK_BEAT_IDX) ?? beats[0];
+  let result = highlights;
+  if (hook) {
+    const onHook = highlights.filter((h) => h.beatIdx === hook.idx);
+    const need = SHORT_HOOK_MIN_HIGHLIGHTS - onHook.length;
+    if (need > 0) {
+      const hookStyles: HighlightPreset[] = ["sticker-tag", "color-flash-pop", "word-pop"];
+      const hookPos: HighlightPosition[] = ["center", "upper-third"];
+      const topUps: CuratedHighlight[] = liftPhrases(
+        hook.text,
+        need,
+        onHook.map((h) => h.text),
+      ).map((p, i) => ({
+        id: "hook_tmp",
+        beatIdx: hook.idx,
+        text: p.text,
+        emphasisWord: p.emphasis || undefined,
+        stylePreset: hookStyles[(onHook.length + i) % hookStyles.length],
+        fontFamily: font,
+        emphasisColor: brandPrimary,
+        position: hookPos[(onHook.length + i) % hookPos.length],
+        intensity: "high",
+        maxLines: 2,
+      }));
+      result = [...highlights, ...topUps];
+    }
+  }
+  // Stable, unique ids for the final set (curation replaces it wholesale).
+  return result.map((h, i) => ({ ...h, id: `hl_${i + 1}` }));
 }
 
 function coercePreset(preset: string | undefined, contentType: string | undefined): HighlightPreset {
@@ -288,6 +347,40 @@ function heuristicHighlights(
     });
   }
   return out;
+}
+
+/** Lift up to `n` distinct punchy phrases from a beat (one per sentence),
+    skipping any already in `exclude`. Used to top up a thin hook beat. */
+function liftPhrases(
+  text: string,
+  n: number,
+  exclude: string[],
+): { text: string; emphasis: string }[] {
+  const seen = new Set(exclude.map((t) => t.toUpperCase()));
+  const out: { text: string; emphasis: string }[] = [];
+  const sentences = text.split(/(?<=[.!?])\s+/).filter((s) => s.trim());
+  for (const s of sentences) {
+    if (out.length >= n) break;
+    const p = liftPhrase(s);
+    if (p && !seen.has(p.text)) {
+      seen.add(p.text);
+      out.push(p);
+    }
+  }
+  // Fallback for short/single-sentence hooks: lift from different word-segments
+  // so we still get distinct phrases.
+  if (out.length < n) {
+    const w = text.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+    const segLen = Math.max(1, Math.ceil(w.length / n));
+    for (let s = 0; s < n && out.length < n; s++) {
+      const p = liftPhrase(w.slice(s * segLen, (s + 1) * segLen).join(" "));
+      if (p && !seen.has(p.text)) {
+        seen.add(p.text);
+        out.push(p);
+      }
+    }
+  }
+  return out.slice(0, n);
 }
 
 /** Lift up to 5 punchy words around the most interesting token in a beat. */
