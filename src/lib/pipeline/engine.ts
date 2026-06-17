@@ -20,6 +20,8 @@ import {
   type ScriptRemix,
   type BeatRemix,
 } from "@/lib/adapters/script";
+import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highlights";
+import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, reviewGate } from "@/lib/adapters/qc";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import { generateImage, generateVideo, isFalLive } from "@/lib/adapters/fal";
@@ -34,7 +36,7 @@ import { selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
-import type { Project, ScriptBeat, Video } from "@/lib/db/types";
+import type { CustomSpec, Project, ScriptBeat, Video } from "@/lib/db/types";
 import { MOCK_COSTS } from "./mock-content";
 import { DEFAULT_SCRIPT_TEMPLATE } from "./templates";
 
@@ -326,7 +328,53 @@ async function runScripting(db: Db, video: Video, project: Project) {
     },
     `“${video.title}”`,
   );
+
+  // Opt-in: curate kinetic highlights off the fresh script (auto when enabled).
+  if (video.enable_highlights) {
+    try {
+      await runHighlightCuration(db, video, project, draft.beats);
+    } catch (err) {
+      // Never block the script gate on the highlight pass.
+      console.error("highlight curation failed:", err);
+    }
+  }
+
   await setStatus(db, video.id, "SCRIPT_READY");
+}
+
+/** Curate highlights for a set of beats and persist them on the video. */
+async function runHighlightCuration(
+  db: Db,
+  video: Video,
+  project: Project,
+  beats: ScriptBeat[],
+): Promise<CuratedHighlight[]> {
+  const targetCount =
+    video.highlight_count > 0
+      ? video.highlight_count
+      : defaultHighlightCount(video.target_length_sec);
+  const result = await curateHighlights({
+    title: video.title,
+    niche: project.niche,
+    topic: video.topic,
+    tone: project.tone,
+    format: video.format,
+    beats,
+    targetCount,
+    brandPrimary: project.brand_kit?.primary ?? "#F5B829",
+  });
+  await db.from("videos").update({ highlights: result.highlights }).eq("id", video.id);
+  await recordCost(
+    db,
+    video,
+    {
+      provider: result.provider === "anthropic" ? "anthropic" : "mock:anthropic",
+      usd: result.costUsd,
+      description: `Highlight curation (${result.provider === "anthropic" ? "Claude" : "mock"})`,
+    },
+    `${result.highlights.length} highlights`,
+  );
+  return result.highlights;
 }
 
 /**
@@ -1008,6 +1056,8 @@ export async function fullAutoGenerate(
   opts: {
     videoId: string;
     tier: AutoTier;
+    /** Custom-tier recipe (models + lengths + price cap). Ignored otherwise. */
+    custom?: CustomSpec;
   },
   dbArg?: Db,
 ): Promise<FullAutoResult> {
@@ -1029,13 +1079,32 @@ export async function fullAutoGenerate(
   const secFor = (b: ScriptBeat) =>
     voDur.get(b.idx) || Math.max(4, b.text.trim().split(/\s+/).length / 2.5);
 
-  // 2) Pick which beats get AI video, honouring the AI-clip cap (economy) and
-  //    the hard per-video budget. Un-picked beats keep their free still/stock.
-  const { clips, totalUsd: estCostUsd } = selectClipBeats(
+  // 2) Plan which beats get AI video: hero bookends + length-scaled b-roll,
+  //    packed under the per-video budget. Un-picked beats keep their free
+  //    still/stock. Economy honours the project's ai_clip_cap; Custom uses its
+  //    own models + price cap (and pauses rather than downgrading on overrun).
+  const custom = opts.tier === "custom" ? opts.custom : undefined;
+  if (opts.tier === "custom" && !custom) {
+    return { ok: false, error: "Custom tier needs a model recipe (hero, b-roll, lengths, price cap)." };
+  }
+  const maxUsd = custom ? custom.maxUsd : Number(project.max_video_usd ?? 8);
+  const selection = selectClipBeats(
     opts.tier,
     beats.map((b) => ({ idx: b.idx, shotType: b.shotType, scriptSec: secFor(b) })),
-    { clipCap: Number(project.ai_clip_cap ?? 3), maxUsd: Number(project.max_video_usd ?? 4) },
+    {
+      clipCap: opts.tier === "economy" ? Number(project.ai_clip_cap ?? 3) : undefined,
+      maxUsd,
+      custom,
+    },
   );
+  // Custom pauses (does not silently downgrade) when the plan exceeds the cap.
+  if (custom && selection.overBudget) {
+    return {
+      ok: false,
+      error: `Your selections (~$${selection.requestedUsd.toFixed(2)}) exceed the $${maxUsd.toFixed(2)} price cap. Raise the cap, or pick cheaper models / shorter clips.`,
+    };
+  }
+  const { clips, totalUsd: estCostUsd } = selection;
   const spent = await monthVideoSpend(db);
   if (spent + estCostUsd > VIDEO_MONTHLY_CAP_USD) {
     return {
@@ -1618,6 +1687,69 @@ export async function editVideoMetadata(opts: {
     metadata,
   });
   await db.from("videos").update({ title: opts.title }).eq("id", video.id);
+  return { ok: true };
+}
+
+// ── Kinetic Highlights ────────────────────────────────────────────────
+
+/** Toggle the opt-in / set the operator target count for a video. */
+export async function setHighlightOptions(opts: {
+  videoId: string;
+  enabled: boolean;
+  count: number;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const { error } = await db
+    .from("videos")
+    .update({
+      enable_highlights: opts.enabled,
+      highlight_count: Math.max(0, Math.min(12, Math.round(opts.count))),
+    })
+    .eq("id", opts.videoId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+/** (Re)run curation for a video against its latest script. */
+export async function curateHighlightsForVideo(opts: {
+  videoId: string;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+
+  const { data: script } = await db
+    .from("scripts")
+    .select("beats")
+    .eq("video_id", video.id)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const beats = (script?.beats as ScriptBeat[] | undefined) ?? [];
+  if (beats.length === 0) return { ok: false, error: "No script to curate yet" };
+
+  // Enabling here is implicit — the operator asked for highlights.
+  if (!video.enable_highlights) {
+    await db.from("videos").update({ enable_highlights: true }).eq("id", video.id);
+    video.enable_highlights = true;
+  }
+  await runHighlightCuration(db, video, project, beats);
+  return { ok: true };
+}
+
+/** Persist operator edits to the curated highlights. */
+export async function saveHighlights(opts: {
+  videoId: string;
+  highlights: CuratedHighlight[];
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const { error } = await db
+    .from("videos")
+    .update({ highlights: opts.highlights })
+    .eq("id", opts.videoId);
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 

@@ -7,6 +7,18 @@ export type BrandKit = {
   font: string;
 };
 
+/** Operator-chosen recipe for the Custom Full-Auto tier. Hero beats bookend
+    the video (start + end); b-roll fills the middle at the standard density.
+    A run is paused (not downgraded) when its projected cost exceeds maxUsd. */
+export type CustomSpec = {
+  heroModel: string;
+  brollModel: string;
+  heroSec: number;
+  brollSec: number;
+  /** Hard per-video price cap (USD); overrun pauses and notifies. */
+  maxUsd: number;
+};
+
 export type Budget = {
   perVideoUsd: number;
   monthlyUsd: number;
@@ -32,10 +44,13 @@ export type Project = {
   /** Confirm-before-generate threshold for pricey clips (USD; default 3). */
   clip_confirm_usd: number;
   /** Hard per-video budget (USD); the smart-mix downgrades beats to free
-      stills/stock rather than exceed it. Default 4. */
+      stills/stock rather than exceed it. Default 8 (Platinum/Custom headroom). */
   max_video_usd: number;
-  /** Max AI-video beats per video in the economy mix (rest stay stills/stock). */
+  /** Max AI-video accents per video in the economy tier (rest stay
+      stills/stock); other tiers scale accent count with length. */
   ai_clip_cap: number;
+  /** Saved default recipe for the Custom Full-Auto tier (null until set). */
+  custom_spec: CustomSpec | null;
   is_demo: boolean;
   created_at: string;
   updated_at: string;
@@ -57,8 +72,52 @@ export type Video = {
   paused_reason: string | null;
   /** Full Auto: worker advances to render when the last clip lands. */
   auto_finish: boolean;
+  /** Kinetic Highlights — opt-in Claude-curated burned-in attention text. */
+  enable_highlights: boolean;
+  /** Operator-set target count of highlights. 0 = auto density (~1 per 45s). */
+  highlight_count: number;
+  /** Curated highlights (review-time shape; timing resolved at render). */
+  highlights: CuratedHighlight[];
   created_at: string;
   updated_at: string;
+};
+
+/** Kinetic-highlight style presets (see packages/render highlight layer). */
+export type HighlightPreset =
+  | "word-pop"
+  | "highlight-box-swipe"
+  | "stat-card"
+  | "quote-card"
+  | "typewriter"
+  | "color-flash-pop"
+  | "sticker-tag"
+  | "underline-swipe";
+
+export type HighlightPosition = "center" | "upper-third" | "lower-third-safe";
+export type HighlightIntensity = "subtle" | "med" | "high";
+
+/**
+ * A single curated highlight as stored on the video and shown in the review
+ * editor. Timestamps are NOT stored here — the render worker resolves
+ * beat-local start/end from the beat's ElevenLabs word timings at build time
+ * (so highlights stay valid across re-renders and VO changes).
+ */
+export type CuratedHighlight = {
+  id: string;
+  /** Beat this highlight is anchored to (ScriptBeat.idx). */
+  beatIdx: number;
+  /** Punchy on-screen phrase, 2–6 words (rewritten, not verbatim narration). */
+  text: string;
+  /** Token to box/flash/punch; should appear in the beat's spoken words. */
+  emphasisWord?: string;
+  stylePreset: HighlightPreset;
+  /** Display font family (CSS name), chosen from the project niche. */
+  fontFamily: string;
+  /** Emphasis colour (defaults to brand primary at render). */
+  emphasisColor?: string;
+  position: HighlightPosition;
+  intensity: HighlightIntensity;
+  maxLines: number;
 };
 
 export type ScriptBeat = {

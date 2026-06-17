@@ -22,6 +22,9 @@ import {
   rerollBeatVisual,
   runPipeline,
   setBeatShotType,
+  setHighlightOptions,
+  curateHighlightsForVideo,
+  saveHighlights,
   type ClassifyResult,
   type EnqueueResult,
   type FullAutoResult,
@@ -31,7 +34,7 @@ import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import { getKillSwitch } from "@/lib/db/queries";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
-import type { ScriptBeat } from "@/lib/db/types";
+import type { CuratedHighlight, CustomSpec, ScriptBeat } from "@/lib/db/types";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 
 export type PipelineResult = { ok: boolean; error?: string };
@@ -298,9 +301,10 @@ export async function fullAutoGenerateAction(
   projectId: string,
   videoId: string,
   tier: AutoTier,
+  custom?: CustomSpec,
 ): Promise<FullAutoResult> {
   try {
-    const r = await fullAutoGenerate({ videoId, tier });
+    const r = await fullAutoGenerate({ videoId, tier, custom });
     if (r.ok) {
       revalidatePath(`/projects/${projectId}/videos/${videoId}`);
       refresh(projectId);
@@ -308,6 +312,26 @@ export async function fullAutoGenerateAction(
     return r;
   } catch (err) {
     console.error("fullAutoGenerateAction failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Persist a Custom-tier recipe as the project's reusable default. */
+export async function saveCustomSpecAction(
+  projectId: string,
+  spec: CustomSpec,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("projects")
+      .update({ custom_spec: spec })
+      .eq("id", projectId);
+    if (error) return { ok: false, error: error.message };
+    refresh(projectId);
+    return { ok: true };
+  } catch (err) {
+    console.error("saveCustomSpecAction failed:", err);
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
@@ -418,6 +442,44 @@ export async function editVideoMetadataAction(
     revalidatePath(`/projects/${projectId}/videos/${videoId}`);
     refresh(projectId);
     return result;
+  });
+}
+
+// ── Kinetic Highlights ────────────────────────────────────────────────
+
+export async function setHighlightOptionsAction(
+  projectId: string,
+  videoId: string,
+  enabled: boolean,
+  count: number,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await setHighlightOptions({ videoId, enabled, count });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
+  });
+}
+
+export async function curateHighlightsAction(
+  projectId: string,
+  videoId: string,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await curateHighlightsForVideo({ videoId });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
+  });
+}
+
+export async function saveHighlightsAction(
+  projectId: string,
+  videoId: string,
+  highlights: CuratedHighlight[],
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await saveHighlights({ videoId, highlights });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
   });
 }
 

@@ -13,11 +13,13 @@ import { VIDEO_MONTHLY_CAP_USD } from "@/lib/adapters/video-models";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
 import { buildAttributionBlock } from "@/lib/attribution";
-import type { Asset, Script, Video, ScriptBeat } from "@/lib/db/types";
+import type { Asset, CuratedHighlight, Script, Video, ScriptBeat } from "@/lib/db/types";
+import { fontForNiche } from "@/lib/adapters/highlights";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { ScriptReview } from "./script-review";
+import { HighlightsEditor } from "./highlights-editor";
 import { VideoGen } from "./video-gen";
 import { PublishKit, type PublishRender } from "./publish-kit";
 
@@ -170,6 +172,18 @@ export default async function VideoDetailPage({
       )}
 
       {s && beats.length > 0 && (
+        <HighlightsEditor
+          projectId={id}
+          videoId={vid}
+          enabled={v.enable_highlights ?? false}
+          count={v.highlight_count ?? 0}
+          highlights={(v.highlights ?? []) as CuratedHighlight[]}
+          beats={beats.map((b) => ({ idx: b.idx, text: b.text }))}
+          defaultFont={fontForNiche(project.niche)}
+        />
+      )}
+
+      {s && beats.length > 0 && (
         <div id="videogen">
         <VideoGen
           projectId={id}
@@ -192,6 +206,7 @@ export default async function VideoDetailPage({
           monthSpent={monthVideoSpent}
           cap={VIDEO_MONTHLY_CAP_USD}
           confirmOverUsd={Number(project.clip_confirm_usd ?? 3)}
+          customDefault={project.custom_spec ?? null}
         />
         </div>
       )}

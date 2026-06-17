@@ -321,16 +321,16 @@ export const TOOLS: Tool[] = [
   {
     name: "full_auto_generate",
     description:
-      "Run Full Auto-Generate on a SCRIPT_READY video: classify shot types, approve the script (VO + free stock + keyframes), enqueue a budget-capped smart mix of clip jobs, and auto-finish to render (pauses at Final review). tier = economy | base | mid | platinum (default economy — cheapest). The per-video budget and AI-clip cap are taken from the project.",
+      "Run Full Auto-Generate on a SCRIPT_READY video: classify shot types, approve the script (VO + free stock + keyframes), enqueue a budget-capped smart mix of clip jobs, and auto-finish to render (pauses at Final review). tier = base | economy | premium | platinum (default base — free equivalent, no AI video; the custom tier is configured in the app, not here). The per-video budget and AI-clip cap are taken from the project.",
     inputSchema: obj(
       {
         videoId: { type: "string", description: "Video at the Script gate (SCRIPT_READY)." },
-        tier: { type: "string", description: "economy | base | mid | platinum (default economy)." },
+        tier: { type: "string", description: "base | economy | premium | platinum (default base)." },
       },
       ["videoId"],
     ),
     handler: async (a, db) => {
-      const tier = (["economy", "base", "mid", "platinum"].includes(str(a.tier)) ? str(a.tier) : "economy") as AutoTier;
+      const tier = (["base", "economy", "premium", "platinum"].includes(str(a.tier)) ? str(a.tier) : "base") as AutoTier;
       return fullAutoGenerate({ videoId: str(a.videoId), tier }, db as never);
     },
   },
