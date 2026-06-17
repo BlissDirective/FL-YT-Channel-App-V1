@@ -153,6 +153,10 @@ const HighlightBoxSwipe: React.FC<HighlightRenderProps> = ({ hl, brand, vertical
   );
 };
 
+/** The number token inside a stat phrase (with $ / unit), stripped from the
+    label so it isn't shown twice under the big number. */
+const STAT_NUM_TOKEN = /\$?\s?\d[\d,.]*\s?(?:%|percent|million|billion|thousand|k|x)?/i;
+
 const numberParts = (raw: string) => {
   const m = raw.match(/^(\D*?)(\d[\d,]*(?:\.\d+)?)(.*)$/s);
   if (!m) return null;
@@ -178,16 +182,19 @@ const StatCard: React.FC<HighlightRenderProps> = ({ hl, brand, vertical, baseSiz
     maximumFractionDigits: parts.decimals,
   });
   const numColor = hl.emphasisColor ?? brand.primary;
-  const label = parts.suffix
-    ? hl.text
-    : hl.text.replace(new RegExp(`\\b${parts.value}\\b`), "").trim();
+  // Label = the phrase minus the number token (shown big above), so
+  // "$4,000,000 LOST" → big "$4,000,000" + label "LOST" (no duplication).
+  const label = hl.text.replace(STAT_NUM_TOKEN, "").replace(/\s+/g, " ").trim();
+  const suffixStr = parts.suffix
+    ? `${/^[a-z]/i.test(parts.suffix) ? " " : ""}${parts.suffix}`
+    : "";
   return (
     <Frame position="center" vertical={vertical}>
       <div style={{ transform: `translateY(${drop}px)`, opacity: enter }}>
         <div style={{ ...baseText(hl.fontFamily, baseSize * 1.7), color: numColor }}>
           {parts.prefix}
           {shown}
-          {parts.suffix ? ` ${parts.suffix}` : ""}
+          {suffixStr}
         </div>
         {label && (
           <div style={{ ...baseText(hl.fontFamily, baseSize * 0.5), marginTop: 12 }}>{label}</div>

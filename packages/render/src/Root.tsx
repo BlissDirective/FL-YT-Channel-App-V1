@@ -3,6 +3,7 @@ import { Composition } from "remotion";
 import { LongForm, Short, shortDurationSec } from "./VideoComp";
 import { FPS, longFormDurationSec, type VideoProps } from "./types";
 import { HighlightPreview } from "./highlights/Preview";
+import { HighlightOnFootage, HighlightOnFootageVertical } from "./highlights/FootagePreview";
 
 const DEFAULT_PROPS: VideoProps = {
   title: "Sample Video",
@@ -59,6 +60,23 @@ export const RemotionRoot: React.FC = () => (
       fps={FPS}
       width={1920}
       height={1080}
+      durationInFrames={150}
+    />
+    {/* Dev-only: highlights over real footage (readability / safe-area). */}
+    <Composition
+      id="HighlightOnFootage"
+      component={HighlightOnFootage}
+      fps={FPS}
+      width={1920}
+      height={1080}
+      durationInFrames={250}
+    />
+    <Composition
+      id="HighlightOnFootageVertical"
+      component={HighlightOnFootageVertical}
+      fps={FPS}
+      width={1080}
+      height={1920}
       durationInFrames={150}
     />
   </>
