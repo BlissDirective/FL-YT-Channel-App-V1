@@ -69,6 +69,8 @@ export type ShortSegment = {
   beats: number[];
   /** Short human label for the segment (e.g. the hook line). */
   label: string;
+  /** Hook/description line for the Short (used as the publish description). */
+  caption?: string;
 };
 
 export type Video = {
@@ -89,6 +91,9 @@ export type Video = {
   scheduled_at: string | null;
   youtube_video_id: string | null;
   published_at: string | null;
+  /** Shorts only: operator tapped Publish → the render farm uploads the
+      staged 9:16 cut to YouTube on its next pass. */
+  publish_requested: boolean;
   total_cost_usd: number;
   paused_reason: string | null;
   /** Full Auto: worker advances to render when the last clip lands. */

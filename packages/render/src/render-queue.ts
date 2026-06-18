@@ -5,7 +5,7 @@
  * the beat timeline for retention mapping), and advances the video to
  * FINAL_REVIEW. Mock-asset videos are handled in-app and never reach here.
  */
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { cpus, tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -350,24 +350,80 @@ async function main() {
     .eq("status", "ASSEMBLING")
     .order("updated_at", { ascending: true })
     .limit(5);
-  if (!queue || queue.length === 0) {
-    console.log("Queue empty — nothing to render.");
-    return;
-  }
-  console.log(`Queue: ${queue.length} video(s)`);
-  await ensureBrowser();
-  const entry = fileURLToPath(new URL("./index.ts", import.meta.url));
-  const serveUrl = await bundle({ entryPoint: entry });
 
-  for (const v of queue) {
+  if (queue && queue.length > 0) {
+    console.log(`Queue: ${queue.length} video(s)`);
+    await ensureBrowser();
+    const entry = fileURLToPath(new URL("./index.ts", import.meta.url));
+    const serveUrl = await bundle({ entryPoint: entry });
+
+    for (const v of queue) {
+      try {
+        await renderOne(serveUrl, v.id);
+      } catch (err) {
+        console.error(`❌ ${v.title}:`, err);
+        await db
+          .from("videos")
+          .update({ paused_reason: `Render failed: ${String(err).slice(0, 140)}` })
+          .eq("id", v.id);
+      }
+    }
+  } else {
+    console.log("Queue empty — nothing to render.");
+  }
+
+  // Independent of the render queue: publish any Shorts the operator has
+  // tapped Publish on. Runs even when the render queue is empty.
+  await publishStagedShorts();
+}
+
+/**
+ * Upload staged Shorts that the operator flagged for publish. The farm holds
+ * the YouTube OAuth creds (the app never does), so it does the upload here:
+ * download the staged 9:16 MP4 from Storage → upload as a Short (#Shorts) →
+ * stamp youtube_video_id + TRACKING. No-op when OAuth isn't configured.
+ */
+async function publishStagedShorts() {
+  if (!youtubeUploadConfigured()) return;
+  const { data: pending } = await db
+    .from("videos")
+    .select("id, title, project_id, source_segment")
+    .eq("kind", "short")
+    .eq("publish_requested", true)
+    .eq("status", "FINAL_REVIEW")
+    .is("youtube_video_id", null)
+    .limit(5);
+  if (!pending || pending.length === 0) return;
+  console.log(`Publish: ${pending.length} staged Short(s)`);
+
+  for (const s of pending) {
     try {
-      await renderOne(serveUrl, v.id);
-    } catch (err) {
-      console.error(`❌ ${v.title}:`, err);
+      const path = `videos/${s.id}/short.mp4`;
+      const { data: file, error: dlErr } = await db.storage.from("media").download(path);
+      if (dlErr || !file) throw new Error(`download ${path}: ${dlErr?.message ?? "missing"}`);
+      const tmp = join(mkdtempSync(join(tmpdir(), "publish-")), "short.mp4");
+      writeFileSync(tmp, Buffer.from(await file.arrayBuffer()));
+
+      const caption = (s.source_segment as { caption?: string } | null)?.caption ?? "";
+      const ytId = await uploadVideo({
+        filePath: tmp,
+        title: s.title,
+        description: `${caption}\n\n#Shorts`.trim(),
+        tags: ["Shorts"],
+      });
       await db
         .from("videos")
-        .update({ paused_reason: `Render failed: ${String(err).slice(0, 140)}` })
-        .eq("id", v.id);
+        .update({
+          youtube_video_id: ytId,
+          status: "TRACKING",
+          published_at: new Date().toISOString(),
+          publish_requested: false,
+        })
+        .eq("id", s.id);
+      console.log(`📺 ${s.title}: published Short → ${ytId}`);
+    } catch (err) {
+      console.error(`❌ publish ${s.title}:`, err);
+      // Leave publish_requested set so the next pass retries.
     }
   }
 }

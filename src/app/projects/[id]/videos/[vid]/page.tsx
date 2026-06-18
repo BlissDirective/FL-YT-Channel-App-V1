@@ -5,6 +5,7 @@ import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import {
   getClipJobs,
+  getDerivedShorts,
   getMonthlyVideoSpendUsd,
   getProject,
   getVideoSnapshots,
@@ -22,6 +23,7 @@ import { ScriptReview } from "./script-review";
 import { HighlightsEditor } from "./highlights-editor";
 import { VideoGen } from "./video-gen";
 import { PublishKit, type PublishRender } from "./publish-kit";
+import { DeriveShorts, type DerivedShortRow } from "./derive-shorts";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -107,6 +109,16 @@ export default async function VideoDetailPage({
     ? await buildPublishKit({ id, vid, v, s, assets: allAssets, project })
     : null;
 
+  // Derive Shorts: available once a long-form has rendered from live assets
+  // (the Shorts reuse its VO + clips). Hidden for Shorts themselves.
+  const hasLiveVo = allAssets.some(
+    (a) => a.kind === "vo" && a.storage_path && !a.storage_path.startsWith("mock/"),
+  );
+  const canDeriveShorts = v.kind === "long" && hasLiveVo;
+  const derivedShorts: DerivedShortRow[] = canDeriveShorts
+    ? await buildDerivedShorts(vid)
+    : [];
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 pt-2">
       <RealtimeRefresher tables={["videos", "scripts", "assets", "analytics_snapshots", "clip_jobs"]} />
@@ -148,6 +160,16 @@ export default async function VideoDetailPage({
       </Link>
 
       {publishKit && <PublishKit {...publishKit} />}
+
+      {canDeriveShorts && (
+        <DeriveShorts
+          projectId={id}
+          parentVideoId={vid}
+          defaultCount={project.derive_shorts_count ?? 3}
+          defaultSmart={project.derive_shorts_smart ?? true}
+          shorts={derivedShorts}
+        />
+      )}
 
       {!s ? (
         <Card>
@@ -211,6 +233,36 @@ export default async function VideoDetailPage({
         </div>
       )}
     </div>
+  );
+}
+
+/** Rows for the Derive Shorts panel: each child Short + its staged MP4. */
+async function buildDerivedShorts(parentVideoId: string): Promise<DerivedShortRow[]> {
+  const shorts = await getDerivedShorts(parentVideoId);
+  if (shorts.length === 0) return [];
+  const supabase = await createClient();
+  const { data: renders } = await supabase
+    .from("assets")
+    .select("video_id, storage_path, meta")
+    .in("video_id", shorts.map((sh) => sh.id))
+    .eq("kind", "render");
+  const renderBy = new Map(
+    (renders ?? []).map((r) => [r.video_id as string, r]),
+  );
+  return Promise.all(
+    shorts.map(async (sh) => {
+      const r = renderBy.get(sh.id);
+      const durationSec = Number((r?.meta as { durationSec?: number })?.durationSec ?? 0) || null;
+      return {
+        id: sh.id,
+        title: sh.title,
+        status: sh.status,
+        publishRequested: Boolean(sh.publish_requested),
+        youtubeVideoId: sh.youtube_video_id,
+        downloadUrl: r?.storage_path ? await getSignedMediaUrl(r.storage_path) : null,
+        durationSec,
+      };
+    }),
   );
 }
 

@@ -109,11 +109,14 @@ Primary workflow. On a long-form at/after `FINAL_REVIEW`, the operator clicks
    stats.
 2. **Segment selection:**
    - **smart** → a Claude call picks N non-overlapping contiguous beat ranges
-     biased toward high-retention / high-energy moments, writes a punchy
-     caption/title per short, and curates per-short highlights. Cost recorded
-     via `recordCost` (provider `anthropic`, ~cents).
-   - **heuristic** (free) → pick N spread-out ranges by beat scoring; inherit
-     the parent's existing highlights for those beats, re-timed.
+     biased toward high-retention / high-energy moments and writes a punchy
+     title + hook caption per short. Cost logged to the parent's ledger
+     (provider `anthropic`, ~cents).
+   - **heuristic** (free) → spread N non-overlapping ranges evenly across the
+     script.
+   - Either way, each short **inherits the parent's curated highlights** that
+     fall on its beats (re-id'd); timing re-resolves at render from the reused
+     beat word timestamps. Free, and consistent with the long-form.
 3. Create N `kind='short'` video rows with `parent_video_id`, `source_segment`,
    title/caption, and curated highlights; enqueue render jobs.
 4. Each renders via the §3 derived path (free) and lands at `FINAL_REVIEW`,
@@ -129,15 +132,21 @@ Enhancements folded in:
 
 ## 5. One-tap publish (Shorts → YouTube)
 
-`publishShortAction(videoId)` downloads the staged vertical MP4 from Storage and
-uploads it to YouTube as a Short (append `#Shorts`, vertical), reusing
-`uploadVideo` from `packages/render/src/youtube.ts` (a plain HTTPS API call — no
-render farm or Chrome needed). Writes the resulting `youtube_video_id`. Requires
-the `YOUTUBE_OAUTH_*` secrets already used by the render farm; if absent, the UI
-falls back to "download the MP4 and upload manually."
+The app deliberately holds **no** YouTube OAuth (uploads stay out of Google's
+audit by design — see `src/lib/adapters/youtube.ts`); only the render farm has
+the upload creds. So one-tap publish is a flag the farm consumes:
 
-This is the same trigger model the operator chose: **manual**. They publish each
-staged short whenever they want.
+- `publishShortAction(videoId)` sets `videos.publish_requested = true` (migration
+  `0021_shorts_publish.sql`). That's the operator's one tap.
+- On its next pass the render farm (`render-queue.ts → publishStagedShorts`)
+  downloads the staged 9:16 MP4 from Storage, uploads it via `uploadVideo`
+  (`#Shorts`, the segment caption as description), and stamps
+  `youtube_video_id` + `TRACKING`. No-op when the farm has no OAuth.
+- Fallback with no OAuth: the operator downloads the MP4 from the Derive Shorts
+  panel and uses the existing "mark uploaded" path.
+
+This is the trigger model the operator chose: **manual**. They publish each
+staged short whenever they want; nothing auto-posts.
 
 ---
 
