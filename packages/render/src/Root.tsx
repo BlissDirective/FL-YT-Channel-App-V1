@@ -1,7 +1,12 @@
 import React from "react";
 import { Composition } from "remotion";
-import { LongForm, Short, shortDurationSec } from "./VideoComp";
-import { FPS, longFormDurationSec, type VideoProps } from "./types";
+import { LongForm, Short, VerticalShort, shortDurationSec } from "./VideoComp";
+import {
+  FPS,
+  longFormDurationSec,
+  verticalShortDurationSec,
+  type VideoProps,
+} from "./types";
 import { HighlightPreview } from "./highlights/Preview";
 import { HighlightOnFootage, HighlightOnFootageVertical } from "./highlights/FootagePreview";
 
@@ -51,6 +56,19 @@ export const RemotionRoot: React.FC = () => (
       defaultProps={DEFAULT_PROPS}
       calculateMetadata={({ props }) => ({
         durationInFrames: Math.round(shortDurationSec(props) * FPS),
+      })}
+    />
+    {/* Full short (native or repurposed segment): all beats, vertical. */}
+    <Composition
+      id="VerticalShort"
+      component={VerticalShort}
+      fps={FPS}
+      width={1080}
+      height={1920}
+      durationInFrames={300}
+      defaultProps={DEFAULT_PROPS}
+      calculateMetadata={({ props }) => ({
+        durationInFrames: Math.round(verticalShortDurationSec(props) * FPS),
       })}
     />
     {/* Dev-only: eyeball all 8 highlight presets at once. */}

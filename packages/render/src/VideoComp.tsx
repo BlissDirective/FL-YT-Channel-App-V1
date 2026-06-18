@@ -15,7 +15,9 @@ import {
   FPS,
   INTRO_SEC,
   OUTRO_SEC,
+  SHORT_TAIL_SEC,
   longFormDurationSec,
+  verticalShortDurationSec,
   type RenderBeat,
   type VideoProps,
 } from "./types";
@@ -90,6 +92,39 @@ export const Short: React.FC<VideoProps> = (props) => {
 export function shortDurationSec(props: VideoProps): number {
   return Math.max(1, props.beats[0]?.durationSec ?? 1) + 1.5;
 }
+
+/** 9:16 Short across ALL beats in props — used for native shorts and for
+    repurposed segments cut from a long-form. Sequences every beat vertically
+    with big captions, then a compact CTA tail. Distinct from <Short>, which
+    renders only beat 0 as the free long-form byproduct. */
+export const VerticalShort: React.FC<VideoProps> = (props) => {
+  if (props.beats.length === 0) {
+    return <AbsoluteFill style={{ backgroundColor: props.brand.secondary }} />;
+  }
+  let cursor = 0;
+  const bodySec = props.beats.reduce((s, b) => s + Math.max(1, b.durationSec), 0);
+  return (
+    <AbsoluteFill style={{ backgroundColor: props.brand.secondary, fontFamily: FONT }}>
+      <HighlightFonts />
+      {props.beats.map((beat) => {
+        const from = Math.round(cursor * FPS);
+        const dur = Math.round(Math.max(1, beat.durationSec) * FPS);
+        cursor += Math.max(1, beat.durationSec);
+        return (
+          <Sequence key={beat.idx} from={from} durationInFrames={dur}>
+            <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical />
+          </Sequence>
+        );
+      })}
+      <Sequence
+        from={Math.round(bodySec * FPS)}
+        durationInFrames={Math.round(SHORT_TAIL_SEC * FPS)}
+      >
+        <EndCard {...props} compact />
+      </Sequence>
+    </AbsoluteFill>
+  );
+};
 
 // ── Scenes ────────────────────────────────────────────────────────────
 

@@ -63,12 +63,21 @@ export type VideoProps = {
 export const FPS = 30;
 export const INTRO_SEC = 2.5;
 export const OUTRO_SEC = 4;
+/** CTA tail appended after the last beat of a full vertical short. */
+export const SHORT_TAIL_SEC = 1.5;
 
 export function longFormDurationSec(props: VideoProps): number {
   return (
     INTRO_SEC +
     props.beats.reduce((s, b) => s + Math.max(1, b.durationSec), 0) +
     OUTRO_SEC
+  );
+}
+
+/** Full vertical short: all beats back-to-back plus the CTA tail. */
+export function verticalShortDurationSec(props: VideoProps): number {
+  return (
+    props.beats.reduce((s, b) => s + Math.max(1, b.durationSec), 0) + SHORT_TAIL_SEC
   );
 }
 

@@ -15,6 +15,7 @@ import { ensureBrowser, renderMedia, selectComposition } from "@remotion/rendere
 import {
   beatTimeline,
   longFormDurationSec,
+  verticalShortDurationSec,
   type Highlight,
   type RenderBeat,
   type VideoProps,
@@ -99,7 +100,7 @@ function resolveHighlights(
 async function buildProps(videoId: string): Promise<{
   props: VideoProps;
   project: { id: string };
-  video: { id: string; title: string; target_length_sec: number };
+  video: { id: string; title: string; target_length_sec: number; kind: string };
 } | null> {
   const { data: video } = await db.from("videos").select("*").eq("id", videoId).single();
   if (!video) return null;
@@ -108,17 +109,33 @@ async function buildProps(videoId: string): Promise<{
     .select("*")
     .eq("id", video.project_id)
     .single();
+
+  // Repurposed shorts reuse the parent long-form's script + rendered assets
+  // (no new VO/clip spend); native shorts and long-forms use their own.
+  const isDerived = video.kind === "short" && video.parent_video_id;
+  const sourceId: string = isDerived ? video.parent_video_id : videoId;
+
   const { data: script } = await db
     .from("scripts")
     .select("beats")
-    .eq("video_id", videoId)
+    .eq("video_id", sourceId)
     .order("version", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const { data: assets } = await db.from("assets").select("*").eq("video_id", videoId);
+  const { data: assets } = await db.from("assets").select("*").eq("video_id", sourceId);
   if (!project || !script || !assets) return null;
 
-  const scriptBeats = script.beats as { idx: number; text: string; shotType: string }[];
+  let scriptBeats = script.beats as { idx: number; text: string; shotType: string }[];
+  // Cut the segment: keep only the parent beats this short was derived from,
+  // in the segment's order. Original beat idx is preserved so asset lookup and
+  // highlight anchoring (by beatIdx) stay valid.
+  const segment = (video.source_segment ?? null) as { beats?: number[] } | null;
+  if (isDerived && segment?.beats?.length) {
+    const order = new Map(segment.beats.map((idx, i) => [idx, i] as const));
+    scriptBeats = scriptBeats
+      .filter((b) => order.has(b.idx))
+      .sort((a, b) => (order.get(a.idx) ?? 0) - (order.get(b.idx) ?? 0));
+  }
   // Curated highlights live on the video (opt-in); timing is resolved per beat
   // below from the beat's word timestamps.
   const curated = (
@@ -204,15 +221,30 @@ async function renderOne(
   const sm = (scriptRow?.metadata ?? {}) as { description?: string; tags?: string[] };
   const scriptMeta = { description: sm.description ?? "", tags: sm.tags ?? [] };
 
-  for (const variant of ["long", "short"] as const) {
-    const compId = variant === "long" ? "LongForm" : "Short";
-    const out = join(outDir, `${variant}.mp4`);
+  // Short videos (native or repurposed) render a single 9:16 cut across all
+  // their beats and are staged in Storage for one-tap publish — no YouTube
+  // upload here. Long-forms render the 16:9 cut plus the free beat-0 Short.
+  type RenderPlan = {
+    variant: "long" | "short";
+    compId: "LongForm" | "Short" | "VerticalShort";
+    storageName: string;
+  };
+  const plans: RenderPlan[] =
+    video.kind === "short"
+      ? [{ variant: "short", compId: "VerticalShort", storageName: "short" }]
+      : [
+          { variant: "long", compId: "LongForm", storageName: "final" },
+          { variant: "short", compId: "Short", storageName: "short-0" },
+        ];
+
+  for (const { variant, compId, storageName } of plans) {
+    const out = join(outDir, `${compId}.mp4`);
     const composition = await selectComposition({
       serveUrl,
       id: compId,
       inputProps: props,
     });
-    console.log(`🎬 ${video.title} [${variant}] — ${composition.durationInFrames} frames`);
+    console.log(`🎬 ${video.title} [${compId}] — ${composition.durationInFrames} frames`);
     await renderMedia({
       composition,
       serveUrl,
@@ -231,9 +263,11 @@ async function renderOne(
       x264Preset: "faster",
     });
     const durationSec =
-      variant === "long"
+      compId === "LongForm"
         ? Math.round(longFormDurationSec(props))
-        : Math.round(props.beats[0]?.durationSec ?? 0) + 2;
+        : compId === "VerticalShort"
+          ? Math.round(verticalShortDurationSec(props))
+          : Math.round(props.beats[0]?.durationSec ?? 0) + 2;
     const baseMeta = {
       variant,
       resolution: variant === "long" ? "1080p" : "1080x1920",
@@ -276,7 +310,7 @@ async function renderOne(
       await db.from("videos").update({ youtube_video_id: ytId }).eq("id", videoId);
     } else {
       const file = readFileSync(out);
-      const storagePath = `videos/${videoId}/${variant === "long" ? "final" : "short-0"}.mp4`;
+      const storagePath = `videos/${videoId}/${storageName}.mp4`;
       const { error: upErr } = await db.storage
         .from("media")
         .upload(storagePath, file, { contentType: "video/mp4", upsert: true });
@@ -292,15 +326,20 @@ async function renderOne(
     }
   }
 
+  const isShort = video.kind === "short";
   await db.from("cost_ledger").insert({
     project_id: built.project.id,
     video_id: videoId,
     provider: "remotion",
-    description: "Final render + Short (GitHub Actions) — free",
+    description: isShort
+      ? "Short render (GitHub Actions) — free"
+      : "Final render + Short (GitHub Actions) — free",
     usd: 0,
   });
   await db.from("videos").update({ status: "FINAL_REVIEW" }).eq("id", videoId);
-  console.log(`✅ ${video.title}: rendered long + short → FINAL_REVIEW`);
+  console.log(
+    `✅ ${video.title}: rendered ${isShort ? "vertical short" : "long + short"} → FINAL_REVIEW`,
+  );
   return "rendered";
 }
 
