@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { Sparkline } from "@/components/ui/sparkline";
 import { markUploadedAction, refreshStatsAction } from "@/lib/actions/publish";
+import { publishShortAction } from "@/lib/actions/shorts";
 
 export type PublishRender = {
   variant: "long" | "short";
@@ -37,6 +38,10 @@ export type PublishKitProps = {
   projectId: string;
   videoId: string;
   status: "APPROVED" | "TRACKING";
+  /** True for short-form videos — unlocks the one-tap farm publish. */
+  isShort: boolean;
+  /** Operator already tapped Publish → the farm is uploading it. */
+  publishRequested: boolean;
   title: string;
   altTitles: string[];
   description: string;
@@ -81,8 +86,53 @@ export function PublishKit(props: PublishKitProps) {
 
       <RenderDownloads {...props} />
       <CopyFields {...props} />
+      {status === "APPROVED" && props.isShort && <PublishShort {...props} />}
       {status === "APPROVED" && <MarkUploaded {...props} />}
     </div>
+  );
+}
+
+/** One-tap publish for a staged Short: flags it for the render farm (which
+    holds the YouTube OAuth) to upload as a #Shorts video. Manual upload below
+    stays available as a fallback when the farm has no OAuth. */
+function PublishShort({ projectId, videoId, publishRequested }: PublishKitProps) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string>();
+  const [done, setDone] = useState(false);
+  const queued = publishRequested || done;
+
+  return (
+    <Card className="space-y-2 border border-accent/40 bg-accent-soft/40">
+      <p className="text-sm font-semibold">Publish this Short</p>
+      <p className="text-xs text-muted">
+        {queued
+          ? "Queued — the render farm uploads it to YouTube as a Short on its next pass (first stats appear within the day)."
+          : "One tap sends the staged 9:16 cut to YouTube as a Short. No file juggling."}
+      </p>
+      {!queued ? (
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() =>
+            startTransition(async () => {
+              setError(undefined);
+              const r = await publishShortAction(projectId, videoId);
+              if (!r.ok) setError(r.error);
+              else setDone(true);
+            })
+          }
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          {isPending ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+          Publish to YouTube
+        </button>
+      ) : (
+        <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">
+          <Check className="size-4 text-success" /> Queued for publish
+        </p>
+      )}
+      {error && <p className="text-sm font-medium text-coral">{error}</p>}
+    </Card>
   );
 }
 

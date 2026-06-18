@@ -390,7 +390,7 @@ async function publishStagedShorts() {
     .select("id, title, project_id, source_segment")
     .eq("kind", "short")
     .eq("publish_requested", true)
-    .eq("status", "FINAL_REVIEW")
+    .in("status", ["FINAL_REVIEW", "APPROVED"])
     .is("youtube_video_id", null)
     .limit(5);
   if (!pending || pending.length === 0) return;
@@ -404,7 +404,8 @@ async function publishStagedShorts() {
       const tmp = join(mkdtempSync(join(tmpdir(), "publish-")), "short.mp4");
       writeFileSync(tmp, Buffer.from(await file.arrayBuffer()));
 
-      const caption = (s.source_segment as { caption?: string } | null)?.caption ?? "";
+      // Derived Shorts carry a hook caption; native Shorts fall back to title.
+      const caption = (s.source_segment as { caption?: string } | null)?.caption || s.title;
       const ytId = await uploadVideo({
         filePath: tmp,
         title: s.title,

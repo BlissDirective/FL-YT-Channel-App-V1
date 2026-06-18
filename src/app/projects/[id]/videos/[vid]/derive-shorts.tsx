@@ -120,7 +120,7 @@ export function DeriveShorts(props: DeriveShortsProps) {
           </p>
           <ul className="divide-y divide-line">
             {shorts.map((s) => (
-              <ShortRow key={s.id} projectId={projectId} parentVideoId={parentVideoId} short={s} />
+              <ShortRow key={s.id} projectId={projectId} short={s} />
             ))}
           </ul>
         </Card>
@@ -131,11 +131,9 @@ export function DeriveShorts(props: DeriveShortsProps) {
 
 function ShortRow({
   projectId,
-  parentVideoId,
   short,
 }: {
   projectId: string;
-  parentVideoId: string;
   short: DerivedShortRow;
 }) {
   const [isPending, startTransition] = useTransition();
@@ -144,7 +142,7 @@ function ShortRow({
   const publish = () =>
     startTransition(async () => {
       setError(undefined);
-      const r = await publishShortAction(projectId, parentVideoId, short.id);
+      const r = await publishShortAction(projectId, short.id);
       if (!r.ok) setError(r.error);
     });
 

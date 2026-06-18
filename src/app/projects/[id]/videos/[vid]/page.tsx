@@ -314,6 +314,8 @@ async function buildPublishKit({
     projectId: id,
     videoId: vid,
     status: v.status as "APPROVED" | "TRACKING",
+    isShort: v.kind === "short",
+    publishRequested: Boolean(v.publish_requested),
     title: v.title,
     altTitles: (meta.titles ?? []).filter((t) => t !== v.title).slice(0, 3),
     description: composeDescription(meta, assets),

@@ -136,14 +136,17 @@ The app deliberately holds **no** YouTube OAuth (uploads stay out of Google's
 audit by design — see `src/lib/adapters/youtube.ts`); only the render farm has
 the upload creds. So one-tap publish is a flag the farm consumes:
 
-- `publishShortAction(videoId)` sets `videos.publish_requested = true` (migration
-  `0021_shorts_publish.sql`). That's the operator's one tap.
+- `publishShortAction(projectId, videoId)` sets `videos.publish_requested = true`
+  (migration `0021_shorts_publish.sql`). That's the operator's one tap, surfaced
+  on **both** the Derive Shorts panel (derived) and the Publish Kit (native).
+  Works once the Short is rendered (`FINAL_REVIEW`) or its gate is approved
+  (`APPROVED`).
 - On its next pass the render farm (`render-queue.ts → publishStagedShorts`)
   downloads the staged 9:16 MP4 from Storage, uploads it via `uploadVideo`
-  (`#Shorts`, the segment caption as description), and stamps
+  (`#Shorts`; the segment caption, else the title, as description), and stamps
   `youtube_video_id` + `TRACKING`. No-op when the farm has no OAuth.
-- Fallback with no OAuth: the operator downloads the MP4 from the Derive Shorts
-  panel and uses the existing "mark uploaded" path.
+- Fallback with no OAuth: the operator downloads the MP4 and uses the existing
+  "mark uploaded" path.
 
 This is the trigger model the operator chose: **manual**. They publish each
 staged short whenever they want; nothing auto-posts.
@@ -154,8 +157,9 @@ staged short whenever they want; nothing auto-posts.
 
 A hand-picked flow for visually striking shorts on high-interest topics. Unlike
 derived shorts, native shorts run the **full gated pipeline** (deliberate,
-hand-tuned) and publish via the **standard Publish Kit** (download + mark
-uploaded) — the one-tap farm publish (§5) stays a derived-shorts convenience.
+hand-tuned). They publish via the **same one-tap button** (§5, surfaced in the
+Publish Kit for `kind='short'`) with the manual download + mark-uploaded path as
+fallback.
 - **Entry:** the dashboard `QueueTopic` has a **Long-form / Short** toggle with a
   length picker (**30 / 60 / 120 / 180s**); `queueTopicAction` takes
   `{ kind, targetLengthSec }` and creates a `kind='short'` video at the IDEA gate.

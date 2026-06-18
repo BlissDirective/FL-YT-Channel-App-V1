@@ -143,26 +143,27 @@ export async function deriveShortsAction(
 }
 
 /**
- * One-tap publish for a staged Short. Flags it for the render farm, which holds
- * the YouTube OAuth credentials and uploads the staged 9:16 cut on its next
- * pass (the app never holds OAuth). If the farm has no OAuth configured the
- * operator still has the manual download + "mark uploaded" path.
+ * One-tap publish for a staged Short (native or derived). Flags it for the
+ * render farm, which holds the YouTube OAuth credentials and uploads the staged
+ * 9:16 cut on its next pass (the app never holds OAuth). If the farm has no
+ * OAuth configured the operator still has the manual download + "mark uploaded"
+ * path. Works once the Short is rendered (FINAL_REVIEW) or the gate is approved
+ * (APPROVED).
  */
 export async function publishShortAction(
   projectId: string,
-  parentVideoId: string,
   shortVideoId: string,
 ): Promise<ShortsResult> {
   try {
     const supabase = await createClient();
     const { data: short } = await supabase
       .from("videos")
-      .select("id, kind, status, youtube_video_id")
+      .select("id, kind, status, youtube_video_id, parent_video_id")
       .eq("id", shortVideoId)
       .maybeSingle();
     if (!short || short.kind !== "short") return { ok: false, error: "Not a Short." };
     if (short.youtube_video_id) return { ok: false, error: "This Short is already published." };
-    if (short.status !== "FINAL_REVIEW") {
+    if (short.status !== "FINAL_REVIEW" && short.status !== "APPROVED") {
       return { ok: false, error: "This Short isn't rendered yet." };
     }
     const { error } = await supabase
@@ -170,7 +171,14 @@ export async function publishShortAction(
       .update({ publish_requested: true })
       .eq("id", shortVideoId);
     if (error) return { ok: false, error: error.message };
-    refresh(projectId, parentVideoId);
+    // Refresh the Short's own page and (for a derived Short) the parent page
+    // where the Derive panel lives.
+    revalidatePath("/");
+    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}/videos/${shortVideoId}`);
+    if (short.parent_video_id) {
+      revalidatePath(`/projects/${projectId}/videos/${short.parent_video_id}`);
+    }
     return { ok: true };
   } catch (err) {
     console.error("publishShortAction failed:", err);
