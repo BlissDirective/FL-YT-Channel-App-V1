@@ -54,6 +54,23 @@ export const REVISION_TARGET: Record<ApprovalGate, VideoStatus> = {
   FINAL: "ASSEMBLING",
 };
 
+/** Reverse transitions — send a video back one stage to the previous gate
+    (e.g. mid-asset-generation back to script approval) when the operator
+    changes their mind. Each lands on a paused, reviewable status so the
+    script can be edited/remixed or re-run through Full Auto. */
+export const PREVIOUS_STAGE: Partial<Record<VideoStatus, VideoStatus>> = {
+  SCRIPT_READY: "IDEA",
+  GENERATING_ASSETS: "SCRIPT_READY",
+  ASSETS_READY: "SCRIPT_READY",
+  ASSEMBLING: "ASSETS_READY",
+  FINAL_REVIEW: "ASSETS_READY",
+};
+
+/** Whether a video at this status can be stepped back to the previous stage. */
+export function canStepBack(status: VideoStatus): boolean {
+  return status in PREVIOUS_STAGE;
+}
+
 /** Human-readable gate names for cards and notifications. */
 export const GATE_LABELS: Record<ApprovalGate, string> = {
   IDEA: "Idea",

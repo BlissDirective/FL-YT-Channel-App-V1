@@ -23,6 +23,7 @@ import {
   runPipeline,
   setBeatShotType,
   setHighlightOptions,
+  stepBackStage,
   curateHighlightsForVideo,
   saveHighlights,
   type ClassifyResult,
@@ -101,6 +102,22 @@ export async function resumeVideoAction(
 ): Promise<PipelineResult> {
   return guarded(async () => {
     const result = await runPipeline(videoId);
+    refresh(projectId);
+    return { ok: result.ok, error: result.error };
+  });
+}
+
+/** Send a video back one stage to the previous gate (e.g. asset generation →
+    script approval). `deleteAssets` discards the already-generated assets;
+    otherwise they're kept (VO is cached either way). */
+export async function stepBackStageAction(
+  projectId: string,
+  videoId: string,
+  deleteAssets: boolean,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const result = await stepBackStage({ videoId, deleteAssets });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
     refresh(projectId);
     return { ok: result.ok, error: result.error };
   });

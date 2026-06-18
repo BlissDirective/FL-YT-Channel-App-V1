@@ -21,6 +21,7 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { ScriptReview } from "./script-review";
 import { HighlightsEditor } from "./highlights-editor";
+import { StepBackStage } from "./step-back";
 import { VideoGen } from "./video-gen";
 import { PublishKit, type PublishRender } from "./publish-kit";
 import { DeriveShorts, type DerivedShortRow } from "./derive-shorts";
@@ -104,6 +105,9 @@ export default async function VideoDetailPage({
 
   const gate = GATE_FOR_STATUS[v.status];
   const isPublishStage = v.status === "APPROVED" || v.status === "TRACKING";
+  // Asset stage (mid-generation or assets done) → offer a step back to script.
+  const canStepBackToScript =
+    v.status === "GENERATING_ASSETS" || v.status === "ASSETS_READY";
 
   const publishKit = isPublishStage
     ? await buildPublishKit({ id, vid, v, s, assets: allAssets, project })
@@ -203,6 +207,10 @@ export default async function VideoDetailPage({
           beats={beats.map((b) => ({ idx: b.idx, text: b.text }))}
           defaultFont={fontForNiche(project.niche)}
         />
+      )}
+
+      {canStepBackToScript && (
+        <StepBackStage projectId={id} videoId={vid} backToLabel="script" />
       )}
 
       {s && beats.length > 0 && (

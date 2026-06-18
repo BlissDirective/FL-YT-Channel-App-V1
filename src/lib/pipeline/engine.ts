@@ -3,6 +3,7 @@ import {
   GATE_FOR_STATUS,
   GATE_LABELS,
   ON_APPROVE,
+  PREVIOUS_STAGE,
   REVISION_TARGET,
   type ApprovalGate,
   type AutonomyMode,
@@ -1668,6 +1669,48 @@ export async function applyScriptRemix(opts: {
     metadata: opts.metadata,
   });
   return { ok: true };
+}
+
+export type StepBackResult = EngineResult & { target?: VideoStatus };
+
+/** Send a video back one stage to the previous gate (e.g. asset generation →
+    script approval) when the operator changes their mind. Cancels any in-flight
+    long-clip jobs, clears a pending auto-finish so the worker can't advance a
+    reverted video, and optionally discards the generated assets. VO stays
+    cached in `vo_cache`, so unchanged narration re-voices free on the next run.
+    The video lands paused at the previous gate — the pipeline is NOT resumed,
+    leaving room to edit/remix the script or re-run Full Auto. */
+export async function stepBackStage(opts: {
+  videoId: string;
+  deleteAssets: boolean;
+}): Promise<StepBackResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+
+  const target = PREVIOUS_STAGE[video.status];
+  if (!target) {
+    return { ok: false, error: `This video can't be stepped back from ${video.status}.` };
+  }
+
+  // Cancel queued/running long-clip jobs — they target the stage being left.
+  await db
+    .from("clip_jobs")
+    .delete()
+    .eq("video_id", video.id)
+    .in("status", ["queued", "running"]);
+
+  // Optionally discard generated assets (clips, stills, VO, captions, thumbs).
+  if (opts.deleteAssets) {
+    await db.from("assets").delete().eq("video_id", video.id);
+  }
+
+  // Land on the previous gate, paused, and clear any pending auto-finish.
+  await db
+    .from("videos")
+    .update({ status: target, auto_finish: false })
+    .eq("id", video.id);
+  return { ok: true, target };
 }
 
 /** Title/description edits from the script review screen — versioned like
