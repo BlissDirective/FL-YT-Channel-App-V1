@@ -51,9 +51,24 @@ export type Project = {
   ai_clip_cap: number;
   /** Saved default recipe for the Custom Full-Auto tier (null until set). */
   custom_spec: CustomSpec | null;
+  /** Default number of shorts the "Derive Shorts" modal proposes. */
+  derive_shorts_count: number;
+  /** Default for the smart (Claude) segment-selection toggle when deriving. */
+  derive_shorts_smart: boolean;
   is_demo: boolean;
   created_at: string;
   updated_at: string;
+};
+
+/** Long-form vs short-form. Both flavours of short are `kind='short'` rows. */
+export type VideoKind = "long" | "short";
+
+/** Which parent beats a repurposed short was cut from. */
+export type ShortSegment = {
+  /** Parent ScriptBeat.idx values, contiguous and in order. */
+  beats: number[];
+  /** Short human label for the segment (e.g. the hook line). */
+  label: string;
 };
 
 export type Video = {
@@ -63,6 +78,12 @@ export type Video = {
   title: string;
   topic: string;
   status: VideoStatus;
+  /** 'long' (default) or 'short'. Drives script targets, tiers, render path. */
+  kind: VideoKind;
+  /** Repurposed shorts only: the source long-form. Null for native/long. */
+  parent_video_id: string | null;
+  /** Repurposed shorts only: which parent beats this short is cut from. */
+  source_segment: ShortSegment | null;
   format: string;
   target_length_sec: number;
   scheduled_at: string | null;
@@ -260,6 +281,16 @@ export type ClipJob = {
   error: string | null;
   created_at: string;
 };
+
+/** True for short-form videos (native or repurposed). */
+export function isShort(v: Pick<Video, "kind">): boolean {
+  return v.kind === "short";
+}
+
+/** True for shorts repurposed from a parent long-form (reuses parent assets). */
+export function isDerived(v: Pick<Video, "kind" | "parent_video_id">): boolean {
+  return v.kind === "short" && v.parent_video_id != null;
+}
 
 export type VideoIntel = {
   id: string;
