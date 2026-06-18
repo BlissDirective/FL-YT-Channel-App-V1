@@ -36,6 +36,72 @@ const sign = async (path: string): Promise<string | null> => {
   return data?.signedUrl ?? null;
 };
 
+/** Supabase resumable (TUS) uploads must be sent in 6MB chunks (except last). */
+const TUS_CHUNK = 6 * 1024 * 1024;
+
+/** TUS Upload-Metadata is a comma-joined list of `key base64(value)` pairs. */
+function tusMetadata(fields: Record<string, string>): string {
+  return Object.entries(fields)
+    .map(([k, v]) => `${k} ${Buffer.from(v).toString("base64")}`)
+    .join(",");
+}
+
+/**
+ * Upload a file to Supabase Storage via the resumable (TUS) protocol — the
+ * supported path for files past the standard-upload body cap. Streams the
+ * buffer in 6MB chunks up to the bucket's file_size_limit. Used as a safety
+ * net for large renders when the direct YouTube upload isn't available.
+ */
+async function resumableUpload(
+  objectName: string,
+  data: Buffer,
+  contentType: string,
+): Promise<void> {
+  const create = await fetch(`${SUPABASE_URL}/storage/v1/upload/resumable`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${SERVICE_KEY}`,
+      "x-upsert": "true",
+      "tus-resumable": "1.0.0",
+      "upload-length": String(data.length),
+      "upload-metadata": tusMetadata({
+        bucketName: "media",
+        objectName,
+        contentType,
+        cacheControl: "3600",
+      }),
+    },
+  });
+  if (create.status !== 201) {
+    throw new Error(`resumable create ${create.status}: ${(await create.text()).slice(0, 160)}`);
+  }
+  const location = create.headers.get("location");
+  if (!location) throw new Error("resumable: no upload URL returned");
+  const uploadUrl = location.startsWith("http")
+    ? location
+    : `${SUPABASE_URL}/storage/v1${location.startsWith("/") ? "" : "/"}${location}`;
+
+  let offset = 0;
+  while (offset < data.length) {
+    const end = Math.min(offset + TUS_CHUNK, data.length);
+    const patch = await fetch(uploadUrl, {
+      method: "PATCH",
+      headers: {
+        authorization: `Bearer ${SERVICE_KEY}`,
+        "tus-resumable": "1.0.0",
+        "upload-offset": String(offset),
+        "content-type": "application/offset+octet-stream",
+      },
+      body: new Uint8Array(data.subarray(offset, end)),
+    });
+    if (patch.status !== 204) {
+      throw new Error(`resumable patch @${offset} ${patch.status}: ${(await patch.text()).slice(0, 160)}`);
+    }
+    const acked = Number(patch.headers.get("upload-offset"));
+    offset = Number.isFinite(acked) && acked > offset ? acked : end;
+  }
+}
+
 /** Curated highlight as stored on the video (no timing — resolved here). */
 type CuratedHighlight = Omit<Highlight, "startMs" | "endMs"> & { beatIdx: number };
 
@@ -314,7 +380,34 @@ async function renderOne(
       const { error: upErr } = await db.storage
         .from("media")
         .upload(storagePath, file, { contentType: "video/mp4", upsert: true });
-      if (upErr) throw new Error(`upload failed: ${upErr.message}`);
+      if (upErr) {
+        // The standard upload has a hard body-size cap (a long-form 1080p cut
+        // is ~100–200MB). For anything past one TUS chunk, retry with a
+        // resumable (TUS) upload, which streams in 6MB chunks up to the bucket
+        // limit. This is the safety net when YouTube OAuth isn't configured.
+        if (file.length > TUS_CHUNK) {
+          console.log(
+            `↻ ${video.title} [${variant}]: standard upload rejected (${upErr.message}); retrying resumable…`,
+          );
+          try {
+            await resumableUpload(storagePath, file, "video/mp4");
+          } catch (resErr) {
+            const detail = resErr instanceof Error ? resErr.message : String(resErr);
+            // The real fix for an oversized long-form is YouTube upload.
+            if (variant === "long" && !youtubeUploadConfigured()) {
+              throw new Error(
+                `Long-form upload needs YouTube OAuth — set YOUTUBE_OAUTH_CLIENT_ID, ` +
+                  `YOUTUBE_OAUTH_CLIENT_SECRET and YOUTUBE_OAUTH_REFRESH_TOKEN (see ` +
+                  `docs/YouTube-API-creation.md). The ${Math.round(file.length / 1e6)}MB cut also ` +
+                  `exceeded Supabase Storage limits (${detail.slice(0, 120)}).`,
+              );
+            }
+            throw new Error(`upload failed: ${detail}`);
+          }
+        } else {
+          throw new Error(`upload failed: ${upErr.message}`);
+        }
+      }
       await db.from("assets").insert({
         video_id: videoId,
         kind: "render",
