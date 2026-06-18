@@ -12,6 +12,9 @@ export type SectionJob = { model: string; targetSec: number; heroHold: boolean }
 // ── Length-aware pacing ───────────────────────────────────────────────
 /** One b-roll accent per ~60s of narration fills the space between heroes. */
 const ACCENT_PER_SEC = 60;
+/** Shorts are pure attention plays — animate densely (≈1 accent per 12s) so a
+    30–180s native Short is motion the whole way through, not mostly stills. */
+const ACCENT_PER_SEC_SHORT = 12;
 /** Premium & Platinum bookend with two heroes once there are this many
     eligible (non-stock) beats; below it they collapse to a single hero. */
 const HERO_BOOKEND_MIN_BEATS = 3;
@@ -137,11 +140,12 @@ const costOf = (job: SectionJob): number => {
 export function selectClipBeats(
   tier: AutoTier,
   beats: { idx: number; shotType: string; scriptSec: number }[],
-  opts?: { clipCap?: number; maxUsd?: number; custom?: CustomSpec },
+  opts?: { clipCap?: number; maxUsd?: number; custom?: CustomSpec; shortMode?: boolean },
 ): ClipSelection {
   const empty: ClipSelection = { clips: [], totalUsd: 0, requestedUsd: 0, overBudget: false };
   if (tier === "base" || beats.length === 0) return empty;
 
+  const accentPerSec = opts?.shortMode ? ACCENT_PER_SEC_SHORT : ACCENT_PER_SEC;
   const totalSec = beats.reduce((s, b) => s + b.scriptSec, 0);
   const ordered = [...beats].sort((a, z) => a.idx - z.idx);
   const eligible = ordered.filter((b) => b.shotType !== "stock");
@@ -161,9 +165,9 @@ export function selectClipBeats(
   let brollTarget: number;
   if (tier === "economy") {
     const cap = Math.min(opts?.clipCap ?? ECONOMY_MAX_ACCENTS, ECONOMY_MAX_ACCENTS);
-    brollTarget = Math.min(cap, Math.max(1, Math.round(totalSec / ACCENT_PER_SEC)));
+    brollTarget = Math.min(cap, Math.max(1, Math.round(totalSec / accentPerSec)));
   } else {
-    brollTarget = Math.round(totalSec / ACCENT_PER_SEC);
+    brollTarget = Math.round(totalSec / accentPerSec);
     if (opts?.clipCap !== undefined) brollTarget = Math.min(brollTarget, opts.clipCap);
   }
   const brollBeats = spreadPick(brollPool, brollTarget);
@@ -202,7 +206,7 @@ export function selectClipBeats(
 export function estimateTierCost(
   tier: AutoTier,
   beats: { shotType: string; scriptSec: number }[],
-  opts?: { clipCap?: number; maxUsd?: number; custom?: CustomSpec },
+  opts?: { clipCap?: number; maxUsd?: number; custom?: CustomSpec; shortMode?: boolean },
 ): number {
   return selectClipBeats(
     tier,

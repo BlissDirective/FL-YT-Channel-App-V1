@@ -152,19 +152,24 @@ staged short whenever they want; nothing auto-posts.
 
 ## 6. Native shorts (deliberate, tier picked each time)
 
-A hand-picked flow for visually striking shorts on high-interest topics.
-- **Entry:** expose **"Short"** as an idea/topic type; `queueTopicAction` accepts
-  `kind` + `target_length_sec` (30 / 60 / 120 / 180), creating a `kind='short'`
-  video. Idea-gen already accepts a length parameter.
-- **Pipeline:** scripts to the chosen short length → SCRIPT gate → assets →
-  render `VerticalShort` (§3) → `FINAL_REVIEW` → one-tap publish (§5).
+A hand-picked flow for visually striking shorts on high-interest topics. Unlike
+derived shorts, native shorts run the **full gated pipeline** (deliberate,
+hand-tuned) and publish via the **standard Publish Kit** (download + mark
+uploaded) — the one-tap farm publish (§5) stays a derived-shorts convenience.
+- **Entry:** the dashboard `QueueTopic` has a **Long-form / Short** toggle with a
+  length picker (**30 / 60 / 120 / 180s**); `queueTopicAction` takes
+  `{ kind, targetLengthSec }` and creates a `kind='short'` video at the IDEA gate.
+- **Pipeline:** `generateScript` already targets `target_length_sec`, so the
+  script comes out short → SCRIPT gate → assets → the farm renders
+  `VerticalShort` (§3) → `FINAL_REVIEW` → standard publish.
 - **Short-tuned tiers:** a `shortMode` flag in `auto-tiers.ts` uses denser
-  pacing (a much smaller `ACCENT_PER_SEC`, so most/all beats get motion) and
-  short-appropriate hero bookends. `FullAutoPanel` shows short-tuned estimates;
-  `fullAutoGenerate` passes `shortMode` when `kind='short'`. The operator still
-  **picks the tier each time**.
-- **Highlights:** higher density (the whole clip is the payload); the existing
-  hook-beat ≥2 highlight guarantee still applies.
+  pacing (`ACCENT_PER_SEC_SHORT ≈ 12s`, so a native Short is motion the whole
+  way through). `FullAutoPanel` shows short-tuned estimates; `fullAutoGenerate`
+  passes `shortMode` when `kind='short'`. The operator still **picks the tier
+  each time**.
+- **Visibility:** native shorts are real pipeline videos, so they appear in the
+  review queue / project grid (`getVideos` excludes only *derived* shorts —
+  `parent_video_id` set). Highlights keep the hook-beat ≥2 guarantee.
 
 ---
 

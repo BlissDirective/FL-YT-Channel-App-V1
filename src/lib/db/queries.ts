@@ -36,13 +36,14 @@ export async function getProject(id: string): Promise<Project | null> {
 }
 
 /**
- * Long-form pipeline videos. Shorts (kind='short') are excluded by default —
- * they're managed from their parent long-form, not the main pipeline grid.
- * Pass { kind: 'all' } to include them.
+ * Pipeline videos: long-forms and native Shorts (both go through the gates).
+ * Derived Shorts (parent_video_id set) are excluded by default — they're
+ * managed from their parent long-form, not the main grid. Pass
+ * { include: 'all' } to include them.
  */
 export async function getVideos(
   projectId?: string,
-  opts?: { kind?: "long" | "short" | "all" },
+  opts?: { include?: "pipeline" | "all" },
 ): Promise<Video[]> {
   const supabase = await createClient();
   let query = supabase
@@ -50,8 +51,9 @@ export async function getVideos(
     .select("*")
     .order("created_at", { ascending: false });
   if (projectId) query = query.eq("project_id", projectId);
-  const kind = opts?.kind ?? "long";
-  if (kind !== "all") query = query.eq("kind", kind);
+  if ((opts?.include ?? "pipeline") === "pipeline") {
+    query = query.is("parent_video_id", null);
+  }
   const { data } = await query;
   return (data as Video[]) ?? [];
 }

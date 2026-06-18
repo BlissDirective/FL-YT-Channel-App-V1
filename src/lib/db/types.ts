@@ -63,6 +63,10 @@ export type Project = {
 /** Long-form vs short-form. Both flavours of short are `kind='short'` rows. */
 export type VideoKind = "long" | "short";
 
+/** Offered native-Short target lengths, in seconds. */
+export const SHORT_LENGTHS = [30, 60, 120, 180] as const;
+export type ShortLength = (typeof SHORT_LENGTHS)[number];
+
 /** Which parent beats a repurposed short was cut from. */
 export type ShortSegment = {
   /** Parent ScriptBeat.idx values, contiguous and in order. */

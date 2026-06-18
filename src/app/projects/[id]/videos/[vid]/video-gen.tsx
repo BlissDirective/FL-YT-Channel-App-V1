@@ -86,6 +86,7 @@ export function VideoGen({
   customDefault,
   autoSetup = false,
   videoStatus,
+  shortMode = false,
 }: {
   projectId: string;
   videoId: string;
@@ -101,6 +102,8 @@ export function VideoGen({
   autoSetup?: boolean;
   /** Current video status — decides the "approve & continue" CTA. */
   videoStatus: string;
+  /** Native Short → denser accent pacing + short-tuned estimates. */
+  shortMode?: boolean;
 }) {
   // Show the "approve & generate" CTA while the video can still be advanced
   // into / through asset production. SCRIPT_READY = at the script gate (approve
@@ -298,6 +301,7 @@ export function VideoGen({
               running={autoRunning}
               error={autoError}
               customDefault={customDefault}
+              shortMode={shortMode}
               onRun={runFullAuto}
             />
           )}
@@ -601,6 +605,7 @@ function FullAutoPanel({
   running,
   error,
   customDefault,
+  shortMode = false,
   onRun,
 }: {
   projectId: string;
@@ -608,6 +613,7 @@ function FullAutoPanel({
   running: boolean;
   error?: string;
   customDefault: CustomSpec | null;
+  shortMode?: boolean;
   onRun: (tier: AutoTier, est: number, custom?: CustomSpec) => void;
 }) {
   const [tier, setTier] = useState<AutoTier>("base");
@@ -620,9 +626,9 @@ function FullAutoPanel({
   // the other tiers show the budget-packed estimate that will actually bill.
   const sel =
     tier === "custom"
-      ? selectClipBeats("custom", beats.map((b) => ({ idx: b.idx, shotType: b.shotType, scriptSec: b.scriptSec })), { maxUsd: custom.maxUsd, custom })
+      ? selectClipBeats("custom", beats.map((b) => ({ idx: b.idx, shotType: b.shotType, scriptSec: b.scriptSec })), { maxUsd: custom.maxUsd, custom, shortMode })
       : null;
-  const est = tier === "custom" ? (sel?.requestedUsd ?? 0) : estimateTierCost(tier, sections);
+  const est = tier === "custom" ? (sel?.requestedUsd ?? 0) : estimateTierCost(tier, sections, { shortMode });
   const overCap = tier === "custom" && (sel?.overBudget ?? false);
 
   const setC = (patch: Partial<CustomSpec>) => {

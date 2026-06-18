@@ -732,12 +732,17 @@ async function runAssembly(db: Db, video: Video): Promise<"external" | void> {
 
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", "render");
   await sleep(STAGE_DELAY_MS);
+  const short = video.kind === "short";
   await db.from("assets").insert({
     video_id: video.id,
     kind: "render",
     provider: "mock:remotion",
-    storage_path: `mock/${video.id}/final.mp4`,
-    meta: { resolution: "1080p", durationSec: video.target_length_sec },
+    storage_path: `mock/${video.id}/${short ? "short" : "final"}.mp4`,
+    meta: {
+      variant: short ? "short" : "long",
+      resolution: short ? "1080x1920" : "1080p",
+      durationSec: video.target_length_sec,
+    },
     cost_usd: MOCK_COSTS.render.usd,
   });
   await recordCost(db, video, MOCK_COSTS.render);
@@ -1095,6 +1100,8 @@ export async function fullAutoGenerate(
       clipCap: opts.tier === "economy" ? Number(project.ai_clip_cap ?? 3) : undefined,
       maxUsd,
       custom,
+      // Native Shorts animate densely (motion the whole way through).
+      shortMode: video.kind === "short",
     },
   );
   // Custom pauses (does not silently downgrade) when the plan exceeds the cap.

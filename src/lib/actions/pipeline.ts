@@ -35,6 +35,7 @@ import { getKillSwitch } from "@/lib/db/queries";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
 import type { CuratedHighlight, CustomSpec, ScriptBeat } from "@/lib/db/types";
+import { SHORT_LENGTHS } from "@/lib/db/types";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 
 export type PipelineResult = { ok: boolean; error?: string };
@@ -151,9 +152,15 @@ async function runDemoPipeline(projectId: string): Promise<PipelineResult> {
 export async function queueTopicAction(
   projectId: string,
   topic: string,
+  opts?: { kind?: "long" | "short"; targetLengthSec?: number },
 ): Promise<PipelineResult> {
   const clean = topic.trim();
   if (!clean) return { ok: false, error: "Type a topic first." };
+  const isShort = opts?.kind === "short";
+  // Shorts target one of the offered lengths; long-form keeps the project default.
+  const targetLengthSec = (SHORT_LENGTHS as readonly number[]).includes(opts?.targetLengthSec ?? 0)
+    ? opts!.targetLengthSec!
+    : 60;
   return guarded(async () => {
     const supabase = await createClient();
     const title = clean
@@ -161,7 +168,13 @@ export async function queueTopicAction(
       .replace(/^./, (c) => c.toUpperCase());
     const { data: video, error } = await supabase
       .from("videos")
-      .insert({ project_id: projectId, title, topic: clean, status: "IDEA" })
+      .insert({
+        project_id: projectId,
+        title,
+        topic: clean,
+        status: "IDEA",
+        ...(isShort ? { kind: "short", target_length_sec: targetLengthSec } : {}),
+      })
       .select("id")
       .single();
     if (error || !video) return { ok: false, error: error?.message ?? "Insert failed" };
