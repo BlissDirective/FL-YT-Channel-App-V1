@@ -1,12 +1,14 @@
-# YouTube API Setup
+# YouTube API & Render Storage Setup
 
-How to obtain every YouTube credential the studio uses, where each one lives,
-and how to verify it. There are **two independent** YouTube integrations:
+How to obtain every credential the studio uses for YouTube and for downloadable
+render storage, where each one lives, and how to verify it. There are **three
+independent** integrations:
 
 | Integration | What it powers | Credential(s) | Lives on |
 |---|---|---|---|
 | **Data API v3 key** | Public stats tracking + niche research (read-only) | `YOUTUBE_DATA_API_V3` | GitHub secret → synced to Vercel as `YOUTUBE_API_KEY` |
-| **OAuth (upload)** | Long-form auto-upload + one-tap Shorts publish | `YOUTUBE_OAUTH_CLIENT_ID`, `YOUTUBE_OAUTH_CLIENT_SECRET`, `YOUTUBE_OAUTH_REFRESH_TOKEN` | GitHub secrets only (render farm) — **not** Vercel |
+| **OAuth (upload)** | One-tap YouTube publish (long-form draft + Shorts) | `YOUTUBE_OAUTH_CLIENT_ID`, `YOUTUBE_OAUTH_CLIENT_SECRET`, `YOUTUBE_OAUTH_REFRESH_TOKEN` | GitHub secrets only (render farm) — **not** Vercel |
+| **Cloudflare R2** *(optional)* | Downloadable storage for finished renders (long + short), any size | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` | GitHub secrets (render farm writes) **+** Vercel (app presigns download links) |
 
 > **Why uploads live only on GitHub:** the Next app never uploads to YouTube (it
 > stays out of Google's OAuth upload audit by design). The render farm (GitHub
@@ -14,7 +16,12 @@ and how to verify it. There are **two independent** YouTube integrations:
 > Shorts publish. So the OAuth secrets are **not** pushed to Vercel by
 > `sync-vercel-env.yml`, and they should not be.
 
-Both integrations can share **one** Google Cloud project.
+> **Download vs upload is your choice, per video.** Every render is stored (R2
+> when configured, else Supabase) so it's always downloadable from the Publish
+> Kit / Downloads page. YouTube upload is a separate one-tap action — nothing
+> auto-uploads. Configure R2, YouTube OAuth, or both.
+
+Both YouTube integrations can share **one** Google Cloud project.
 
 ---
 
@@ -120,27 +127,77 @@ run `youtubeUploadConfigured()` becomes true and uploads route to YouTube.
 
 ---
 
-## 3. After adding the upload secrets
+## 3. Cloudflare R2 — downloadable render storage (optional)
 
-1. Re-run the stuck video: open it in the **Review queue** and tap **Resume**
-   (re-rendering from existing assets is free — no asset re-spend). The long-form
-   now uploads straight to YouTube (unlisted draft) and advances to
-   `FINAL_REVIEW`.
-2. Shorts **one-tap Publish** (Derive Shorts panel and the Publish Kit) now works:
-   the farm uploads the staged 9:16 cut as a `#Shorts` video on its next pass.
+The blocker for long-form download is size: a 7–13 min 1080p MP4 is ~100–200 MB,
+past Supabase Storage's object limit. Cloudflare R2 (S3-compatible, **no
+per-file size cap, zero egress fees**, 10 GB free ≈ 50–100 long videos) stores
+every finished render — long **and** short — so any video is downloadable
+regardless of size. Without R2 the studio falls back to Supabase Storage (fine
+for Shorts; a large long-form then needs R2 or the YouTube publish path).
 
-**Safety net:** even without OAuth, oversized long-forms now retry via a
-resumable (TUS) upload to Storage, so they can still be downloaded and uploaded
-by hand instead of hard-failing. OAuth remains the recommended path.
+You produce four values: an **Account ID**, an **Access Key ID**, a **Secret
+Access Key**, and a **Bucket** name.
+
+### 3a. Create the bucket
+
+1. Cloudflare dashboard → **R2** → **Create bucket** (e.g. `faceless-studio-media`).
+   The bucket stays **private** — the app serves files via short-lived presigned
+   URLs, so do not enable public access.
+2. Note your **Account ID** (R2 overview page, or the R2 endpoint
+   `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`) → `R2_ACCOUNT_ID`.
+3. The bucket name → `R2_BUCKET`.
+
+### 3b. Create an API token
+
+1. **R2 → Manage R2 API Tokens → Create API token.**
+2. Permissions: **Object Read & Write** (scope it to the one bucket if you like).
+3. Create, then copy the **Access Key ID** → `R2_ACCESS_KEY_ID` and the
+   **Secret Access Key** → `R2_SECRET_ACCESS_KEY` (shown once).
+
+### 3c. Add the secrets
+
+Repo **Settings → Secrets and variables → Actions → New repository secret**:
+
+- `R2_ACCOUNT_ID`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- `R2_BUCKET` *(may be a repo **Variable** instead — it's not sensitive)*
+
+Unlike the YouTube upload creds, R2 **does** go to Vercel: the app presigns
+download links, so `sync-vercel-env.yml` pushes the four R2 values. After adding
+them, run **Actions → Sync Vercel Env** so the app can generate R2 links.
+
+> R2-backed renders are stored with an `r2:`-prefixed `storage_path`, so reads
+> pick the right backend automatically and pre-R2 Supabase renders keep
+> resolving. No data migration, no backfill.
 
 ---
 
-## 4. Verify
+## 4. After adding the secrets
+
+1. Re-run a stuck or oversized video: open it in the **Review queue** and tap
+   **Resume** (re-rendering from existing assets is free — no asset re-spend).
+   With R2 configured the long-form stores successfully and advances to
+   `FINAL_REVIEW`, downloadable from the Publish Kit.
+2. **Choose per video** in the Publish Kit (status `APPROVED`): **Download** the
+   MP4 (long or short), and/or tap **Publish to YouTube** — the farm uploads on
+   its next pass (long-form as an unlisted draft, a Short as `#Shorts`). Nothing
+   auto-uploads; the choice is always yours.
+
+**Safety net:** without R2, oversized long-forms still retry via a resumable
+(TUS) upload to Supabase Storage; if that also fails the worker throws a message
+pointing at the fix (configure R2, or publish to YouTube).
+
+---
+
+## 5. Verify
 
 Run the **Verify Secrets** workflow (**Actions → Verify Secrets → Run
-workflow**). It lists every configured secret name and live-checks the Data API
-key. The OAuth upload secrets are validated end-to-end the first time the render
-farm uploads a finished cut.
+workflow**). It lists every configured secret name, live-checks the Data API key,
+mints an access token from the YouTube refresh token, and probes the R2 bucket
+with an authenticated head-bucket. The OAuth upload path is also validated
+end-to-end the first time the farm uploads a finished cut.
 
 Quick manual check of a refresh token (returns an access token when valid):
 
@@ -152,6 +209,14 @@ curl -s https://oauth2.googleapis.com/token \
   -d grant_type=refresh_token
 ```
 
+Quick manual check of R2 credentials (lists the bucket when valid):
+
+```bash
+AWS_ACCESS_KEY_ID=$R2_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$R2_SECRET_ACCESS_KEY \
+  aws s3api head-bucket --bucket "$R2_BUCKET" \
+  --endpoint-url "https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+```
+
 ---
 
 ## Reference — code that consumes these
@@ -160,7 +225,12 @@ curl -s https://oauth2.googleapis.com/token \
   `searchNiche`.
 - OAuth upload → `packages/render/src/youtube.ts`
   (`youtubeUploadConfigured()` / `uploadVideo()`), called from
-  `packages/render/src/render-queue.ts` for long-form upload and
-  `publishStagedShorts` for Shorts.
+  `publishStagedVideos` in `packages/render/src/render-queue.ts` for both
+  long-form and Shorts (gated on the `publish_requested` flag).
+- R2 storage → `packages/storage` (`@studio/storage`): `r2Put` / `r2Get` /
+  `r2SignedGetUrl`, the `r2:` path prefix; `storeRender()` in the render worker
+  and `getSignedMediaUrl()` in `src/lib/storage.ts`.
+- Publish choice (Download / Publish) → `requestPublishAction` in
+  `src/lib/actions/publish.ts`, surfaced in `publish-kit.tsx`.
 - Vercel sync set → `.github/workflows/sync-vercel-env.yml`.
 - Secret verification → `.github/workflows/verify-secrets.yml`.
