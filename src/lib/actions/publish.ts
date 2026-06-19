@@ -59,6 +59,45 @@ export async function markUploadedAction(
   }
 }
 
+/**
+ * One-tap "Publish to YouTube" for any rendered video (long-form or Short).
+ * Flags it for the render farm — which holds the YouTube OAuth credentials (the
+ * app never does) — to upload on its next pass (long-form as an unlisted draft,
+ * Short as #Shorts). The download package stays available either way, so the
+ * operator always chooses: download by hand, upload automatically, or both.
+ */
+export async function requestPublishAction(
+  projectId: string,
+  videoId: string,
+): Promise<PublishResult> {
+  try {
+    const supabase = await createClient();
+    const { data: v } = await supabase
+      .from("videos")
+      .select("id, status, youtube_video_id, parent_video_id")
+      .eq("id", videoId)
+      .maybeSingle();
+    if (!v) return { ok: false, error: "Video not found." };
+    if (v.youtube_video_id) return { ok: false, error: "This video is already published." };
+    if (v.status !== "FINAL_REVIEW" && v.status !== "APPROVED") {
+      return { ok: false, error: "This video isn't rendered yet." };
+    }
+    const { error } = await supabase
+      .from("videos")
+      .update({ publish_requested: true })
+      .eq("id", videoId);
+    if (error) return { ok: false, error: error.message };
+    refresh(projectId, videoId);
+    if (v.parent_video_id) {
+      revalidatePath(`/projects/${projectId}/videos/${v.parent_video_id}`);
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error("requestPublish failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /** On-demand stats pull for one project's tracked videos (a "Refresh" button).
     `videoId` is the page the button lives on, so its sparkline revalidates too. */
 export async function refreshStatsAction(

@@ -1,9 +1,12 @@
 /**
  * Render farm worker (GitHub Actions, cron). Picks up videos sitting at
  * ASSEMBLING with live assets, renders the long-form MP4 + a Short via
- * Remotion, uploads both to Supabase Storage, records assets (including
- * the beat timeline for retention mapping), and advances the video to
- * FINAL_REVIEW. Mock-asset videos are handled in-app and never reach here.
+ * Remotion, and stores BOTH cuts in object storage (Cloudflare R2 when
+ * configured — no per-file size cap — else Supabase Storage), records assets
+ * (including the beat timeline for retention mapping), and advances the video
+ * to FINAL_REVIEW. Every render is downloadable; YouTube upload is a separate,
+ * operator-chosen step (publish_requested → publishStagedVideos). Mock-asset
+ * videos are handled in-app and never reach here.
  */
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { cpus, tmpdir } from "node:os";
@@ -12,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import { bundle } from "@remotion/bundler";
 import { ensureBrowser, renderMedia, selectComposition } from "@remotion/renderer";
+import { isR2Path, r2Configured, r2Get, r2Put, r2SignedGetUrl, stripR2, toR2Path } from "@studio/storage";
 import {
   beatTimeline,
   longFormDurationSec,
@@ -32,9 +36,80 @@ const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: fal
 
 const sign = async (path: string): Promise<string | null> => {
   if (!path || path.startsWith("mock/")) return null;
+  if (isR2Path(path)) {
+    try {
+      return await r2SignedGetUrl(stripR2(path), 7200);
+    } catch {
+      return null;
+    }
+  }
   const { data } = await db.storage.from("media").createSignedUrl(path, 7200);
   return data?.signedUrl ?? null;
 };
+
+/**
+ * Store a finished render and return the persisted storage_path + provider.
+ * R2 (when configured) takes any size in a single PUT — `r2:`-prefixed path.
+ * Otherwise Supabase Storage, falling back to a resumable (TUS) upload for
+ * cuts past the standard body cap. A long-form too big for Supabase with no R2
+ * is a hard error pointing at the fix.
+ */
+async function storeRender(
+  videoId: string,
+  storageName: string,
+  file: Buffer,
+  variant: "long" | "short",
+): Promise<{ storagePath: string; provider: string }> {
+  const key = `videos/${videoId}/${storageName}.mp4`;
+  if (r2Configured()) {
+    await r2Put(key, file, "video/mp4");
+    return { storagePath: toR2Path(key), provider: "r2" };
+  }
+  const { error: upErr } = await db.storage
+    .from("media")
+    .upload(key, file, { contentType: "video/mp4", upsert: true });
+  if (upErr) {
+    if (file.length > TUS_CHUNK) {
+      console.log(`↻ ${videoId} [${variant}]: standard upload rejected (${upErr.message}); retrying resumable…`);
+      try {
+        await resumableUpload(key, file, "video/mp4");
+      } catch (resErr) {
+        const detail = resErr instanceof Error ? resErr.message : String(resErr);
+        if (variant === "long") {
+          throw new Error(
+            `Long-form (${Math.round(file.length / 1e6)}MB) exceeded Supabase Storage limits ` +
+              `(${detail.slice(0, 120)}). Configure Cloudflare R2 (R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / ` +
+              `R2_SECRET_ACCESS_KEY / R2_BUCKET) for unlimited download storage, or YouTube OAuth to ` +
+              `publish instead — see docs/YouTube-API-creation.md.`,
+          );
+        }
+        throw new Error(`upload failed: ${detail}`);
+      }
+    } else {
+      throw new Error(`upload failed: ${upErr.message}`);
+    }
+  }
+  return { storagePath: key, provider: "remotion" };
+}
+
+/** Fetch a stored render's bytes for a video+variant, from R2 or Supabase. */
+async function fetchRenderFile(videoId: string, variant: "long" | "short"): Promise<Buffer> {
+  const { data: asset } = await db
+    .from("assets")
+    .select("storage_path")
+    .eq("video_id", videoId)
+    .eq("kind", "render")
+    .filter("meta->>variant", "eq", variant)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const path = asset?.storage_path as string | null | undefined;
+  if (!path) throw new Error(`no ${variant} render asset for ${videoId}`);
+  if (isR2Path(path)) return r2Get(stripR2(path));
+  const { data: file, error } = await db.storage.from("media").download(path);
+  if (error || !file) throw new Error(`download ${path}: ${error?.message ?? "missing"}`);
+  return Buffer.from(await file.arrayBuffer());
+}
 
 /** Supabase resumable (TUS) uploads must be sent in 6MB chunks (except last). */
 const TUS_CHUNK = 6 * 1024 * 1024;
@@ -276,20 +351,10 @@ async function renderOne(
   const { props, video } = built;
   const outDir = mkdtempSync(join(tmpdir(), "render-"));
   const timeline = beatTimeline(props);
-  // Script-derived metadata for a YouTube upload (description + tags).
-  const { data: scriptRow } = await db
-    .from("scripts")
-    .select("metadata")
-    .eq("video_id", videoId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const sm = (scriptRow?.metadata ?? {}) as { description?: string; tags?: string[] };
-  const scriptMeta = { description: sm.description ?? "", tags: sm.tags ?? [] };
 
   // Short videos (native or repurposed) render a single 9:16 cut across all
-  // their beats and are staged in Storage for one-tap publish — no YouTube
-  // upload here. Long-forms render the 16:9 cut plus the free beat-0 Short.
+  // their beats. Long-forms render the 16:9 cut plus the free beat-0 Short.
+  // Both are stored for download; neither is uploaded to YouTube here.
   type RenderPlan = {
     variant: "long" | "short";
     compId: "LongForm" | "Short" | "VerticalShort";
@@ -342,81 +407,22 @@ async function renderOne(
       beats: variant === "long" ? timeline : undefined,
     };
 
-    // Long-form cuts exceed Supabase's upload limit. When YouTube OAuth is
-    // configured, push the long-form straight to YouTube (unlisted draft) and
-    // skip Storage; the Short (small) always goes to Storage. Any YouTube
-    // failure falls back to Storage so the render still completes.
-    let ytId: string | null = null;
-    if (variant === "long" && youtubeUploadConfigured()) {
-      try {
-        ytId = await uploadVideo({
-          filePath: out,
-          title: video.title,
-          description: scriptMeta.description,
-          tags: scriptMeta.tags,
-        });
-        console.log(`📺 ${video.title}: uploaded long-form to YouTube (unlisted) → ${ytId}`);
-      } catch (err) {
-        console.error(`⚠️  YouTube upload failed, falling back to Storage: ${String(err).slice(0, 160)}`);
-      }
-    }
+    // Always store both cuts so every video is downloadable regardless of size
+    // (R2 when configured, else Supabase with a resumable fallback). YouTube
+    // upload is a separate, operator-chosen step — see publishStagedVideos.
+    const file = readFileSync(out);
+    const { storagePath, provider } = await storeRender(videoId, storageName, file, variant);
 
     await db.from("assets").delete().eq("video_id", videoId).eq("kind", "render")
       .filter("meta->>variant", "eq", variant);
-
-    if (ytId) {
-      await db.from("assets").insert({
-        video_id: videoId,
-        kind: "render",
-        provider: "youtube",
-        storage_path: null,
-        meta: { ...baseMeta, youtubeId: ytId, url: `https://youtu.be/${ytId}` },
-        cost_usd: 0,
-      });
-      await db.from("videos").update({ youtube_video_id: ytId }).eq("id", videoId);
-    } else {
-      const file = readFileSync(out);
-      const storagePath = `videos/${videoId}/${storageName}.mp4`;
-      const { error: upErr } = await db.storage
-        .from("media")
-        .upload(storagePath, file, { contentType: "video/mp4", upsert: true });
-      if (upErr) {
-        // The standard upload has a hard body-size cap (a long-form 1080p cut
-        // is ~100–200MB). For anything past one TUS chunk, retry with a
-        // resumable (TUS) upload, which streams in 6MB chunks up to the bucket
-        // limit. This is the safety net when YouTube OAuth isn't configured.
-        if (file.length > TUS_CHUNK) {
-          console.log(
-            `↻ ${video.title} [${variant}]: standard upload rejected (${upErr.message}); retrying resumable…`,
-          );
-          try {
-            await resumableUpload(storagePath, file, "video/mp4");
-          } catch (resErr) {
-            const detail = resErr instanceof Error ? resErr.message : String(resErr);
-            // The real fix for an oversized long-form is YouTube upload.
-            if (variant === "long" && !youtubeUploadConfigured()) {
-              throw new Error(
-                `Long-form upload needs YouTube OAuth — set YOUTUBE_OAUTH_CLIENT_ID, ` +
-                  `YOUTUBE_OAUTH_CLIENT_SECRET and YOUTUBE_OAUTH_REFRESH_TOKEN (see ` +
-                  `docs/YouTube-API-creation.md). The ${Math.round(file.length / 1e6)}MB cut also ` +
-                  `exceeded Supabase Storage limits (${detail.slice(0, 120)}).`,
-              );
-            }
-            throw new Error(`upload failed: ${detail}`);
-          }
-        } else {
-          throw new Error(`upload failed: ${upErr.message}`);
-        }
-      }
-      await db.from("assets").insert({
-        video_id: videoId,
-        kind: "render",
-        provider: "remotion",
-        storage_path: storagePath,
-        meta: baseMeta,
-        cost_usd: 0,
-      });
-    }
+    await db.from("assets").insert({
+      video_id: videoId,
+      kind: "render",
+      provider,
+      storage_path: storagePath,
+      meta: baseMeta,
+      cost_usd: 0,
+    });
   }
 
   const isShort = video.kind === "short";
@@ -465,46 +471,58 @@ async function main() {
     console.log("Queue empty — nothing to render.");
   }
 
-  // Independent of the render queue: publish any Shorts the operator has
-  // tapped Publish on. Runs even when the render queue is empty.
-  await publishStagedShorts();
+  // Independent of the render queue: publish any videos (long or short) the
+  // operator has tapped Publish on. Runs even when the render queue is empty.
+  await publishStagedVideos();
 }
 
 /**
- * Upload staged Shorts that the operator flagged for publish. The farm holds
- * the YouTube OAuth creds (the app never does), so it does the upload here:
- * download the staged 9:16 MP4 from Storage → upload as a Short (#Shorts) →
- * stamp youtube_video_id + TRACKING. No-op when OAuth isn't configured.
+ * Upload videos the operator flagged for publish (long-form or Short). The farm
+ * holds the YouTube OAuth creds (the app never does), so it does the upload
+ * here: fetch the stored cut (R2 or Supabase) → upload (long-form as an unlisted
+ * draft; Short as #Shorts) → stamp youtube_video_id + TRACKING. No-op when OAuth
+ * isn't configured, leaving the manual download + "mark uploaded" path.
  */
-async function publishStagedShorts() {
+async function publishStagedVideos() {
   if (!youtubeUploadConfigured()) return;
   const { data: pending } = await db
     .from("videos")
-    .select("id, title, project_id, source_segment")
-    .eq("kind", "short")
+    .select("id, title, kind, project_id, source_segment")
     .eq("publish_requested", true)
     .in("status", ["FINAL_REVIEW", "APPROVED"])
     .is("youtube_video_id", null)
     .limit(5);
   if (!pending || pending.length === 0) return;
-  console.log(`Publish: ${pending.length} staged Short(s)`);
+  console.log(`Publish: ${pending.length} staged video(s)`);
 
-  for (const s of pending) {
+  for (const v of pending) {
+    const variant: "long" | "short" = v.kind === "short" ? "short" : "long";
     try {
-      const path = `videos/${s.id}/short.mp4`;
-      const { data: file, error: dlErr } = await db.storage.from("media").download(path);
-      if (dlErr || !file) throw new Error(`download ${path}: ${dlErr?.message ?? "missing"}`);
-      const tmp = join(mkdtempSync(join(tmpdir(), "publish-")), "short.mp4");
-      writeFileSync(tmp, Buffer.from(await file.arrayBuffer()));
+      const file = await fetchRenderFile(v.id, variant);
+      const tmp = join(mkdtempSync(join(tmpdir(), "publish-")), `${variant}.mp4`);
+      writeFileSync(tmp, file);
 
-      // Derived Shorts carry a hook caption; native Shorts fall back to title.
-      const caption = (s.source_segment as { caption?: string } | null)?.caption || s.title;
-      const ytId = await uploadVideo({
-        filePath: tmp,
-        title: s.title,
-        description: `${caption}\n\n#Shorts`.trim(),
-        tags: ["Shorts"],
-      });
+      let description: string;
+      let tags: string[];
+      if (variant === "short") {
+        // Derived Shorts carry a hook caption; native Shorts fall back to title.
+        const caption = (v.source_segment as { caption?: string } | null)?.caption || v.title;
+        description = `${caption}\n\n#Shorts`.trim();
+        tags = ["Shorts"];
+      } else {
+        const { data: scriptRow } = await db
+          .from("scripts")
+          .select("metadata")
+          .eq("video_id", v.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const sm = (scriptRow?.metadata ?? {}) as { description?: string; tags?: string[] };
+        description = sm.description ?? "";
+        tags = sm.tags ?? [];
+      }
+
+      const ytId = await uploadVideo({ filePath: tmp, title: v.title, description, tags });
       await db
         .from("videos")
         .update({
@@ -513,10 +531,10 @@ async function publishStagedShorts() {
           published_at: new Date().toISOString(),
           publish_requested: false,
         })
-        .eq("id", s.id);
-      console.log(`📺 ${s.title}: published Short → ${ytId}`);
+        .eq("id", v.id);
+      console.log(`📺 ${v.title}: published ${variant} → ${ytId}`);
     } catch (err) {
-      console.error(`❌ publish ${s.title}:`, err);
+      console.error(`❌ publish ${v.title}:`, err);
       // Leave publish_requested set so the next pass retries.
     }
   }

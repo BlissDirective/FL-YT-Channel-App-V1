@@ -47,6 +47,11 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           STUDIO_MCP_TOKEN: ${{ secrets.STUDIO_MCP_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # R2 read creds — the app presigns download links for R2-stored renders.
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ vars.R2_BUCKET || secrets.R2_BUCKET }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "⚪ VERCEL_TOKEN secret not configured — nothing to do."
@@ -89,6 +94,10 @@ jobs:
           upsert CRON_SECRET "$CRON_SECRET"
           upsert STUDIO_MCP_TOKEN "$STUDIO_MCP_TOKEN"
           upsert GEMINI_API_KEY "$GEMINI_API_KEY"
+          upsert R2_ACCOUNT_ID "$R2_ACCOUNT_ID"
+          upsert R2_ACCESS_KEY_ID "$R2_ACCESS_KEY_ID"
+          upsert R2_SECRET_ACCESS_KEY "$R2_SECRET_ACCESS_KEY"
+          upsert R2_BUCKET "$R2_BUCKET" plain
 
           echo ""
           echo "==== SYNC: $PASS synced, $FAIL failed, $SKIP skipped ===="

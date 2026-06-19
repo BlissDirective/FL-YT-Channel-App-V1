@@ -16,8 +16,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { Sparkline } from "@/components/ui/sparkline";
-import { markUploadedAction, refreshStatsAction } from "@/lib/actions/publish";
-import { publishShortAction } from "@/lib/actions/shorts";
+import { markUploadedAction, refreshStatsAction, requestPublishAction } from "@/lib/actions/publish";
 
 export type PublishRender = {
   variant: "long" | "short";
@@ -86,28 +85,33 @@ export function PublishKit(props: PublishKitProps) {
 
       <RenderDownloads {...props} />
       <CopyFields {...props} />
-      {status === "APPROVED" && props.isShort && <PublishShort {...props} />}
+      {status === "APPROVED" && <PublishToYouTube {...props} />}
       {status === "APPROVED" && <MarkUploaded {...props} />}
     </div>
   );
 }
 
-/** One-tap publish for a staged Short: flags it for the render farm (which
-    holds the YouTube OAuth) to upload as a #Shorts video. Manual upload below
-    stays available as a fallback when the farm has no OAuth. */
-function PublishShort({ projectId, videoId, publishRequested }: PublishKitProps) {
+/** One-tap publish for a rendered video (long-form or Short): flags it for the
+    render farm (which holds the YouTube OAuth) to upload — long-form as an
+    unlisted draft, a Short as #Shorts. The download package above stays
+    available, and manual "mark uploaded" below is the fallback when the farm
+    has no OAuth, so the operator always picks: download, upload, or both. */
+function PublishToYouTube({ projectId, videoId, isShort, publishRequested }: PublishKitProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
   const [done, setDone] = useState(false);
   const queued = publishRequested || done;
+  const what = isShort ? "Short (9:16)" : "long-form";
 
   return (
     <Card className="space-y-2 border border-accent/40 bg-accent-soft/40">
-      <p className="text-sm font-semibold">Publish this Short</p>
+      <p className="text-sm font-semibold">Publish to YouTube</p>
       <p className="text-xs text-muted">
         {queued
-          ? "Queued — the render farm uploads it to YouTube as a Short on its next pass (first stats appear within the day)."
-          : "One tap sends the staged 9:16 cut to YouTube as a Short. No file juggling."}
+          ? `Queued — the render farm uploads this ${what} on its next pass (first stats appear within the day).`
+          : isShort
+            ? "One tap sends the staged 9:16 cut to YouTube as a Short. Or just download it above."
+            : "One tap uploads the long-form as an unlisted draft to review on YouTube. Or just download it above."}
       </p>
       {!queued ? (
         <button
@@ -116,7 +120,7 @@ function PublishShort({ projectId, videoId, publishRequested }: PublishKitProps)
           onClick={() =>
             startTransition(async () => {
               setError(undefined);
-              const r = await publishShortAction(projectId, videoId);
+              const r = await requestPublishAction(projectId, videoId);
               if (!r.ok) setError(r.error);
               else setDone(true);
             })
