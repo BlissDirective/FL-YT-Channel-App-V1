@@ -43,5 +43,7 @@ jobs:
           YOUTUBE_OAUTH_CLIENT_ID: ${{ secrets.YOUTUBE_OAUTH_CLIENT_ID }}
           YOUTUBE_OAUTH_CLIENT_SECRET: ${{ secrets.YOUTUBE_OAUTH_CLIENT_SECRET }}
           YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
-          YOUTUBE_UPLOAD_PRIVACY: ${{ vars.YOUTUBE_UPLOAD_PRIVACY }}
+          # Optional upload tuning — accept either a repo Variable or a Secret.
+          YOUTUBE_UPLOAD_PRIVACY: ${{ vars.YOUTUBE_UPLOAD_PRIVACY || secrets.YOUTUBE_UPLOAD_PRIVACY }}
+          YOUTUBE_CATEGORY_ID: ${{ vars.YOUTUBE_CATEGORY_ID || secrets.YOUTUBE_CATEGORY_ID }}
         run: pnpm render-queue
