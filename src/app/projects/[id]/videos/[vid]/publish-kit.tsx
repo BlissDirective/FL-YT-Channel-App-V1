@@ -21,6 +21,8 @@ import { markUploadedAction, refreshStatsAction, requestPublishAction } from "@/
 export type PublishRender = {
   variant: "long" | "short";
   url: string | null;
+  /** True only when the source asset is a mock render (storage path `mock/…`). */
+  isMock: boolean;
   resolution: string;
   durationSec: number;
   fileName: string;
@@ -245,11 +247,17 @@ function Stat({
 function RenderDownloads(props: PublishKitProps) {
   const { renders, thumbUrl, thumbFileName } = props;
   const usable = renders.filter((r) => r.url);
+  // A real (non-mock) render that produced no signable URL = a link/credential
+  // failure, NOT a mock video. Don't scare the operator with "mock render".
+  const hasRealRender = renders.some((r) => !r.isMock);
+  const linkFailed = usable.length === 0 && hasRealRender;
+
   if (usable.length === 0 && !thumbUrl) {
     return (
       <Card className="text-sm text-muted">
-        This video was a mock render, so there&apos;s no downloadable MP4. Run a
-        live-asset video through the pipeline to get a real package here.
+        {hasRealRender
+          ? "Couldn't generate the download link — reload in a moment. If it keeps failing, the storage credentials may need re-syncing (Sync Vercel Env)."
+          : "This video was a mock render, so there's no downloadable MP4. Run a live-asset video through the pipeline to get a real package here."}
       </Card>
     );
   }
@@ -258,6 +266,11 @@ function RenderDownloads(props: PublishKitProps) {
       <p className="text-xs font-semibold uppercase tracking-wide text-muted">
         Download package
       </p>
+      {linkFailed && (
+        <p className="text-xs font-medium text-coral">
+          Couldn&apos;t generate the video download link — reload in a moment.
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         {usable.map((r) => (
           <a

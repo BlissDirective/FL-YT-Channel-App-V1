@@ -306,6 +306,7 @@ async function buildPublishKit({
       return {
         variant: variant as "long" | "short",
         url: await assetUrl(a),
+        isMock: (a.storage_path ?? "").startsWith("mock/"),
         resolution: m.resolution ?? "1080p",
         durationSec: Number(m.durationSec ?? 0),
         fileName: `${slug(v.title)}${variant === "short" ? "-short" : ""}.mp4`,
