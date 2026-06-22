@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check,
   Copy,
@@ -16,11 +17,15 @@ import {
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { Sparkline } from "@/components/ui/sparkline";
+import { approveGateAction } from "@/lib/actions/pipeline";
 import { markUploadedAction, refreshStatsAction, requestPublishAction } from "@/lib/actions/publish";
 
 export type PublishRender = {
   variant: "long" | "short";
+  /** Inline-preview URL (plays in the page). */
   url: string | null;
+  /** Forced-download URL (Content-Disposition: attachment) for the Save button. */
+  downloadUrl: string | null;
   /** True only when the source asset is a mock render (storage path `mock/…`). */
   isMock: boolean;
   resolution: string;
@@ -49,6 +54,7 @@ export type PublishKitProps = {
   tags: string[];
   renders: PublishRender[];
   thumbUrl: string | null;
+  thumbDownloadUrl: string | null;
   thumbFileName: string;
   youtubeVideoId: string | null;
   publishedAt: string | null;
@@ -88,10 +94,47 @@ export function PublishKit(props: PublishKitProps) {
       {status === "TRACKING" && <TrackingPanel {...props} />}
 
       <RenderDownloads {...props} />
+      {status === "FINAL_REVIEW" && <ApproveFinalCut {...props} />}
       <CopyFields {...props} />
       {status === "APPROVED" && <PublishToYouTube {...props} />}
       {status === "APPROVED" && <MarkUploaded {...props} />}
     </div>
+  );
+}
+
+/** Approve the final cut right from the video page (mirrors the Review-queue
+    Final gate). Advancing FINAL_REVIEW → APPROVED unlocks YouTube publish; it's
+    free and regenerates nothing. */
+function ApproveFinalCut({ projectId, videoId }: PublishKitProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string>();
+
+  return (
+    <Card className="space-y-2 border border-accent/40 bg-accent-soft/40">
+      <p className="text-sm font-semibold">Approve the final cut</p>
+      <p className="text-xs text-muted">
+        Looks good? Approving moves it out of review and unlocks one-tap YouTube
+        publish. It&apos;s free — nothing regenerates.
+      </p>
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() =>
+          startTransition(async () => {
+            setError(undefined);
+            const r = await approveGateAction(projectId, videoId);
+            if (r.ok) router.refresh();
+            else setError(r.error);
+          })
+        }
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+      >
+        {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+        Approve final cut
+      </button>
+      {error && <p className="text-sm font-medium text-coral">{error}</p>}
+    </Card>
   );
 }
 
@@ -275,7 +318,7 @@ function RenderDownloads(props: PublishKitProps) {
         {usable.map((r) => (
           <a
             key={r.variant}
-            href={r.url as string}
+            href={(r.downloadUrl ?? r.url) as string}
             download={r.fileName}
             className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02]"
           >
@@ -286,7 +329,7 @@ function RenderDownloads(props: PublishKitProps) {
         ))}
         {thumbUrl && (
           <a
-            href={thumbUrl}
+            href={props.thumbDownloadUrl ?? thumbUrl}
             download={thumbFileName}
             className="inline-flex items-center gap-2 rounded-full bg-card-warm px-4 py-2 text-sm font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"
           >
@@ -294,6 +337,10 @@ function RenderDownloads(props: PublishKitProps) {
           </a>
         )}
       </div>
+      <p className="text-[11px] text-muted">
+        On mobile, these save to Files. Tip: long-press a button → “Download
+        Linked File” if your browser still opens the preview.
+      </p>
       {usable.find((r) => r.variant === "long")?.url && (
         <video
           src={usable.find((r) => r.variant === "long")!.url as string}

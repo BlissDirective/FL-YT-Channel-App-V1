@@ -323,13 +323,18 @@ export async function getProjectDownloads(projectId: string): Promise<DownloadRo
       mine.find((a) => a.kind === "thumb" && (a.meta as { selected?: boolean }).selected) ??
       mine.find((a) => a.kind === "thumb");
     if (!long && !short) continue; // nothing rendered yet
+    const slug =
+      v.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) ||
+      "video";
     rows.push({
       videoId: v.id,
       title: v.title,
       status: v.status,
-      long: long ? await getSignedMediaUrl(long.storage_path) : null,
-      short: short ? await getSignedMediaUrl(short.storage_path) : null,
-      thumb: thumb ? await getSignedMediaUrl(thumb.storage_path) : null,
+      // Forced-download URLs (Content-Disposition: attachment) so the link saves
+      // the file instead of playing it inline (matters on mobile Safari).
+      long: long ? await getSignedMediaUrl(long.storage_path, 3600, `${slug}-1080p.mp4`) : null,
+      short: short ? await getSignedMediaUrl(short.storage_path, 3600, `${slug}-short.mp4`) : null,
+      thumb: thumb ? await getSignedMediaUrl(thumb.storage_path, 3600, `${slug}-thumb.jpg`) : null,
     });
   }
   return rows;

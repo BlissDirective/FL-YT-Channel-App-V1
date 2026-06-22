@@ -77,11 +77,26 @@ export async function r2Put(
   );
 }
 
-/** Presigned GET URL for an R2 object key (pass it without `r2:`). */
-export async function r2SignedGetUrl(key: string, expiresInSec = 3600): Promise<string> {
-  return getSignedUrl(client(), new GetObjectCommand({ Bucket: bucket(), Key: key }), {
-    expiresIn: expiresInSec,
-  });
+/** Presigned GET URL for an R2 object key (pass it without `r2:`). When
+    `downloadAs` is set, the response forces a download (Content-Disposition:
+    attachment) with that filename — so browsers save the file instead of
+    playing it inline (matters on mobile Safari). */
+export async function r2SignedGetUrl(
+  key: string,
+  expiresInSec = 3600,
+  downloadAs?: string,
+): Promise<string> {
+  return getSignedUrl(
+    client(),
+    new GetObjectCommand({
+      Bucket: bucket(),
+      Key: key,
+      ...(downloadAs
+        ? { ResponseContentDisposition: `attachment; filename="${downloadAs.replace(/"/g, "")}"` }
+        : {}),
+    }),
+    { expiresIn: expiresInSec },
+  );
 }
 
 /** Download an R2 object's bytes (pass the key without `r2:`). */

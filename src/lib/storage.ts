@@ -21,6 +21,9 @@ export async function uploadMedia(
 export async function getSignedMediaUrl(
   path: string,
   expiresInSec = 3600,
+  /** When set, the link forces a download with this filename (Save to Files on
+      mobile) rather than playing inline. Omit for inline preview URLs. */
+  downloadAs?: string,
 ): Promise<string | null> {
   if (!path || path.startsWith("mock/")) return null;
   // R2-backed renders carry an `r2:` prefix — presign against R2 instead of
@@ -28,7 +31,7 @@ export async function getSignedMediaUrl(
   // any renders made before R2 was configured).
   if (isR2Path(path)) {
     try {
-      return await r2SignedGetUrl(stripR2(path), expiresInSec);
+      return await r2SignedGetUrl(stripR2(path), expiresInSec, downloadAs);
     } catch {
       return null;
     }
@@ -36,6 +39,6 @@ export async function getSignedMediaUrl(
   const supabase = createAdminClient();
   const { data } = await supabase.storage
     .from(BUCKET)
-    .createSignedUrl(path, expiresInSec);
+    .createSignedUrl(path, expiresInSec, downloadAs ? { download: downloadAs } : undefined);
   return data?.signedUrl ?? null;
 }

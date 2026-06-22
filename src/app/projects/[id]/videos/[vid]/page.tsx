@@ -303,13 +303,15 @@ async function buildPublishKit({
     renderAssets.map(async (a) => {
       const m = a.meta as { variant?: string; resolution?: string; durationSec?: number };
       const variant = m.variant === "short" ? "short" : "long";
+      const fileName = `${slug(v.title)}${variant === "short" ? "-short" : ""}.mp4`;
       return {
         variant: variant as "long" | "short",
         url: await assetUrl(a),
+        downloadUrl: a.storage_path ? await getSignedMediaUrl(a.storage_path, 3600, fileName) : null,
         isMock: (a.storage_path ?? "").startsWith("mock/"),
         resolution: m.resolution ?? "1080p",
         durationSec: Number(m.durationSec ?? 0),
-        fileName: `${slug(v.title)}${variant === "short" ? "-short" : ""}.mp4`,
+        fileName,
       };
     }),
   );
@@ -334,6 +336,9 @@ async function buildPublishKit({
     tags: meta.tags ?? [],
     renders,
     thumbUrl: selectedThumb ? await assetUrl(selectedThumb) : null,
+    thumbDownloadUrl: selectedThumb?.storage_path
+      ? await getSignedMediaUrl(selectedThumb.storage_path, 3600, `${slug(v.title)}-thumb.jpg`)
+      : null,
     thumbFileName: `${slug(v.title)}-thumb.jpg`,
     youtubeVideoId: v.youtube_video_id,
     publishedAt: v.published_at,
