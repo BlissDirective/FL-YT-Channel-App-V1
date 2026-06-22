@@ -71,8 +71,13 @@ export default async function ProjectHome({
     (v) => v.status === "TRACKING" || v.youtube_video_id,
   ).length;
   const spend = videos.reduce((s, v) => s + Number(v.total_cost_usd), 0);
+  // "Needs attention" = a stalled video. Exclude states that have already
+  // reached a successful waypoint (rendered/assets-done/published/terminal) —
+  // those can carry a stale paused_reason from an earlier, since-recovered fail.
   const pausedVideos = videos.filter(
-    (v) => v.paused_reason && !["KILLED", "APPROVED", "TRACKING"].includes(v.status),
+    (v) =>
+      v.paused_reason &&
+      !["KILLED", "APPROVED", "TRACKING", "FINAL_REVIEW", "ASSETS_READY"].includes(v.status),
   );
 
   return (

@@ -109,7 +109,10 @@ export default async function VideoDetailPage({
   const canStepBackToScript =
     v.status === "GENERATING_ASSETS" || v.status === "ASSETS_READY";
 
-  const publishKit = isPublishStage
+  // Show the download/publish kit once a render exists — at FINAL_REVIEW the
+  // operator can download the MP4 directly (publish actions unlock at APPROVED).
+  const showPublishKit = isPublishStage || v.status === "FINAL_REVIEW";
+  const publishKit = showPublishKit
     ? await buildPublishKit({ id, vid, v, s, assets: allAssets, project })
     : null;
 
@@ -321,7 +324,7 @@ async function buildPublishKit({
   return {
     projectId: id,
     videoId: vid,
-    status: v.status as "APPROVED" | "TRACKING",
+    status: v.status as "APPROVED" | "TRACKING" | "FINAL_REVIEW",
     isShort: v.kind === "short",
     publishRequested: Boolean(v.publish_requested),
     title: v.title,

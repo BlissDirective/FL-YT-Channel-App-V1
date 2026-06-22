@@ -36,7 +36,7 @@ export type PublishSnapshot = {
 export type PublishKitProps = {
   projectId: string;
   videoId: string;
-  status: "APPROVED" | "TRACKING";
+  status: "APPROVED" | "TRACKING" | "FINAL_REVIEW";
   /** True for short-form videos — unlocks the one-tap farm publish. */
   isShort: boolean;
   /** Operator already tapped Publish → the farm is uploading it. */
@@ -76,7 +76,9 @@ export function PublishKit(props: PublishKitProps) {
           <p className="text-xs text-muted">
             {status === "TRACKING"
               ? "Published — tracking live public stats below."
-              : "Everything you need to upload this to YouTube by hand."}
+              : status === "FINAL_REVIEW"
+                ? "Rendered — download it below now, or approve the final cut (Review queue) to unlock YouTube publish."
+                : "Everything you need to upload this to YouTube by hand."}
           </p>
         </div>
       </div>

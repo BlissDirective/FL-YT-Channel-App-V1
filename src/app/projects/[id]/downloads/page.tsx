@@ -49,10 +49,10 @@ export default async function DownloadsPage({
           {rows.map((r) => (
             <Card key={r.videoId}>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <Link
                     href={`/projects/${id}/videos/${r.videoId}`}
-                    className="truncate text-sm font-semibold hover:text-accent"
+                    className="block truncate text-sm font-semibold hover:text-accent"
                   >
                     {r.title}
                   </Link>
