@@ -63,6 +63,7 @@ async function storeRender(
   const key = `videos/${videoId}/${storageName}.mp4`;
   if (r2Configured()) {
     await r2Put(key, file, "video/mp4");
+    console.log(`☁️  ${videoId} [${variant}]: stored ${Math.round(file.length / 1e6)}MB → R2 (${key})`);
     return { storagePath: toR2Path(key), provider: "r2" };
   }
   const { error: upErr } = await db.storage
@@ -89,6 +90,7 @@ async function storeRender(
       throw new Error(`upload failed: ${upErr.message}`);
     }
   }
+  console.log(`📦 ${videoId} [${variant}]: stored ${Math.round(file.length / 1e6)}MB → Supabase Storage (${key})`);
   return { storagePath: key, provider: "remotion" };
 }
 
@@ -435,7 +437,9 @@ async function renderOne(
       : "Final render + Short (GitHub Actions) — free",
     usd: 0,
   });
-  await db.from("videos").update({ status: "FINAL_REVIEW" }).eq("id", videoId);
+  // Clear any prior paused_reason (e.g. an earlier storage failure) so the
+  // project "needs attention" banner clears once this render succeeds.
+  await db.from("videos").update({ status: "FINAL_REVIEW", paused_reason: null }).eq("id", videoId);
   console.log(
     `✅ ${video.title}: rendered ${isShort ? "vertical short" : "long + short"} → FINAL_REVIEW`,
   );

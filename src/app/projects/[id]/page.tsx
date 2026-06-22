@@ -30,6 +30,7 @@ import { RunDemoButton } from "@/components/dashboard/run-demo-button";
 import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-button";
 import { QueueTopic } from "@/components/dashboard/queue-topic";
 import { ScoutChat } from "@/components/dashboard/scout-chat";
+import { NeedsAttention } from "./needs-attention";
 
 export const dynamic = "force-dynamic";
 // Live script + voiceover stages run inside actions on this route.
@@ -93,9 +94,11 @@ export default async function ProjectHome({
             )}
             {killSwitch && <StatusChip tone="coral">Kill switch on</StatusChip>}
             {pausedVideos.length > 0 && (
-              <StatusChip tone="coral">
-                {pausedVideos.length} paused — {pausedVideos[0].paused_reason}
-              </StatusChip>
+              <a href="#needs-attention">
+                <StatusChip tone="coral">
+                  ⚠ {pausedVideos.length} need{pausedVideos.length === 1 ? "s" : ""} attention
+                </StatusChip>
+              </a>
             )}
           </div>
         </div>
@@ -127,6 +130,16 @@ export default async function ProjectHome({
           </Link>
         </div>
       </div>
+
+      <NeedsAttention
+        projectId={id}
+        videos={pausedVideos.map((v) => ({
+          id: v.id,
+          title: v.title,
+          status: v.status,
+          reason: v.paused_reason ?? "Paused — open to see details.",
+        }))}
+      />
 
       <QueueTopic projectId={id} />
 
