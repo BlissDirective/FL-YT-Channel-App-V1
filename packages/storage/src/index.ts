@@ -52,6 +52,10 @@ function client(): S3Client {
     region: "auto",
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: { accessKeyId, secretAccessKey },
+    // R2 needs path-style addressing — the default virtual-hosted style would
+    // build `<bucket>.<account>.r2.cloudflarestorage.com`, which R2's wildcard
+    // cert (`*.r2.cloudflarestorage.com`, one label) doesn't cover → TLS error.
+    forcePathStyle: true,
   });
   return cached;
 }
