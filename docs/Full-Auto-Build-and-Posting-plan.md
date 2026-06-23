@@ -1,8 +1,7 @@
 # Full-Auto Build & Post — Architecture & Build Plan
 
-> Status: **DRAFT for review.** No code is written yet. This doc is the
-> blueprint we finalize together before any implementation. Items marked
-> **⟶ confirm** are recommended defaults awaiting your sign-off.
+> Status: **FINALIZED — ready to build.** All decisions are locked (§3 + §4).
+> No code is written yet; implementation begins at Phase 0 on approval.
 
 ---
 
@@ -37,33 +36,42 @@ publish scheduler, and QC-gated auto-approval).
 
 1. **Quality gate = auto-revise once, then judge.** On a sub-floor QC score at
    the script gate, run **one** revision pass (reusing the QC→script feedback
-   loop), re-score, then publish if it passes the floor, else **hold** in
+   loop), re-score, then proceed if it passes the floor, else **hold** in
    "Needs attention" (never auto-post a weak video).
-2. **Cadence = both modes offered:** *Multi-day* (one video per day at the slot)
-   **and** *Staggered within a day* (multiple per day at fixed times). Plus
+2. **Posting privacy = QC-tied** (decided on the **final-cut** QC score):
+   - score **≥ 8.0 → Public** (full reach, hands-off),
+   - **7.0 ≤ score < 8.0 → Unlisted** (staged for a quick human glance, not broadcast),
+   - **score < 7.0 → Held** (not posted at all).
+3. **Cadence = both modes offered:** *Multi-day* (one video/day at the slot)
+   **and** *Staggered within a day* (multiple/day at fixed times). Plus
    *All at once* (publish each as soon as its assets finalize).
-3. **One config for the whole batch** (length, type, tier, thumbnail style,
+4. **One config for the whole batch** (length, type, tier, thumbnail style,
    schedule apply to all N).
-4. **Performance-aware from day one**, with a **cold-start fallback**: until the
-   channel has ≥ N published videos with stats, fall back to QC/heuristics; then
-   bias idea topics, format, and tier toward what's performing.
+5. **One content type per run** — a run is all long-form **or** all short-form
+   (never mixed), consistent with "one config for the batch".
+6. **Performance-aware from day one**, with a **cold-start fallback**: until the
+   channel has **≥ 5** published videos with stats, fall back to QC/heuristics;
+   then bias idea topics, format, and tier toward what's performing.
+7. **Thumbnail style = text-treatment preset** (Bold-bottom / Center-punch /
+   Top-kicker) + brand accent color, over the hero still (the old AI-image
+   thumbnail style was removed).
 
 ---
 
-## 4. Open decisions — recommended defaults (⟶ confirm)
+## 4. Finalized parameters
 
-| # | Topic | Recommended default |
+| # | Parameter | Value |
 |---|---|---|
-| O1 | **Post time / timezone** | 2:00 PM **America/Chicago**, DST-aware (CDT/CST auto). |
-| O2 | **Staggered times** | 2/day → 10:00 AM + 2:00 PM CT; 3/day → 9:00 AM + 1:00 PM + 6:00 PM CT. |
-| O3 | **Multi-day start** | First slot = **next 2 PM CT** (today if before 2 PM, else tomorrow), then +1 day each. |
-| O4 | **QC floor** | **7.0 / 10** to auto-publish; below → revise once → still below → hold. |
-| O5 | **Auto-revise scope** | Script gate only, **max 1** revision (bounded cost). Assets/render failures → hold, no auto-retry loop. |
-| O6 | **Cold-start threshold** | Performance weighting activates at **≥ 5** published videos with ≥ 1 stats snapshot; below that, QC/heuristics. |
-| O7 | **"Thumbnail style"** | Now that thumbnails are hero-still + kinetic phrase, "style" = a **text/treatment preset** (e.g. *Bold bottom* / *Center punch* / *Top kicker*) + accent color from brand. (The old AI-image style was removed.) |
-| O8 | **Default privacy** | Auto-posted videos go up **unlisted** unless the project's `YOUTUBE_UPLOAD_PRIVACY` says otherwise — review before public. *(Strongly recommended for an unattended loop.)* ⟶ or `public`? |
-| O9 | **Concurrency** | Up to 6 videos/run; render farm processes ≤ 5/pass so a batch drains over a few cron cycles (fine). |
-| O10 | **Privacy of auto-publish** | A run can be **paused/cancelled** any time from the run dashboard; cancels un-published items. |
+| P1 | **Post timezone / base slot** | 2:00 PM **America/Chicago**, DST-aware (CDT/CST resolved at scheduling time). |
+| P2 | **Staggered times** | 1/day → 2 PM CT · 2/day → 10 AM + 2 PM CT · 3/day → 9 AM + 1 PM + 6 PM CT. |
+| P3 | **Multi-day start** | First slot = next 2 PM CT (today if before 2 PM, else tomorrow), +1 day each. |
+| P4 | **QC floor (publish at all)** | **7.0 / 10**. Below → revise once → still below → Held. |
+| P5 | **QC public threshold** | **8.0 / 10**. ≥ 8.0 → Public; 7.0–8.0 → Unlisted; < 7.0 → Held. |
+| P6 | **Auto-revise scope** | Script gate only, **max 1** revision. Assets/render failures → Held (no retry loop). |
+| P7 | **Cold-start threshold** | Performance weighting activates at **≥ 5** published videos with ≥ 1 stats snapshot. |
+| P8 | **Thumbnail styles** | Bold-bottom · Center-punch · Top-kicker (text treatment) + brand accent. |
+| P9 | **Run size** | 1–6 videos; render farm processes ≤ 5/pass (batch drains over a few cron cycles). |
+| P10 | **Run control** | A run can be **paused/cancelled** anytime; cancel stops un-published items, keeps posted ones. |
 
 ---
 
@@ -82,8 +90,9 @@ length_min_sec  int
 length_max_sec  int
 tier            text    -- base | economy | premium | platinum | custom
 custom_spec     jsonb   -- when tier=custom
-thumb_style     text    -- O7 preset
-qc_floor        numeric -- default 7.0
+thumb_style     text    -- bold-bottom | center-punch | top-kicker (P8)
+qc_floor        numeric -- default 7.0  (publish at all)
+qc_public       numeric -- default 8.0  (>= → Public, floor..public → Unlisted)
 schedule_mode   text    -- all_at_once | multi_day | staggered
 schedule_cfg    jsonb   -- {times:[...], startDate, perDay}
 idea_source     text    -- 'existing' | 'research'
@@ -98,6 +107,7 @@ build_run_id        uuid → build_runs (nullable)
 scheduled_publish_at timestamptz   -- absolute UTC release time (null = ASAP/all-at-once)
 auto_publish        boolean         -- this video publishes itself when due
 auto_pilot_run      boolean         -- gates auto-approve (QC-gated) for this video
+publish_privacy     text            -- public | unlisted (set from final QC score, P5)
 ```
 
 No change to the core state machine — Build & Post drives videos through the
@@ -129,11 +139,14 @@ and is **idempotent** (re-entrant; only acts on what's due).
 
 For `auto_pilot_run` videos, at each gate arrival the QC agent (`reviewGate`)
 scores the artifact:
-- **Script gate:** score ≥ floor → approve. Below → **revise once** (regenerate
-  script with the QC issues injected — the loop we built), re-score; pass →
-  approve; still below → set **HELD** (needs attention), drop from the run.
-- **Assets / Final gates:** score ≥ floor → approve & continue; below → hold.
-- Render/asset **failures** → hold (no infinite retry); the rest of the batch
+- **Script gate:** score ≥ floor (7.0) → approve. Below → **revise once**
+  (regenerate script with the QC issues injected — the loop we built), re-score;
+  pass → approve; still below → **HELD** (needs attention), drop from the run.
+- **Assets gate:** score ≥ floor → approve & continue; below → Held.
+- **Final gate (decides privacy, P5):** the final-cut QC score sets how it posts —
+  **≥ 8.0 → Public**, **7.0–8.0 → Unlisted** (staged for your glance),
+  **< 7.0 → Held** (not posted).
+- Render/asset **failures** → Held (no infinite retry); the rest of the batch
   proceeds (fail-soft).
 
 This reuses `decideGate`, `qc_reviews`, autonomy logic, and `COPILOT_AUTO_APPROVE_SCORE`.
@@ -145,9 +158,13 @@ Videos reach `APPROVED` but **do not publish** until their slot.
   `scheduled_publish_at <= now()` (or null for all-at-once, once `APPROVED`) and
   sets `publish_requested=true`.
 - The **existing** render-farm `publishStagedVideos` then uploads to the
-  project's channel (per-project token) → `TRACKING`.
+  project's channel (per-project token) at the video's `publish_privacy`
+  (Public/Unlisted, set from the final QC score per P5) → `TRACKING`.
 - Times are stored as **absolute UTC** computed from 2 PM CT on each target date,
   so DST is resolved once at scheduling time. No drift, no double-posts.
+- **Note:** the worker's `uploadVideo` currently reads one privacy from
+  `YOUTUBE_UPLOAD_PRIVACY`; P5 requires a small change to accept a **per-video**
+  privacy override.
 
 ### 5.5 Performance-aware selection (the "memory", self-improving)
 
@@ -179,11 +196,13 @@ A primary **"Build & Post"** button on the project home (next to "Generate ideas
   (Claude generates `count`, deduped + performance-ranked).
 - **Type** — Long-form / Short.
 - **Length range** — min–max (e.g. 1–2 min); each video samples within it.
-- **Thumbnail style** — preset (O7).
+- **Thumbnail style** — Bold-bottom / Center-punch / Top-kicker (P8).
 - **Quality tier** — Base / Economy / Premium / Platinum / Custom.
 - **Schedule** — All at once / Multi-day / Staggered (+ per-day count & times,
-  defaults O2); time zone shown (CT).
-- **Advanced** — QC floor (default 7), privacy (default unlisted).
+  defaults P2); time zone shown (CT).
+- **Advanced** — QC floor (7.0) + public threshold (8.0). Privacy is **QC-tied
+  (automatic)** — no manual privacy picker; high QC posts Public, borderline
+  Unlisted, fail Held.
 - **Footer** — live **estimated cost** + remaining monthly budget + **Launch**
   (disabled if over cap).
 
@@ -223,7 +242,8 @@ Each phase is independently shippable and reverts cleanly.
 ---
 
 ## 9. Safety / guardrails
-- Default **unlisted** posting (review before public) ⟶ confirm O8.
+- **QC-tied privacy** (P5): only confidently-good cuts (≥ 8.0) go Public;
+  borderline (7.0–8.0) post Unlisted for review; failures are Held, never posted.
 - Hard **monthly $ cap** + per-run estimate + confirm.
 - Brand-safe content (the visual-prompt scrubbing + no-text rules already live).
 - Per-project channel token (already built) — a run posts only to its channel.
@@ -240,11 +260,11 @@ caps, hero-still+phrase thumbnail, web-push notifications.
 
 ---
 
-## 11. Open questions to close before P0
-1. O8 — default posting privacy: **unlisted** (recommended) or public?
-2. O2/O3 — confirm staggered times and multi-day start rule.
-3. O4/O6 — QC floor (7.0) and cold-start threshold (5 videos) OK?
-4. O7 — thumbnail "style" as a text-treatment preset — agree, or do you want a
-   different notion of style?
-5. Should a run be able to mix long + short, or one type per run? (Current plan:
-   one type per run, per "one config for the batch".)
+## 11. Open questions
+
+**All resolved** (see §3 Finalized decisions + §4 Finalized parameters) —
+privacy is QC-tied (P5), staggered times confirmed (P2), QC floor 7.0 / public
+8.0 / cold-start 5 confirmed (P4–P7), thumbnail presets confirmed (P8), one type
+per run confirmed (§3.5).
+
+**Plan is ready to build — starting at Phase 0 (data model + run record).**
