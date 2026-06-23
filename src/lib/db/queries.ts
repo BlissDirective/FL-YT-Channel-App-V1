@@ -7,6 +7,8 @@ import { VIDEO_PROVIDER } from "@/lib/adapters/video-models";
 import type {
   AnalyticsSnapshot,
   Asset,
+  BuildRun,
+  BuildRunStatus,
   CostEntry,
   Idea,
   Insight,
@@ -571,4 +573,123 @@ export async function getVideoSnapshots(
     .eq("video_id", videoId)
     .order("captured_at", { ascending: true });
   return (data as AnalyticsSnapshot[]) ?? [];
+}
+
+// ── Build & Post runs (dashboard) ─────────────────────────────────────
+
+export type BuildRunVideo = {
+  id: string;
+  title: string;
+  status: string;
+  kind: string;
+  costUsd: number;
+  scheduledPublishAt: string | null;
+  publishPrivacy: string | null;
+  youtubeVideoId: string | null;
+  pausedReason: string | null;
+  qcScore: number | null;
+};
+
+export type BuildRunRow = {
+  id: string;
+  status: BuildRunStatus;
+  kind: string;
+  tier: string;
+  count: number;
+  thumbStyle: string;
+  scheduleMode: string;
+  ideaSource: string;
+  estCostUsd: number;
+  actualUsd: number;
+  createdAt: string;
+  videos: BuildRunVideo[];
+};
+
+/** Recent Build & Post runs with their videos, live cost, and final QC score —
+    powers the run dashboard on the project home. */
+export async function getBuildRuns(
+  projectId: string,
+  limit = 5,
+): Promise<BuildRunRow[]> {
+  const supabase = await createClient();
+  const { data: runs } = await supabase
+    .from("build_runs")
+    .select("*")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  const runRows = (runs as BuildRun[]) ?? [];
+  if (runRows.length === 0) return [];
+
+  const runIds = runRows.map((r) => r.id);
+  const { data: vids } = await supabase
+    .from("videos")
+    .select(
+      "id, title, status, kind, total_cost_usd, scheduled_publish_at, publish_privacy, youtube_video_id, paused_reason, build_run_id",
+    )
+    .in("build_run_id", runIds);
+  const vRows =
+    (vids as (Pick<
+      Video,
+      | "id"
+      | "title"
+      | "status"
+      | "kind"
+      | "total_cost_usd"
+      | "scheduled_publish_at"
+      | "publish_privacy"
+      | "youtube_video_id"
+      | "paused_reason"
+    > & { build_run_id: string })[]) ?? [];
+
+  // Latest FINAL-gate QC score per video (most recent wins).
+  const videoIds = vRows.map((v) => v.id);
+  const scoreByVideo = new Map<string, number>();
+  if (videoIds.length > 0) {
+    const { data: revs } = await supabase
+      .from("qc_reviews")
+      .select("video_id, score, gate, created_at")
+      .in("video_id", videoIds)
+      .eq("gate", "FINAL")
+      .order("created_at", { ascending: false });
+    for (const r of (revs as { video_id: string; score: number }[]) ?? []) {
+      if (!scoreByVideo.has(r.video_id)) scoreByVideo.set(r.video_id, Number(r.score));
+    }
+  }
+
+  const byRun = new Map<string, BuildRunVideo[]>();
+  for (const v of vRows) {
+    const list = byRun.get(v.build_run_id) ?? [];
+    list.push({
+      id: v.id,
+      title: v.title,
+      status: v.status,
+      kind: v.kind,
+      costUsd: Number(v.total_cost_usd ?? 0),
+      scheduledPublishAt: v.scheduled_publish_at,
+      publishPrivacy: v.publish_privacy,
+      youtubeVideoId: v.youtube_video_id,
+      pausedReason: v.paused_reason,
+      qcScore: scoreByVideo.get(v.id) ?? null,
+    });
+    byRun.set(v.build_run_id, list);
+  }
+
+  return runRows.map((r) => {
+    const videos = byRun.get(r.id) ?? [];
+    return {
+      id: r.id,
+      status: r.status,
+      kind: r.kind,
+      tier: r.tier,
+      count: r.count,
+      thumbStyle: r.thumb_style,
+      scheduleMode: r.schedule_mode,
+      ideaSource: r.idea_source,
+      estCostUsd: Number(r.est_cost_usd ?? 0),
+      actualUsd: videos.reduce((s, v) => s + v.costUsd, 0),
+      createdAt: r.created_at,
+      videos,
+    };
+  });
 }

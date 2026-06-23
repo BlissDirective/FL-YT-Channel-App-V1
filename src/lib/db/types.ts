@@ -138,6 +138,7 @@ export type BuildRunStatus =
   | "publishing"
   | "done"
   | "held"
+  | "paused"
   | "cancelled";
 
 export type BuildRun = {

@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { PIPELINE_STAGES } from "@studio/core";
 import {
+  getBuildRuns,
+  getIdeas,
   getKillSwitch,
   getProject,
   getTrackedStats,
@@ -31,6 +33,8 @@ import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-b
 import { QueueTopic } from "@/components/dashboard/queue-topic";
 import { ScoutChat } from "@/components/dashboard/scout-chat";
 import { NeedsAttention } from "./needs-attention";
+import { BuildAndPost } from "./build/build-and-post";
+import { BuildRunsPanel } from "./build/build-runs-panel";
 
 export const dynamic = "force-dynamic";
 // Live script + voiceover stages run inside actions on this route.
@@ -57,11 +61,16 @@ export default async function ProjectHome({
   const project = await getProject(id);
   if (!project) notFound();
 
-  const [videos, killSwitch, tracked] = await Promise.all([
+  const [videos, killSwitch, tracked, buildRuns, ideas] = await Promise.all([
     getVideos(id),
     getKillSwitch(),
     getTrackedStats(id),
+    getBuildRuns(id),
+    getIdeas(id),
   ]);
+  const ideaOptions = ideas
+    .filter((i) => i.status !== "dismissed")
+    .map((i) => ({ id: i.id, title: i.title, angle: i.angle }));
   const totalViews = tracked.reduce((s, t) => s + t.views, 0);
   const estRevenueUsd = tracked.reduce((s, t) => s + t.estRevenueUsd, 0);
   const counts = stageCounts(videos);
@@ -82,7 +91,7 @@ export default async function ProjectHome({
 
   return (
     <div className="space-y-6 pt-2">
-      <RealtimeRefresher tables={["videos", "ideas", "projects", "approvals"]} />
+      <RealtimeRefresher tables={["videos", "ideas", "projects", "approvals", "build_runs"]} />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link href="/" className="text-sm font-medium text-muted hover:text-ink">
@@ -108,6 +117,7 @@ export default async function ProjectHome({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <BuildAndPost projectId={id} ideas={ideaOptions} />
           <RunIntelligenceButton projectId={id} />
           <RunDemoButton projectId={id} />
           <Link
@@ -145,6 +155,8 @@ export default async function ProjectHome({
           reason: v.paused_reason ?? "Paused — open to see details.",
         }))}
       />
+
+      <BuildRunsPanel projectId={id} runs={buildRuns} />
 
       <QueueTopic projectId={id} />
 

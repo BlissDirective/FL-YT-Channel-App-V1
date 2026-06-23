@@ -34,7 +34,7 @@ import {
   VIDEO_MONTHLY_CAP_USD,
   VIDEO_PROVIDER,
 } from "@/lib/adapters/video-models";
-import { selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
+import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
@@ -1285,6 +1285,203 @@ function computeSchedule(
   return slots;
 }
 
+// ── Budget pre-flight (Phase 3) ───────────────────────────────────────
+
+/** A synthetic beat breakdown for a not-yet-written video of `lengthSec`: one
+    beat per ~20s, all eligible (non-stock) so the estimate reflects the most a
+    tier would place — an honest upper bound on what Full-Auto would queue. */
+function syntheticBeats(lengthSec: number): { shotType: string; scriptSec: number }[] {
+  const n = Math.max(1, Math.round(lengthSec / 20));
+  const each = lengthSec / n;
+  return Array.from({ length: n }, () => ({ shotType: "broll", scriptSec: each }));
+}
+
+/** Rough non-clip production cost (script + VO) for a video of `lengthSec`.
+    Stills/script are cents; VO scales with narration. A transparent add-on so
+    the displayed total isn't clip-only (the cap itself meters clip spend). */
+function nonClipCostUsd(lengthSec: number): number {
+  const vo = lengthSec * 0.0045; // ElevenLabs ≈ 15 chars/s @ ~$0.30/1k chars
+  const script = 0.03; // one Claude script draft
+  return Math.round((vo + script) * 100) / 100;
+}
+
+export type BuildCostEstimate = {
+  perVideoUsd: number;
+  batchUsd: number;
+  perVideoClipUsd: number;
+  batchClipUsd: number;
+  monthVideoSpendUsd: number;
+  capUsd: number;
+  capRemainingUsd: number;
+  overCap: boolean;
+};
+
+/** Estimate a Build & Post run's cost before launch. The cap check meters the
+    AI-video (fal) spend only — that is the capped resource — while the shown
+    totals include the modest non-clip add-on. */
+export async function estimateBuildCost(
+  project: Project,
+  cfg: BuildRunConfig,
+  dbArg?: Db,
+): Promise<BuildCostEstimate> {
+  const db = dbArg ?? (await createClient());
+  const count = Math.max(1, Math.min(6, Math.round(cfg.count)));
+  const lo = Math.max(15, Math.min(cfg.lengthMinSec, cfg.lengthMaxSec));
+  const hi = Math.max(lo, cfg.lengthMaxSec);
+  const midSec = Math.round((lo + hi) / 2);
+  const beats = syntheticBeats(midSec);
+  const maxUsd = cfg.custom ? cfg.custom.maxUsd : Number(project.max_video_usd ?? 8);
+  const perVideoClipUsd = estimateTierCost(cfg.tier, beats, {
+    clipCap: cfg.tier === "economy" ? Number(project.ai_clip_cap ?? 3) : undefined,
+    maxUsd,
+    custom: cfg.custom,
+    shortMode: cfg.kind === "short",
+  });
+  const perVideoUsd = Math.round((perVideoClipUsd + nonClipCostUsd(midSec)) * 100) / 100;
+  const batchClipUsd = Math.round(perVideoClipUsd * count * 100) / 100;
+  const batchUsd = Math.round(perVideoUsd * count * 100) / 100;
+  const monthVideoSpendUsd = Math.round((await monthVideoSpend(db)) * 100) / 100;
+  const capRemainingUsd =
+    Math.round((VIDEO_MONTHLY_CAP_USD - monthVideoSpendUsd) * 100) / 100;
+  return {
+    perVideoUsd,
+    batchUsd,
+    perVideoClipUsd,
+    batchClipUsd,
+    monthVideoSpendUsd,
+    capUsd: VIDEO_MONTHLY_CAP_USD,
+    capRemainingUsd,
+    overCap: batchClipUsd > capRemainingUsd,
+  };
+}
+
+// ── Performance-aware selection (Phase 5) ─────────────────────────────
+
+/** Published videos with ≥1 stats snapshot needed before performance bias
+    activates (P7); below it, fall back to QC + niche heuristics. */
+const COLD_START_MIN = 5;
+
+export type ChannelPlaybook = {
+  coldStart: boolean;
+  publishedWithStats: number;
+  /** Keywords from the channel's top performers (lowercased, deduped). */
+  topKeywords: string[];
+  /** Format that clearly outperforms on this channel (else null). */
+  suggestKind: "long" | "short" | null;
+  note: string;
+};
+
+const STOPWORDS = new Set(
+  "the a an and or of to in for on with how why what your you i my we is are be this that these those it as at from your about into".split(
+    " ",
+  ),
+);
+
+function keywordsOf(text: string): string[] {
+  return (text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 3 && !STOPWORDS.has(w));
+}
+
+/** Build a small per-project "playbook" from published performance. Below the
+    cold-start threshold it returns coldStart=true so callers fall back to
+    QC/heuristics. Used to rank researched ideas and nudge modal defaults. */
+export async function channelPlaybook(db: Db, projectId: string): Promise<ChannelPlaybook> {
+  const cold = (n: number, note: string): ChannelPlaybook => ({
+    coldStart: true,
+    publishedWithStats: n,
+    topKeywords: [],
+    suggestKind: null,
+    note,
+  });
+
+  const { data: published } = await db
+    .from("videos")
+    .select("id, title, topic, kind")
+    .eq("project_id", projectId)
+    .not("youtube_video_id", "is", null);
+  const vids = (published ?? []) as { id: string; title: string; topic: string; kind: string }[];
+  if (vids.length === 0) {
+    return cold(0, "Cold start — no published videos yet; using QC + niche heuristics.");
+  }
+
+  const ids = vids.map((v) => v.id);
+  const { data: snaps } = await db
+    .from("analytics_snapshots")
+    .select("video_id, views, captured_at")
+    .in("video_id", ids)
+    .order("captured_at", { ascending: false });
+  const views = new Map<string, number>();
+  for (const s of (snaps ?? []) as { video_id: string; views: number }[]) {
+    if (!views.has(s.video_id)) views.set(s.video_id, Number(s.views ?? 0));
+  }
+  const withStats = vids.filter((v) => views.has(v.id));
+  if (withStats.length < COLD_START_MIN) {
+    return cold(
+      withStats.length,
+      `Cold start — ${withStats.length}/${COLD_START_MIN} published videos have stats; using QC + niche heuristics.`,
+    );
+  }
+
+  // Winners = the top third by views (min 3).
+  const ranked = [...withStats].sort((a, z) => views.get(z.id)! - views.get(a.id)!);
+  const winners = ranked.slice(0, Math.max(3, Math.round(ranked.length / 3)));
+  const freq = new Map<string, number>();
+  for (const v of winners) {
+    for (const w of [...keywordsOf(v.title), ...keywordsOf(v.topic)]) {
+      freq.set(w, (freq.get(w) ?? 0) + 1);
+    }
+  }
+  const topKeywords = [...freq.entries()]
+    .filter(([, c]) => c >= 2)
+    .sort((a, z) => z[1] - a[1])
+    .slice(0, 12)
+    .map(([w]) => w);
+
+  // Format bias: compare mean views long vs short when both exist.
+  const meanViews = (k: string): number | null => {
+    const g = withStats.filter((v) => v.kind === k);
+    return g.length ? g.reduce((s, v) => s + views.get(v.id)!, 0) / g.length : null;
+  };
+  const long = meanViews("long");
+  const short = meanViews("short");
+  let suggestKind: "long" | "short" | null = null;
+  if (long != null && short != null) {
+    suggestKind = short > long * 1.25 ? "short" : long > short * 1.25 ? "long" : null;
+  }
+
+  return {
+    coldStart: false,
+    publishedWithStats: withStats.length,
+    topKeywords,
+    suggestKind,
+    note: topKeywords.length
+      ? `Performance bias active — leaning into your top topics: ${topKeywords.slice(0, 5).join(", ")}.`
+      : "Performance bias active.",
+  };
+}
+
+/** Score an idea by keyword overlap with the channel's winners (Phase 5). */
+function ideaPerfScore(idea: { title: string; topic: string }, topKeywords: string[]): number {
+  if (topKeywords.length === 0) return 0;
+  const set = new Set([...keywordsOf(idea.title), ...keywordsOf(idea.topic)]);
+  let s = 0;
+  for (const k of topKeywords) if (set.has(k)) s++;
+  return s;
+}
+
+/** Run ids that are paused or cancelled — the runner/scheduler skip their
+    videos so a paused/cancelled run stops advancing (P10). */
+async function blockedRunIds(db: Db): Promise<Set<string>> {
+  const { data } = await db
+    .from("build_runs")
+    .select("id")
+    .in("status", ["paused", "cancelled"]);
+  return new Set(((data ?? []) as { id: string }[]).map((r) => r.id));
+}
+
 /**
  * Launch a Build & Post run: create the run record and one seed video per idea
  * (cheap inserts at IDEA_APPROVED). The build-runner cron then drives each
@@ -1303,20 +1500,38 @@ export async function startBuildRun(
   const lo = Math.max(15, Math.min(cfg.lengthMinSec, cfg.lengthMaxSec));
   const hi = Math.max(lo, cfg.lengthMaxSec);
 
+  // Budget pre-flight (Phase 3): refuse a run that would blow the monthly cap.
+  const estimate = await estimateBuildCost(project, cfg, db);
+  if (estimate.overCap) {
+    return {
+      ok: false,
+      error: `This run (~$${estimate.batchClipUsd.toFixed(2)} AI-video) would exceed the $${estimate.capUsd}/mo cap — $${estimate.capRemainingUsd.toFixed(2)} remains. Lower the tier, the count, or the length.`,
+    };
+  }
+
   // 1) Source ideas — existing selections or freshly researched.
   let ideas: { id: string | null; title: string; topic: string }[] = [];
   if (cfg.ideaSource === "research") {
     await runIntelligence(projectId, { targetLengthSec: Math.round((lo + hi) / 2) });
-    const [{ data: fresh }, { data: used }] = await Promise.all([
+    const [{ data: fresh }, { data: used }, playbook] = await Promise.all([
       db.from("ideas").select("id, title, angle").eq("project_id", projectId)
         .order("created_at", { ascending: false }).limit(count * 3),
       db.from("videos").select("idea_id").eq("project_id", projectId).not("idea_id", "is", null),
+      channelPlaybook(db, projectId),
     ]);
     const usedSet = new Set(((used ?? []) as { idea_id: string }[]).map((u) => u.idea_id));
-    ideas = ((fresh ?? []) as { id: string; title: string; angle: string }[])
+    const candidates = ((fresh ?? []) as { id: string; title: string; angle: string }[])
       .filter((i) => !usedSet.has(i.id))
-      .slice(0, count)
       .map((i) => ({ id: i.id, title: i.title, topic: i.angle || i.title }));
+    // Performance-aware ranking (Phase 5): once past cold start, prefer ideas
+    // that echo the channel's winning topics; ties keep recency order.
+    if (!playbook.coldStart && playbook.topKeywords.length > 0) {
+      candidates.sort(
+        (a, z) =>
+          ideaPerfScore(z, playbook.topKeywords) - ideaPerfScore(a, playbook.topKeywords),
+      );
+    }
+    ideas = candidates.slice(0, count);
   } else {
     const ids = (cfg.ideaIds ?? []).slice(0, count);
     if (ids.length === 0) return { ok: false, error: "Select at least one idea, or choose Research." };
@@ -1344,6 +1559,7 @@ export async function startBuildRun(
       schedule_mode: cfg.scheduleMode ?? "all_at_once",
       schedule_cfg: cfg.scheduleCfg ?? {},
       idea_source: cfg.ideaSource,
+      est_cost_usd: estimate.batchUsd,
     })
     .select("id")
     .single();
@@ -1393,18 +1609,28 @@ export async function processPendingBuildVideos(
   dbArg?: Db,
 ): Promise<{ processed: number; errors: number; held: number }> {
   const db = dbArg ?? (await createClient());
-  const { data: pending } = await db
+  const blocked = await blockedRunIds(db);
+  // Over-fetch so a paused/cancelled run's seeds don't starve live runs, then
+  // take the first `limit` that belong to an active run.
+  const { data: pendingRaw } = await db
     .from("videos")
     .select("id, project_id, build_run_id")
     .not("build_run_id", "is", null)
     .eq("status", "IDEA_APPROVED")
     .order("created_at", { ascending: true })
-    .limit(limit);
+    .limit(limit + blocked.size + 5);
+  const pending = ((pendingRaw ?? []) as {
+    id: string;
+    project_id: string;
+    build_run_id: string;
+  }[])
+    .filter((r) => !blocked.has(r.build_run_id))
+    .slice(0, limit);
 
   let processed = 0;
   let errors = 0;
   let held = 0;
-  for (const row of (pending ?? []) as { id: string; project_id: string; build_run_id: string }[]) {
+  for (const row of pending) {
     try {
       const project = await getProject(db, row.project_id);
       if (!project) throw new Error("Project not found");
@@ -1558,6 +1784,7 @@ export async function finalizeAutoPilotVideos(
   const db = dbArg ?? (await createClient());
   if (!isQcLive()) return { finalized: 0, held: 0 };
 
+  const blocked = await blockedRunIds(db);
   const { data: pending } = await db
     .from("videos")
     .select("id, project_id, build_run_id, title")
@@ -1565,16 +1792,18 @@ export async function finalizeAutoPilotVideos(
     .eq("status", "FINAL_REVIEW")
     .is("paused_reason", null)
     .order("updated_at", { ascending: true })
-    .limit(limit);
+    .limit(limit + blocked.size + 5);
 
   let finalized = 0;
   let held = 0;
-  for (const row of (pending ?? []) as {
+  for (const row of ((pending ?? []) as {
     id: string;
     project_id: string;
     build_run_id: string | null;
     title: string;
-  }[]) {
+  }[])
+    .filter((r) => !(r.build_run_id && blocked.has(r.build_run_id)))
+    .slice(0, limit)) {
     try {
       const project = await getProject(db, row.project_id);
       const video = await getVideo(db, row.id);
@@ -1639,24 +1868,28 @@ export async function releaseScheduledVideos(
   dbArg?: Db,
 ): Promise<{ released: number }> {
   const db = dbArg ?? (await createClient());
+  const blocked = await blockedRunIds(db);
   const nowIso = new Date().toISOString();
   const { data: due } = await db
     .from("videos")
-    .select("id, project_id, title, scheduled_publish_at")
+    .select("id, project_id, title, scheduled_publish_at, build_run_id")
     .eq("auto_publish", true)
     .eq("status", "APPROVED")
     .eq("publish_requested", false)
     .is("youtube_video_id", null)
     .or(`scheduled_publish_at.is.null,scheduled_publish_at.lte.${nowIso}`)
     .order("scheduled_publish_at", { ascending: true, nullsFirst: true })
-    .limit(limit);
+    .limit(limit + blocked.size + 5);
 
   let released = 0;
-  for (const v of (due ?? []) as {
+  for (const v of ((due ?? []) as {
     id: string;
     project_id: string;
     title: string;
-  }[]) {
+    build_run_id: string | null;
+  }[])
+    .filter((r) => !(r.build_run_id && blocked.has(r.build_run_id)))
+    .slice(0, limit)) {
     await db.from("videos").update({ publish_requested: true }).eq("id", v.id);
     released++;
     try {
@@ -1670,6 +1903,64 @@ export async function releaseScheduledVideos(
     }
   }
   return { released };
+}
+
+// ── Run control (P10) ─────────────────────────────────────────────────
+
+/** Pause a run — the runner/scheduler stop advancing its videos; in-flight
+    work already underway finishes, but nothing new starts. Reversible. */
+export async function pauseBuildRun(runId: string, dbArg?: Db): Promise<{ ok: boolean }> {
+  const db = dbArg ?? (await createClient());
+  await db.from("build_runs").update({ status: "paused" }).eq("id", runId);
+  return { ok: true };
+}
+
+/** Resume a paused run (back to generating; the scheduler/finalizer pick up
+    where they left off). No-op on a cancelled run. */
+export async function resumeBuildRun(runId: string, dbArg?: Db): Promise<{ ok: boolean }> {
+  const db = dbArg ?? (await createClient());
+  const { data: run } = await db
+    .from("build_runs")
+    .select("status")
+    .eq("id", runId)
+    .maybeSingle();
+  if ((run?.status as string) === "cancelled") return { ok: false };
+  await db.from("build_runs").update({ status: "generating" }).eq("id", runId);
+  return { ok: true };
+}
+
+/** Cancel a run — stop everything not yet posted (kill un-published videos and
+    clear their publish flags), keep anything already on YouTube (P10). */
+export async function cancelBuildRun(
+  runId: string,
+  dbArg?: Db,
+): Promise<{ ok: boolean; stopped: number }> {
+  const db = dbArg ?? (await createClient());
+  await db.from("build_runs").update({ status: "cancelled" }).eq("id", runId);
+  const { data: vids } = await db
+    .from("videos")
+    .select("id, status, youtube_video_id")
+    .eq("build_run_id", runId);
+  let stopped = 0;
+  for (const v of (vids ?? []) as {
+    id: string;
+    status: string;
+    youtube_video_id: string | null;
+  }[]) {
+    // Keep posted videos; stop the rest.
+    if (v.youtube_video_id || v.status === "TRACKING" || v.status === "KILLED") continue;
+    await db
+      .from("videos")
+      .update({
+        status: "KILLED",
+        auto_publish: false,
+        publish_requested: false,
+        paused_reason: "Build & Post run cancelled",
+      })
+      .eq("id", v.id);
+    stopped++;
+  }
+  return { ok: true, stopped };
 }
 
 /**
