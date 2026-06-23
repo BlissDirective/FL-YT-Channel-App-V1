@@ -22,6 +22,7 @@ import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { ScriptReview } from "./script-review";
 import { HighlightsEditor } from "./highlights-editor";
 import { StepBackStage } from "./step-back";
+import { AdvanceStage } from "./advance-stage";
 import { VideoGen } from "./video-gen";
 import { PublishKit, type PublishRender } from "./publish-kit";
 import { DeriveShorts, type DerivedShortRow } from "./derive-shorts";
@@ -108,6 +109,11 @@ export default async function VideoDetailPage({
   // Asset stage (mid-generation or assets done) → offer a step back to script.
   const canStepBackToScript =
     v.status === "GENERATING_ASSETS" || v.status === "ASSETS_READY";
+  // Assets done → offer a forward "approve → render" control on the page.
+  const atAssetsGate = v.status === "ASSETS_READY";
+  const pendingClips = clipJobs.filter(
+    (j) => j.status === "queued" || j.status === "running",
+  ).length;
 
   // Show the download/publish kit once a render exists — at FINAL_REVIEW the
   // operator can download the MP4 directly (publish actions unlock at APPROVED).
@@ -211,6 +217,10 @@ export default async function VideoDetailPage({
           beats={beats.map((b) => ({ idx: b.idx, text: b.text }))}
           defaultFont={fontForNiche(project.niche)}
         />
+      )}
+
+      {atAssetsGate && (
+        <AdvanceStage projectId={id} videoId={vid} pendingClips={pendingClips} />
       )}
 
       {canStepBackToScript && (
