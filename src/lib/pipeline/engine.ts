@@ -24,7 +24,7 @@ import {
 } from "@/lib/adapters/script";
 import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highlights";
 import type { CuratedHighlight } from "@/lib/db/types";
-import { COPILOT_AUTO_APPROVE_SCORE, reviewGate } from "@/lib/adapters/qc";
+import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import { generateImage, generateVideo, isFalLive } from "@/lib/adapters/fal";
 import {
@@ -1271,7 +1271,7 @@ export async function startBuildRun(
 export async function processPendingBuildVideos(
   limit = 1,
   dbArg?: Db,
-): Promise<{ processed: number; errors: number }> {
+): Promise<{ processed: number; errors: number; held: number }> {
   const db = dbArg ?? (await createClient());
   const { data: pending } = await db
     .from("videos")
@@ -1283,6 +1283,7 @@ export async function processPendingBuildVideos(
 
   let processed = 0;
   let errors = 0;
+  let held = 0;
   for (const row of (pending ?? []) as { id: string; project_id: string; build_run_id: string }[]) {
     try {
       const project = await getProject(db, row.project_id);
@@ -1291,12 +1292,32 @@ export async function processPendingBuildVideos(
       await setStatus(db, row.id, "SCRIPTING");
       const video = await getVideo(db, row.id);
       if (!video) throw new Error("Video not found after claim");
-      await runScripting(db, video, project); // → SCRIPT_READY
       const { data: run } = await db
         .from("build_runs")
-        .select("tier, custom_spec")
+        .select("tier, custom_spec, qc_floor")
         .eq("id", row.build_run_id)
         .maybeSingle();
+      const floor = Number(run?.qc_floor ?? 7.0);
+
+      await runScripting(db, video, project); // → SCRIPT_READY
+
+      // QC-gated script approval (Phase 1): score the fresh script and, on a
+      // sub-floor miss, revise exactly once with the QC issues injected. Still
+      // below → hold at the Script gate for a human (never auto-build a weak
+      // script). Skipped when QC isn't live (mock/dry runs flow through).
+      const gate = await gateScriptForAutoPilot(db, video, project, floor);
+      if (!gate.ok) {
+        await db
+          .from("videos")
+          .update({
+            auto_publish: false,
+            paused_reason: `Held — script QC ${gate.score?.toFixed(1) ?? "?"}/10 below the ${floor.toFixed(1)} floor after one revision. Review the script.`,
+          })
+          .eq("id", row.id);
+        held++;
+        continue;
+      }
+
       const tier = (run?.tier as AutoTier) ?? "economy";
       const custom = (run?.custom_spec as CustomSpec | null) ?? undefined;
       await fullAutoGenerate({ videoId: row.id, tier, custom }, db); // → assets → render → FINAL_REVIEW
@@ -1310,7 +1331,178 @@ export async function processPendingBuildVideos(
       console.error(`build-runner ${row.id} failed:`, err);
     }
   }
-  return { processed, errors };
+  return { processed, errors, held };
+}
+
+// ── Full-Auto Build & Post (Phase 1): QC-gated auto-approval ───────────
+// Reuses the QC agent (reviewGate), the qc_reviews ledger, and the QC→script
+// feedback loop. Two gates carry an auto-pilot video unattended:
+//   • Script gate — score ≥ floor → proceed; sub-floor → revise once → re-score;
+//     still below → held for a human (handled inline in processPendingBuildVideos).
+//   • Final gate  — the final-cut score sets posting privacy (P5): ≥ public
+//     threshold → Public, floor..public → Unlisted, below floor → Held.
+// The Assets gate stays owned by Full-Auto (auto_finish) + the render farm so the
+// clip-replacement/render handoff is untouched; the final cut is the real check.
+
+/** Score one gate with the QC agent and append it to the qc_reviews ledger
+    (billing the review when live). Returns the score + concrete issues. */
+async function scoreAndRecordGate(
+  db: Db,
+  video: Video,
+  project: Project,
+  gate: ApprovalGate,
+): Promise<{ score: number; issues: string[] }> {
+  const review = await reviewGate({ gate, context: await qcContext(db, video, project, gate) });
+  await db.from("qc_reviews").insert({
+    video_id: video.id,
+    gate,
+    score: review.score,
+    verdict: review.verdict,
+    issues: review.issues,
+    strengths: review.strengths,
+    auto_approved: false,
+  });
+  if (review.costUsd > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: "anthropic", usd: review.costUsd, description: "QC review" },
+      `${GATE_LABELS[gate]} gate`,
+    );
+  }
+  return { score: review.score, issues: review.issues };
+}
+
+/** QC the freshly-written script; on a sub-floor miss, revise once (QC issues
+    injected via the existing feedback loop) and re-score. ok=false means it is
+    still below the floor after the single revision → hold for a human. When QC
+    isn't live there is no judge, so it passes through (dry run). */
+async function gateScriptForAutoPilot(
+  db: Db,
+  video: Video,
+  project: Project,
+  floor: number,
+): Promise<{ ok: boolean; score: number | null }> {
+  if (!isQcLive()) return { ok: true, score: null };
+
+  const first = await scoreAndRecordGate(db, video, project, "SCRIPT");
+  if (first.score >= floor) return { ok: true, score: first.score };
+
+  // Revise once: feed the QC issues back as revision notes (runScripting reads
+  // the latest revision approval), rewrite, and re-score.
+  const notes = first.issues.length
+    ? `Address these QC issues, then keep your editorial voice:\n- ${first.issues.join("\n- ")}`
+    : "Sharpen the hook (first two sentences) and cut filler — the draft scored below the quality bar.";
+  await db.from("approvals").insert({
+    video_id: video.id,
+    gate: "SCRIPT",
+    decision: "revision",
+    decided_by: "autopilot",
+    notes,
+    decided_at: new Date().toISOString(),
+  });
+  await runScripting(db, video, project); // reads latestNotes → SCRIPT_READY
+
+  const second = await scoreAndRecordGate(db, video, project, "SCRIPT");
+  return { ok: second.score >= floor, score: second.score };
+}
+
+/** Resolve a run's QC thresholds (floor to publish at all; public threshold). */
+async function runThresholds(
+  db: Db,
+  buildRunId: string | null,
+): Promise<{ floor: number; pub: number }> {
+  if (!buildRunId) return { floor: 7.0, pub: 8.0 };
+  const { data } = await db
+    .from("build_runs")
+    .select("qc_floor, qc_public")
+    .eq("id", buildRunId)
+    .maybeSingle();
+  return { floor: Number(data?.qc_floor ?? 7.0), pub: Number(data?.qc_public ?? 8.0) };
+}
+
+/**
+ * Final-gate auto-approval for auto-pilot videos that have rendered to
+ * FINAL_REVIEW (cron-called heartbeat). The final-cut QC score decides posting
+ * privacy (P5): ≥ public threshold → Public, floor..public → Unlisted, below
+ * floor → Held. Approved videos advance to APPROVED with publish_privacy +
+ * auto_publish set; the Phase 2 scheduler releases them at their slot (until
+ * then they simply wait — nothing publishes). Idempotent: a non-null
+ * paused_reason (held) or a non-FINAL_REVIEW status drops a video from the scan.
+ * No-op when QC isn't live — videos stay at FINAL_REVIEW for a human glance.
+ */
+export async function finalizeAutoPilotVideos(
+  limit = 5,
+  dbArg?: Db,
+): Promise<{ finalized: number; held: number }> {
+  const db = dbArg ?? (await createClient());
+  if (!isQcLive()) return { finalized: 0, held: 0 };
+
+  const { data: pending } = await db
+    .from("videos")
+    .select("id, project_id, build_run_id, title")
+    .eq("auto_pilot_run", true)
+    .eq("status", "FINAL_REVIEW")
+    .is("paused_reason", null)
+    .order("updated_at", { ascending: true })
+    .limit(limit);
+
+  let finalized = 0;
+  let held = 0;
+  for (const row of (pending ?? []) as {
+    id: string;
+    project_id: string;
+    build_run_id: string | null;
+    title: string;
+  }[]) {
+    try {
+      const project = await getProject(db, row.project_id);
+      const video = await getVideo(db, row.id);
+      if (!project || !video) continue;
+      const { floor, pub } = await runThresholds(db, row.build_run_id);
+      const { score } = await scoreAndRecordGate(db, video, project, "FINAL");
+
+      if (score >= floor) {
+        const privacy = score >= pub ? "public" : "unlisted";
+        await db
+          .from("videos")
+          .update({ publish_privacy: privacy, auto_publish: true, paused_reason: null })
+          .eq("id", row.id);
+        await decideGate({ videoId: row.id, decision: "approved" }, db, "autopilot");
+        finalized++;
+        try {
+          await sendPushToAll({
+            title: `Auto-approved · ${privacy === "public" ? "Public" : "Unlisted"}`,
+            body: `“${row.title}” passed final QC ${score.toFixed(1)}/10 — scheduled to post.`,
+            url: `/projects/${row.project_id}/review`,
+          });
+        } catch (err) {
+          console.error("web-push delivery failed:", err);
+        }
+      } else {
+        await db
+          .from("videos")
+          .update({
+            auto_publish: false,
+            paused_reason: `Held — final QC ${score.toFixed(1)}/10 below the ${floor.toFixed(1)} floor. Review and approve manually.`,
+          })
+          .eq("id", row.id);
+        held++;
+        try {
+          await sendPushToAll({
+            title: "Held for review",
+            body: `“${row.title}” scored ${score.toFixed(1)}/10 — below the publish floor.`,
+            url: `/projects/${row.project_id}/review`,
+          });
+        } catch (err) {
+          console.error("web-push delivery failed:", err);
+        }
+      }
+    } catch (err) {
+      console.error(`finalize auto-pilot ${row.id} failed:`, err);
+    }
+  }
+  return { finalized, held };
 }
 
 /**
@@ -1994,7 +2186,7 @@ export async function decideGate(
     notes?: string;
   },
   dbArg?: Db,
-  decidedBy: "human" | "mcp" = "human",
+  decidedBy: "human" | "mcp" | "autopilot" = "human",
 ): Promise<EngineResult> {
   const db = dbArg ?? (await createClient());
   const video = await getVideo(db, opts.videoId);
