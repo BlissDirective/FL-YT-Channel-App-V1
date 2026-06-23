@@ -335,6 +335,7 @@ async function buildProps(videoId: string): Promise<{
         secondary: project.brand_kit?.secondary ?? "#17150F",
       },
       beats,
+      captions: video.enable_captions ?? true,
     },
     project,
     video,
@@ -502,6 +503,17 @@ async function publishStagedVideos() {
   for (const v of pending) {
     const variant: "long" | "short" = v.kind === "short" ? "short" : "long";
     try {
+      // Per-project channel token (its own channel) → falls back to the global
+      // default channel when the project hasn't set one.
+      let refreshToken: string | undefined;
+      if (v.project_id) {
+        const { data: proj } = await db
+          .from("projects")
+          .select("youtube_refresh_token")
+          .eq("id", v.project_id)
+          .maybeSingle();
+        refreshToken = (proj?.youtube_refresh_token as string | null) || undefined;
+      }
       const file = await fetchRenderFile(v.id, variant);
       const tmp = join(mkdtempSync(join(tmpdir(), "publish-")), `${variant}.mp4`);
       writeFileSync(tmp, file);
@@ -526,7 +538,7 @@ async function publishStagedVideos() {
         tags = sm.tags ?? [];
       }
 
-      const ytId = await uploadVideo({ filePath: tmp, title: v.title, description, tags });
+      const ytId = await uploadVideo({ filePath: tmp, title: v.title, description, tags, refreshToken });
       await db
         .from("videos")
         .update({
@@ -536,7 +548,7 @@ async function publishStagedVideos() {
           publish_requested: false,
         })
         .eq("id", v.id);
-      console.log(`📺 ${v.title}: published ${variant} → ${ytId}`);
+      console.log(`📺 ${v.title}: published ${variant} → ${ytId}${refreshToken ? " (project channel)" : ""}`);
     } catch (err) {
       console.error(`❌ publish ${v.title}:`, err);
       // Leave publish_requested set so the next pass retries.

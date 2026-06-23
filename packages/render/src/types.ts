@@ -58,6 +58,9 @@ export type VideoProps = {
   projectName: string;
   brand: { primary: string; secondary: string };
   beats: RenderBeat[];
+  /** Render word-window captions. Default true; off pairs with Kinetic
+      Highlights so the two text layers don't clutter the frame. */
+  captions?: boolean;
 };
 
 export const FPS = 30;

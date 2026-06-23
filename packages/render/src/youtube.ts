@@ -23,14 +23,18 @@ export function youtubeUploadConfigured(): boolean {
   );
 }
 
-async function accessToken(): Promise<string> {
+/** Mint an access token. A per-project refresh token (its own channel) takes
+    precedence over the global default-channel token. */
+async function accessToken(refreshToken?: string): Promise<string> {
+  const token = refreshToken || process.env.YOUTUBE_OAUTH_REFRESH_TOKEN;
+  if (!token) throw new Error("YouTube OAuth: no refresh token (global or per-project)");
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       client_id: process.env.YOUTUBE_OAUTH_CLIENT_ID!,
       client_secret: process.env.YOUTUBE_OAUTH_CLIENT_SECRET!,
-      refresh_token: process.env.YOUTUBE_OAUTH_REFRESH_TOKEN!,
+      refresh_token: token,
       grant_type: "refresh_token",
     }),
   });
@@ -45,11 +49,13 @@ export type YouTubeUpload = {
   title: string;
   description: string;
   tags: string[];
+  /** Per-project channel refresh token; falls back to the global default. */
+  refreshToken?: string;
 };
 
 /** Resumable upload of one MP4. Returns the new YouTube video id. */
 export async function uploadVideo(opts: YouTubeUpload): Promise<string> {
-  const token = await accessToken();
+  const token = await accessToken(opts.refreshToken);
   const bytes = readFileSync(opts.filePath);
   const privacy = (process.env.YOUTUBE_UPLOAD_PRIVACY || "unlisted").trim();
   const meta = {

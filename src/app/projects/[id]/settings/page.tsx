@@ -41,7 +41,11 @@ export default async function ProjectSettingsPage({
         <h1 className="text-2xl font-bold tracking-tight">Project settings</h1>
         <p className="mt-1 text-sm text-muted">{project.name}</p>
       </div>
-      <SettingsForm project={project} voices={voices} />
+      <SettingsForm
+        project={{ ...project, youtube_refresh_token: null }}
+        hasYoutubeToken={Boolean(project.youtube_refresh_token)}
+        voices={voices}
+      />
       <TemplateEditor
         projectId={id}
         initialBody={template?.body ?? DEFAULT_SCRIPT_TEMPLATE}

@@ -92,6 +92,12 @@ export async function updateProject(
       status: String(formData.get("status") ?? "active"),
       auto_intelligence: formData.get("auto_intelligence") === "on",
       clip_confirm_usd: Number(formData.get("clip_confirm_usd") ?? 3),
+      youtube_channel_title: String(formData.get("youtube_channel_title") ?? "").trim() || null,
+      // Refresh token is write-only: only overwrite when a new value is pasted,
+      // so saving the form doesn't wipe an existing token. Blank keeps current.
+      ...(String(formData.get("youtube_refresh_token") ?? "").trim()
+        ? { youtube_refresh_token: String(formData.get("youtube_refresh_token")).trim() }
+        : {}),
     })
     .eq("id", id);
 

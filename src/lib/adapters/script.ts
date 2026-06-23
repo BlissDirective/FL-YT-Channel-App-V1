@@ -168,6 +168,8 @@ export async function generateScript(opts: {
   targetLengthSec: number;
   template: string;
   revisionNotes?: string;
+  /** Distilled recurring QC failures on this project's prior scripts. */
+  qcLessons?: string[];
 }): Promise<ScriptDraft> {
   if (!isScriptLive()) {
     const draft = mockScript({
@@ -206,6 +208,21 @@ export async function generateScript(opts: {
       : "",
   });
 
+  // Hard structural guardrails (the QC reviewer rejects these) + a feedback
+  // loop: the project's recurring QC failures, fed back so the writer learns.
+  const hardRules =
+    `\n\nHARD STRUCTURE RULES — a QC reviewer will reject the script if any is violated:\n` +
+    `- Write the COMPLETE script: produce all ${budget.beats} beats, each fully written, totaling about ${budget.target} words. NEVER stop after the hook or hand back a skeleton.\n` +
+    `- Deliver every chapter, section, and timestamp your metadata promises — never reference content you didn't actually write.\n` +
+    `- Each beat must advance the argument; do not restate the same point across multiple beats.`;
+  const lessons =
+    opts.qcLessons && opts.qcLessons.length > 0
+      ? `\n\nAVOID these specific problems QC flagged on earlier scripts for this channel:\n${opts.qcLessons
+          .map((l) => `- ${l}`)
+          .join("\n")}`
+      : "";
+  const fullPrompt = `${prompt}${hardRules}${lessons}`;
+
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -221,7 +238,7 @@ export async function generateScript(opts: {
       system: VOICE_SYSTEM,
       tools: [DELIVER_SCRIPT_TOOL],
       tool_choice: { type: "tool", name: "deliver_script" },
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: fullPrompt }],
     }),
   });
   if (!res.ok) {

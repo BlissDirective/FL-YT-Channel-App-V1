@@ -43,6 +43,11 @@ export type Project = {
   auto_intelligence: boolean;
   /** Confirm-before-generate threshold for pricey clips (USD; default 3). */
   clip_confirm_usd: number;
+  /** This project's own YouTube channel OAuth refresh token (publishes here
+      instead of the global default channel). Null = use the default channel. */
+  youtube_refresh_token: string | null;
+  /** Operator label for the connected channel (display only). */
+  youtube_channel_title: string | null;
   /** Hard per-video budget (USD); the smart-mix downgrades beats to free
       stills/stock rather than exceed it. Default 8 (Platinum/Custom headroom). */
   max_video_usd: number;
@@ -108,6 +113,9 @@ export type Video = {
   highlight_count: number;
   /** Curated highlights (review-time shape; timing resolved at render). */
   highlights: CuratedHighlight[];
+  /** Render word-window captions. Default true; turn off to avoid clutter
+      when Kinetic Highlights are on. */
+  enable_captions: boolean;
   created_at: string;
   updated_at: string;
 };

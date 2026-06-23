@@ -35,9 +35,13 @@ const INITIAL: ProjectResult = {};
 export function SettingsForm({
   project,
   voices,
+  hasYoutubeToken = false,
 }: {
   project: Project;
   voices: Voice[];
+  /** Whether a channel refresh token is already stored (the value itself is
+      never sent to the client). */
+  hasYoutubeToken?: boolean;
 }) {
   const [state, action, pending] = useActionState(updateProject, INITIAL);
   const [saved, setSaved] = useState(false);
@@ -253,6 +257,39 @@ export function SettingsForm({
               min={0}
               step={0.1}
               defaultValue={project.rpm_usd ?? 2}
+              className="input"
+            />
+          </Field>
+        </div>
+
+        <div className="space-y-3 border-t border-line pt-4">
+          <div>
+            <p className="text-sm font-semibold text-ink">YouTube channel</p>
+            <p className="text-xs text-muted">
+              Publish this project to its own channel. Leave blank to use the default
+              channel. Each channel needs its own refresh token — authorize that
+              channel in the OAuth Playground (select it at consent) and paste its{" "}
+              <code>refresh_token</code> here. See docs/YouTube-API-creation.md.
+            </p>
+          </div>
+          <Field label="Channel label (display only)">
+            <input
+              name="youtube_channel_title"
+              defaultValue={project.youtube_channel_title ?? ""}
+              placeholder="e.g. The Silicon Layer"
+              className="input"
+            />
+          </Field>
+          <Field label="Channel refresh token">
+            <input
+              name="youtube_refresh_token"
+              type="password"
+              autoComplete="off"
+              placeholder={
+                hasYoutubeToken
+                  ? "•••••••• set — paste a new token to replace"
+                  : "paste this channel's refresh_token"
+              }
               className="input"
             />
           </Field>

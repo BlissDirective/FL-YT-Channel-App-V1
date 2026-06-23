@@ -125,6 +125,22 @@ Optional tuning (also GitHub secrets or env on the render workflow):
 These do **not** go to Vercel. The render farm reads them directly; on its next
 run `youtubeUploadConfigured()` becomes true and uploads route to YouTube.
 
+### 2e. Per-project channels (optional)
+
+By default every project publishes to the channel your global
+`YOUTUBE_OAUTH_REFRESH_TOKEN` authorized. To publish a project to **its own**
+channel (one Google account can own many channels):
+
+1. A refresh token is **bound to the channel** you pick during OAuth consent. So
+   re-run the OAuth Playground flow (§2c) and, at the Google sign-in step,
+   **select the target channel** (Brand Account) → copy that `refresh_token`.
+2. In the app: **Project → Settings → YouTube channel** → paste it (and a label).
+   It's stored on the project and used by the render farm only; the global token
+   remains the default for projects that don't set one.
+
+You can reuse the same OAuth **client ID/secret** across channels — only the
+refresh token differs per channel.
+
 ---
 
 ## 3. Cloudflare R2 — downloadable render storage (optional)

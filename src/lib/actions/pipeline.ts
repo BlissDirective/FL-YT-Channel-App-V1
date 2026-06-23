@@ -22,6 +22,7 @@ import {
   rerollBeatVisual,
   runPipeline,
   setBeatShotType,
+  setCaptionsEnabled,
   setHighlightOptions,
   stepBackStage,
   curateHighlightsForVideo,
@@ -485,6 +486,18 @@ export async function setHighlightOptionsAction(
 ): Promise<PipelineResult> {
   return guarded(async () => {
     const r = await setHighlightOptions({ videoId, enabled, count });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return r;
+  });
+}
+
+export async function setCaptionsEnabledAction(
+  projectId: string,
+  videoId: string,
+  enabled: boolean,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const r = await setCaptionsEnabled({ videoId, enabled });
     revalidatePath(`/projects/${projectId}/videos/${videoId}`);
     return r;
   });

@@ -50,7 +50,7 @@ export const LongForm: React.FC<VideoProps> = (props) => {
         cursor += Math.max(1, beat.durationSec);
         return (
           <Sequence key={beat.idx} from={from} durationInFrames={dur}>
-            <BeatScene beat={beat} brand={props.brand} captionSize={54} />
+            <BeatScene beat={beat} brand={props.brand} captionSize={54} captions={props.captions} />
           </Sequence>
         );
       })}
@@ -80,7 +80,7 @@ export const Short: React.FC<VideoProps> = (props) => {
     <AbsoluteFill style={{ backgroundColor: props.brand.secondary, fontFamily: FONT }}>
       <HighlightFonts />
       <Sequence durationInFrames={dur}>
-        <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical />
+        <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} />
       </Sequence>
       <Sequence from={dur} durationInFrames={Math.round(1.5 * FPS)}>
         <EndCard {...props} compact />
@@ -112,7 +112,7 @@ export const VerticalShort: React.FC<VideoProps> = (props) => {
         cursor += Math.max(1, beat.durationSec);
         return (
           <Sequence key={beat.idx} from={from} durationInFrames={dur}>
-            <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical />
+            <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} />
           </Sequence>
         );
       })}
@@ -133,7 +133,8 @@ const BeatScene: React.FC<{
   brand: VideoProps["brand"];
   captionSize: number;
   vertical?: boolean;
-}> = ({ beat, brand, captionSize, vertical }) => {
+  captions?: boolean;
+}> = ({ beat, brand, captionSize, vertical, captions = true }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const kenBurns = interpolate(frame, [0, durationInFrames], [1.02, 1.12]);
@@ -194,12 +195,14 @@ const BeatScene: React.FC<{
         }}
       />
       {beat.voUrl && <Audio src={beat.voUrl} />}
-      <Captions
-        words={beat.words}
-        brand={brand}
-        size={captionSize}
-        vertical={vertical}
-      />
+      {captions && (
+        <Captions
+          words={beat.words}
+          brand={brand}
+          size={captionSize}
+          vertical={vertical}
+        />
+      )}
       <HighlightLayer highlights={beat.highlights} brand={brand} vertical={vertical} />
     </AbsoluteFill>
   );

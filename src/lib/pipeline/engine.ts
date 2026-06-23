@@ -263,6 +263,37 @@ async function latestNotes(db: Db, videoId: string): Promise<string | undefined>
   return (data?.notes as string) ?? undefined;
 }
 
+/** Recurring QC failures on this project's prior scripts — distilled "lessons"
+    fed back into the writer so it stops repeating the same mistakes. Pulls the
+    issues from recent low-scoring SCRIPT-gate reviews, deduped and capped. */
+async function qcLessons(db: Db, projectId: string): Promise<string[]> {
+  const { data: vids } = await db.from("videos").select("id").eq("project_id", projectId);
+  const ids = ((vids as { id: string }[]) ?? []).map((v) => v.id);
+  if (ids.length === 0) return [];
+  const { data: revs } = await db
+    .from("qc_reviews")
+    .select("issues, score, created_at")
+    .in("video_id", ids)
+    .eq("gate", "SCRIPT")
+    .lt("score", 7)
+    .order("created_at", { ascending: false })
+    .limit(6);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const r of (revs as { issues: string[] }[]) ?? []) {
+    for (const raw of r.issues ?? []) {
+      const text = String(raw).trim();
+      const key = text.slice(0, 60).toLowerCase();
+      if (text && !seen.has(key)) {
+        seen.add(key);
+        out.push(text.length > 240 ? `${text.slice(0, 240)}…` : text);
+      }
+      if (out.length >= 8) return out;
+    }
+  }
+  return out;
+}
+
 async function nextScriptVersion(db: Db, videoId: string): Promise<number> {
   const { data } = await db
     .from("scripts")
@@ -297,6 +328,7 @@ export async function getActiveTemplate(
 async function runScripting(db: Db, video: Video, project: Project) {
   const notes = await latestNotes(db, video.id);
   const template = await getActiveTemplate(db, project.id);
+  const lessons = await qcLessons(db, project.id);
 
   const draft = await generateScript({
     title: video.title,
@@ -309,6 +341,7 @@ async function runScripting(db: Db, video: Video, project: Project) {
     targetLengthSec: video.target_length_sec,
     template,
     revisionNotes: notes,
+    qcLessons: lessons,
   });
 
   await db.from("scripts").insert({
@@ -1770,6 +1803,20 @@ export async function setHighlightOptions(opts: {
       enable_highlights: opts.enabled,
       highlight_count: Math.max(0, Math.min(12, Math.round(opts.count))),
     })
+    .eq("id", opts.videoId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+/** Toggle word-window captions for a video (rendered on the next render). */
+export async function setCaptionsEnabled(opts: {
+  videoId: string;
+  enabled: boolean;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const { error } = await db
+    .from("videos")
+    .update({ enable_captions: opts.enabled })
     .eq("id", opts.videoId);
   if (error) return { ok: false, error: error.message };
   return { ok: true };

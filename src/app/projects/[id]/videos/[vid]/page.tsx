@@ -207,6 +207,7 @@ export default async function VideoDetailPage({
           enabled={v.enable_highlights ?? false}
           count={v.highlight_count ?? 0}
           highlights={(v.highlights ?? []) as CuratedHighlight[]}
+          captions={v.enable_captions ?? true}
           beats={beats.map((b) => ({ idx: b.idx, text: b.text }))}
           defaultFont={fontForNiche(project.niche)}
         />

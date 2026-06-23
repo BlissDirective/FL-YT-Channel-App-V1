@@ -12,6 +12,7 @@ import type {
 import {
   curateHighlightsAction,
   saveHighlightsAction,
+  setCaptionsEnabledAction,
   setHighlightOptionsAction,
 } from "@/lib/actions/pipeline";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,7 @@ export function HighlightsEditor({
   enabled: enabledProp,
   count: countProp,
   highlights: highlightsProp,
+  captions: captionsProp,
   beats,
   defaultFont,
 }: {
@@ -44,6 +46,7 @@ export function HighlightsEditor({
   enabled: boolean;
   count: number;
   highlights: CuratedHighlight[];
+  captions: boolean;
   beats: { idx: number; text: string }[];
   defaultFont: string;
 }) {
@@ -72,6 +75,16 @@ export function HighlightsEditor({
     const next = !enabled;
     setEnabled(next);
     pushOptions(next, count);
+  };
+
+  const [captionsOn, setCaptionsOn] = useState(captionsProp);
+  const toggleCaptions = () => {
+    const next = !captionsOn;
+    setCaptionsOn(next);
+    startOpts(async () => {
+      await setCaptionsEnabledAction(projectId, videoId, next);
+      router.refresh();
+    });
   };
 
   const generate = () =>
@@ -146,6 +159,28 @@ export function HighlightsEditor({
         >
           {opts ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
           {enabled ? "On" : "Off"}
+        </button>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
+        <div>
+          <p className="text-sm font-semibold text-ink">Word captions</p>
+          <p className="text-xs text-muted">
+            {enabled && captionsOn
+              ? "Heads up: captions + highlights both show on screen — turn captions off for a cleaner frame."
+              : "Sliding word-window subtitles burned into the video."}
+          </p>
+        </div>
+        <button
+          onClick={toggleCaptions}
+          disabled={opts}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold shadow-card transition-colors disabled:opacity-50",
+            captionsOn ? "bg-ink text-white" : "bg-card-warm text-ink hover:bg-accent-soft",
+          )}
+        >
+          {opts ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+          {captionsOn ? "On" : "Off"}
         </button>
       </div>
 
