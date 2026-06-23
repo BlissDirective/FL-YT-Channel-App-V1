@@ -49,7 +49,8 @@ import { cn } from "@/lib/cn";
 type ShotType = "hero" | "broll" | "stock";
 type ClipInfo = { idx: number; url: string | null; isVideo: boolean };
 type Beat = { idx: number; visualPrompt: string; shotType: string; scriptSec: number };
-type JobInfo = { beatIdx: number; status: string; method: string };
+type JobInfo = { beatIdx: number; status: string; method: string; model: string; targetSec: number };
+type PendingJob = { status: string; model: string; targetSec: number };
 
 const SHOT_TYPES: ShotType[] = ["hero", "broll", "stock"];
 
@@ -187,9 +188,14 @@ export function VideoGen({
     });
   };
 
-  // Sections with a queued/running long-clip job.
-  const pendingByIdx = new Map(
-    jobs.filter((j) => j.status === "queued" || j.status === "running").map((j) => [j.beatIdx, j.status]),
+  // Sections with a queued/running long-clip job — carry the job's real model
+  // and length so the pending banner shows what's ACTUALLY being built (e.g. a
+  // Full Auto Economy run queues cheap Seedance Fast clips), not the manual
+  // model dropdown above it.
+  const pendingByIdx = new Map<number, PendingJob>(
+    jobs
+      .filter((j) => j.status === "queued" || j.status === "running")
+      .map((j) => [j.beatIdx, { status: j.status, model: j.model, targetSec: j.targetSec }]),
   );
 
   // ── Section editing ─────────────────────────────────────────────────
@@ -445,7 +451,7 @@ function BeatRow({
   existing?: ClipInfo;
   remaining: number;
   busy: boolean;
-  pending?: string;
+  pending?: PendingJob;
   error?: string;
   onShot: (s: ShotType) => void;
   onModel: (id: string) => void;
@@ -511,12 +517,17 @@ function BeatRow({
           only to replace it — that incurs the model cost below.
         </p>
       )}
-      {pending && (
-        <p className="mb-3 flex items-center gap-1.5 rounded-lg bg-lavender/10 px-2.5 py-1.5 text-[11px] font-medium text-lavender">
-          <Loader2 className="size-3.5 animate-spin" /> Long clip {pending} — the worker is
-          building it; it&apos;ll appear here when done.
-        </p>
-      )}
+      {pending && (() => {
+        const pm = getVideoModel(pending.model);
+        const pcost = pm ? pm.usdPerSec * pending.targetSec : 0;
+        return (
+          <p className="mb-3 flex flex-wrap items-center gap-1.5 rounded-lg bg-lavender/10 px-2.5 py-1.5 text-[11px] font-medium text-lavender">
+            <Loader2 className="size-3.5 animate-spin" /> Long clip {pending.status} —{" "}
+            {pm ? `${pm.label} · ${pending.targetSec}s · ~$${pcost.toFixed(2)}` : `${pending.targetSec}s`}. The
+            worker is building it; it&apos;ll appear here when done.
+          </p>
+        );
+      })()}
 
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-1 flex-col gap-1">

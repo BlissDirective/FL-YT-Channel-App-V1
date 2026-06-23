@@ -237,7 +237,13 @@ export default async function VideoDetailPage({
             };
           })}
           clips={clips}
-          jobs={clipJobs.map((j) => ({ beatIdx: j.beat_idx, status: j.status, method: j.method }))}
+          jobs={clipJobs.map((j) => ({
+            beatIdx: j.beat_idx,
+            status: j.status,
+            method: j.method,
+            model: j.model,
+            targetSec: j.target_sec,
+          }))}
           monthSpent={monthVideoSpent}
           cap={VIDEO_MONTHLY_CAP_USD}
           confirmOverUsd={Number(project.clip_confirm_usd ?? 3)}
