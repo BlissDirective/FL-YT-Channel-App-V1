@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Check,
   Clapperboard,
@@ -56,6 +57,7 @@ export function ReviewQueue({
 
 function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }) {
   const { video } = item;
+  const router = useRouter();
   const gate = GATE_FOR_STATUS[video.status];
   const [isPending, startTransition] = useTransition();
   const [revising, setRevising] = useState(false);
@@ -67,6 +69,19 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
       setError(undefined);
       const result = await fn();
       if (!result.ok && result.error) setError(result.error);
+    });
+
+  // Approve, then follow the pipeline to the video page — the single place that
+  // shows the next step (assets generating, rendering, then download/publish).
+  const approveAndGo = () =>
+    startTransition(async () => {
+      setError(undefined);
+      const result = await approveGateAction(projectId, video.id);
+      if (!result.ok && result.error) {
+        setError(result.error);
+        return;
+      }
+      router.push(`/projects/${projectId}/videos/${video.id}`);
     });
 
   const GateIcon = gate ? GATE_ICONS[gate] : PauseCircle;
@@ -165,11 +180,11 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
               <button
                 type="button"
                 disabled={isPending}
-                onClick={() => act(() => approveGateAction(projectId, video.id))}
+                onClick={approveAndGo}
                 className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
               >
                 {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-                Approve
+                Approve &amp; continue
               </button>
               <button
                 type="button"

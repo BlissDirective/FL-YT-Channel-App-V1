@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, Radar } from "lucide-react";
+import { ArrowUpRight, Clapperboard, Radar } from "lucide-react";
 import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -217,6 +217,26 @@ export default async function VideoDetailPage({
           beats={beats.map((b) => ({ idx: b.idx, text: b.text }))}
           defaultFont={fontForNiche(project.niche)}
         />
+      )}
+
+      {v.status === "ASSEMBLING" && (
+        <Card className="border border-accent/40 bg-accent-soft/40">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 grid size-9 shrink-0 animate-pulse place-items-center rounded-2xl bg-accent text-ink">
+              <Clapperboard className="size-4" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-ink">Rendering your video…</p>
+              <p className="mt-1 text-sm text-muted">
+                The render farm is assembling the final cut (usually a few minutes). This
+                page updates on its own — when it&apos;s done it moves to{" "}
+                <span className="font-semibold text-ink">Final review</span>, where the
+                download and one-tap YouTube publish appear right here. No need to wait on
+                this screen.
+              </p>
+            </div>
+          </div>
+        </Card>
       )}
 
       {atAssetsGate && (
