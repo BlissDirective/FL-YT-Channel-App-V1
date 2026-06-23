@@ -1,5 +1,6 @@
 import "server-only";
 import {
+  buildVisualPrompt,
   GATE_FOR_STATUS,
   GATE_LABELS,
   ON_APPROVE,
@@ -634,7 +635,7 @@ async function makeBeatClip(
   project: Project,
   beat: ScriptBeat,
 ): Promise<AssetDraft> {
-  const prompt = `${beat.visualPrompt}. ${project.brand_kit.thumbnailStyle} style, cinematic 16:9, no text, no watermark`;
+  const prompt = buildVisualPrompt(beat.visualPrompt, project.brand_kit.thumbnailStyle);
   try {
     if (beat.shotType === "stock") {
       const stock = await searchStockClip(beat.visualPrompt);
@@ -1284,7 +1285,7 @@ export async function generateBeatVideo(opts: {
   const isStill = still?.storage_path && !(still.meta as { isVideo?: boolean })?.isVideo;
   const imageUrl = isStill ? (await getSignedMediaUrl(still!.storage_path)) ?? undefined : undefined;
 
-  const prompt = `${beat.visualPrompt}. ${project.brand_kit.thumbnailStyle} style, cinematic 16:9, no text, no watermark`;
+  const prompt = buildVisualPrompt(beat.visualPrompt, project.brand_kit.thumbnailStyle);
   const out = await generateVideo({ model, prompt, imageUrl, durationSec: dur });
 
   const path = `videos/${video.id}/beat-${opts.beatIdx}-video.mp4`;

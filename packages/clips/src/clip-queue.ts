@@ -13,6 +13,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { buildVisualPrompt } from "@studio/core";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -260,7 +261,7 @@ async function processJob(job: Job) {
   const beat = ((script?.beats ?? []) as { idx: number; visualPrompt: string }[]).find((b) => b.idx === job.beat_idx);
   if (!beat) throw new Error("Section not found");
   const style = (project?.brand_kit as { thumbnailStyle?: string })?.thumbnailStyle ?? "cinematic";
-  const prompt = `${beat.visualPrompt}. ${style} style, cinematic 16:9, no text, no watermark`;
+  const prompt = buildVisualPrompt(beat.visualPrompt, style);
 
   // image-to-video from our existing keyframe still, if present.
   const { data: still } = await db

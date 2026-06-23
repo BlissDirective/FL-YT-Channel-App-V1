@@ -81,6 +81,9 @@ importers:
 
   packages/clips:
     dependencies:
+      '@studio/core':
+        specifier: workspace:*
+        version: link:../core
       '@supabase/supabase-js':
         specifier: ^2.49.4
         version: 2.108.1

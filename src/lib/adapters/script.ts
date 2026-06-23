@@ -123,7 +123,8 @@ const DELIVER_SCRIPT_TOOL = {
             text: { type: "string", description: "Narration text, spoken-word style." },
             visualPrompt: {
               type: "string",
-              description: "One-line visual direction for this beat ([VISUAL] prompt).",
+              description:
+                "One-line visual direction for this beat — a purely visual, cinematic scene for an AI image/video model. HARD RULES: never name any company, brand, product, logo, or real person, and never request on-screen text, words, letters, numbers, signage, labels, charts/graphs with text, or screens/UI with readable writing — image models render those as garbled gibberish and named brands are a legal risk. Describe symbolic, atmospheric, concrete imagery instead (e.g. 'a glowing custom processor on a dark server board, dramatic rim light', NOT 'a Google TPU' or 'a chart of revenue').",
             },
             shotType: {
               type: "string",
