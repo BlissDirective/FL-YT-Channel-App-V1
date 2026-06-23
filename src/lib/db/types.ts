@@ -116,8 +116,48 @@ export type Video = {
   /** Render word-window captions. Default true; turn off to avoid clutter
       when Kinetic Highlights are on. */
   enable_captions: boolean;
+  /** Build & Post: the batch run this video belongs to (null = made manually). */
+  build_run_id: string | null;
+  /** Absolute release time for auto-publish (null = ASAP / all-at-once). */
+  scheduled_publish_at: string | null;
+  /** This video publishes itself when its slot is due. */
+  auto_publish: boolean;
+  /** Gates auto-approve (QC-gated) for this video — a fully-automatic run. */
+  auto_pilot_run: boolean;
+  /** Privacy chosen for auto-publish (public|unlisted), set from final QC. */
+  publish_privacy: string | null;
   created_at: string;
   updated_at: string;
+};
+
+/** Build & Post run record — one "Build & Post" launch (1–6 videos, one config). */
+export type BuildRunStatus =
+  | "planning"
+  | "generating"
+  | "scheduled"
+  | "publishing"
+  | "done"
+  | "held"
+  | "cancelled";
+
+export type BuildRun = {
+  id: string;
+  project_id: string;
+  status: BuildRunStatus;
+  count: number;
+  kind: VideoKind;
+  length_min_sec: number;
+  length_max_sec: number;
+  tier: string;
+  custom_spec: CustomSpec | null;
+  thumb_style: string;
+  qc_floor: number;
+  qc_public: number;
+  schedule_mode: "all_at_once" | "multi_day" | "staggered";
+  schedule_cfg: Record<string, unknown>;
+  idea_source: "existing" | "research";
+  est_cost_usd: number;
+  created_at: string;
 };
 
 /** Kinetic-highlight style presets (see packages/render highlight layer). */

@@ -39,6 +39,8 @@ import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import type { CustomSpec, Project, ScriptBeat, Video } from "@/lib/db/types";
+import { SHORT_LENGTHS } from "@/lib/db/types";
+import { runIntelligence } from "./intelligence";
 import { MOCK_COSTS } from "./mock-content";
 import { DEFAULT_SCRIPT_TEMPLATE } from "./templates";
 
@@ -1141,6 +1143,174 @@ export async function fullAutoGenerate(
     });
   }
   return { ok: true, enqueued: clips.length, estCostUsd };
+}
+
+// ── Full-Auto Build & Post (Phase 0) ──────────────────────────────────
+// See docs/Full-Auto-Build-and-Posting-plan.md. P0 = the run record + seed
+// videos + the build-runner unit of work. Scheduling, QC-gated auto-approval,
+// and auto-publish arrive in later phases (videos land at FINAL_REVIEW for now).
+
+export type BuildRunConfig = {
+  count: number;
+  kind: "long" | "short";
+  lengthMinSec: number;
+  lengthMaxSec: number;
+  tier: AutoTier;
+  custom?: CustomSpec;
+  thumbStyle: string;
+  ideaSource: "existing" | "research";
+  ideaIds?: string[];
+  scheduleMode?: "all_at_once" | "multi_day" | "staggered";
+  scheduleCfg?: Record<string, unknown>;
+};
+
+/** Snap a target length into range — Shorts snap to an offered length. */
+function sampleLength(kind: "long" | "short", lo: number, hi: number): number {
+  const raw = Math.round(lo + Math.random() * Math.max(0, hi - lo));
+  if (kind === "short") {
+    const offered = SHORT_LENGTHS as readonly number[];
+    const inRange = offered.filter((s) => s >= lo - 5 && s <= hi + 5);
+    const pool = inRange.length ? inRange : offered;
+    return pool.reduce((best, s) => (Math.abs(s - raw) < Math.abs(best - raw) ? s : best), pool[0]);
+  }
+  return Math.max(30, raw);
+}
+
+/**
+ * Launch a Build & Post run: create the run record and one seed video per idea
+ * (cheap inserts at IDEA_APPROVED). The build-runner cron then drives each
+ * through script → Full Auto-Generate → render. No long work happens here.
+ */
+export async function startBuildRun(
+  projectId: string,
+  cfg: BuildRunConfig,
+  dbArg?: Db,
+): Promise<{ ok: true; runId: string; created: number } | { ok: false; error: string }> {
+  const db = dbArg ?? (await createClient());
+  const project = await getProject(db, projectId);
+  if (!project) return { ok: false, error: "Project not found" };
+
+  const count = Math.max(1, Math.min(6, Math.round(cfg.count)));
+  const lo = Math.max(15, Math.min(cfg.lengthMinSec, cfg.lengthMaxSec));
+  const hi = Math.max(lo, cfg.lengthMaxSec);
+
+  // 1) Source ideas — existing selections or freshly researched.
+  let ideas: { id: string | null; title: string; topic: string }[] = [];
+  if (cfg.ideaSource === "research") {
+    await runIntelligence(projectId, { targetLengthSec: Math.round((lo + hi) / 2) });
+    const [{ data: fresh }, { data: used }] = await Promise.all([
+      db.from("ideas").select("id, title, angle").eq("project_id", projectId)
+        .order("created_at", { ascending: false }).limit(count * 3),
+      db.from("videos").select("idea_id").eq("project_id", projectId).not("idea_id", "is", null),
+    ]);
+    const usedSet = new Set(((used ?? []) as { idea_id: string }[]).map((u) => u.idea_id));
+    ideas = ((fresh ?? []) as { id: string; title: string; angle: string }[])
+      .filter((i) => !usedSet.has(i.id))
+      .slice(0, count)
+      .map((i) => ({ id: i.id, title: i.title, topic: i.angle || i.title }));
+  } else {
+    const ids = (cfg.ideaIds ?? []).slice(0, count);
+    if (ids.length === 0) return { ok: false, error: "Select at least one idea, or choose Research." };
+    const { data } = await db.from("ideas").select("id, title, angle").in("id", ids);
+    ideas = ((data ?? []) as { id: string; title: string; angle: string }[])
+      .map((i) => ({ id: i.id, title: i.title, topic: i.angle || i.title }));
+  }
+  if (ideas.length === 0) {
+    return { ok: false, error: "No ideas available to build — generate or select ideas first." };
+  }
+
+  // 2) Create the run record.
+  const { data: run, error: runErr } = await db
+    .from("build_runs")
+    .insert({
+      project_id: projectId,
+      status: "generating",
+      count: ideas.length,
+      kind: cfg.kind,
+      length_min_sec: lo,
+      length_max_sec: hi,
+      tier: cfg.tier,
+      custom_spec: cfg.custom ?? null,
+      thumb_style: cfg.thumbStyle,
+      schedule_mode: cfg.scheduleMode ?? "all_at_once",
+      schedule_cfg: cfg.scheduleCfg ?? {},
+      idea_source: cfg.ideaSource,
+    })
+    .select("id")
+    .single();
+  if (runErr || !run) return { ok: false, error: runErr?.message ?? "Could not create the run." };
+
+  // 3) Seed one video per idea (IDEA_APPROVED → the runner takes it from here).
+  let created = 0;
+  for (const idea of ideas) {
+    const { error } = await db.from("videos").insert({
+      project_id: projectId,
+      idea_id: idea.id,
+      title: idea.title,
+      topic: idea.topic,
+      status: "IDEA_APPROVED",
+      kind: cfg.kind,
+      target_length_sec: sampleLength(cfg.kind, lo, hi),
+      build_run_id: run.id,
+      auto_pilot_run: true,
+    });
+    if (!error) {
+      created++;
+      if (idea.id) await db.from("ideas").update({ status: "approved" }).eq("id", idea.id);
+    }
+  }
+  return { ok: true, runId: run.id as string, created };
+}
+
+/**
+ * Build-runner unit of work (cron-called). Claims up to `limit` seed videos
+ * across all runs and drives each: script → Full Auto-Generate (→ render →
+ * Final review). Bounded so one cron invocation fits its time budget; a
+ * per-video failure is isolated (paused_reason) and never blocks the batch.
+ */
+export async function processPendingBuildVideos(
+  limit = 1,
+  dbArg?: Db,
+): Promise<{ processed: number; errors: number }> {
+  const db = dbArg ?? (await createClient());
+  const { data: pending } = await db
+    .from("videos")
+    .select("id, project_id, build_run_id")
+    .not("build_run_id", "is", null)
+    .eq("status", "IDEA_APPROVED")
+    .order("created_at", { ascending: true })
+    .limit(limit);
+
+  let processed = 0;
+  let errors = 0;
+  for (const row of (pending ?? []) as { id: string; project_id: string; build_run_id: string }[]) {
+    try {
+      const project = await getProject(db, row.project_id);
+      if (!project) throw new Error("Project not found");
+      // Claim by moving out of the seed state so it can't be re-picked.
+      await setStatus(db, row.id, "SCRIPTING");
+      const video = await getVideo(db, row.id);
+      if (!video) throw new Error("Video not found after claim");
+      await runScripting(db, video, project); // → SCRIPT_READY
+      const { data: run } = await db
+        .from("build_runs")
+        .select("tier, custom_spec")
+        .eq("id", row.build_run_id)
+        .maybeSingle();
+      const tier = (run?.tier as AutoTier) ?? "economy";
+      const custom = (run?.custom_spec as CustomSpec | null) ?? undefined;
+      await fullAutoGenerate({ videoId: row.id, tier, custom }, db); // → assets → render → FINAL_REVIEW
+      processed++;
+    } catch (err) {
+      errors++;
+      await db
+        .from("videos")
+        .update({ paused_reason: `Build & Post: ${String(err).slice(0, 140)}` })
+        .eq("id", row.id);
+      console.error(`build-runner ${row.id} failed:`, err);
+    }
+  }
+  return { processed, errors };
 }
 
 /**

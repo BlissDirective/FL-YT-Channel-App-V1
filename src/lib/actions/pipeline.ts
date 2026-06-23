@@ -7,6 +7,8 @@ import {
   applyPressKitClip,
   applyScriptRemix,
   applySourceClip,
+  startBuildRun,
+  type BuildRunConfig,
   autoClassifyShotTypes,
   decideGate,
   deleteBeat,
@@ -106,6 +108,23 @@ export async function resumeVideoAction(
     refresh(projectId);
     return { ok: result.ok, error: result.error };
   });
+}
+
+/** Launch a Full-Auto Build & Post run (Phase 0): create the run + N seed
+    videos; the build-runner cron drives them through to Final review. */
+export async function startBuildRunAction(
+  projectId: string,
+  config: BuildRunConfig,
+): Promise<PipelineResult & { runId?: string; created?: number }> {
+  try {
+    const r = await startBuildRun(projectId, config);
+    if (!r.ok) return { ok: false, error: r.error };
+    refresh(projectId);
+    return { ok: true, runId: r.runId, created: r.created };
+  } catch (err) {
+    console.error("startBuildRun failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 /** Send a video back one stage to the previous gate (e.g. asset generation →
