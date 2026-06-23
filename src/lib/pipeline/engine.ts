@@ -526,19 +526,18 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     .eq("video_id", video.id)
     .in("kind", ["vo", "clip", "thumb", "captions"]);
 
-  // VO, clips, and thumbnails generate in parallel; ledger writes happen
+  // VO and clips generate in parallel; the thumbnail is rendered later by the
+  // farm (a hero still/frame + a controlled Claude kinetic phrase — no
+  // AI-image text that can hallucinate brand names). Ledger writes happen
   // sequentially afterwards (recordCost mutates the running total).
   const liveVoice = canSynthesize(project.voice_id) && beats.length > 0;
-  const [voResults, clipResults, thumbResults] = await Promise.all([
+  const [voResults, clipResults] = await Promise.all([
     // VO is the only unguarded provider call here — cap concurrency so a long
     // script can't 429 ElevenLabs and reject the whole stage.
     liveVoice
       ? mapLimit(beats, 2, (beat) => synthesizeBeatVo(db, video, project, beat))
       : Promise.resolve(null),
     Promise.all(beats.map((beat) => makeBeatClip(video, project, beat))),
-    Promise.all(
-      [0, 1, 2].map((variant) => makeThumbCandidate(video, project, variant)),
-    ),
   ]);
 
   if (voResults) {
@@ -572,10 +571,6 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   for (const clip of clipResults) {
     await db.from("assets").insert(clip.row);
     await recordCost(db, video, clip.cost, `beat ${(clip.row.beat_index ?? 0) + 1}`);
-  }
-  for (const thumb of thumbResults) {
-    await db.from("assets").insert(thumb.row);
-    await recordCost(db, video, thumb.cost, `candidate ${Number(thumb.row.meta.variant) + 1}`);
   }
 
   // Captions: aggregate the per-beat word timings into one track.
@@ -703,51 +698,6 @@ async function makeBeatClip(
       cost_usd: stock ? MOCK_COSTS.stockClip.usd : MOCK_COSTS.clip.usd,
     },
     cost: stock ? MOCK_COSTS.stockClip : MOCK_COSTS.clip,
-  };
-}
-
-const THUMB_ANGLES = [
-  "extreme close-up, dramatic lighting, high emotional intensity",
-  "wide symbolic scene, bold central subject, strong silhouette",
-  "conceptual metaphor, minimal composition, one striking focal object",
-];
-
-async function makeThumbCandidate(
-  video: Video,
-  project: Project,
-  variant: number,
-): Promise<AssetDraft> {
-  try {
-    if (isFalLive()) {
-      const prompt = `YouTube thumbnail background for a video titled "${video.title}" in the ${project.niche} niche. ${THUMB_ANGLES[variant]}. ${project.brand_kit.thumbnailStyle} style, color palette ${project.brand_kit.primary} and ${project.brand_kit.secondary}, ultra sharp, 16:9, no text, no watermark`;
-      const img = await generateImage({ prompt, quality: "schnell" });
-      const path = `videos/${video.id}/thumb-${variant}.jpg`;
-      await uploadMedia(path, img.image, "image/jpeg");
-      return {
-        row: {
-          video_id: video.id,
-          kind: "thumb",
-          provider: "fal.ai",
-          storage_path: path,
-          meta: { variant, style: project.brand_kit.thumbnailStyle },
-          cost_usd: img.costUsd,
-        },
-        cost: { provider: "fal.ai", usd: img.costUsd, description: "Thumbnail candidate" },
-      };
-    }
-  } catch (err) {
-    console.error(`thumbnail ${variant} generation failed:`, err);
-  }
-  return {
-    row: {
-      video_id: video.id,
-      kind: "thumb",
-      provider: "mock:fal.ai",
-      storage_path: `mock/${video.id}/thumb-${variant}.png`,
-      meta: { variant, style: project.brand_kit.thumbnailStyle },
-      cost_usd: MOCK_COSTS.thumbnail.usd,
-    },
-    cost: MOCK_COSTS.thumbnail,
   };
 }
 

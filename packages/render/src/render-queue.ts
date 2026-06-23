@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import { bundle } from "@remotion/bundler";
-import { ensureBrowser, renderMedia, selectComposition } from "@remotion/renderer";
+import { ensureBrowser, renderMedia, renderStill, selectComposition } from "@remotion/renderer";
 import { isR2Path, r2Configured, r2Get, r2Put, r2SignedGetUrl, stripR2, toR2Path } from "@studio/storage";
 import {
   beatTimeline,
@@ -111,6 +111,35 @@ async function fetchRenderFile(videoId: string, variant: "long" | "short"): Prom
   const { data: file, error } = await db.storage.from("media").download(path);
   if (error || !file) throw new Error(`download ${path}: ${error?.message ?? "missing"}`);
   return Buffer.from(await file.arrayBuffer());
+}
+
+/** Store a thumbnail image (R2 when configured, else Supabase) → storage_path. */
+async function storeImage(videoId: string, bytes: Buffer): Promise<string> {
+  const key = `videos/${videoId}/thumb-0.jpg`;
+  if (r2Configured()) {
+    await r2Put(key, bytes, "image/jpeg");
+    return toR2Path(key);
+  }
+  await db.storage.from("media").upload(key, bytes, { contentType: "image/jpeg", upsert: true });
+  return key;
+}
+
+/** Brand-safe kinetic phrase for the thumbnail: prefer the script's phrase,
+    else the first curated highlight, else a trimmed (brand names not stripped)
+    slice of the title as a last resort. */
+function thumbPhraseFor(scriptPhrase: string | undefined, video: { title: string; highlights?: unknown }): string {
+  const fromScript = (scriptPhrase ?? "").trim();
+  if (fromScript) return fromScript;
+  const hl = (video.highlights as { text?: string }[] | null) ?? [];
+  const fromHl = hl.find((h) => h.text && h.text.trim())?.text?.trim();
+  if (fromHl) return fromHl;
+  return video.title
+    .replace(/\(.*?\)/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .slice(0, 5)
+    .join(" ");
 }
 
 /** Supabase resumable (TUS) uploads must be sent in 6MB chunks (except last). */
@@ -426,6 +455,54 @@ async function renderOne(
       meta: baseMeta,
       cost_usd: 0,
     });
+  }
+
+  // ── Thumbnail: a hero frame + a brand-safe Claude kinetic phrase rendered
+  //    as a still. Deterministic text → no AI-image hallucinated brand names.
+  //    Best-effort; a thumbnail failure never fails the video render.
+  try {
+    const { data: scriptRow } = await db
+      .from("scripts")
+      .select("metadata")
+      .eq("video_id", videoId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const meta = (scriptRow?.metadata ?? {}) as { thumbPhrase?: string };
+    const heroBeat =
+      props.beats.find((b) => b.shotType === "hero" && (b.imageUrl || b.videoUrl)) ??
+      props.beats.find((b) => b.imageUrl || b.videoUrl) ??
+      props.beats[0];
+    const phrase = thumbPhraseFor(meta.thumbPhrase, video);
+    const thumbProps = {
+      imageUrl: heroBeat?.imageUrl ?? null,
+      videoUrl: heroBeat?.videoUrl ?? null,
+      phrase,
+      brand: props.brand,
+    };
+    const thumbComp = await selectComposition({ serveUrl, id: "Thumbnail", inputProps: thumbProps });
+    const thumbOut = join(outDir, "thumb.jpg");
+    await renderStill({
+      composition: thumbComp,
+      serveUrl,
+      output: thumbOut,
+      inputProps: thumbProps,
+      imageFormat: "jpeg",
+      jpegQuality: 90,
+    });
+    const thumbPath = await storeImage(videoId, readFileSync(thumbOut));
+    await db.from("assets").delete().eq("video_id", videoId).eq("kind", "thumb");
+    await db.from("assets").insert({
+      video_id: videoId,
+      kind: "thumb",
+      provider: "remotion",
+      storage_path: thumbPath,
+      meta: { variant: 0, format: "hero-kinetic", phrase, selected: true },
+      cost_usd: 0,
+    });
+    console.log(`🖼️  ${video.title}: thumbnail "${phrase}" → ${thumbPath}`);
+  } catch (err) {
+    console.error(`⚠️  thumbnail render failed (non-fatal): ${String(err).slice(0, 160)}`);
   }
 
   const isShort = video.kind === "short";

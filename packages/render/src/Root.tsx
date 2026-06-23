@@ -1,6 +1,7 @@
 import React from "react";
 import { Composition } from "remotion";
 import { LongForm, Short, VerticalShort, shortDurationSec } from "./VideoComp";
+import { Thumbnail, type ThumbnailProps } from "./Thumbnail";
 import {
   FPS,
   longFormDurationSec,
@@ -70,6 +71,23 @@ export const RemotionRoot: React.FC = () => (
       calculateMetadata={({ props }) => ({
         durationInFrames: Math.round(verticalShortDurationSec(props) * FPS),
       })}
+    />
+    {/* 16:9 thumbnail still — hero frame + brand-safe kinetic phrase. */}
+    <Composition
+      id="Thumbnail"
+      component={Thumbnail}
+      fps={FPS}
+      width={1280}
+      height={720}
+      durationInFrames={1}
+      defaultProps={
+        {
+          imageUrl: null,
+          videoUrl: null,
+          phrase: "ATOMS WIN",
+          brand: { primary: "#F5B829", secondary: "#17150F" },
+        } satisfies ThumbnailProps
+      }
     />
     {/* Dev-only: eyeball all 8 highlight presets at once. */}
     <Composition

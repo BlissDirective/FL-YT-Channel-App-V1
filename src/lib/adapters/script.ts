@@ -96,6 +96,8 @@ export type ScriptDraft = {
     description: string;
     tags: string[];
     chapters: { at: number; label: string }[];
+    /** Brand-safe kinetic phrase rendered big over the thumbnail. */
+    thumbPhrase?: string;
   };
   costUsd: number;
   provider: "anthropic" | "mock";
@@ -152,8 +154,13 @@ const DELIVER_SCRIPT_TOOL = {
         },
       },
       runtimeSec: { type: "number", description: "Estimated spoken runtime in seconds." },
+      thumbPhrase: {
+        type: "string",
+        description:
+          "A 2–5 word, punchy, curiosity-driving thumbnail phrase for this video — the kind that stops a scroll (it renders big over the thumbnail image). Make it bold and emotional. NEVER include brand, company, product, or person names (e.g. no Amazon/Nvidia/Anthropic) — sell the IDEA, not the names, to avoid copyright/trademark risk.",
+      },
     },
-    required: ["beats", "titles", "description", "tags", "chapters", "runtimeSec"],
+    required: ["beats", "titles", "description", "tags", "chapters", "runtimeSec", "thumbPhrase"],
   },
 } as const;
 
@@ -258,6 +265,7 @@ export async function generateScript(opts: {
     tags: string[];
     chapters: { at: number; label: string }[];
     runtimeSec: number;
+    thumbPhrase?: string;
   };
   const rawBeats: ScriptBeat[] = input.beats.map((b, idx) => ({ idx, ...b }));
   // Hard cap: even with the word-budget prompt the model can run long, so trim
@@ -277,6 +285,7 @@ export async function generateScript(opts: {
       description: input.description,
       tags: input.tags,
       chapters: input.chapters,
+      thumbPhrase: input.thumbPhrase,
     },
     costUsd: Math.round(costUsd * 100) / 100,
     provider: "anthropic",
@@ -443,6 +452,7 @@ Rewrite the FULL script package to address the notes. Keep the same core topic a
     tags: string[];
     chapters: { at: number; label: string }[];
     runtimeSec: number;
+    thumbPhrase?: string;
     changeSummary: string;
   };
   const beats: ScriptBeat[] = payload.beats.map((b, idx) => ({ idx, ...b }));
@@ -455,6 +465,7 @@ Rewrite the FULL script package to address the notes. Keep the same core topic a
       description: payload.description,
       tags: payload.tags,
       chapters: payload.chapters,
+      thumbPhrase: payload.thumbPhrase,
     },
     costUsd,
     provider: "anthropic",
