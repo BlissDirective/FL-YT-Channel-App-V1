@@ -569,7 +569,7 @@ async function publishStagedVideos() {
   if (!youtubeUploadConfigured()) return;
   const { data: pending } = await db
     .from("videos")
-    .select("id, title, kind, project_id, source_segment")
+    .select("id, title, kind, project_id, source_segment, publish_privacy")
     .eq("publish_requested", true)
     .in("status", ["FINAL_REVIEW", "APPROVED"])
     .is("youtube_video_id", null)
@@ -615,7 +615,11 @@ async function publishStagedVideos() {
         tags = sm.tags ?? [];
       }
 
-      const ytId = await uploadVideo({ filePath: tmp, title: v.title, description, tags, refreshToken });
+      // Build & Post sets publish_privacy from the final QC score (P5):
+      // >= 8.0 → public, 7.0–8.0 → unlisted. Manual publishes leave it null →
+      // the worker's default (YOUTUBE_UPLOAD_PRIVACY, then 'unlisted').
+      const privacy = (v.publish_privacy as string | null) || undefined;
+      const ytId = await uploadVideo({ filePath: tmp, title: v.title, description, tags, refreshToken, privacy });
       await db
         .from("videos")
         .update({

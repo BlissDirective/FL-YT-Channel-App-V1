@@ -1176,6 +1176,115 @@ function sampleLength(kind: "long" | "short", lo: number, hi: number): number {
   return Math.max(30, raw);
 }
 
+// ── Publish scheduling (Phase 2) ──────────────────────────────────────
+// Slots are computed as absolute UTC from a wall-clock time in America/Chicago,
+// so DST (CDT/CST) is resolved once, at scheduling time — no drift, no double-
+// posts. Stored on each video as scheduled_publish_at; the scheduler releases a
+// video (sets publish_requested) once its slot is due (or immediately, for
+// all-at-once). The render farm's publishStagedVideos then uploads it.
+
+const POST_TZ = "America/Chicago";
+
+/** Per-day posting times by videos-per-day (P2). Hour/minute in CT. */
+const STAGGER_TIMES: Record<number, [number, number][]> = {
+  1: [[14, 0]],
+  2: [[10, 0], [14, 0]],
+  3: [[9, 0], [13, 0], [18, 0]],
+};
+
+/** Offset (ms) of a time zone from UTC at a given instant. */
+function tzOffsetMs(utcMs: number, tz: string): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const parts = dtf.formatToParts(new Date(utcMs));
+  const m: Record<string, string> = {};
+  for (const p of parts) m[p.type] = p.value;
+  // 'hour' can format midnight as 24 — normalize so Date.UTC stays in range.
+  const hour = m.hour === "24" ? 0 : Number(m.hour);
+  const asUtc = Date.UTC(
+    Number(m.year),
+    Number(m.month) - 1,
+    Number(m.day),
+    hour,
+    Number(m.minute),
+    Number(m.second),
+  );
+  return asUtc - utcMs;
+}
+
+/** The UTC instant for a wall-clock time on a given Y/M/D in a time zone. */
+function zonedTimeToUtc(
+  year: number,
+  monthIdx: number,
+  day: number,
+  hour: number,
+  minute: number,
+  tz: string,
+): Date {
+  const guess = Date.UTC(year, monthIdx, day, hour, minute, 0);
+  // Correct by the offset, re-checking at the corrected instant so a slot that
+  // straddles a DST transition resolves to the right wall-clock time.
+  let utc = guess - tzOffsetMs(guess, tz);
+  const refined = guess - tzOffsetMs(utc, tz);
+  if (refined !== utc) utc = refined;
+  return new Date(utc);
+}
+
+/** The Y/M/D in the posting time zone for a given instant. */
+function ymdInTz(d: Date, tz: string): { y: number; m: number; day: number } {
+  const dtf = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = dtf.formatToParts(d);
+  const m: Record<string, string> = {};
+  for (const p of parts) m[p.type] = p.value;
+  return { y: Number(m.year), m: Number(m.month), day: Number(m.day) };
+}
+
+/**
+ * Assign each of `count` videos an absolute UTC release time.
+ *  • all_at_once → all null (release as soon as APPROVED).
+ *  • multi_day   → one/day at 2 PM CT, starting the next 2 PM CT.
+ *  • staggered   → perDay slots/day at fixed CT times (P2), rolling forward.
+ * Past-due slots are skipped so nothing is scheduled into the past.
+ */
+function computeSchedule(
+  count: number,
+  mode: "all_at_once" | "multi_day" | "staggered",
+  cfg: Record<string, unknown>,
+  now: Date,
+): (string | null)[] {
+  if (mode === "all_at_once") return Array(count).fill(null);
+
+  const perDay = mode === "multi_day" ? 1 : Math.max(1, Math.min(3, Number(cfg.perDay ?? 2)));
+  const times = STAGGER_TIMES[perDay] ?? STAGGER_TIMES[1];
+
+  const slots: string[] = [];
+  const base = ymdInTz(now, POST_TZ);
+  for (let dayOffset = 0; slots.length < count && dayOffset < 366; dayOffset++) {
+    for (const [h, min] of times) {
+      // Anchor off the base date, letting zonedTimeToUtc normalize overflow.
+      const dt = zonedTimeToUtc(base.y, base.m - 1, base.day + dayOffset, h, min, POST_TZ);
+      if (dt.getTime() > now.getTime()) {
+        slots.push(dt.toISOString());
+        if (slots.length >= count) break;
+      }
+    }
+  }
+  return slots;
+}
+
 /**
  * Launch a Build & Post run: create the run record and one seed video per idea
  * (cheap inserts at IDEA_APPROVED). The build-runner cron then drives each
@@ -1240,9 +1349,19 @@ export async function startBuildRun(
     .single();
   if (runErr || !run) return { ok: false, error: runErr?.message ?? "Could not create the run." };
 
-  // 3) Seed one video per idea (IDEA_APPROVED → the runner takes it from here).
+  // 3) Compute the publish schedule up front (absolute UTC per video, or null
+  //    for all-at-once) so each seed carries its own release slot.
+  const schedule = computeSchedule(
+    ideas.length,
+    cfg.scheduleMode ?? "all_at_once",
+    cfg.scheduleCfg ?? {},
+    new Date(),
+  );
+
+  // 4) Seed one video per idea (IDEA_APPROVED → the runner takes it from here).
   let created = 0;
-  for (const idea of ideas) {
+  for (let i = 0; i < ideas.length; i++) {
+    const idea = ideas[i];
     const { error } = await db.from("videos").insert({
       project_id: projectId,
       idea_id: idea.id,
@@ -1253,6 +1372,7 @@ export async function startBuildRun(
       target_length_sec: sampleLength(cfg.kind, lo, hi),
       build_run_id: run.id,
       auto_pilot_run: true,
+      scheduled_publish_at: schedule[i] ?? null,
     });
     if (!error) {
       created++;
@@ -1503,6 +1623,53 @@ export async function finalizeAutoPilotVideos(
     }
   }
   return { finalized, held };
+}
+
+/**
+ * Publish scheduler (Phase 2). Releases approved auto-pilot videos whose slot
+ * is due: a video that is APPROVED, auto_publish, not yet requested, and either
+ * past its scheduled_publish_at or all-at-once (null slot) is flagged
+ * publish_requested. The render farm's publishStagedVideos then uploads it to
+ * the project's channel at its publish_privacy (P5). Idempotent — publish_
+ * requested is a one-way latch, so a restart or double-run never double-posts.
+ * Capped per pass to stay clear of YouTube's daily upload quota (§8).
+ */
+export async function releaseScheduledVideos(
+  limit = 6,
+  dbArg?: Db,
+): Promise<{ released: number }> {
+  const db = dbArg ?? (await createClient());
+  const nowIso = new Date().toISOString();
+  const { data: due } = await db
+    .from("videos")
+    .select("id, project_id, title, scheduled_publish_at")
+    .eq("auto_publish", true)
+    .eq("status", "APPROVED")
+    .eq("publish_requested", false)
+    .is("youtube_video_id", null)
+    .or(`scheduled_publish_at.is.null,scheduled_publish_at.lte.${nowIso}`)
+    .order("scheduled_publish_at", { ascending: true, nullsFirst: true })
+    .limit(limit);
+
+  let released = 0;
+  for (const v of (due ?? []) as {
+    id: string;
+    project_id: string;
+    title: string;
+  }[]) {
+    await db.from("videos").update({ publish_requested: true }).eq("id", v.id);
+    released++;
+    try {
+      await sendPushToAll({
+        title: "Publishing now",
+        body: `“${v.title}” reached its slot — uploading to YouTube.`,
+        url: `/projects/${v.project_id}/review`,
+      });
+    } catch (err) {
+      console.error("web-push delivery failed:", err);
+    }
+  }
+  return { released };
 }
 
 /**

@@ -51,13 +51,17 @@ export type YouTubeUpload = {
   tags: string[];
   /** Per-project channel refresh token; falls back to the global default. */
   refreshToken?: string;
+  /** Per-video privacy (public | unlisted | private). Falls back to
+      YOUTUBE_UPLOAD_PRIVACY, then 'unlisted'. Set by the Build & Post
+      scheduler from the final QC score (P5). */
+  privacy?: string;
 };
 
 /** Resumable upload of one MP4. Returns the new YouTube video id. */
 export async function uploadVideo(opts: YouTubeUpload): Promise<string> {
   const token = await accessToken(opts.refreshToken);
   const bytes = readFileSync(opts.filePath);
-  const privacy = (process.env.YOUTUBE_UPLOAD_PRIVACY || "unlisted").trim();
+  const privacy = (opts.privacy || process.env.YOUTUBE_UPLOAD_PRIVACY || "unlisted").trim();
   const meta = {
     snippet: {
       title: opts.title.slice(0, 100),
