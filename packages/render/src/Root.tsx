@@ -13,6 +13,7 @@ import { HighlightOnFootage, HighlightOnFootageVertical } from "./highlights/Foo
 import { StickPreview, stickPreviewDuration } from "./stick/StickPreview";
 import { StickSheet } from "./stick/StickSheet";
 import { StickShowcase, STICK_SHOWCASE_FRAMES } from "./stick/StickShowcase";
+import { StickShortSample, STICK_SAMPLE } from "./stick/StickShortSample";
 
 const DEFAULT_PROPS: VideoProps = {
   title: "Sample Video",
@@ -144,6 +145,16 @@ export const RemotionRoot: React.FC = () => (
       width={1080}
       height={1920}
       durationInFrames={STICK_SHOWCASE_FRAMES}
+    />
+    {/* Stick Studio (Phase 1): a real stick short via VerticalShort → BeatScene. */}
+    <Composition
+      id="StickShortSample"
+      component={StickShortSample}
+      fps={FPS}
+      width={1080}
+      height={1920}
+      durationInFrames={Math.round(verticalShortDurationSec(STICK_SAMPLE) * FPS)}
+      defaultProps={{}}
     />
   </>
 );

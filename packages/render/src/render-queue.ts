@@ -22,6 +22,8 @@ import {
   verticalShortDurationSec,
   type Highlight,
   type RenderBeat,
+  type StickCast,
+  type StickScene,
   type VideoProps,
 } from "./types";
 import { uploadVideo, youtubeUploadConfigured } from "./youtube";
@@ -327,6 +329,7 @@ async function buildProps(videoId: string): Promise<{
       isVideo?: boolean;
       heroHold?: boolean;
       durationSec?: number;
+      stickScene?: StickScene;
     };
     // Generated video clips live in Storage (no meta.url) — sign the path and
     // treat as video. Stills are signed as images. External (Pexels) use url.
@@ -345,6 +348,9 @@ async function buildProps(videoId: string): Promise<{
       videoDurationSec: clipMeta.durationSec,
       heroHold: Boolean(clipMeta.heroHold),
       imageUrl: !isVideoClip ? (clipSigned ?? undefined) : undefined,
+      // Stick Studio: a stick scene on the clip asset drives programmatic
+      // rendering instead of footage (Phase 2 writes it; here we just pass it).
+      stickScene: clipMeta.stickScene,
       highlights: resolveHighlights(
         curated.filter((h) => h.beatIdx === sb.idx),
         words,
@@ -365,6 +371,9 @@ async function buildProps(videoId: string): Promise<{
       },
       beats,
       captions: video.enable_captions ?? true,
+      // Stick Studio: recurring character identity (Phase 2 migration adds the
+      // column; undefined falls back to the default cast at render).
+      stickCast: (project.stick_cast as StickCast | null) ?? undefined,
     },
     project,
     video,

@@ -1,4 +1,8 @@
+import type { StickCast, StickScene } from "./stick/types";
+
 export type WordTiming = { w: string; start: number; end: number };
+
+export type { StickCast, StickScene };
 
 // ── Kinetic Highlights ────────────────────────────────────────────────
 // Keep these unions in sync with src/lib/db/types.ts (the app owns curation;
@@ -51,6 +55,9 @@ export type RenderBeat = {
   shotType: string;
   /** Curated kinetic-highlight overlays anchored to this beat. */
   highlights?: Highlight[];
+  /** Stick Studio: programmatic stick-figure scene for this beat. When set, the
+      visual layer renders <StickStage> instead of footage/stills. */
+  stickScene?: StickScene;
 };
 
 export type VideoProps = {
@@ -61,6 +68,8 @@ export type VideoProps = {
   /** Render word-window captions. Default true; off pairs with Kinetic
       Highlights so the two text layers don't clutter the frame. */
   captions?: boolean;
+  /** Stick Studio: the recurring character identity for stick-figure videos. */
+  stickCast?: StickCast;
 };
 
 export const FPS = 30;

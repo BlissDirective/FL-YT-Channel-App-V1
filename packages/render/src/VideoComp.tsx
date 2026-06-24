@@ -23,6 +23,7 @@ import {
 } from "./types";
 import { HighlightLayer } from "./highlights/HighlightLayer";
 import { HighlightFonts } from "./highlights/fonts";
+import { StickStage } from "./stick/StickStage";
 
 const FONT =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -50,7 +51,7 @@ export const LongForm: React.FC<VideoProps> = (props) => {
         cursor += Math.max(1, beat.durationSec);
         return (
           <Sequence key={beat.idx} from={from} durationInFrames={dur}>
-            <BeatScene beat={beat} brand={props.brand} captionSize={54} captions={props.captions} />
+            <BeatScene beat={beat} brand={props.brand} captionSize={54} captions={props.captions} stickCast={props.stickCast} />
           </Sequence>
         );
       })}
@@ -80,7 +81,7 @@ export const Short: React.FC<VideoProps> = (props) => {
     <AbsoluteFill style={{ backgroundColor: props.brand.secondary, fontFamily: FONT }}>
       <HighlightFonts />
       <Sequence durationInFrames={dur}>
-        <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} />
+        <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} stickCast={props.stickCast} />
       </Sequence>
       <Sequence from={dur} durationInFrames={Math.round(1.5 * FPS)}>
         <EndCard {...props} compact />
@@ -112,7 +113,7 @@ export const VerticalShort: React.FC<VideoProps> = (props) => {
         cursor += Math.max(1, beat.durationSec);
         return (
           <Sequence key={beat.idx} from={from} durationInFrames={dur}>
-            <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} />
+            <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} stickCast={props.stickCast} />
           </Sequence>
         );
       })}
@@ -134,13 +135,17 @@ const BeatScene: React.FC<{
   captionSize: number;
   vertical?: boolean;
   captions?: boolean;
-}> = ({ beat, brand, captionSize, vertical, captions = true }) => {
+  stickCast?: VideoProps["stickCast"];
+}> = ({ beat, brand, captionSize, vertical, captions = true, stickCast }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const kenBurns = interpolate(frame, [0, durationInFrames], [1.02, 1.12]);
   return (
     <AbsoluteFill>
-      {beat.videoUrl && beat.heroHold ? (
+      {beat.stickScene ? (
+        // Stick Studio: programmatic performance replaces footage/stills.
+        <StickStage scene={beat.stickScene} cast={stickCast} />
+      ) : beat.videoUrl && beat.heroHold ? (
         // Hero clip: slow + continuous Ken Burns pan to fill the section.
         <AbsoluteFill style={{ transform: `scale(${kenBurns})` }}>
           <Loop
