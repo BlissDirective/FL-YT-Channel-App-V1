@@ -35,6 +35,7 @@ import {
   VIDEO_PROVIDER,
 } from "@/lib/adapters/video-models";
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
+import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
@@ -534,13 +535,18 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   // AI-image text that can hallucinate brand names). Ledger writes happen
   // sequentially afterwards (recordCost mutates the running total).
   const liveVoice = canSynthesize(project.voice_id) && beats.length > 0;
+  // Stick Studio projects render programmatic stick figures: the per-beat visual
+  // is a choreographed StickScene (one LLM call), not an AI/stock clip.
+  const stick = project.visual_style === "stick";
   const [voResults, clipResults] = await Promise.all([
     // VO is the only unguarded provider call here — cap concurrency so a long
     // script can't 429 ElevenLabs and reject the whole stage.
     liveVoice
       ? mapLimit(beats, 2, (beat) => synthesizeBeatVo(db, video, project, beat))
       : Promise.resolve(null),
-    Promise.all(beats.map((beat) => makeBeatClip(video, project, beat))),
+    stick
+      ? makeStickClips(video, project, beats)
+      : Promise.all(beats.map((beat) => makeBeatClip(video, project, beat))),
   ]);
 
   if (voResults) {
@@ -702,6 +708,44 @@ async function makeBeatClip(
     },
     cost: stock ? MOCK_COSTS.stockClip : MOCK_COSTS.clip,
   };
+}
+
+/** Stick Studio: one choreographer call → a stick scene per beat, stored as the
+    beat's "clip" asset (provider 'stick'). Replaces AI/stock clip spend with a
+    single cheap LLM call (cost attributed to the first beat). */
+async function makeStickClips(
+  video: Video,
+  project: Project,
+  beats: ScriptBeat[],
+): Promise<AssetDraft[]> {
+  const choreo = await choreographStickScenes({
+    title: video.title,
+    niche: project.niche,
+    topic: video.topic,
+    tone: project.tone,
+    format: video.format,
+    beats,
+  });
+  const provider = choreo.provider === "anthropic" ? "anthropic" : "mock:stick";
+  return beats.map((beat, i) => ({
+    row: {
+      video_id: video.id,
+      kind: "clip",
+      provider: "stick",
+      storage_path: "",
+      beat_index: beat.idx,
+      meta: { shotType: beat.shotType, stickScene: choreo.scenes[i] },
+      cost_usd: i === 0 ? choreo.costUsd : 0,
+    },
+    cost: {
+      provider,
+      usd: i === 0 ? choreo.costUsd : 0,
+      description:
+        i === 0
+          ? `Stick choreography (${beats.length} scenes) — ${choreo.provider}`
+          : "Stick scene — free",
+    },
+  }));
 }
 
 async function runAssembly(db: Db, video: Video): Promise<"external" | void> {
@@ -1070,6 +1114,25 @@ export async function fullAutoGenerate(
   const voDur = await voDurations(db, opts.videoId);
   const secFor = (b: ScriptBeat) =>
     voDur.get(b.idx) || Math.max(4, b.text.trim().split(/\s+/).length / 2.5);
+
+  // Stick Studio: no AI-clip tiers/budget — the asset stage choreographs a stick
+  // scene per beat. Keep highlights on, then walk the Script + Assets gates so
+  // the video lands at render (ASSEMBLING) like the non-stick auto path.
+  if (project.visual_style === "stick") {
+    if (!video.enable_highlights) {
+      try {
+        await db.from("videos").update({ enable_highlights: true }).eq("id", opts.videoId);
+        video.enable_highlights = true;
+        await runHighlightCuration(db, video, project, beats);
+      } catch (err) {
+        console.error("full-auto highlight curation failed:", err);
+      }
+    }
+    await db.from("videos").update({ auto_finish: true }).eq("id", opts.videoId);
+    await decideGate({ videoId: opts.videoId, decision: "approved" }, db); // Script → assets
+    await decideGate({ videoId: opts.videoId, decision: "approved" }, db); // Assets → render
+    return { ok: true, enqueued: 0, estCostUsd: 0 };
+  }
 
   // 2) Plan which beats get AI video: hero bookends + length-scaled b-roll,
   //    packed under the per-video budget. Un-picked beats keep their free

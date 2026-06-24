@@ -1,4 +1,5 @@
 import type { ApprovalGate, AutonomyMode, VideoStatus } from "@studio/core";
+import type { StickCast } from "@/lib/stick-types";
 
 export type BrandKit = {
   primary: string;
@@ -60,6 +61,10 @@ export type Project = {
   derive_shorts_count: number;
   /** Default for the smart (Claude) segment-selection toggle when deriving. */
   derive_shorts_smart: boolean;
+  /** 'footage' (AI clips/stock) or 'stick' (programmatic stick-figure render). */
+  visual_style: "footage" | "stick";
+  /** Recurring stick-figure character identity (null → default cast). */
+  stick_cast: StickCast | null;
   is_demo: boolean;
   created_at: string;
   updated_at: string;

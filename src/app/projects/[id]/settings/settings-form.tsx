@@ -111,6 +111,12 @@ export function SettingsForm({
             ))}
           </select>
         </Field>
+        <Field label="Visual style">
+          <select name="visual_style" defaultValue={project.visual_style ?? "footage"} className="input">
+            <option value="footage">Footage (AI clips + stock)</option>
+            <option value="stick">Stick figures (programmatic)</option>
+          </select>
+        </Field>
 
         <input type="hidden" name="voice_id" value={voiceId} />
         <input type="hidden" name="voice_name" value={selectedVoice?.name ?? ""} />
