@@ -588,6 +588,7 @@ export type BuildRunVideo = {
   youtubeVideoId: string | null;
   pausedReason: string | null;
   qcScore: number | null;
+  views: number | null;
 };
 
 export type BuildRunRow = {
@@ -642,18 +643,29 @@ export async function getBuildRuns(
       | "paused_reason"
     > & { build_run_id: string })[]) ?? [];
 
-  // Latest FINAL-gate QC score per video (most recent wins).
+  // Latest FINAL-gate QC score + latest view count per video (most recent wins).
   const videoIds = vRows.map((v) => v.id);
   const scoreByVideo = new Map<string, number>();
+  const viewsByVideo = new Map<string, number>();
   if (videoIds.length > 0) {
-    const { data: revs } = await supabase
-      .from("qc_reviews")
-      .select("video_id, score, gate, created_at")
-      .in("video_id", videoIds)
-      .eq("gate", "FINAL")
-      .order("created_at", { ascending: false });
+    const [{ data: revs }, { data: snaps }] = await Promise.all([
+      supabase
+        .from("qc_reviews")
+        .select("video_id, score, gate, created_at")
+        .in("video_id", videoIds)
+        .eq("gate", "FINAL")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("analytics_snapshots")
+        .select("video_id, views, captured_at")
+        .in("video_id", videoIds)
+        .order("captured_at", { ascending: false }),
+    ]);
     for (const r of (revs as { video_id: string; score: number }[]) ?? []) {
       if (!scoreByVideo.has(r.video_id)) scoreByVideo.set(r.video_id, Number(r.score));
+    }
+    for (const s of (snaps as { video_id: string; views: number }[]) ?? []) {
+      if (!viewsByVideo.has(s.video_id)) viewsByVideo.set(s.video_id, Number(s.views));
     }
   }
 
@@ -671,6 +683,7 @@ export async function getBuildRuns(
       youtubeVideoId: v.youtube_video_id,
       pausedReason: v.paused_reason,
       qcScore: scoreByVideo.get(v.id) ?? null,
+      views: viewsByVideo.get(v.id) ?? null,
     });
     byRun.set(v.build_run_id, list);
   }

@@ -134,6 +134,11 @@ function RunBlock({ projectId, run }: { projectId: string; run: BuildRunRow }) {
               className="-mx-1 flex items-center justify-between gap-2 rounded-lg px-1 py-2 transition-colors hover:bg-canvas"
             >
               <span className="min-w-0 flex-1 truncate text-sm">{v.title}</span>
+              {(v.youtubeVideoId || v.status === "TRACKING") && v.views != null && (
+                <span className="text-[11px] tabular-nums text-muted">
+                  {Intl.NumberFormat("en", { notation: "compact" }).format(v.views)} views
+                </span>
+              )}
               {v.qcScore != null && (
                 <span className="text-[11px] tabular-nums text-muted">QC {v.qcScore.toFixed(1)}</span>
               )}

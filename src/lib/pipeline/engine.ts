@@ -38,7 +38,7 @@ import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
-import type { CustomSpec, Project, ScriptBeat, Video } from "@/lib/db/types";
+import type { BuildRunStatus, CustomSpec, Project, ScriptBeat, Video } from "@/lib/db/types";
 import { SHORT_LENGTHS } from "@/lib/db/types";
 import { runIntelligence } from "./intelligence";
 import { MOCK_COSTS } from "./mock-content";
@@ -1961,6 +1961,100 @@ export async function cancelBuildRun(
     stopped++;
   }
   return { ok: true, stopped };
+}
+
+// ── Monitoring & alerts (Phase 6) ─────────────────────────────────────
+
+/** Pre-publish stages — a run with any video here is still "generating". */
+const GENERATING_STAGES = new Set<VideoStatus>([
+  "IDEA_APPROVED",
+  "SCRIPTING",
+  "SCRIPT_READY",
+  "GENERATING_ASSETS",
+  "ASSETS_READY",
+  "ASSEMBLING",
+  "FINAL_REVIEW",
+]);
+
+/**
+ * Reconcile each active run's status from its videos and fire a one-time
+ * "run complete" alert when it finishes (Phase 6). A video is terminal when
+ * it is posted (TRACKING / has a YouTube id), killed, or held (paused and not
+ * posted). Derived status:
+ *   • done       — nothing left in flight,
+ *   • publishing — an approved video is staged for upload (publish_requested),
+ *   • scheduled  — all remaining work is approved, waiting for its slot,
+ *   • generating — something is still being built.
+ * Idempotent: a run already done/cancelled is skipped, so the completion push
+ * fires exactly once (on the transition into done).
+ */
+export async function reconcileBuildRuns(
+  dbArg?: Db,
+): Promise<{ completed: number; updated: number }> {
+  const db = dbArg ?? (await createClient());
+  const { data: runs } = await db
+    .from("build_runs")
+    .select("id, project_id, status")
+    .not("status", "in", "(done,cancelled,paused)");
+
+  let completed = 0;
+  let updated = 0;
+  for (const run of (runs ?? []) as {
+    id: string;
+    project_id: string;
+    status: string;
+  }[]) {
+    const { data: vids } = await db
+      .from("videos")
+      .select("status, youtube_video_id, paused_reason, publish_requested, title")
+      .eq("build_run_id", run.id);
+    const rows = (vids ?? []) as {
+      status: VideoStatus;
+      youtube_video_id: string | null;
+      paused_reason: string | null;
+      publish_requested: boolean;
+      title: string;
+    }[];
+    if (rows.length === 0) continue;
+
+    const isPosted = (v: (typeof rows)[number]) =>
+      Boolean(v.youtube_video_id) || v.status === "TRACKING";
+    const isKilled = (v: (typeof rows)[number]) => v.status === "KILLED";
+    const isHeld = (v: (typeof rows)[number]) =>
+      Boolean(v.paused_reason) && !isPosted(v) && !isKilled(v);
+    const inFlight = rows.filter((v) => !isPosted(v) && !isKilled(v) && !isHeld(v));
+
+    let next: BuildRunStatus;
+    if (inFlight.length === 0) next = "done";
+    else if (inFlight.some((v) => v.publish_requested)) next = "publishing";
+    else if (inFlight.every((v) => v.status === "APPROVED")) next = "scheduled";
+    else if (inFlight.some((v) => GENERATING_STAGES.has(v.status))) next = "generating";
+    else next = "generating";
+
+    if (next === run.status) continue;
+    await db.from("build_runs").update({ status: next }).eq("id", run.id);
+    updated++;
+
+    if (next === "done") {
+      completed++;
+      const posted = rows.filter(isPosted).length;
+      const held = rows.filter(isHeld).length;
+      const killed = rows.filter(isKilled).length;
+      const parts = [`${posted} posted`];
+      if (held) parts.push(`${held} held`);
+      if (killed) parts.push(`${killed} stopped`);
+      try {
+        await sendPushToAll({
+          title: held ? "Run complete — some held" : "Build & Post run complete",
+          body: `${parts.join(" · ")}.${held ? " Held items need a glance." : ""}`,
+          url: `/projects/${run.project_id}`,
+        });
+      } catch (err) {
+        console.error("web-push delivery failed:", err);
+      }
+    }
+  }
+  return { completed, updated };
 }
 
 /**

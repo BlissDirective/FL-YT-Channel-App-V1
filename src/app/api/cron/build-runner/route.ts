@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   finalizeAutoPilotVideos,
   processPendingBuildVideos,
+  reconcileBuildRuns,
   releaseScheduledVideos,
 } from "@/lib/pipeline/engine";
 
@@ -36,6 +37,9 @@ async function handle(request: NextRequest) {
     const rel = await releaseScheduledVideos(6);
     const fin = await finalizeAutoPilotVideos(5);
     const { processed, errors, held } = await processPendingBuildVideos(1);
+    // Reconcile run lifecycle last (after this pass's state changes) so a
+    // completion alert reflects the freshest video states.
+    const rec = await reconcileBuildRuns();
     return NextResponse.json({
       ok: true,
       released: rel.released,
@@ -44,6 +48,8 @@ async function handle(request: NextRequest) {
       heldAtScript: held,
       finalized: fin.finalized,
       heldAtFinal: fin.held,
+      runsUpdated: rec.updated,
+      runsCompleted: rec.completed,
     });
   } catch (err) {
     console.error("cron build-runner failed:", err);
