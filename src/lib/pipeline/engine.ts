@@ -36,6 +36,7 @@ import {
 } from "@/lib/adapters/video-models";
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
+import type { StickScene } from "@/lib/stick-types";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
@@ -903,6 +904,104 @@ export async function rerollBeatVisual(opts: {
     .eq("beat_index", opts.beatIdx);
   await db.from("assets").insert(draft.row);
   await recordCost(db, video, draft.cost, `reroll beat ${opts.beatIdx + 1}`);
+  return { ok: true };
+}
+
+// ── Stick Studio: per-beat scene editing (Phase 3) ────────────────────
+// The stick "visual" for a beat is its choreographed StickScene, stored on the
+// beat's clip asset (meta.stickScene). Re-roll re-choreographs one beat; the
+// manual setter overrides action/setting/mood directly.
+
+async function loadStickClip(
+  db: Db,
+  videoId: string,
+  beatIdx: number,
+): Promise<{ id: string; meta: Record<string, unknown> } | null> {
+  const { data } = await db
+    .from("assets")
+    .select("id, meta")
+    .eq("video_id", videoId)
+    .eq("kind", "clip")
+    .eq("beat_index", beatIdx)
+    .maybeSingle();
+  return data ? { id: data.id as string, meta: (data.meta ?? {}) as Record<string, unknown> } : null;
+}
+
+/** Re-choreograph one beat's stick scene (optionally steered by a note). */
+export async function rerollStickScene(opts: {
+  videoId: string;
+  beatIdx: number;
+  note?: string;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+  const script = await loadLatestScript(db, video.id);
+  const beat = ((script?.beats ?? []) as ScriptBeat[]).find((b) => b.idx === opts.beatIdx);
+  if (!beat) return { ok: false, error: "Beat not found" };
+
+  const steered = opts.note?.trim() ? { ...beat, text: `${beat.text} (${opts.note.trim()})` } : beat;
+  const choreo = await choreographStickScenes({
+    title: video.title,
+    niche: project.niche,
+    topic: video.topic,
+    tone: project.tone,
+    format: video.format,
+    beats: [steered],
+  });
+  const scene = choreo.scenes[0];
+  if (!scene) return { ok: false, error: "Choreographer returned no scene" };
+
+  const clip = await loadStickClip(db, video.id, opts.beatIdx);
+  if (clip) {
+    await db.from("assets").update({ meta: { ...clip.meta, stickScene: scene } }).eq("id", clip.id);
+  } else {
+    await db.from("assets").insert({
+      video_id: video.id,
+      kind: "clip",
+      provider: "stick",
+      storage_path: "",
+      beat_index: opts.beatIdx,
+      meta: { shotType: beat.shotType, stickScene: scene },
+      cost_usd: 0,
+    });
+  }
+  if (choreo.costUsd > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: "anthropic", usd: choreo.costUsd, description: "Stick scene re-roll" },
+      `beat ${opts.beatIdx + 1}`,
+    );
+  }
+  return { ok: true };
+}
+
+/** Operator override of one beat's stick scene (action / setting / mood). */
+export async function setStickScene(opts: {
+  videoId: string;
+  beatIdx: number;
+  action?: string;
+  setting?: string;
+  mood?: string;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const clip = await loadStickClip(db, opts.videoId, opts.beatIdx);
+  if (!clip) return { ok: false, error: "Generate assets first — this beat has no stick scene yet." };
+  const scene = clip.meta.stickScene as StickScene | undefined;
+  if (!scene) return { ok: false, error: "This beat has no stick scene." };
+
+  const next: StickScene = { ...scene };
+  if (opts.setting) next.setting = opts.setting as StickScene["setting"];
+  if (opts.mood) next.mood = opts.mood === "none" ? undefined : (opts.mood as StickScene["mood"]);
+  if (opts.action && scene.actors.length > 0) {
+    next.actors = scene.actors.map((a, i) =>
+      i === 0 ? { ...a, action: opts.action as (typeof a)["action"] } : a,
+    );
+  }
+  await db.from("assets").update({ meta: { ...clip.meta, stickScene: next } }).eq("id", clip.id);
   return { ok: true };
 }
 

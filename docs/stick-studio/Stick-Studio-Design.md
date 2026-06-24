@@ -111,8 +111,10 @@ fallback (no API key), exactly like the highlights and shorts adapters.
 - **Phase 2 — auto-generation.** Choreographer adapter + `makeBeatClip` branch +
   `projects.visual_style` / `stick_cast` migration. A full idea→Short
   auto-produces with stick visuals.
-- **Phase 3 — UX.** Project setting to pick visual style + a cast editor; per-beat
-  scene re-roll (mirrors `rerollBeatVisual`).
+- **Phase 3 — UX. ✅ Done.** Project Settings: visual-style toggle + a cast
+  editor (colour / build / accessory). Video page: a Stick Scenes editor with
+  per-beat action/setting/mood overrides and a per-beat re-roll
+  (`rerollStickScene` / `setStickScene`).
 - **Phase 4 — polish.** Two-hander choreography, parallax backgrounds,
   transitions, sfx hooks, more props. *(No face/emote system — deliberate.)*
 - **Phase 5 — self-improving loops.** The four loops below, once there's live

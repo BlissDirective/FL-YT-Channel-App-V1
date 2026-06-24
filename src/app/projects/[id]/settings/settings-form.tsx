@@ -50,6 +50,8 @@ export function SettingsForm({
   });
   const [status, setStatus] = useState(project.status);
   const [voiceId, setVoiceId] = useState(project.voice_id ?? voices[0]?.id ?? "");
+  const [visualStyle, setVisualStyle] = useState(project.visual_style ?? "footage");
+  const cast = project.stick_cast;
   const selectedVoice = voices.find((v) => v.id === voiceId);
   const providers = [...new Set(voices.map((v) => v.provider))];
 
@@ -112,11 +114,52 @@ export function SettingsForm({
           </select>
         </Field>
         <Field label="Visual style">
-          <select name="visual_style" defaultValue={project.visual_style ?? "footage"} className="input">
+          <select
+            name="visual_style"
+            value={visualStyle}
+            onChange={(e) => setVisualStyle(e.target.value as "footage" | "stick")}
+            className="input"
+          >
             <option value="footage">Footage (AI clips + stock)</option>
             <option value="stick">Stick figures (programmatic)</option>
           </select>
         </Field>
+        {visualStyle === "stick" && (
+          <div className="space-y-4 rounded-xl border border-line bg-canvas/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Stick character — the recurring figure for this channel
+            </p>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <Field label="Colour">
+                <input
+                  name="stick_color"
+                  type="color"
+                  defaultValue={cast?.color ?? "#16140F"}
+                  className="h-10 w-full cursor-pointer rounded-xl border border-line bg-card"
+                />
+              </Field>
+              <Field label="Build">
+                <select name="stick_build" defaultValue={cast?.build ?? "normal"} className="input">
+                  {["kid", "short", "normal", "heavy", "tall", "lanky"].map((b) => (
+                    <option key={b} value={b} className="capitalize">{b}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Accessory">
+                <select name="stick_accessory" defaultValue={cast?.accessory ?? "none"} className="input">
+                  {["none", "hat", "cap", "beanie", "ponytail", "antenna", "tie", "cape", "crown", "bow"].map((a) => (
+                    <option key={a} value={a} className="capitalize">{a}</option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <p className="text-[11px] text-muted">
+              Colour = identity, build = proportions, accessory = a recognisable
+              prop. Used as the default character on every stick video for this
+              project.
+            </p>
+          </div>
+        )}
 
         <input type="hidden" name="voice_id" value={voiceId} />
         <input type="hidden" name="voice_name" value={selectedVoice?.name ?? ""} />

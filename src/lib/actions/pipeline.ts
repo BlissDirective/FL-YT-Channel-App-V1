@@ -22,6 +22,8 @@ import {
   proposeBeatRemix,
   proposeScriptRemix,
   rerollBeatVisual,
+  rerollStickScene,
+  setStickScene,
   runPipeline,
   setBeatShotType,
   setCaptionsEnabled,
@@ -633,6 +635,34 @@ export async function rerollBeatVisualAction(
   return guarded(async () => {
     const result = await rerollBeatVisual({ videoId, beatIdx, note });
     refresh(projectId);
+    return result;
+  });
+}
+
+/** Stick Studio: re-choreograph one beat's scene (optionally steered by a note). */
+export async function rerollStickSceneAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  note?: string,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const result = await rerollStickScene({ videoId, beatIdx, note });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
+    return result;
+  });
+}
+
+/** Stick Studio: operator override of one beat's scene (action/setting/mood). */
+export async function setStickSceneAction(
+  projectId: string,
+  videoId: string,
+  beatIdx: number,
+  patch: { action?: string; setting?: string; mood?: string },
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const result = await setStickScene({ videoId, beatIdx, ...patch });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
     return result;
   });
 }

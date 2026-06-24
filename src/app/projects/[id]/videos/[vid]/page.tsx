@@ -26,6 +26,8 @@ import { AdvanceStage } from "./advance-stage";
 import { VideoGen } from "./video-gen";
 import { PublishKit, type PublishRender } from "./publish-kit";
 import { DeriveShorts, type DerivedShortRow } from "./derive-shorts";
+import { StickScenesEditor, type StickSceneRow } from "./stick-scenes-editor";
+import type { StickScene } from "@/lib/stick-types";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -132,6 +134,25 @@ export default async function VideoDetailPage({
     ? await buildDerivedShorts(vid)
     : [];
 
+  // Stick Studio: per-beat choreographed scenes (editable once generated).
+  const stickScenes: StickSceneRow[] =
+    project.visual_style === "stick"
+      ? beats.flatMap((b) => {
+          const clip = allAssets.find((a) => a.kind === "clip" && a.beat_index === b.idx);
+          const scene = (clip?.meta as { stickScene?: StickScene } | undefined)?.stickScene;
+          if (!scene) return [];
+          return [
+            {
+              beatIdx: b.idx,
+              text: b.text,
+              action: scene.actors?.[0]?.action ?? "idle",
+              setting: scene.setting,
+              mood: scene.mood ?? "none",
+            },
+          ];
+        })
+      : [];
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 pt-2">
       <RealtimeRefresher tables={["videos", "scripts", "assets", "analytics_snapshots", "clip_jobs"]} />
@@ -217,6 +238,10 @@ export default async function VideoDetailPage({
           beats={beats.map((b) => ({ idx: b.idx, text: b.text }))}
           defaultFont={fontForNiche(project.niche)}
         />
+      )}
+
+      {stickScenes.length > 0 && (
+        <StickScenesEditor projectId={id} videoId={vid} scenes={stickScenes} />
       )}
 
       {v.status === "ASSEMBLING" && (

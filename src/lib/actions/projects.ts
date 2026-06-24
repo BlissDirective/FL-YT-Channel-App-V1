@@ -75,6 +75,18 @@ export async function updateProject(
   const id = String(formData.get("id") ?? "");
   if (!id) return { error: "Missing project id." };
 
+  const visualStyle = String(formData.get("visual_style") ?? "footage") === "stick" ? "stick" : "footage";
+  // Build the recurring stick character from the cast fields (only when in stick
+  // mode, so toggling to footage never wipes a saved cast).
+  const stickCast = {
+    color: String(formData.get("stick_color") ?? "#16140F"),
+    line: 9,
+    headR: 22,
+    scale: 1,
+    build: String(formData.get("stick_build") ?? "normal"),
+    accessory: String(formData.get("stick_accessory") ?? "none"),
+  };
+
   const { error } = await supabase
     .from("projects")
     .update({
@@ -92,7 +104,8 @@ export async function updateProject(
       status: String(formData.get("status") ?? "active"),
       auto_intelligence: formData.get("auto_intelligence") === "on",
       clip_confirm_usd: Number(formData.get("clip_confirm_usd") ?? 3),
-      visual_style: String(formData.get("visual_style") ?? "footage") === "stick" ? "stick" : "footage",
+      visual_style: visualStyle,
+      ...(visualStyle === "stick" ? { stick_cast: stickCast } : {}),
       youtube_channel_title: String(formData.get("youtube_channel_title") ?? "").trim() || null,
       // Refresh token is write-only: only overwrite when a new value is pasted,
       // so saving the form doesn't wipe an existing token. Blank keeps current.
