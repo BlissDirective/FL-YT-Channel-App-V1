@@ -185,6 +185,9 @@ export async function getReviewItems(projectId: string): Promise<ReviewItem[]> {
     .from("videos")
     .select("*")
     .eq("project_id", projectId)
+    // Derived Shorts are managed from their parent long-form's Derive panel, not
+    // the main Review queue — exclude them here too (mirrors getVideos).
+    .is("parent_video_id", null)
     .order("updated_at", { ascending: false });
 
   const attention = ((videos as Video[]) ?? []).filter(

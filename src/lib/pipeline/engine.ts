@@ -1192,18 +1192,28 @@ export async function fullAutoGenerate(
   // 4) Approve the script gate → runs VO + stock + base stills → ASSETS_READY.
   await decideGate({ videoId: opts.videoId, decision: "approved" }, db);
 
-  // 5) Enqueue a clip job only for the selected beats.
-  for (const c of clips) {
-    await db.from("clip_jobs").insert({
-      video_id: opts.videoId,
-      project_id: video.project_id,
-      beat_idx: c.idx,
-      method: "stitch",
-      model: c.job.model,
-      target_sec: c.job.targetSec,
-      hero_hold: c.job.heroHold,
-      status: "queued",
-    });
+  // 5) Enqueue clip jobs for the selected beats. Batch-insert (not one-by-one)
+  //    so the clip worker can't claim+finish the first job and advance the
+  //    video to render before the rest are queued.
+  if (clips.length === 0) {
+    // No AI clips to wait on — nothing will ever trigger the worker's
+    // maybeFinish, so the video would strand at ASSETS_READY forever (Base tier,
+    // all-stock scripts, or budget-packed-to-empty). Advance to render now.
+    await db.from("videos").update({ auto_finish: false }).eq("id", opts.videoId);
+    await decideGate({ videoId: opts.videoId, decision: "approved" }, db); // ASSETS → ASSEMBLING
+  } else {
+    await db.from("clip_jobs").insert(
+      clips.map((c) => ({
+        video_id: opts.videoId,
+        project_id: video.project_id,
+        beat_idx: c.idx,
+        method: "stitch" as const,
+        model: c.job.model,
+        target_sec: c.job.targetSec,
+        hero_hold: c.job.heroHold,
+        status: "queued" as const,
+      })),
+    );
   }
   return { ok: true, enqueued: clips.length, estCostUsd };
 }
@@ -1658,6 +1668,12 @@ export async function startBuildRun(
       if (idea.id) await db.from("ideas").update({ status: "approved" }).eq("id", idea.id);
     }
   }
+  // Every seed insert failed → don't leave a zombie run stuck "generating" with
+  // no videos (reconcileBuildRuns skips empty runs, so it would never complete).
+  if (created === 0) {
+    await db.from("build_runs").update({ status: "cancelled" }).eq("id", run.id);
+    return { ok: false, error: "Could not seed any videos for this run." };
+  }
   return { ok: true, runId: run.id as string, created };
 }
 
@@ -1670,8 +1686,11 @@ export async function startBuildRun(
 export async function processPendingBuildVideos(
   limit = 1,
   dbArg?: Db,
+  opts?: { budgetMs?: number },
 ): Promise<{ processed: number; errors: number; held: number }> {
   const db = dbArg ?? (await createClient());
+  const startedAt = Date.now();
+  const budgetMs = opts?.budgetMs ?? Number.POSITIVE_INFINITY;
   const blocked = await blockedRunIds(db);
   // Over-fetch so a paused/cancelled run's seeds don't starve live runs, then
   // take the first `limit` that belong to an active run.
@@ -1694,6 +1713,11 @@ export async function processPendingBuildVideos(
   let errors = 0;
   let held = 0;
   for (const row of pending) {
+    // Each seed runs a full script + asset generation (heavy: VO synthesis,
+    // LLM calls). Stop claiming new seeds once we're near the route's time
+    // budget so a pass never hard-times-out mid-video and strands it; the
+    // remaining seeds are picked up on the next pass.
+    if (Date.now() - startedAt > budgetMs) break;
     try {
       const project = await getProject(db, row.project_id);
       if (!project) throw new Error("Project not found");
@@ -2118,6 +2142,56 @@ export async function reconcileBuildRuns(
     }
   }
   return { completed, updated };
+}
+
+/**
+ * Heal videos stranded at ASSEMBLING. The render farm stores the cut, then
+ * advances status — a crash between those steps (or a publish whose status
+ * lagged) leaves a video stuck at "assembling" though it's effectively done.
+ * Only touches videos untouched for ≥20 min, so an in-flight render is never
+ * raced. The status guard on each update keeps it safe under concurrency:
+ *   • youtube_video_id set → published → TRACKING.
+ *   • a stored render cut  → rendered  → FINAL_REVIEW.
+ *   • neither              → left for the farm / operator Resume.
+ */
+export async function reconcileStuckRenders(dbArg?: Db): Promise<{ healed: number }> {
+  const db = dbArg ?? (await createClient());
+  const cutoff = new Date(Date.now() - 20 * 60 * 1000).toISOString();
+  const { data: stuck } = await db
+    .from("videos")
+    .select("id, youtube_video_id")
+    .eq("status", "ASSEMBLING")
+    .lt("updated_at", cutoff)
+    .limit(25);
+
+  let healed = 0;
+  for (const v of (stuck ?? []) as { id: string; youtube_video_id: string | null }[]) {
+    if (v.youtube_video_id) {
+      const { error } = await db
+        .from("videos")
+        .update({ status: "TRACKING", published_at: new Date().toISOString(), paused_reason: null })
+        .eq("id", v.id)
+        .eq("status", "ASSEMBLING");
+      if (!error) healed++;
+      continue;
+    }
+    const { data: render } = await db
+      .from("assets")
+      .select("id")
+      .eq("video_id", v.id)
+      .eq("kind", "render")
+      .not("storage_path", "is", null)
+      .limit(1);
+    if (render && render.length > 0) {
+      const { error } = await db
+        .from("videos")
+        .update({ status: "FINAL_REVIEW", paused_reason: null })
+        .eq("id", v.id)
+        .eq("status", "ASSEMBLING");
+      if (!error) healed++;
+    }
+  }
+  return { healed };
 }
 
 /**

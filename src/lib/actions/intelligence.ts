@@ -101,7 +101,7 @@ export async function saveScoutIdeaAction(
   if (!t) return { ok: false, error: "Give the idea a title." };
   try {
     const supabase = await createClient();
-    const { data: idea } = await supabase
+    const { data: idea, error: ideaErr } = await supabase
       .from("ideas")
       .insert({
         project_id: projectId,
@@ -113,15 +113,19 @@ export async function saveScoutIdeaAction(
       })
       .select("id")
       .single();
-    if (idea) {
-      await supabase.from("videos").insert({
-        project_id: projectId,
-        idea_id: idea.id,
-        title: t,
-        topic: t,
-        status: "IDEA",
-      });
+    // Don't claim success if the idea didn't actually save (and don't insert a
+    // video orphaned from a missing idea).
+    if (ideaErr || !idea) {
+      return { ok: false, error: ideaErr?.message ?? "Could not save the idea." };
     }
+    const { error: videoErr } = await supabase.from("videos").insert({
+      project_id: projectId,
+      idea_id: idea.id,
+      title: t,
+      topic: t,
+      status: "IDEA",
+    });
+    if (videoErr) return { ok: false, error: videoErr.message };
     revalidatePath(`/projects/${projectId}`);
     revalidatePath(`/projects/${projectId}/review`);
     return { ok: true };

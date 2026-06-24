@@ -410,6 +410,7 @@ async function renderOne(
         ];
 
   for (const { variant, compId, storageName } of plans) {
+   try {
     const out = join(outDir, `${compId}.mp4`);
     const composition = await selectComposition({
       serveUrl,
@@ -464,6 +465,16 @@ async function renderOne(
       meta: baseMeta,
       cost_usd: 0,
     });
+   } catch (err) {
+    // The beat-0 freebie Short is non-critical: a failure must not strand the
+    // long-form (already rendered + stored) at ASSEMBLING. The LongForm and the
+    // native/derived VerticalShort ARE the deliverable, so re-throw those.
+    if (compId === "Short") {
+      console.error(`⚠️  freebie Short failed (non-fatal): ${String(err).slice(0, 160)}`);
+      continue;
+    }
+    throw err;
+   }
   }
 
   // ── Thumbnail: a hero frame + a brand-safe Claude kinetic phrase rendered
@@ -629,10 +640,14 @@ async function publishStagedVideos() {
       // the worker's default (YOUTUBE_UPLOAD_PRIVACY, then 'unlisted').
       const privacy = (v.publish_privacy as string | null) || undefined;
       const ytId = await uploadVideo({ filePath: tmp, title: v.title, description, tags, refreshToken, privacy });
+      // Persist youtube_video_id FIRST, on its own. The select filter excludes
+      // rows with a youtube_video_id, so this guarantees the video is never
+      // uploaded twice even if the fuller status update below fails — a
+      // duplicate public upload is far worse than a lagged status.
+      await db.from("videos").update({ youtube_video_id: ytId }).eq("id", v.id);
       await db
         .from("videos")
         .update({
-          youtube_video_id: ytId,
           status: "TRACKING",
           published_at: new Date().toISOString(),
           publish_requested: false,

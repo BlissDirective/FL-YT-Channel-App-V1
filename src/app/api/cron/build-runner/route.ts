@@ -3,6 +3,7 @@ import {
   finalizeAutoPilotVideos,
   processPendingBuildVideos,
   reconcileBuildRuns,
+  reconcileStuckRenders,
   releaseScheduledVideos,
 } from "@/lib/pipeline/engine";
 
@@ -32,11 +33,17 @@ async function handle(request: NextRequest) {
     }
   }
   try {
-    // Cheap passes first (release due slots, finalize rendered cuts), then the
-    // one heavy generation step so the pass stays within its time budget.
+    // Cheap passes first (release due slots, finalize rendered cuts, heal any
+    // render-stranded videos), then the heavy generation step under a wall-clock
+    // budget so a pass never hard-times-out mid-video and strands it.
     const rel = await releaseScheduledVideos(6);
     const fin = await finalizeAutoPilotVideos(5);
-    const { processed, errors, held } = await processPendingBuildVideos(1);
+    const heal = await reconcileStuckRenders();
+    // Drain up to 3 seeds per pass, but stop ~210s in (the route caps at 300s;
+    // leave headroom for the steps above/below). Remaining seeds wait one pass.
+    const { processed, errors, held } = await processPendingBuildVideos(3, undefined, {
+      budgetMs: 210_000,
+    });
     // Reconcile run lifecycle last (after this pass's state changes) so a
     // completion alert reflects the freshest video states.
     const rec = await reconcileBuildRuns();
@@ -48,6 +55,7 @@ async function handle(request: NextRequest) {
       heldAtScript: held,
       finalized: fin.finalized,
       heldAtFinal: fin.held,
+      healedStuck: heal.healed,
       runsUpdated: rec.updated,
       runsCompleted: rec.completed,
     });
