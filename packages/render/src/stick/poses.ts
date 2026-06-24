@@ -55,20 +55,22 @@ const idle: ActionFn = (t) => {
 };
 
 const walk: ActionFn = (t) => {
-  const w = t * TAU * 1.0;
+  const w = t * TAU * 1.1;
   const s = Math.sin(w);
+  // Side-view stride: legs swing fore/aft anti-phase around vertical; the rear
+  // leg flexes at the knee as it lifts; arms counter-swing, slightly bent.
   return {
     ...NEUTRAL,
-    lean: 6,
-    bob: -Math.abs(Math.cos(w)) * 4,
-    lHip: -6 + s * 26,
-    rHip: 6 - s * 26,
-    lKn: -6 + Math.max(0, -s) * 36,
-    rKn: 6 + Math.max(0, s) * 36,
-    lSh: -16 - s * 24,
-    lEl: -16 - s * 28,
-    rSh: 16 + s * 24,
-    rEl: 16 + s * 28,
+    lean: 7,
+    bob: -Math.abs(Math.cos(w)) * 5,
+    lHip: s * 34,
+    rHip: -s * 34,
+    lKn: s * 34 + Math.max(0, -s) * 40,
+    rKn: -s * 34 + Math.max(0, s) * 40,
+    lSh: -s * 26,
+    lEl: -s * 26 - 10,
+    rSh: s * 26,
+    rEl: s * 26 + 10,
   };
 };
 
@@ -155,15 +157,16 @@ const sit: ActionFn = () => ({
 });
 
 const panic: ActionFn = (t) => {
-  const j = Math.sin(t * 28) * 7;
+  const j = Math.sin(t * 26) * 9;
+  // Both arms flailing overhead (wide V), body jittering.
   return {
     ...NEUTRAL,
-    lSh: 150 + j,
-    rSh: 150 - j,
-    lEl: 150 + j,
-    rEl: 150 - j,
-    head: Math.sin(t * 24) * 9,
-    bob: -Math.abs(Math.sin(t * 12)) * 4,
+    lSh: 200,
+    lEl: 212 + j,
+    rSh: 160,
+    rEl: 148 - j,
+    head: Math.sin(t * 22) * 8,
+    bob: -Math.abs(Math.sin(t * 11)) * 5,
   };
 };
 
@@ -183,9 +186,10 @@ const celebrate: ActionFn = (t) => {
 const think: ActionFn = (t) => ({
   ...NEUTRAL,
   lean: 4,
-  rSh: 124,
-  rEl: 202,
-  head: 6 + Math.sin(t * 1.5) * 2,
+  // Upper arm forward, forearm folded up so the hand rests at the chin.
+  rSh: 96,
+  rEl: 224,
+  head: 7 + Math.sin(t * 1.5) * 2,
   lSh: -10,
   lEl: -10,
 });
@@ -208,18 +212,21 @@ const fight: ActionFn = (t) => {
 const crawl: ActionFn = (t) => {
   const w = t * TAU * 1.2;
   const s = Math.sin(w);
+  // Hands-and-knees: torso pitched forward to near-horizontal (no whole-body
+  // rotation), arms reaching down to the ground, knees flexed on the ground.
   return {
     ...NEUTRAL,
-    rot: 74,
-    bob: 92,
-    lSh: 60 + s * 22,
-    rSh: 60 - s * 22,
-    lEl: 92,
-    rEl: 92,
-    lHip: -58 + s * 22,
-    rHip: -58 - s * 22,
-    lKn: -92,
-    rKn: -92,
+    lean: -74,
+    bob: 30,
+    lSh: -6 + s * 14,
+    lEl: -6 + s * 14,
+    rSh: 6 - s * 14,
+    rEl: 6 - s * 14,
+    lHip: 18 + s * 12,
+    lKn: 92,
+    rHip: -18 - s * 12,
+    rKn: 92,
+    head: 0,
   };
 };
 

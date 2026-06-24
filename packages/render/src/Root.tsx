@@ -11,6 +11,7 @@ import {
 import { HighlightPreview } from "./highlights/Preview";
 import { HighlightOnFootage, HighlightOnFootageVertical } from "./highlights/FootagePreview";
 import { StickPreview, stickPreviewDuration } from "./stick/StickPreview";
+import { StickSheet } from "./stick/StickSheet";
 
 const DEFAULT_PROPS: VideoProps = {
   title: "Sample Video",
@@ -124,6 +125,15 @@ export const RemotionRoot: React.FC = () => (
       width={1080}
       height={1920}
       durationInFrames={stickPreviewDuration(FPS)}
+    />
+    {/* Stick Studio (Phase 0): contact sheet of every action for pose tuning. */}
+    <Composition
+      id="StickSheet"
+      component={StickSheet}
+      fps={FPS}
+      width={1920}
+      height={1080}
+      durationInFrames={120}
     />
   </>
 );
