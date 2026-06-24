@@ -67,17 +67,29 @@ overlay exactly as today. The recurring character lives in `StickCast`
 
 - **`StickFigure.tsx`** — a parametric biped: forward kinematics from a hip
   root computes joint positions from a `Pose` (per-segment angles) → SVG lines +
-  head circle. Identity (color/build/head/accessory) from the cast.
-- **`poses.ts`** — the action library: each `StickAction` is a function of time
-  → `Pose` (cyclic actions use sine motion; one-shots ease 0→1). The `Pose`
-  model and `NEUTRAL` baseline live here.
-- **`backgrounds.tsx`** — procedural settings (void/room/street/forest/cliff/
-  office) drawn in the stage's SVG coordinate space.
-- **`StickStage.tsx`** — composes background + actors + camera (pan/zoom) + fx
-  (shake/flash) for one scene. This is what `BeatScene` will render.
-- **`StickPreview.tsx`** — a dev-only Remotion composition that cycles the figure
-  through every action with a label, so the visual quality bar can be eyeballed
-  *before* any pipeline wiring.
+  head circle. Identity from the cast: **colour**, **line weight**, **6 builds**
+  (kid / short / normal / heavy / tall / lanky — per-build proportion
+  multipliers), and **10 accessories** (hat, cap, beanie, ponytail, antenna,
+  tie, cape, crown, bow, none).
+- **`poses.ts`** — the action library: **31 actions** as functions of time →
+  `Pose` (cyclic actions use sine motion; one-shots ease 0→1):
+  `idle, walk, run, sneak, crawl, climb, swim, jump, dance, point, wave, think,
+  shrug, facepalm, lookAround, reach, carry, salute, celebrate, panic, kneel,
+  sit, type, push, drag, throw, fight, dodge, getHit, fall, dead`.
+- **`backgrounds.tsx`** — **16 procedural settings** (void, room, street,
+  forest, cliff, office, cave, ocean, space, rooftop, courtroom, hospital,
+  subway, desert, kitchen, prison), each a flat palette + decor in the stage's
+  SVG space.
+- **`bubbles.tsx`** — speech / thought bubbles (per-actor `say` / `think`,
+  coloured to the speaker), comic **impact bursts** (`POW`, anchored at the
+  action), and **speed lines**.
+- **`StickStage.tsx`** — composes a scene: background + actors (+ props +
+  bubbles) + **camera** (`shot` → wide/medium/close base zoom, plus
+  `move` push/pull/pan) + **fx** (shake/flash/impact/speedlines) + **mood tint**
+  (day/night/danger/calm/dream/retro/warning). This is what `BeatScene` renders.
+- **Dev tooling** — `StickPreview` (action reel), `StickSheet` (contact sheet of
+  all actions for pose tuning), `StickShowcase` (bubbles/fx/moods/builds demo),
+  and `scripts/shoot.mjs` (render one frame to PNG in headless envs).
 
 ## The choreographer adapter (Phase 2)
 
@@ -89,9 +101,10 @@ fallback (no API key), exactly like the highlights and shorts adapters.
 
 ## Phased build plan
 
-- **Phase 0 — rig POC (this commit).** `stick/` rig + `StickPreview`
-  composition. Renders/animates in Remotion studio. No pipeline wiring — it
-  de-risks the only hard question ("does it look good?") first.
+- **Phase 0 — rig POC + asset library. ✅ Done.** `stick/` rig, tuned poses,
+  and the expanded library above (31 actions, 16 settings, bubbles, impact
+  frames, 6 builds × 10 accessories, camera language, mood tints). Verified by
+  rendering contact sheets/showcases — no pipeline wiring.
 - **Phase 1 — render integration.** `RenderBeat.stickScene`, the `BeatScene`
   branch, `buildProps` read; render a sample scene end-to-end through
   `VerticalShort`.
@@ -100,8 +113,10 @@ fallback (no API key), exactly like the highlights and shorts adapters.
   auto-produces with stick visuals.
 - **Phase 3 — UX.** Project setting to pick visual style + a cast editor; per-beat
   scene re-roll (mirrors `rerollBeatVisual`).
-- **Phase 4 — polish.** More actions/props/backgrounds, two-hander scenes,
-  parallax, emotes/faces, transitions, sfx hooks.
+- **Phase 4 — polish.** Two-hander choreography, parallax backgrounds,
+  transitions, sfx hooks, more props. *(No face/emote system — deliberate.)*
+- **Phase 5 — self-improving loops.** The four loops below, once there's live
+  retention data to learn from.
 
 ## Risks / limits
 
@@ -117,6 +132,123 @@ fallback (no API key), exactly like the highlights and shorts adapters.
 Stick videos are `kind='short'`, so the **native Shorts pipeline (30–180s),
 kinetic highlights over the action, the captions toggle, and Derive-Shorts** all
 apply for free.
+
+## Variation & scale
+
+There are **two kinds of variation**, and they behave very differently:
+
+- **Story / concept variation is effectively unlimited.** Every short is a
+  *narrated story*; Claude writes a fresh script per topic and Scout feeds the
+  topics. Two stories reusing the same poses are completely different videos to a
+  viewer. At 3–5 shorts/day you would not repeat a story for years — bounded only
+  by topic sourcing, which the app already automates.
+- **Visual variation is combinatorially huge but bounded by the asset library.**
+  The choreographer maps each beat to a scene
+  (action × setting × actors × props × bubbles × camera × fx × mood). Even today:
+  31 actions × 16 settings × 6 builds × 10 accessories × moods × camera, sequenced
+  over a ~6-beat short → an astronomically large scene-sequence space. The
+  *permutation count* is not the constraint; **aesthetic breadth is** — and every
+  asset added multiplies across every future video forever (the compounding moat).
+
+**3–5 shorts/day reality:** never cost-limited (≈ one choreographer LLM call +
+VO per short) and never story-limited. The only thing to actively manage is
+visual freshness, which the asset library + the loops below handle.
+
+## Self-improving loops (Phase 5)
+
+Four feedback loops turn the channel into a flywheel. Most reuse machinery the
+app already has (optimizer, analytics with retention→beat mapping, the ideas
+queue / auto-intelligence cron, QC reviews).
+
+1. **Performance flywheel.** The render asset already stores the beat timeline,
+   so retention curves map back to choreography choices. A periodic optimizer job
+   correlates *features* (action, setting, hook style, pacing, mood) with
+   retention/views, then feeds the winners into the choreographer prompt as
+   few-shot exemplars and biases the topic Scout. The channel learns what works.
+   *Needs live data → after Phase 2 ships and videos accrue stats.*
+2. **Asset-growth loop.** A scheduled job where Claude *proposes* new poses /
+   settings / props (as specs in the rig's vocabulary), auto-renders a contact
+   sheet via `StickSheet` + `scripts/shoot.mjs`, and a human (or a vision model)
+   approves before merge. The library grows on a cadence instead of ad hoc.
+3. **Concept engine.** Scout + the Claude researcher fill the ideas queue nightly
+   (existing auto-intelligence cron); winning formats get promoted into named
+   **series** (recurring character arcs) for binge-ability and retention.
+4. **Self-critique.** A QC pass (existing `qc_reviews`) scores the script +
+   choreography *before* render; low scores trigger an automatic re-roll of the
+   choreography or the weak beats.
+
+**Build order:** the loops need signal to be worth wiring, so they come after
+Phase 2 (auto-generation) produces real shorts and Phase analytics accrue.
+Loop 2 (asset-growth) is partly usable now — the review tooling already exists.
+
+## Branding & channel concepts
+
+> Market-researched June 2026 for originality (avoid Alan Becker / Animator vs.
+> Animation, Stick Nodes, Hyun's Dojo, Stick War, and saturated `Stick + noun`
+> names). The channel is **multi-genre** — not locked to crime/survival — and
+> will spin winning formats into named series based on metrics. Verify the exact
+> @handle / .com / trademark before locking a name in; availability shifts.
+
+**Naming strategy:** a short coined word fusing *line / stick / twig / scribble*
+with *story / tell / yarn / lore / toon* — signals "stick figures" **and**
+"many stories" without boxing into one genre.
+
+**Top name candidates** (all returned no dedicated-channel collision at research
+time): **Stickyarn**, **Sticklore**, **Twigtoon**, **Linelore**, **Scrawlhouse**,
+**Stickwell**, **Stickery**, **Twiglet Tales**, **Plotsticks**. Avoid (taken /
+contested): StickTales, Stickly, Stickverse, Sticktopia, StickTory, Lineverse,
+bare "twig" / "scrawls".
+
+### Recommended top 3
+
+**1. Stickyarn** (`@stickyarn`) — *"Simple lines. Big stories."*
+- **Description:** *Two dots, a few lines, and a story you can't stop watching.
+  Stickyarn turns simple stick figures into big stories — gripping "what would
+  you do?" scenarios, weird-but-true history, oddly satisfying explainers, and
+  absurd little comedies. If it makes you go "wait, what happens next?", we'll
+  animate it. New stick-figure stories every week.*
+- **Avatar (flat-SVG):** a stick figure standing on the dot of the "i", holding
+  one end of a line that loops out to underline the wordmark — literally
+  "spinning the yarn." Black figure on warm marigold, scales to 48px.
+- **Banner:** one continuous black line enters left, knots into 4–5 tiny
+  stick-figure vignettes, trails into the wordmark right.
+
+**2. Sticklore** (`@sticklore`) — *"Every story starts with a line."*
+- **Description:** *Welcome to the Sticklore — where stick figures act out
+  everything from survival dilemmas to brain-bending science, true history, and
+  stories too strange to be made up. We keep the art simple so the storytelling
+  hits harder. Comedy one day, "would you survive this?" the next. New stories
+  weekly.*
+- **Avatar:** a stick figure from behind, cross-legged, gesturing at a glowing
+  single-stroke "campfire." Monochrome on deep navy, one amber accent.
+- **Banner:** navy field, wordmark centred, tiny stick figures as constellation
+  points connected by faint lines (a "map of stories").
+
+**3. Twigtoon** (`@twigtoon`) — *"Little sticks. Loud stories."*
+- **Description:** *Meet the Twigs — the simplest characters on the internet,
+  here to act out the best stories you'll watch all week. Quick comedy, "what
+  would you do?" thrillers, life-hacks, history, and gloriously absurd what-ifs,
+  all in clean stick-figure animation. Big ideas, tiny characters, zero filler.
+  New Twigtoons every week.*
+- **Avatar:** a stick figure with a tiny leaf/bud head — instant mascot. Bright
+  leaf-green badge, black twig-figure mid-wave.
+- **Banner:** friendly off-white, a row of leaf-headed twig-figures doing
+  different actions pointing at the wordmark; a green branch motif along the base.
+
+### Series concepts (spin up the winners)
+
+| Series | Format |
+|---|---|
+| **Stick or Split** | "What would you do?" dilemma — narrator poses a deadly/moral choice; decide before the reveal. |
+| **Two Minutes, One Line** | Fast explainer — any concept drawn with a single continuous line in ~2 min. |
+| **Stickuations** | Comedy — everyday situations escalated to absurd stick-figure chaos. |
+| **Would You Survive?** | Scenario-survival — guess the figure's odds before the outcome. |
+| **Oddly Specific** | Satisfying / hyper-specific scenarios and processes. |
+| **The Lore Drop** | Mini-history — one bizarre-but-true event, stick-reenacted. |
+| **Stick Hacks** | Life-hacks / how-to with a deadpan narrator. |
+| **What-If Theater** | Absurd hypotheticals played to their ridiculous end. |
+| **Tiny Epics** | Complete emotional shorts with twist endings, under 3 min. |
+| **Line of Fire** | High-stakes thriller — "make the right move" cliffhangers. |
 
 ## Previewing the POC
 
