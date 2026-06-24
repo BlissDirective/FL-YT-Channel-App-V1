@@ -14,6 +14,7 @@ import {
   PauseCircle,
   Play,
   RefreshCw,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { GATE_FOR_STATUS, GATE_LABELS, type ApprovalGate } from "@studio/core";
@@ -38,6 +39,19 @@ const GATE_ICONS: Record<ApprovalGate, typeof Lightbulb> = {
   ASSETS: Film,
   FINAL: Clapperboard,
 };
+
+/** QC scores at/below this are "low" — surface the one-tap QC Revise. */
+const QC_REVISE_BELOW = 7;
+
+/** Transient (non-gate) stages the in-app pipeline drives and can stall in —
+    a stuck video here gets a Resume button even without a paused_reason. */
+const DRIVABLE_STATES = new Set(["IDEA_APPROVED", "SCRIPTING", "GENERATING_ASSETS"]);
+
+/** Turn a QC review's issues into revision notes the script writer acts on. */
+function qcReviseNotes(qc: NonNullable<ReviewItem["qc"]>): string {
+  const lines = qc.issues.length ? qc.issues : [qc.verdict];
+  return `Revise to fix the issues QC flagged (it scored ${Number(qc.score).toFixed(1)}/10). Keep your editorial voice and address each:\n- ${lines.join("\n- ")}`;
+}
 
 export function ReviewQueue({
   projectId,
@@ -194,9 +208,21 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
               >
                 <RefreshCw className="size-4" /> Request changes
               </button>
+              {item.qc && Number(item.qc.score) < QC_REVISE_BELOW && (
+                <button
+                  type="button"
+                  disabled={isPending}
+                  title="Auto-revise using the QC notes above"
+                  onClick={() => act(() => requestRevisionAction(projectId, video.id, qcReviseNotes(item.qc!)))}
+                  className="flex items-center gap-2 rounded-full bg-lavender/15 px-4 py-2 text-sm font-semibold text-lavender shadow-card transition-colors hover:bg-lavender/25 disabled:opacity-50"
+                >
+                  {isPending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                  QC Revise
+                </button>
+              )}
             </>
           ) : (
-            video.paused_reason && (
+            (video.paused_reason || DRIVABLE_STATES.has(video.status)) && (
               <button
                 type="button"
                 disabled={isPending}

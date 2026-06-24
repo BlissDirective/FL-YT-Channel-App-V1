@@ -47,8 +47,14 @@ export default async function ReviewPage({
     ? items.filter((i) => statuses.includes(i.video.status))
     : items;
   const reviewIds = new Set(items.map((i) => i.video.id));
+  // "In progress at this stage" = videos genuinely mid-stage. Exclude anything
+  // already finished (published to YouTube, tracking, or stamped published_at)
+  // so a video that was published but whose status lagged at ASSEMBLING doesn't
+  // linger in the Render stage forever.
+  const isDone = (v: (typeof videos)[number]) =>
+    Boolean(v.youtube_video_id) || Boolean(v.published_at) || v.status === "TRACKING";
   const atStage = statuses
-    ? videos.filter((v) => statuses.includes(v.status) && !reviewIds.has(v.id))
+    ? videos.filter((v) => statuses.includes(v.status) && !reviewIds.has(v.id) && !isDone(v))
     : [];
 
   return (
