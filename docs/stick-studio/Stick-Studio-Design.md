@@ -160,6 +160,10 @@ Four feedback loops turn the channel into a flywheel. Most reuse machinery the
 app already has (optimizer, analytics with retention→beat mapping, the ideas
 queue / auto-intelligence cron, QC reviews).
 
+> A **vision-in-the-loop** extension (Claude + TwelveLabs watching rendered
+> videos to drive parametric pose/choreography/timing fixes) is specced
+> separately in [`Vision-Optimizer-Loop.md`](./Vision-Optimizer-Loop.md).
+
 1. **Performance flywheel.** The render asset already stores the beat timeline,
    so retention curves map back to choreography choices. A periodic optimizer job
    correlates *features* (action, setting, hook style, pacing, mood) with
