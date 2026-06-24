@@ -1,39 +1,95 @@
 // Stick Studio — shared types for the programmatic stick-figure visual backend.
-// Phase 0: consumed by the rig + StickPreview. Phase 1+ will mirror these in the
-// app (src/lib/db/types.ts) as the choreographer's output, like Highlights.
+// Phase 0: consumed by the rig + previews. Phase 2 mirrors these in the app as
+// the choreographer's output schema.
 
 export type StickAction =
+  // locomotion
   | "idle"
   | "walk"
   | "run"
+  | "sneak"
+  | "crawl"
+  | "climb"
+  | "swim"
   | "jump"
-  | "fall"
+  | "dance"
+  // gesture / acting
   | "point"
   | "wave"
-  | "sit"
-  | "panic"
-  | "celebrate"
   | "think"
+  | "shrug"
+  | "facepalm"
+  | "lookAround"
+  | "reach"
+  | "carry"
+  | "salute"
+  | "celebrate"
+  | "panic"
+  | "kneel"
+  | "sit"
+  | "type"
+  // action / physical
+  | "push"
+  | "drag"
+  | "throw"
   | "fight"
-  | "crawl"
+  | "dodge"
+  | "getHit"
+  | "fall"
   | "dead";
 
 export type Emote = "neutral" | "happy" | "sad" | "angry" | "shock";
-export type PropKey = "none" | "phone" | "sign" | "box" | "knife";
-export type Setting = "void" | "room" | "street" | "forest" | "cliff" | "office";
-export type StickFx = "shake" | "flash" | "speedlines";
+export type PropKey = "none" | "phone" | "sign" | "box" | "knife" | "bag" | "torch";
+export type Setting =
+  | "void"
+  | "room"
+  | "street"
+  | "forest"
+  | "cliff"
+  | "office"
+  | "cave"
+  | "ocean"
+  | "space"
+  | "rooftop"
+  | "courtroom"
+  | "hospital"
+  | "subway"
+  | "desert"
+  | "kitchen"
+  | "prison";
+export type StickFx = "shake" | "flash" | "speedlines" | "impact";
+
+/** Recolours the whole frame to set emotional tone. */
+export type Mood = "day" | "night" | "danger" | "calm" | "dream" | "retro" | "warning";
+
+/** Body proportions — a cheap way to make distinct characters. */
+export type Build = "normal" | "tall" | "short" | "heavy" | "lanky" | "kid";
+
+export type Accessory =
+  | "none"
+  | "hat"
+  | "bow"
+  | "cap"
+  | "beanie"
+  | "ponytail"
+  | "antenna"
+  | "tie"
+  | "cape"
+  | "crown";
 
 /** The recurring character's identity — the consistency moat. */
 export type StickCast = {
   /** Stroke colour (who the character is). */
   color: string;
-  /** Stroke width (build). */
+  /** Stroke width (overall heft). */
   line: number;
   /** Head radius. */
   headR: number;
   /** Overall size multiplier. */
   scale: number;
-  accessory: "none" | "hat" | "bow";
+  /** Body proportions. */
+  build: Build;
+  accessory: Accessory;
 };
 
 export type StickActor = {
@@ -44,14 +100,22 @@ export type StickActor = {
   x?: number;
   facing?: "l" | "r";
   prop?: PropKey;
-  /** Per-actor identity override (a second character in the scene). */
+  /** Per-actor identity override (a second/third character in the scene). */
   cast?: Partial<StickCast>;
+  /** Short speech-bubble line over this actor. */
+  say?: string;
+  /** Short thought-bubble line over this actor. */
+  think?: string;
 };
+
+export type CameraMove = "none" | "push" | "pull" | "panLeft" | "panRight";
 
 export type StickScene = {
   setting: Setting;
+  /** Framing — drives the base zoom. */
   shot?: "wide" | "medium" | "close";
-  camera?: { panX?: number; zoom?: number };
+  mood?: Mood;
+  camera?: { panX?: number; zoom?: number; move?: CameraMove };
   actors: StickActor[];
   fx?: StickFx[];
 };
@@ -61,5 +125,6 @@ export const DEFAULT_CAST: StickCast = {
   line: 9,
   headR: 22,
   scale: 1,
+  build: "normal",
   accessory: "none",
 };

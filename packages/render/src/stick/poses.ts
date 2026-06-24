@@ -244,37 +244,325 @@ const dead: ActionFn = () => ({
   rKn: 16,
 });
 
+const sneak: ActionFn = (t) => {
+  const w = t * TAU * 0.8;
+  const s = Math.sin(w);
+  return {
+    ...NEUTRAL,
+    lean: 14,
+    bob: 18,
+    lHip: s * 26,
+    rHip: -s * 26,
+    lKn: 50 + Math.max(0, -s) * 28,
+    rKn: 50 + Math.max(0, s) * 28,
+    lSh: -42,
+    lEl: -72,
+    rSh: 42,
+    rEl: 72,
+    head: 6,
+  };
+};
+
+const climb: ActionFn = (t) => {
+  const w = t * TAU;
+  const s = Math.sin(w);
+  return {
+    ...NEUTRAL,
+    lean: -6,
+    lSh: 170 + s * 12,
+    lEl: 178 + s * 8,
+    rSh: 190 - s * 12,
+    rEl: 182 - s * 8,
+    lHip: -12 + s * 18,
+    lKn: -52,
+    rHip: 12 - s * 18,
+    rKn: -52,
+    head: -4,
+  };
+};
+
+const swim: ActionFn = (t) => {
+  const w = t * TAU * 1.3;
+  const s = Math.sin(w);
+  return {
+    ...NEUTRAL,
+    lean: -70,
+    bob: 36,
+    lSh: -12 + s * 32,
+    lEl: -12 + s * 32,
+    rSh: 12 - s * 32,
+    rEl: 12 - s * 32,
+    lHip: 8 + s * 16,
+    lKn: 8,
+    rHip: -8 - s * 16,
+    rKn: -8,
+    head: -6,
+  };
+};
+
+const dance: ActionFn = (t) => {
+  const w = t * TAU * 2.2;
+  const s = Math.sin(w);
+  const s2 = Math.sin(w * 0.5);
+  return {
+    ...NEUTRAL,
+    lean: s2 * 8,
+    bob: -Math.abs(s) * 8,
+    lSh: 150 + s * 30,
+    lEl: 150 + s * 30,
+    rSh: 150 - s * 30,
+    rEl: 150 - s * 30,
+    lHip: -10 + s2 * 14,
+    rHip: 10 + s2 * 14,
+    head: s * 6,
+  };
+};
+
+const shrug: ActionFn = () => ({
+  ...NEUTRAL,
+  bob: -3,
+  lSh: -62,
+  lEl: -112,
+  rSh: 62,
+  rEl: 112,
+});
+
+const facepalm: ActionFn = () => ({
+  ...NEUTRAL,
+  lean: 6,
+  rSh: 110,
+  rEl: 236,
+  head: 14,
+  lSh: -12,
+  lEl: -12,
+});
+
+const lookAround: ActionFn = (t) => {
+  const s = Math.sin(t * 2.2);
+  return { ...NEUTRAL, head: s * 16, rSh: 142, rEl: 120, lSh: -14, lEl: -14, lean: s * 3 };
+};
+
+const reach: ActionFn = (t) => {
+  const s = Math.sin(t * 3) * 4;
+  return {
+    ...NEUTRAL,
+    lean: 10,
+    rSh: 150 + s,
+    rEl: 160 + s,
+    lSh: -20,
+    lEl: -30,
+    lHip: -12,
+    rHip: 12,
+    head: -4,
+  };
+};
+
+const carry: ActionFn = (t) => {
+  const b = Math.sin(t * 2) * 2;
+  return {
+    ...NEUTRAL,
+    lean: -6,
+    lSh: 58,
+    lEl: 100,
+    rSh: -58,
+    rEl: -100,
+    bob: 6 + b,
+    lHip: -10,
+    rHip: 10,
+  };
+};
+
+const salute: ActionFn = () => ({
+  ...NEUTRAL,
+  rSh: 150,
+  rEl: 116,
+  head: 2,
+  lSh: -8,
+  lEl: -8,
+});
+
+const kneel: ActionFn = () => ({
+  ...NEUTRAL,
+  bob: 40,
+  lean: 6,
+  lHip: 58,
+  lKn: 118,
+  rHip: -8,
+  rKn: -86,
+  lSh: -16,
+  rSh: 16,
+  head: 4,
+});
+
+const type: ActionFn = (t) => {
+  const j = Math.sin(t * 16);
+  return {
+    ...NEUTRAL,
+    bob: 44,
+    lean: 8,
+    lHip: 74,
+    rHip: 74,
+    lKn: -8,
+    rKn: 8,
+    lSh: 54,
+    lEl: 96 + j * 6,
+    rSh: -54,
+    rEl: -96 - j * 6,
+    head: 6,
+  };
+};
+
+const push: ActionFn = (t) => {
+  const s = Math.sin(t * 3) * 2;
+  return {
+    ...NEUTRAL,
+    lean: 34,
+    bob: 6,
+    lSh: 20,
+    lEl: 18,
+    rSh: -20,
+    rEl: -18,
+    lHip: -28,
+    lKn: -20,
+    rHip: 24 + s,
+    rKn: 30,
+    head: 8,
+  };
+};
+
+const drag: ActionFn = () => ({
+  ...NEUTRAL,
+  lean: -26,
+  bob: 8,
+  lSh: 40,
+  lEl: 60,
+  rSh: -40,
+  rEl: -60,
+  lHip: 30,
+  lKn: 20,
+  rHip: -26,
+  rKn: -20,
+  head: -6,
+});
+
+const throw_: ActionFn = (t) => {
+  const p = Math.min(t / 0.7, 1);
+  const arm = p < 0.5 ? -40 - p * 120 : -100 + (p - 0.5) * 2 * 180;
+  return {
+    ...NEUTRAL,
+    lean: p < 0.5 ? -8 : 14,
+    rSh: arm,
+    rEl: arm + (p < 0.5 ? -10 : 20),
+    lSh: -20,
+    lEl: -30,
+    lHip: -14,
+    rHip: 14,
+    head: p < 0.5 ? -4 : 6,
+  };
+};
+
+const dodge: ActionFn = (t) => {
+  const p = Math.min(t / 0.8, 1);
+  const lean = Math.sin(p * Math.PI) * -40;
+  return {
+    ...NEUTRAL,
+    lean,
+    bob: Math.sin(p * Math.PI) * 14,
+    lSh: -50,
+    lEl: -80,
+    rSh: 50,
+    rEl: 80,
+    lHip: -20,
+    rHip: 20,
+    lKn: -30,
+    rKn: 30,
+    head: lean * 0.3,
+  };
+};
+
+const getHit: ActionFn = (t) => {
+  const p = Math.min(t / 0.7, 1);
+  const k = Math.sin(p * Math.PI);
+  return {
+    ...NEUTRAL,
+    lean: -k * 30,
+    rot: -k * 6,
+    bob: -k * 6,
+    lSh: -70 * k - 10,
+    lEl: -90 * k,
+    rSh: 70 * k + 10,
+    rEl: 90 * k,
+    head: -k * 14,
+    lHip: -14,
+    rHip: 14,
+  };
+};
+
 export const ACTIONS: Record<StickAction, ActionFn> = {
   idle,
   walk,
   run,
+  sneak,
+  crawl,
+  climb,
+  swim,
   jump,
-  fall,
+  dance,
   point,
   wave,
-  sit,
-  panic,
-  celebrate,
   think,
+  shrug,
+  facepalm,
+  lookAround,
+  reach,
+  carry,
+  salute,
+  celebrate,
+  panic,
+  kneel,
+  sit,
+  type,
+  push,
+  drag,
+  throw: throw_,
   fight,
-  crawl,
+  dodge,
+  getHit,
+  fall,
   dead,
 };
 
-/** Display order for the preview reel. */
+/** Display order for the preview reels (mirrors the StickAction union). */
 export const ACTION_LIST: StickAction[] = [
   "idle",
   "walk",
   "run",
+  "sneak",
+  "crawl",
+  "climb",
+  "swim",
   "jump",
+  "dance",
   "point",
   "wave",
   "think",
+  "shrug",
+  "facepalm",
+  "lookAround",
+  "reach",
+  "carry",
+  "salute",
   "celebrate",
   "panic",
-  "fight",
+  "kneel",
   "sit",
-  "crawl",
+  "type",
+  "push",
+  "drag",
+  "throw",
+  "fight",
+  "dodge",
+  "getHit",
   "fall",
   "dead",
 ];

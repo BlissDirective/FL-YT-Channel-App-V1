@@ -12,6 +12,7 @@ import { HighlightPreview } from "./highlights/Preview";
 import { HighlightOnFootage, HighlightOnFootageVertical } from "./highlights/FootagePreview";
 import { StickPreview, stickPreviewDuration } from "./stick/StickPreview";
 import { StickSheet } from "./stick/StickSheet";
+import { StickShowcase, STICK_SHOWCASE_FRAMES } from "./stick/StickShowcase";
 
 const DEFAULT_PROPS: VideoProps = {
   title: "Sample Video",
@@ -132,8 +133,17 @@ export const RemotionRoot: React.FC = () => (
       component={StickSheet}
       fps={FPS}
       width={1920}
-      height={1080}
+      height={2160}
       durationInFrames={120}
+    />
+    {/* Stick Studio (Phase 0): showcase of bubbles, fx, moods, builds, settings. */}
+    <Composition
+      id="StickShowcase"
+      component={StickShowcase}
+      fps={FPS}
+      width={1080}
+      height={1920}
+      durationInFrames={STICK_SHOWCASE_FRAMES}
     />
   </>
 );
