@@ -10,6 +10,7 @@ import {
 } from "./types";
 import { HighlightPreview } from "./highlights/Preview";
 import { HighlightOnFootage, HighlightOnFootageVertical } from "./highlights/FootagePreview";
+import { StickPreview, stickPreviewDuration } from "./stick/StickPreview";
 
 const DEFAULT_PROPS: VideoProps = {
   title: "Sample Video",
@@ -114,6 +115,15 @@ export const RemotionRoot: React.FC = () => (
       width={1080}
       height={1920}
       durationInFrames={150}
+    />
+    {/* Stick Studio (Phase 0): cycle every stick-figure action to eyeball the rig. */}
+    <Composition
+      id="StickPreview"
+      component={StickPreview}
+      fps={FPS}
+      width={1080}
+      height={1920}
+      durationInFrames={stickPreviewDuration(FPS)}
     />
   </>
 );
