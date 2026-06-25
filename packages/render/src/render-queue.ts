@@ -17,6 +17,7 @@ import { bundle } from "@remotion/bundler";
 import { ensureBrowser, renderMedia, renderStill, selectComposition } from "@remotion/renderer";
 import { isR2Path, r2Configured, r2Get, r2Put, r2SignedGetUrl, stripR2, toR2Path } from "@studio/storage";
 import {
+  FPS,
   beatTimeline,
   longFormDurationSec,
   verticalShortDurationSec,
@@ -26,6 +27,7 @@ import {
   type StickScene,
   type VideoProps,
 } from "./types";
+import { critiqueStickFrames, type CritiqueFrame } from "./stick/frame-critic";
 import { uploadVideo, youtubeUploadConfigured } from "./youtube";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
@@ -541,7 +543,92 @@ async function renderOne(
   console.log(
     `✅ ${video.title}: rendered ${isShort ? "vertical short" : "long + short"} → FINAL_REVIEW`,
   );
+
+  // Tier-1 vision critique: only for stick shorts (programmatic, so issues map
+  // to tunable params). Best-effort — never fails the render.
+  if (isShort && props.beats.some((b) => b.stickScene)) {
+    try {
+      await runFrameCritic(serveUrl, props, videoId, built.project.id, video.title);
+    } catch (err) {
+      console.error(`⚠️  vision critique failed (non-fatal): ${String(err).slice(0, 160)}`);
+    }
+  }
   return "rendered";
+}
+
+/** Pick `n` indices spread evenly across `[0, len)`. */
+function sampleEvenly(len: number, n: number): number[] {
+  if (len <= n) return Array.from({ length: len }, (_, i) => i);
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) out.push(Math.round((i * (len - 1)) / (n - 1)));
+  return [...new Set(out)];
+}
+
+/**
+ * Tier-1 vision critique: render up to 5 keyframe stills of the stick short
+ * (one mid-beat) and have Claude score them against the animation rubric, then
+ * store the structured result on videos.vision_review. See
+ * docs/stick-studio/Vision-Optimizer-Loop.md.
+ */
+async function runFrameCritic(
+  serveUrl: string,
+  props: VideoProps,
+  videoId: string,
+  projectId: string,
+  title: string,
+): Promise<void> {
+  const beats = props.beats;
+  if (beats.length === 0) return;
+
+  // Mid-beat frame offsets in the VerticalShort timeline (beats play back-to-back).
+  const starts: number[] = [];
+  let cum = 0;
+  for (const b of beats) {
+    starts.push(cum);
+    cum += Math.max(1, b.durationSec);
+  }
+  const composition = await selectComposition({ serveUrl, id: "VerticalShort", inputProps: props });
+  const outDir = mkdtempSync(join(tmpdir(), "critic-"));
+  const frames: CritiqueFrame[] = [];
+  for (const i of sampleEvenly(beats.length, 5)) {
+    const midSec = starts[i] + Math.max(1, beats[i].durationSec) / 2;
+    const frame = Math.min(composition.durationInFrames - 1, Math.max(0, Math.round(midSec * FPS)));
+    const out = join(outDir, `kf-${i}.jpg`);
+    await renderStill({ composition, serveUrl, output: out, frame, inputProps: props, imageFormat: "jpeg", jpegQuality: 80 });
+    const scene = beats[i].stickScene;
+    frames.push({
+      beatIdx: beats[i].idx,
+      jpegBase64: readFileSync(out).toString("base64"),
+      action: scene?.actors?.[0]?.action ?? "idle",
+      setting: scene?.setting ?? "void",
+      text: beats[i].text,
+    });
+  }
+
+  const critique = await critiqueStickFrames({ title, frames });
+  await db
+    .from("videos")
+    .update({
+      vision_review: {
+        score: critique.score,
+        scores: critique.scores,
+        issues: critique.issues,
+        strengths: critique.strengths,
+        provider: critique.provider,
+        at: new Date().toISOString(),
+      },
+    })
+    .eq("id", videoId);
+  if (critique.costUsd > 0) {
+    await db.from("cost_ledger").insert({
+      project_id: projectId,
+      video_id: videoId,
+      provider: "anthropic",
+      description: "Stick vision critique (Tier 1)",
+      usd: critique.costUsd,
+    });
+  }
+  console.log(`👁️  ${title}: vision critique ${critique.score}/10 (${critique.provider}, ${critique.issues.length} issues)`);
 }
 
 async function main() {

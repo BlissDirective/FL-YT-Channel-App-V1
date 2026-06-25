@@ -37,6 +37,10 @@ jobs:
         env:
           SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+          # Optional — enables the Tier-1 vision critique of stick shorts (Claude
+          # scores rendered keyframes). Unset → the critic runs in benign mock.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          VISION_MODEL: ${{ vars.VISION_MODEL }}
           # Optional — when all four are set, finished renders (long + short) are
           # stored in Cloudflare R2 (no per-file size cap) instead of Supabase
           # Storage, so any video is downloadable regardless of size.

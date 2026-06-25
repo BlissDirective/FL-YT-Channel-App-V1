@@ -5,9 +5,19 @@ continuously improve them — motion smoothness, pose readability, character
 consistency, story/pacing, action-scene impact — by editing the **parameters**
 that drive the programmatic renderer (poses, choreography, timing, camera).
 
-Status: **Design / planned (Phase 5+).** Grounded in a review of
+Status: **Tier 1 shipped; Tier 2 planned.** Grounded in a review of
 [`DojoCodingLabs/remotion-superpowers`](https://github.com/DojoCodingLabs/remotion-superpowers),
 whose `/review-video` + TwelveLabs loop is the inspiration.
+
+> **Tier 1 (Claude-vision frame critique) is live.** After a stick short
+> renders, the farm renders up to 5 mid-beat keyframe stills, Claude scores them
+> against the rubric (readability / composition / captions / consistency) and
+> returns beat-anchored fixes, stored on `videos.vision_review`. The app shows a
+> **Vision review** card and flags the called-out beats in the **Stick Scenes**
+> editor (edit or re-roll them). Code: `packages/render/src/stick/frame-critic.ts`
+> + `runFrameCritic` in `render-queue.ts`; surfaced by `vision-review.tsx`.
+> **Enable it** by adding `ANTHROPIC_API_KEY` as a GitHub repo secret (already
+> wired into `render.yml`); without it the critic runs a benign mock.
 
 ---
 

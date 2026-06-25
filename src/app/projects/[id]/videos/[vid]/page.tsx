@@ -27,6 +27,7 @@ import { VideoGen } from "./video-gen";
 import { PublishKit, type PublishRender } from "./publish-kit";
 import { DeriveShorts, type DerivedShortRow } from "./derive-shorts";
 import { StickScenesEditor, type StickSceneRow } from "./stick-scenes-editor";
+import { VisionReview } from "./vision-review";
 import type { StickScene } from "@/lib/stick-types";
 
 export const dynamic = "force-dynamic";
@@ -240,8 +241,17 @@ export default async function VideoDetailPage({
         />
       )}
 
+      {v.vision_review && <VisionReview review={v.vision_review} />}
+
       {stickScenes.length > 0 && (
-        <StickScenesEditor projectId={id} videoId={vid} scenes={stickScenes} />
+        <StickScenesEditor
+          projectId={id}
+          videoId={vid}
+          scenes={stickScenes}
+          flagged={(v.vision_review?.issues ?? [])
+            .map((iss) => iss.beatIdx)
+            .filter((b): b is number => b != null)}
+        />
       )}
 
       {v.status === "ASSEMBLING" && (

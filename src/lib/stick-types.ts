@@ -80,3 +80,26 @@ export const DEFAULT_STICK_CAST: StickCast = {
   build: "normal",
   accessory: "none",
 };
+
+// ── Tier-1 vision critique (frame-critic) ─────────────────────────────
+// Stored on videos.vision_review; produced by the render farm.
+
+export type FrameIssue = {
+  /** Beat the issue is about (null = whole-video). */
+  beatIdx: number | null;
+  category: "readability" | "composition" | "captions" | "consistency" | "other";
+  severity: "low" | "med" | "high";
+  note: string;
+  fix: string;
+};
+
+export type FrameCritique = {
+  /** 0–10 overall. */
+  score: number;
+  scores: { readability: number; composition: number; captions: number; consistency: number };
+  issues: FrameIssue[];
+  strengths: string[];
+  provider: "anthropic" | "mock";
+  /** ISO timestamp. */
+  at: string;
+};

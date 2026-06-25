@@ -19,11 +19,15 @@ export function StickScenesEditor({
   projectId,
   videoId,
   scenes,
+  flagged = [],
 }: {
   projectId: string;
   videoId: string;
   scenes: StickSceneRow[];
+  /** Beat indices the vision review flagged — shown with a warning dot. */
+  flagged?: number[];
 }) {
+  const flaggedSet = new Set(flagged);
   return (
     <div className="space-y-3">
       <div>
@@ -36,7 +40,13 @@ export function StickScenesEditor({
       </div>
       <Card className="divide-y divide-line p-0">
         {scenes.map((s) => (
-          <SceneRow key={s.beatIdx} projectId={projectId} videoId={videoId} scene={s} />
+          <SceneRow
+            key={s.beatIdx}
+            projectId={projectId}
+            videoId={videoId}
+            scene={s}
+            flagged={flaggedSet.has(s.beatIdx)}
+          />
         ))}
       </Card>
     </div>
@@ -47,10 +57,12 @@ function SceneRow({
   projectId,
   videoId,
   scene,
+  flagged,
 }: {
   projectId: string;
   videoId: string;
   scene: StickSceneRow;
+  flagged?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -75,7 +87,12 @@ function SceneRow({
   return (
     <div className="space-y-2 p-3">
       <div className="flex items-start gap-2">
-        <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg bg-accent-soft text-[11px] font-bold text-ink">
+        <span
+          title={flagged ? "Flagged by the vision review" : undefined}
+          className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg text-[11px] font-bold ${
+            flagged ? "bg-coral/20 text-coral ring-1 ring-coral/40" : "bg-accent-soft text-ink"
+          }`}
+        >
           {scene.beatIdx + 1}
         </span>
         <p className="line-clamp-2 flex-1 text-sm text-ink/90">{scene.text}</p>

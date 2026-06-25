@@ -1,5 +1,5 @@
 import type { ApprovalGate, AutonomyMode, VideoStatus } from "@studio/core";
-import type { StickCast } from "@/lib/stick-types";
+import type { FrameCritique, StickCast } from "@/lib/stick-types";
 
 export type BrandKit = {
   primary: string;
@@ -108,6 +108,9 @@ export type Video = {
   /** Shorts only: operator tapped Publish → the render farm uploads the
       staged 9:16 cut to YouTube on its next pass. */
   publish_requested: boolean;
+  /** Stick Studio Tier-1 vision critique of the rendered keyframes (null until
+      the farm runs the frame-critic). */
+  vision_review: FrameCritique | null;
   total_cost_usd: number;
   paused_reason: string | null;
   /** Full Auto: worker advances to render when the last clip lands. */
