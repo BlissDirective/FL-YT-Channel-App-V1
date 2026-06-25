@@ -65,9 +65,92 @@ export type Project = {
   visual_style: "footage" | "stick";
   /** Recurring stick-figure character identity (null → default cast). */
   stick_cast: StickCast | null;
+  /** Which auto-fix strategy runs for this channel (off until chosen). */
+  autofix_loop: AutofixLoop;
+  /** Master on/off for the automatic auto-fix loop on this channel. */
+  autofix_enabled: boolean;
+  /** Trigger score, max re-renders, and per-video spend cap. */
+  autofix_config: AutofixConfig;
+  /** Per-project learned memory (compounds across videos). */
+  autofix_memory: AutofixMemory;
   is_demo: boolean;
   created_at: string;
   updated_at: string;
+};
+
+// ── Auto-Fix Loop ─────────────────────────────────────────────────────
+// A self-improving vision optimizer. Two pluggable strategies chosen per
+// channel; see docs/Auto-Fix-Loop.md.
+
+/** 'off' = no loop · 'animation' = Remotion/stick · 'aiclip' = AI image/clip. */
+export type AutofixLoop = "off" | "animation" | "aiclip";
+
+export type AutofixConfig = {
+  /** A video scoring below this (0–10) gets a fix pass; at/above passes through. */
+  threshold: number;
+  /** Max re-renders before holding the video for manual review. */
+  maxRenders: number;
+  /** Hard per-video spend cap (USD) for the whole loop (vision + re-renders). */
+  spendCapUsd: number;
+};
+
+/** Per-project memory: the mechanism behind "improves over time". */
+export type AutofixMemory = {
+  /** Lessons learned, most-recent first, injected into the critic/fixer. */
+  playbook?: string[];
+  /** Numeric/string defaults that historically scored well (baked-in priors). */
+  priors?: Record<string, number | string>;
+  /** Fixes that regressed the score — do not repeat these. */
+  antiPatterns?: string[];
+  stats?: { runs: number; improved: number; regressed: number; avgDelta: number };
+  updatedAt?: string;
+};
+
+export type AutofixStatus =
+  | "idle"
+  | "rerendering"
+  | "done"
+  | "held";
+
+/** The loop's state machine for one video (stored on videos.autofix_state). */
+export type AutofixState = {
+  status?: AutofixStatus;
+  /** Which loop drove it (snapshot of the project setting at run time). */
+  loop?: AutofixLoop;
+  /** Number of re-renders triggered so far. */
+  attempts?: number;
+  bestScore?: number | null;
+  lastScore?: number | null;
+  /** The vision_review.at we last acted on (so we don't re-consume a critique). */
+  actedOnAt?: string | null;
+  /** Cumulative loop spend on this video (USD), against the cap. */
+  spentUsd?: number;
+  history?: AutofixAttempt[];
+};
+
+export type AutofixAttempt = {
+  attempt: number;
+  fromScore: number;
+  toScore?: number;
+  changes: string[];
+  at: string;
+};
+
+/** Audit row — one per fix attempt (autofix_runs table). */
+export type AutofixRun = {
+  id: string;
+  project_id: string;
+  video_id: string;
+  loop: Exclude<AutofixLoop, "off">;
+  attempt: number;
+  tier: "tier1" | "tier2";
+  from_score: number | null;
+  to_score: number | null;
+  changes: string[];
+  cost_usd: number;
+  status: "applied" | "improved" | "regressed" | "held" | "error";
+  note: string | null;
+  created_at: string;
 };
 
 /** Long-form vs short-form. Both flavours of short are `kind='short'` rows. */
@@ -134,6 +217,10 @@ export type Video = {
   auto_pilot_run: boolean;
   /** Privacy chosen for auto-publish (public|unlisted), set from final QC. */
   publish_privacy: string | null;
+  /** Per-asset auto-fix override: null = inherit project, true/false = force. */
+  autofix_enabled: boolean | null;
+  /** Auto-fix loop state machine for this video. */
+  autofix_state: AutofixState;
   created_at: string;
   updated_at: string;
 };

@@ -6,6 +6,8 @@ import {
   reconcileStuckRenders,
   releaseScheduledVideos,
 } from "@/lib/pipeline/engine";
+import { sweepAutofix } from "@/lib/pipeline/autofix";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -37,6 +39,14 @@ async function handle(request: NextRequest) {
     // render-stranded videos), then the heavy generation step under a wall-clock
     // budget so a pass never hard-times-out mid-video and strands it.
     const rel = await releaseScheduledVideos(6);
+    // Auto-fix sweep BEFORE the finalizer so a weak auto-pilot cut is fixed
+    // (and re-rendering, hence no longer at FINAL_REVIEW) before it can publish.
+    let autofix = { scanned: 0, fixed: 0, done: 0, held: 0 };
+    try {
+      autofix = await sweepAutofix(8, createAdminClient());
+    } catch (err) {
+      console.error("build-runner autofix sweep failed:", err);
+    }
     const fin = await finalizeAutoPilotVideos(5);
     const heal = await reconcileStuckRenders();
     // Drain up to 3 seeds per pass, but stop ~210s in (the route caps at 300s;
@@ -58,6 +68,9 @@ async function handle(request: NextRequest) {
       healedStuck: heal.healed,
       runsUpdated: rec.updated,
       runsCompleted: rec.completed,
+      autofixFixed: autofix.fixed,
+      autofixDone: autofix.done,
+      autofixHeld: autofix.held,
     });
   } catch (err) {
     console.error("cron build-runner failed:", err);

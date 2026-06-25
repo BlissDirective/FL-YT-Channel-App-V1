@@ -1,0 +1,37 @@
+name: Auto-Fix Loop
+
+# Self-improving vision optimizer. Pings the app's cron route, which scans
+# FINAL_REVIEW videos whose channel has the loop enabled and advances each one
+# step (critique → fix → re-render → re-critique, bounded). Runs inside the
+# Next app. The build-runner cron also sweeps before its finalizer.
+on:
+  workflow_dispatch:
+  schedule:
+    # Every 10 minutes — paced to the render farm so a re-render is critiqued
+    # before the next pass acts on it.
+    - cron: "*/10 * * * *"
+
+concurrency:
+  group: auto-fix-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_URL: ${{ vars.APP_BASE_URL || 'https://fl-yt-channel-app-v1.vercel.app' }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Trigger auto-fix sweep
+        run: |
+          echo "Pinging ${BASE_URL}/api/cron/auto-fix"
+          CODE=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST \
+            "${BASE_URL}/api/cron/auto-fix" \
+            -H "Authorization: Bearer ${CRON_SECRET}")
+          echo "HTTP $CODE — $(cat /tmp/r.json)"
+          case "$CODE" in
+            200) echo "✅ auto-fix sweep complete";;
+            401) echo "❌ unauthorized — set CRON_SECRET to match the app's env"; exit 1;;
+            *) echo "❌ sweep failed (HTTP $CODE)"; exit 1;;
+          esac

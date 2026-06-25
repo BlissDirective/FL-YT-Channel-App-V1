@@ -639,7 +639,7 @@ type AssetDraft = {
 /** One beat's visual: stock beats search Pexels (free), hero beats get a
     premium FLUX render, b-roll gets the fast/cheap FLUX tier. Any provider
     failure degrades to a mock tile rather than failing the stage. */
-async function makeBeatClip(
+export async function makeBeatClip(
   video: Video,
   project: Project,
   beat: ScriptBeat,
@@ -2007,6 +2007,15 @@ export async function finalizeAutoPilotVideos(
       const project = await getProject(db, row.project_id);
       const video = await getVideo(db, row.id);
       if (!project || !video) continue;
+      // Defer to the auto-fix loop: when this channel's loop is on and the
+      // video hasn't converged ('done') or been held, let the loop fix it
+      // first rather than publishing a pre-fix cut. (The sweep runs before this
+      // in the same cron pass; this guards the rare over-the-limit race.)
+      const loopOn =
+        (video.autofix_enabled ?? project.autofix_enabled ?? false) &&
+        (project.autofix_loop ?? "off") !== "off";
+      const afStatus = (video.autofix_state as { status?: string } | null)?.status;
+      if (loopOn && afStatus !== "done" && afStatus !== "held") continue;
       const { floor, pub } = await runThresholds(db, row.build_run_id);
       const { score } = await scoreAndRecordGate(db, video, project, "FINAL");
 

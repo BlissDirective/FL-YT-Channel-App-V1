@@ -28,6 +28,7 @@ import { PublishKit, type PublishRender } from "./publish-kit";
 import { DeriveShorts, type DerivedShortRow } from "./derive-shorts";
 import { StickScenesEditor, type StickSceneRow } from "./stick-scenes-editor";
 import { VisionReview } from "./vision-review";
+import { AutofixPanel } from "./autofix-panel";
 import { RegenerateScript } from "./regenerate-script";
 import type { StickScene } from "@/lib/stick-types";
 
@@ -253,6 +254,18 @@ export default async function VideoDetailPage({
       )}
 
       {v.vision_review && <VisionReview review={v.vision_review} />}
+
+      {project.autofix_loop && project.autofix_loop !== "off" && (
+        <AutofixPanel
+          projectId={id}
+          videoId={vid}
+          loop={project.autofix_loop}
+          projectEnabled={project.autofix_enabled ?? false}
+          override={v.autofix_enabled ?? null}
+          config={project.autofix_config ?? { threshold: 7, maxRenders: 2, spendCapUsd: 1 }}
+          state={v.autofix_state ?? {}}
+        />
+      )}
 
       {stickScenes.length > 0 && (
         <StickScenesEditor

@@ -36,6 +36,24 @@ function parseAutonomy(formData: FormData) {
   };
 }
 
+/** Auto-fix loop selection + bounds from the settings form. */
+function parseAutofix(formData: FormData) {
+  const loopRaw = String(formData.get("autofix_loop") ?? "off");
+  const loop = (["off", "animation", "aiclip"].includes(loopRaw) ? loopRaw : "off") as
+    | "off"
+    | "animation"
+    | "aiclip";
+  // Clamp to safe ranges so a hand-edited form can't widen the spend cap.
+  const threshold = Math.min(10, Math.max(0, Number(formData.get("autofix_threshold") ?? 7)));
+  const maxRenders = Math.min(3, Math.max(0, Math.round(Number(formData.get("autofix_max_renders") ?? 2))));
+  const spendCapUsd = Math.min(5, Math.max(0, Number(formData.get("autofix_spend_cap") ?? 1)));
+  return {
+    loop,
+    enabled: formData.get("autofix_enabled") === "on",
+    config: { threshold, maxRenders, spendCapUsd },
+  };
+}
+
 export async function createProject(
   _prev: ProjectResult,
   formData: FormData,
@@ -86,6 +104,7 @@ export async function updateProject(
     build: String(formData.get("stick_build") ?? "normal"),
     accessory: String(formData.get("stick_accessory") ?? "none"),
   };
+  const autofix = parseAutofix(formData);
 
   const { error } = await supabase
     .from("projects")
@@ -106,6 +125,9 @@ export async function updateProject(
       clip_confirm_usd: Number(formData.get("clip_confirm_usd") ?? 3),
       visual_style: visualStyle,
       ...(visualStyle === "stick" ? { stick_cast: stickCast } : {}),
+      autofix_loop: autofix.loop,
+      autofix_enabled: autofix.enabled,
+      autofix_config: autofix.config,
       youtube_channel_title: String(formData.get("youtube_channel_title") ?? "").trim() || null,
       // Refresh token is write-only: only overwrite when a new value is pasted,
       // so saving the form doesn't wipe an existing token. Blank keeps current.

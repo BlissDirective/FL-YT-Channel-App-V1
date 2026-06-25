@@ -51,6 +51,8 @@ export function SettingsForm({
   const [status, setStatus] = useState(project.status);
   const [voiceId, setVoiceId] = useState(project.voice_id ?? voices[0]?.id ?? "");
   const [visualStyle, setVisualStyle] = useState(project.visual_style ?? "footage");
+  const [autofixLoop, setAutofixLoop] = useState(project.autofix_loop ?? "off");
+  const autofixCfg = project.autofix_config ?? { threshold: 7, maxRenders: 2, spendCapUsd: 1 };
   const cast = project.stick_cast;
   const selectedVoice = voices.find((v) => v.id === voiceId);
   const providers = [...new Set(voices.map((v) => v.provider))];
@@ -157,6 +159,73 @@ export function SettingsForm({
               Colour = identity, build = proportions, accessory = a recognisable
               prop. Used as the default character on every stick video for this
               project.
+            </p>
+          </div>
+        )}
+
+        <Field label="Auto-fix loop">
+          <select
+            name="autofix_loop"
+            value={autofixLoop}
+            onChange={(e) => setAutofixLoop(e.target.value as "off" | "animation" | "aiclip")}
+            className="input"
+          >
+            <option value="off">Off — no automatic fixing</option>
+            <option value="animation">Animation loop (Remotion / stick figures)</option>
+            <option value="aiclip">AI image / clip loop</option>
+          </select>
+        </Field>
+        {autofixLoop !== "off" && (
+          <div className="space-y-4 rounded-xl border border-line bg-canvas/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+              {autofixLoop === "animation"
+                ? "Animation loop — tunes poses, timing, framing, captions; re-rolls beats"
+                : "AI image / clip loop — re-rolls visuals, reframes, fixes VO/captions, can rewrite a beat"}
+            </p>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="autofix_enabled" defaultChecked={project.autofix_enabled} className="size-4" />
+              Run the loop automatically (per video &amp; per Build &amp; Post run)
+            </label>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <Field label="Fix below score">
+                <input
+                  name="autofix_threshold"
+                  type="number"
+                  min={0}
+                  max={10}
+                  step={0.5}
+                  defaultValue={autofixCfg.threshold}
+                  className="input"
+                />
+              </Field>
+              <Field label="Max re-renders">
+                <input
+                  name="autofix_max_renders"
+                  type="number"
+                  min={0}
+                  max={3}
+                  step={1}
+                  defaultValue={autofixCfg.maxRenders}
+                  className="input"
+                />
+              </Field>
+              <Field label="Spend cap / video ($)">
+                <input
+                  name="autofix_spend_cap"
+                  type="number"
+                  min={0}
+                  max={5}
+                  step={0.25}
+                  defaultValue={autofixCfg.spendCapUsd}
+                  className="input"
+                />
+              </Field>
+            </div>
+            <p className="text-[11px] text-muted">
+              The loop critiques the render (Claude vision; TwelveLabs on motion/timing
+              flags), applies one fix, re-renders, and re-critiques — up to the max — then
+              holds for manual review. Every fix is remembered per-channel so quality
+              compounds over time. Turn it off per-asset on any video page.
             </p>
           </div>
         )}
