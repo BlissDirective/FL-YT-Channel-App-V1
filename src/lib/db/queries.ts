@@ -190,10 +190,16 @@ export async function getReviewItems(projectId: string): Promise<ReviewItem[]> {
     .is("parent_video_id", null)
     .order("updated_at", { ascending: false });
 
+  // Transient stages the in-app pipeline drives and can stall in (worker crash,
+  // serverless timeout, or a cron that never fired). These aren't gates and may
+  // carry no paused_reason, so without this they'd vanish from the queue and the
+  // Resume button (review-queue.tsx) would never render for them.
+  const DRIVABLE = new Set(["IDEA_APPROVED", "SCRIPTING", "GENERATING_ASSETS"]);
   const attention = ((videos as Video[]) ?? []).filter(
     (v) =>
       GATE_FOR_STATUS[v.status] !== undefined ||
       v.status === "NEEDS_REVISION" ||
+      DRIVABLE.has(v.status) ||
       (v.paused_reason && !["KILLED", "APPROVED", "TRACKING"].includes(v.status)),
   );
   if (attention.length === 0) return [];

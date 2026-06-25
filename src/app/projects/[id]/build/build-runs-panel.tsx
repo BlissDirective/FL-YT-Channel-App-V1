@@ -10,6 +10,7 @@ import {
   cancelBuildRunAction,
   pauseBuildRunAction,
   resumeBuildRunAction,
+  runBuildNowAction,
 } from "@/lib/actions/build";
 
 const RUN_TONE: Record<string, "success" | "neutral" | "warning" | "coral" | "lavender"> = {
@@ -69,7 +70,11 @@ export function BuildRunsPanel({
 function RunBlock({ projectId, run }: { projectId: string; run: BuildRunRow }) {
   const [isPending, start] = useTransition();
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [runMsg, setRunMsg] = useState<string>();
   const active = !["done", "cancelled"].includes(run.status);
+  const hasPending = run.videos.some(
+    (v) => !v.youtubeVideoId && !["TRACKING", "KILLED", "APPROVED"].includes(v.status),
+  );
   const posted = run.videos.filter((v) => v.youtubeVideoId || v.status === "TRACKING").length;
 
   const act = (fn: () => Promise<unknown>) => start(async () => void (await fn()));
@@ -91,6 +96,25 @@ function RunBlock({ projectId, run }: { projectId: string; run: BuildRunRow }) {
         </div>
         {active && (
           <div className="flex items-center gap-1">
+            {run.status !== "paused" && hasPending && (
+              <IconBtn
+                label="Run now"
+                disabled={isPending}
+                onClick={() =>
+                  start(async () => {
+                    setRunMsg(undefined);
+                    const r = await runBuildNowAction(projectId);
+                    setRunMsg(
+                      r.ok
+                        ? `Drove ${r.processed} video${r.processed === 1 ? "" : "s"}${r.held ? `, ${r.held} held` : ""}${r.errors ? `, ${r.errors} error${r.errors === 1 ? "" : "s"}` : ""}.`
+                        : r.error ?? "Run failed.",
+                    );
+                  })
+                }
+              >
+                <Rocket className="size-3.5" /> Run now
+              </IconBtn>
+            )}
             {run.status === "paused" ? (
               <IconBtn
                 label="Resume"
@@ -125,6 +149,7 @@ function RunBlock({ projectId, run }: { projectId: string; run: BuildRunRow }) {
           </div>
         )}
       </div>
+      {runMsg && <p className="mt-1 text-xs font-medium text-ink">{runMsg}</p>}
 
       <ul className="mt-2 divide-y divide-line">
         {run.videos.map((v) => (

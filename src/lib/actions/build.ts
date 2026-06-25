@@ -8,6 +8,7 @@ import {
   channelPlaybook,
   estimateBuildCost,
   pauseBuildRun,
+  processPendingBuildVideos,
   resumeBuildRun,
   type BuildCostEstimate,
   type BuildRunConfig,
@@ -83,4 +84,21 @@ export async function cancelBuildRunAction(
   const r = await cancelBuildRun(runId);
   refresh(projectId);
   return r;
+}
+
+/**
+ * Drive pending Build & Post seed videos NOW, in-app — the same work the
+ * build-runner cron does, but on demand so a run isn't stuck waiting on (or
+ * blocked by) the GitHub Actions cron. Bounded to fit the action time budget.
+ */
+export async function runBuildNowAction(
+  projectId: string,
+): Promise<{ ok: boolean; processed: number; held: number; errors: number; error?: string }> {
+  try {
+    const r = await processPendingBuildVideos(2, undefined, { budgetMs: 200_000 });
+    refresh(projectId);
+    return { ok: true, ...r };
+  } catch (err) {
+    return { ok: false, processed: 0, held: 0, errors: 0, error: err instanceof Error ? err.message : String(err) };
+  }
 }

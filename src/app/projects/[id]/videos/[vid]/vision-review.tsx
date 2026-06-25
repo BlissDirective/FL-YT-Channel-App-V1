@@ -11,7 +11,11 @@ const SEVERITY_TONE: Record<string, "warning" | "coral" | "neutral"> = {
 
 /** Tier-1 vision critique of the rendered keyframes (see Vision Optimizer Loop). */
 export function VisionReview({ review }: { review: FrameCritique }) {
-  const tone = review.score >= 8 ? "success" : review.score >= 6 ? "warning" : "coral";
+  const score = Number(review.score ?? 0);
+  const scores = review.scores ?? { readability: 0, composition: 0, captions: 0, consistency: 0 };
+  const strengths = review.strengths ?? [];
+  const issues = review.issues ?? [];
+  const tone = score >= 8 ? "success" : score >= 6 ? "warning" : "coral";
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
@@ -28,17 +32,17 @@ export function VisionReview({ review }: { review: FrameCritique }) {
       </div>
       <Card className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <StatusChip tone={tone}>{review.score.toFixed(1)}/10 overall</StatusChip>
-          {Object.entries(review.scores).map(([k, v]) => (
+          <StatusChip tone={tone}>{score.toFixed(1)}/10 overall</StatusChip>
+          {Object.entries(scores).map(([k, v]) => (
             <span key={k} className="rounded-full bg-canvas px-2.5 py-1 text-[11px] font-semibold capitalize text-muted">
               {k} {v.toFixed(0)}
             </span>
           ))}
         </div>
 
-        {review.strengths.length > 0 && (
+        {strengths.length > 0 && (
           <ul className="space-y-1 text-sm text-ink/90">
-            {review.strengths.map((s, i) => (
+            {strengths.map((s, i) => (
               <li key={i} className="flex gap-2">
                 <span className="text-success">+</span>
                 {s}
@@ -47,13 +51,13 @@ export function VisionReview({ review }: { review: FrameCritique }) {
           </ul>
         )}
 
-        {review.issues.length > 0 && (
+        {issues.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-              {review.issues.length} issue{review.issues.length === 1 ? "" : "s"} — edit the beat below or re-roll it
+              {issues.length} issue{issues.length === 1 ? "" : "s"} — edit the beat below or re-roll it
             </p>
             <ul className="space-y-2">
-              {review.issues.map((iss, i) => (
+              {issues.map((iss, i) => (
                 <li key={i} className="rounded-xl bg-canvas px-3 py-2">
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                     {iss.beatIdx != null && (

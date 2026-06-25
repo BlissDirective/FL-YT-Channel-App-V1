@@ -24,6 +24,7 @@ import {
   rerollBeatVisual,
   rerollStickScene,
   setStickScene,
+  regenerateScript,
   runPipeline,
   setBeatShotType,
   setCaptionsEnabled,
@@ -634,6 +635,19 @@ export async function rerollBeatVisualAction(
 ): Promise<PipelineResult> {
   return guarded(async () => {
     const result = await rerollBeatVisual({ videoId, beatIdx, note });
+    refresh(projectId);
+    return result;
+  });
+}
+
+/** Regenerate a script that came back empty (zero beats). */
+export async function regenerateScriptAction(
+  projectId: string,
+  videoId: string,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const result = await regenerateScript({ videoId });
+    revalidatePath(`/projects/${projectId}/videos/${videoId}`);
     refresh(projectId);
     return result;
   });

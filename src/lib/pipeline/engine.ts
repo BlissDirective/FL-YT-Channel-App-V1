@@ -1005,6 +1005,19 @@ export async function setStickScene(opts: {
   return { ok: true };
 }
 
+/** Regenerate the script from scratch (e.g. a script row landed with zero
+    beats and the generation UI has nothing to work with). Writes a fresh
+    script version and lands back at the Script gate. */
+export async function regenerateScript(opts: { videoId: string }): Promise<EngineResult> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+  await runScripting(db, video, project); // → fresh script version, SCRIPT_READY
+  return { ok: true };
+}
+
 // ── Beat shot-type (hero / broll / stock) ─────────────────────────────
 // shotType is metadata (it doesn't change VO), so we update the latest
 // script row in place rather than spawning a new version.

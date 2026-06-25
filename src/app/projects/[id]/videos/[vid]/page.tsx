@@ -28,6 +28,7 @@ import { PublishKit, type PublishRender } from "./publish-kit";
 import { DeriveShorts, type DerivedShortRow } from "./derive-shorts";
 import { StickScenesEditor, type StickSceneRow } from "./stick-scenes-editor";
 import { VisionReview } from "./vision-review";
+import { RegenerateScript } from "./regenerate-script";
 import type { StickScene } from "@/lib/stick-types";
 
 export const dynamic = "force-dynamic";
@@ -211,6 +212,16 @@ export default async function VideoDetailPage({
           <p className="text-sm text-muted">
             No script yet — this video hasn&apos;t reached the scripting stage.
           </p>
+        </Card>
+      ) : beats.length === 0 ? (
+        <Card className="space-y-3">
+          <p className="text-sm font-semibold text-ink">This script has no sections.</p>
+          <p className="text-sm text-muted">
+            The script came back empty (no beats), so there&apos;s nothing to
+            voice, generate, or render. Regenerate it to get a fresh script with
+            sections.
+          </p>
+          <RegenerateScript projectId={id} videoId={vid} />
         </Card>
       ) : (
         <ScriptReview
