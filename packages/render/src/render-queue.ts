@@ -18,6 +18,7 @@ import { ensureBrowser, renderMedia, renderStill, selectComposition } from "@rem
 import { isR2Path, r2Configured, r2Get, r2Put, r2SignedGetUrl, stripR2, toR2Path } from "@studio/storage";
 import {
   FPS,
+  INTRO_SEC,
   beatTimeline,
   longFormDurationSec,
   verticalShortDurationSec,
@@ -28,6 +29,7 @@ import {
   type VideoProps,
 } from "./types";
 import { critiqueStickFrames, type CritiqueFrame } from "./stick/frame-critic";
+import { critiqueFootageFrames, type FootageFrame } from "./footage/frame-critic";
 import { uploadVideo, youtubeUploadConfigured } from "./youtube";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
@@ -546,11 +548,26 @@ async function renderOne(
 
   // Tier-1 vision critique: only for stick shorts (programmatic, so issues map
   // to tunable params). Best-effort — never fails the render.
-  if (isShort && props.beats.some((b) => b.stickScene)) {
+  const isStick = props.beats.some((b) => b.stickScene);
+  if (isShort && isStick) {
     try {
       await runFrameCritic(serveUrl, props, videoId, built.project.id, video.title);
     } catch (err) {
       console.error(`⚠️  vision critique failed (non-fatal): ${String(err).slice(0, 160)}`);
+    }
+  } else if (
+    // Footage Tier-1 critique for channels on the AI-clip auto-fix loop, so
+    // footage videos get the same per-frame vision_review as stick. Critique the
+    // delivered cut: the 9:16 short for shorts, the 16:9 long-form for longs.
+    (built.project as { autofix_loop?: string }).autofix_loop === "aiclip" &&
+    props.beats.some((b) => !b.stickScene && (b.imageUrl || b.videoUrl))
+  ) {
+    try {
+      const compId = isShort ? "VerticalShort" : "LongForm";
+      const startOffsetSec = isShort ? 0 : INTRO_SEC;
+      await runFootageCritic(serveUrl, props, videoId, built.project.id, video.title, compId, startOffsetSec);
+    } catch (err) {
+      console.error(`⚠️  footage vision critique failed (non-fatal): ${String(err).slice(0, 160)}`);
     }
   }
   return "rendered";
@@ -629,6 +646,76 @@ async function runFrameCritic(
     });
   }
   console.log(`👁️  ${title}: vision critique ${critique.score}/10 (${critique.provider}, ${critique.issues.length} issues)`);
+}
+
+/**
+ * Footage Tier-1 critique: render up to 5 mid-beat keyframe stills from the
+ * delivered composition and have Claude score the visuals against the footage
+ * rubric (relevance, framing, captions, variety), then store the result on
+ * videos.vision_review in the same shape the stick critic uses. The app's
+ * AI-clip auto-fix loop reads it directly.
+ */
+async function runFootageCritic(
+  serveUrl: string,
+  props: VideoProps,
+  videoId: string,
+  projectId: string,
+  title: string,
+  compId: "LongForm" | "VerticalShort",
+  startOffsetSec: number,
+): Promise<void> {
+  const beats = props.beats;
+  if (beats.length === 0) return;
+
+  // Mid-beat frame offsets in the chosen composition's timeline (long-form is
+  // offset by the intro sting; the vertical short starts at 0).
+  const starts: number[] = [];
+  let cum = startOffsetSec;
+  for (const b of beats) {
+    starts.push(cum);
+    cum += Math.max(1, b.durationSec);
+  }
+  const composition = await selectComposition({ serveUrl, id: compId, inputProps: props });
+  const outDir = mkdtempSync(join(tmpdir(), "footcritic-"));
+  const frames: FootageFrame[] = [];
+  for (const i of sampleEvenly(beats.length, 5)) {
+    const midSec = starts[i] + Math.max(1, beats[i].durationSec) / 2;
+    const frame = Math.min(composition.durationInFrames - 1, Math.max(0, Math.round(midSec * FPS)));
+    const out = join(outDir, `kf-${i}.jpg`);
+    await renderStill({ composition, serveUrl, output: out, frame, inputProps: props, imageFormat: "jpeg", jpegQuality: 80 });
+    frames.push({
+      beatIdx: beats[i].idx,
+      jpegBase64: readFileSync(out).toString("base64"),
+      shotType: beats[i].shotType,
+      isVideo: Boolean(beats[i].videoUrl),
+      text: beats[i].text,
+    });
+  }
+
+  const critique = await critiqueFootageFrames({ title, frames });
+  await db
+    .from("videos")
+    .update({
+      vision_review: {
+        score: critique.score,
+        scores: critique.scores,
+        issues: critique.issues,
+        strengths: critique.strengths,
+        provider: critique.provider,
+        at: new Date().toISOString(),
+      },
+    })
+    .eq("id", videoId);
+  if (critique.costUsd > 0) {
+    await db.from("cost_ledger").insert({
+      project_id: projectId,
+      video_id: videoId,
+      provider: "anthropic",
+      description: "Footage vision critique (Tier 1)",
+      usd: critique.costUsd,
+    });
+  }
+  console.log(`👁️  ${title}: footage critique ${critique.score}/10 (${critique.provider}, ${critique.issues.length} issues)`);
 }
 
 async function main() {

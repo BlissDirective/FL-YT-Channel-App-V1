@@ -167,8 +167,13 @@ async function getCritique(
   if (loop === "animation") {
     return (video.vision_review as FrameCritique | null) ?? null;
   }
-  // AI-clip: score the final cut with the QC agent and synthesise a critique
-  // (a fresh timestamp each pass drives the state machine).
+  // AI-clip: prefer the render farm's real per-frame footage critique when the
+  // channel has it (written to vision_review just like the stick critic). Fall
+  // back to a QC-vision synthesis of the final cut when the farm critic hasn't
+  // produced one (e.g. ANTHROPIC_API_KEY not set on the farm).
+  const farm = video.vision_review as FrameCritique | null;
+  if (farm) return farm;
+  // QC-vision fallback — a fresh timestamp each pass drives the state machine.
   const beats = await loadBeats(db, video.id);
   const clips = await loadClips(db, video.id);
   const review = await reviewGate({
@@ -227,13 +232,15 @@ async function patchClip(db: Db, clip: Clip, scene: StickScene) {
   await db.from("assets").update({ meta: { ...clip.meta, stickScene: scene } }).eq("id", clip.id);
 }
 
+type FixPlan = { changes: string[]; costUsd: number; tier: "tier1" | "tier2"; async: boolean };
+
 async function planAnimation(
   db: Db,
   video: Video,
   project: Project,
   critique: FrameCritique,
   mem: AutofixMemory,
-): Promise<{ changes: string[]; costUsd: number; tier: "tier1" | "tier2" }> {
+): Promise<FixPlan> {
   const beats = await loadBeats(db, video.id);
   const clips = await loadClips(db, video.id);
   const byIdx = new Map(clips.map((c) => [c.beat_index, c]));
@@ -317,10 +324,35 @@ async function planAnimation(
   }
 
   if (costUsd > 0) await recordCost(db, video, `autofix:${tier}`, costUsd, "Auto-fix re-choreography");
-  return { changes, costUsd, tier };
+  return { changes, costUsd, tier, async: false };
 }
 
 // ── Loop B: AI image / clip fixers ────────────────────────────────────
+
+// Minimal per-second price map for estimating an async clip re-roll's cost
+// against the loop's spend cap (mirrors packages/clips pricing; conservative
+// fallback for unknown models).
+const CLIP_PRICE_PER_SEC: Record<string, number> = {
+  "veo-3-1": 0.4,
+  "kling-2-5-turbo": 0.28,
+  "seedance-2": 0.07,
+  "seedance-2-fast": 0.04,
+};
+
+function estClipUsd(model: string, sec: number): number {
+  const per = CLIP_PRICE_PER_SEC[model] ?? 0.1;
+  return Math.round(per * sec * 100) / 100;
+}
+
+async function hasPendingClipJob(db: Db, videoId: string, beatIdx: number): Promise<boolean> {
+  const { count } = await db
+    .from("clip_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("video_id", videoId)
+    .eq("beat_idx", beatIdx)
+    .in("status", ["queued", "running"]);
+  return (count ?? 0) > 0;
+}
 
 const CAPTION_RE = /\b(caption|subtitle|text|legib|readab|on-?screen)\b/i;
 const FRAME_RE = /\b(fram|crop|compos|cut off|off-?cent|zoom|too close|too wide|balance)\b/i;
@@ -332,11 +364,18 @@ async function planFootage(
   project: Project,
   critique: FrameCritique,
   mem: AutofixMemory,
-): Promise<{ changes: string[]; costUsd: number; tier: "tier1" | "tier2" }> {
+  budgetLeft: number,
+): Promise<FixPlan> {
   const beats = await loadBeats(db, video.id);
   const clips = await loadClips(db, video.id);
   const changes: string[] = [];
+  // costUsd = spend counted against the per-video cap (includes the async clip
+  // ESTIMATE). ledgerCost = actual synchronous spend to record now; the worker
+  // bills the real clip cost when the async job runs, so the estimate is never
+  // written to the ledger (no double-count).
   let costUsd = 0;
+  let ledgerCost = 0;
+  let asyncWork = false;
   const hint = memoryHint(mem);
   const tier: "tier1" | "tier2" = isTwelveLabsLive() && wantsTemporalPass(critique) ? "tier2" : "tier1";
 
@@ -376,21 +415,67 @@ async function planFootage(
       continue;
     }
 
-    // Re-roll the visual (image/clip/stock) for the beat, steered by the fix +
-    // memory + (when the root cause is the script) a sharper visual direction.
+    // Build a sharper visual direction from the fix + memory + (when the root
+    // cause is the script) a tighter visual-storytelling steer.
     const direction = [iss.fix, SCRIPT_RE.test(text) ? "tighten the visual storytelling for this beat" : "", hint]
       .filter(Boolean)
       .join(". ");
     const steered = { ...beat, visualPrompt: `${beat.visualPrompt}. ${direction}`.slice(0, 600) };
+
+    const meta = (target?.meta ?? {}) as { isVideo?: boolean; longClip?: boolean; model?: string; heroHold?: boolean; durationSec?: number };
+    const isAiVideo = Boolean(meta.isVideo && meta.longClip);
+
+    if (isAiVideo && !(await hasPendingClipJob(db, video.id, beat.idx))) {
+      // ASYNC re-roll of an AI motion clip: regenerate the seed still (cheap,
+      // immediate), enqueue a fresh clip_job, and let the clip-queue worker +
+      // auto_finish path regenerate the clip and re-render. Only when it fits
+      // the remaining per-video budget — else fall through to a cheap still.
+      const model = meta.model ?? "seedance-2-fast";
+      const targetSec = Math.max(5, Math.min(15, Math.round(Number(meta.durationSec ?? 8))));
+      const estClip = estClipUsd(model, targetSec);
+      const draft = await makeBeatClip(video, project, steered); // new i2v seed still
+      const seedCost = draft.cost.usd;
+      if (costUsd + seedCost + estClip <= budgetLeft) {
+        await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", beat.idx);
+        await db.from("assets").insert(draft.row);
+        await db.from("clip_jobs").insert({
+          video_id: video.id,
+          project_id: video.project_id,
+          beat_idx: beat.idx,
+          method: "stitch",
+          model,
+          target_sec: targetSec,
+          hero_hold: Boolean(meta.heroHold),
+          status: "queued",
+        });
+        costUsd += seedCost + estClip; // seed (real) + clip (estimate) vs the cap
+        ledgerCost += seedCost; // only the seed is billed now; worker bills the clip
+        asyncWork = true;
+        changes.push(`Re-rolling AI clip for beat ${beat.idx + 1}: ${iss.fix}`);
+        continue;
+      }
+      // Too pricey for the remaining budget — keep the cheap seed still as the
+      // visual and re-render with that instead of an async clip.
+      await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", beat.idx);
+      await db.from("assets").insert(draft.row);
+      costUsd += seedCost;
+      ledgerCost += seedCost;
+      changes.push(`Replaced beat ${beat.idx + 1} clip with a fresh still (budget): ${iss.fix}`);
+      continue;
+    }
+
+    // SYNC re-roll for still/stock beats (or when a clip job is already pending):
+    // a fresh still/stock that re-renders immediately.
     const draft = await makeBeatClip(video, project, steered);
     await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", beat.idx);
     await db.from("assets").insert(draft.row);
     costUsd += draft.cost.usd;
+    ledgerCost += draft.cost.usd;
     changes.push(`Re-rolled visual for beat ${beat.idx + 1}: ${iss.fix}`);
   }
 
-  if (costUsd > 0) await recordCost(db, video, `autofix:${tier}`, costUsd, "Auto-fix visual re-roll");
-  return { changes, costUsd, tier };
+  if (ledgerCost > 0) await recordCost(db, video, `autofix:${tier}`, ledgerCost, "Auto-fix visual re-roll");
+  return { changes, costUsd, tier, async: asyncWork };
 }
 
 // ── Re-render trigger ─────────────────────────────────────────────────
@@ -398,8 +483,19 @@ async function planFootage(
 // plain return to ASSEMBLING re-renders from the updated assets. The render farm
 // (Tier-1 vision included) produces a fresh critique the next pass reads.
 
-async function triggerRerender(db: Db, videoId: string) {
-  await db.from("videos").update({ status: "ASSEMBLING", paused_reason: null }).eq("id", videoId);
+async function triggerRerender(db: Db, videoId: string, asyncWork: boolean) {
+  if (asyncWork) {
+    // Async re-roll enqueued a clip_job: park at ASSETS_READY with auto_finish so
+    // the clip-queue worker regenerates the clip and advances to ASSEMBLING when
+    // it lands (then the render farm re-renders + re-critiques).
+    await db
+      .from("videos")
+      .update({ status: "ASSETS_READY", auto_finish: true, paused_reason: null })
+      .eq("id", videoId);
+  } else {
+    // Synchronous edits only: assets are ready, re-render straight away.
+    await db.from("videos").update({ status: "ASSEMBLING", paused_reason: null }).eq("id", videoId);
+  }
 }
 
 // ── The per-video state machine ───────────────────────────────────────
@@ -489,9 +585,10 @@ export async function processAutofixForVideo(
   }
 
   // Apply one fix bundle and re-render.
+  const budgetLeft = config.spendCapUsd - spent;
   const plan = loop === "animation"
     ? await planAnimation(db, video, project, critique, mem)
-    : await planFootage(db, video, project, critique, mem);
+    : await planFootage(db, video, project, critique, mem, budgetLeft);
 
   if (plan.changes.length === 0) {
     state.status = "held";
@@ -523,7 +620,7 @@ export async function processAutofixForVideo(
     status: "applied",
   });
 
-  await triggerRerender(db, video.id);
+  await triggerRerender(db, video.id, plan.async);
   return { acted: true, kind: "fixed", score, changes: plan.changes };
 }
 

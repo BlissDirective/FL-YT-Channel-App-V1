@@ -88,9 +88,14 @@ to its own content).
 ## 4. Vision tiers
 
 - **Tier-1 — Claude vision (free-ish).** Runs every pass.
-  - Animation: the render farm's frame critic (`packages/render/src/stick/frame-critic.ts`)
-    writes `videos.vision_review`.
-  - AI-clip: the QC vision agent scores the final cut each pass.
+  - Animation: the render farm's stick frame critic
+    (`packages/render/src/stick/frame-critic.ts`) writes `videos.vision_review`.
+  - AI-clip: the render farm's **footage frame critic**
+    (`packages/render/src/footage/frame-critic.ts`) renders up to 5 mid-beat
+    keyframes of the delivered cut and scores them (relevance, framing, captions,
+    variety) into the same `videos.vision_review` shape. The loop reads it
+    directly; if the farm critic isn't enabled for a channel it falls back to a
+    QC-vision synthesis of the final cut.
 - **Tier-2 — TwelveLabs temporal.** Escalated **only when Tier-1 flags
   motion / timing / pacing** (`src/lib/adapters/twelvelabs.ts` → `wantsTemporalPass`)
   **and** a `TWELVELABS_API_KEY` is configured (verified by the Verify Secrets
@@ -133,16 +138,28 @@ to its own content).
   and the finalizer defers any video the loop hasn't finished with.
 - **Per-asset kill switch** — flip any single video to *Off* from its page.
 
-## 8. Animation vs AI-clip — depth note
+## 8. Animation vs AI-clip — depth
 
-The **animation loop** is end-to-end: it consumes a real per-keyframe vision
-critique from the render farm, applies parametric edits (re-choreograph / reframe
-/ caption-trim / consistency-lock) the renderer honours directly, and re-renders
-with no async wait — this is Stick Studio's self-improving loop (Phase 5).
+Both loops are now end-to-end with a **real per-keyframe vision critique from the
+render farm** and a fixer that re-renders.
 
-The **AI-clip loop** shares the same framework, memory, and bounds. Its critique
-currently comes from the QC vision agent scoring the final cut, and its fixers do
-synchronous edits that re-render cleanly (caption toggle, reframe hints, and a
-`makeBeatClip` visual re-roll). The clearly-scoped next increment is a footage
-frame-critic in the render farm (so AI-clip videos get the same per-frame
-`vision_review` as stick) and async hero-clip re-rolls through the clip queue.
+**Animation** applies parametric edits (re-choreograph / reframe / caption-trim /
+consistency-lock) the renderer honours directly and re-renders with no async wait
+(Stick Studio's self-improving loop, Phase 5).
+
+**AI-clip** chooses the fix path by what the flagged beat needs:
+
+- **Synchronous** (re-renders immediately → `ASSEMBLING`): caption enable,
+  reframe hints, and a fresh still/stock re-roll via `makeBeatClip`.
+- **Asynchronous hero re-roll** (when the beat is an AI motion clip): regenerate
+  the i2v seed still, **enqueue a `clip_jobs` row**, and park the video at
+  `ASSETS_READY` with `auto_finish`. The clip-queue worker
+  (`packages/clips`, every 10 min) regenerates the clip, then its `maybeFinish`
+  advances the video to `ASSEMBLING` → re-render → re-critique. The async clip's
+  cost is **estimated against the per-video cap up front** (so a pricey model is
+  declined and falls back to a still); the worker bills the real cost to the
+  ledger when it runs, so there's no double-count.
+
+The footage critic runs on the render farm only for channels whose loop is
+`aiclip` (one Claude-vision call per render), writing the same `vision_review`
+the UI and loop already understand.
