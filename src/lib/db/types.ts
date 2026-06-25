@@ -92,6 +92,10 @@ export type AutofixConfig = {
   maxRenders: number;
   /** Hard per-video spend cap (USD) for the whole loop (vision + re-renders). */
   spendCapUsd: number;
+  /** How many mid-beat keyframes the vision critic analyses. "auto" =
+      length-scaled (shorts capped lower than long-form); a number forces a fixed
+      count. Default "auto". */
+  critiqueFrames?: number | "auto";
 };
 
 /** Per-project memory: the mechanism behind "improves over time". */

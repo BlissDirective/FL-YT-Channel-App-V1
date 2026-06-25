@@ -52,7 +52,7 @@ export function SettingsForm({
   const [voiceId, setVoiceId] = useState(project.voice_id ?? voices[0]?.id ?? "");
   const [visualStyle, setVisualStyle] = useState(project.visual_style ?? "footage");
   const [autofixLoop, setAutofixLoop] = useState(project.autofix_loop ?? "off");
-  const autofixCfg = project.autofix_config ?? { threshold: 7, maxRenders: 2, spendCapUsd: 1 };
+  const autofixCfg = project.autofix_config ?? { threshold: 7, maxRenders: 2, spendCapUsd: 1, critiqueFrames: "auto" as const };
   const cast = project.stick_cast;
   const selectedVoice = voices.find((v) => v.id === voiceId);
   const providers = [...new Set(voices.map((v) => v.provider))];
@@ -219,6 +219,20 @@ export function SettingsForm({
                   defaultValue={autofixCfg.spendCapUsd}
                   className="input"
                 />
+              </Field>
+              <Field label="Keyframes analysed">
+                <select
+                  name="autofix_critique_frames"
+                  defaultValue={String(autofixCfg.critiqueFrames ?? "auto")}
+                  className="input"
+                >
+                  <option value="auto">Auto (scales with length)</option>
+                  <option value="5">5</option>
+                  <option value="8">8</option>
+                  <option value="12">12</option>
+                  <option value="15">15</option>
+                  <option value="20">20</option>
+                </select>
               </Field>
             </div>
             <p className="text-[11px] text-muted">

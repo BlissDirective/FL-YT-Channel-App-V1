@@ -91,11 +91,18 @@ to its own content).
   - Animation: the render farm's stick frame critic
     (`packages/render/src/stick/frame-critic.ts`) writes `videos.vision_review`.
   - AI-clip: the render farm's **footage frame critic**
-    (`packages/render/src/footage/frame-critic.ts`) renders up to 5 mid-beat
-    keyframes of the delivered cut and scores them (relevance, framing, captions,
-    variety) into the same `videos.vision_review` shape. The loop reads it
-    directly; if the farm critic isn't enabled for a channel it falls back to a
-    QC-vision synthesis of the final cut.
+    (`packages/render/src/footage/frame-critic.ts`) renders mid-beat keyframes of
+    the delivered cut and scores them (relevance, framing, captions, variety)
+    into the same `videos.vision_review` shape. The loop reads it directly; if
+    the farm critic isn't enabled for a channel it falls back to a QC-vision
+    synthesis of the final cut.
+  - **Keyframe count is adaptive** (`critiqueFrameCount`): `autofix_config.critiqueFrames`
+    defaults to `"auto"` — shorts are capped at 8 keyframes, long-form at 15
+    (one-per-beat up to the cap) so a 40-beat long-form isn't judged from ~10% of
+    its beats. A fixed number can be forced per channel in Settings. Each frame
+    costs ~1,800 vision tokens (≈$0.005 on Sonnet); the output budget scales with
+    frame count. Returns diminish past ~12, and stills still can't judge motion —
+    that's Tier-2's job.
 - **Tier-2 — TwelveLabs temporal.** Escalated **only when Tier-1 flags
   motion / timing / pacing** (`src/lib/adapters/twelvelabs.ts` → `wantsTemporalPass`)
   **and** a `TWELVELABS_API_KEY` is configured (verified by the Verify Secrets

@@ -548,10 +548,12 @@ async function renderOne(
 
   // Tier-1 vision critique: only for stick shorts (programmatic, so issues map
   // to tunable params). Best-effort — never fails the render.
+  const afCfg = (built.project as { autofix_config?: { critiqueFrames?: number | string } }).autofix_config;
   const isStick = props.beats.some((b) => b.stickScene);
   if (isShort && isStick) {
     try {
-      await runFrameCritic(serveUrl, props, videoId, built.project.id, video.title);
+      const n = critiqueFrameCount(props.beats.length, true, afCfg);
+      await runFrameCritic(serveUrl, props, videoId, built.project.id, video.title, n);
     } catch (err) {
       console.error(`⚠️  vision critique failed (non-fatal): ${String(err).slice(0, 160)}`);
     }
@@ -565,12 +567,31 @@ async function renderOne(
     try {
       const compId = isShort ? "VerticalShort" : "LongForm";
       const startOffsetSec = isShort ? 0 : INTRO_SEC;
-      await runFootageCritic(serveUrl, props, videoId, built.project.id, video.title, compId, startOffsetSec);
+      const n = critiqueFrameCount(props.beats.length, isShort, afCfg);
+      await runFootageCritic(serveUrl, props, videoId, built.project.id, video.title, compId, startOffsetSec, n);
     } catch (err) {
       console.error(`⚠️  footage vision critique failed (non-fatal): ${String(err).slice(0, 160)}`);
     }
   }
   return "rendered";
+}
+
+/**
+ * How many mid-beat keyframes the vision critic should analyse. Honours the
+ * channel's autofix_config.critiqueFrames override (a fixed number), else scales
+ * with length: shorts are short so a low cap suffices; long-form (tens of beats)
+ * gets one-per-beat up to a higher cap so coverage isn't ~10% of the video.
+ * More frames cost linearly (~1.8k vision tokens each) with diminishing returns
+ * past ~12, so the caps stay modest. See docs/Auto-Fix-Loop.md §4.
+ */
+function critiqueFrameCount(
+  beatCount: number,
+  isShort: boolean,
+  cfg?: { critiqueFrames?: number | string },
+): number {
+  const override = cfg?.critiqueFrames;
+  if (typeof override === "number" && override > 0) return Math.min(beatCount, Math.round(override));
+  return Math.min(beatCount, isShort ? 8 : 15);
 }
 
 /** Pick `n` indices spread evenly across `[0, len)`. */
@@ -593,6 +614,7 @@ async function runFrameCritic(
   videoId: string,
   projectId: string,
   title: string,
+  maxFrames = 5,
 ): Promise<void> {
   const beats = props.beats;
   if (beats.length === 0) return;
@@ -607,7 +629,7 @@ async function runFrameCritic(
   const composition = await selectComposition({ serveUrl, id: "VerticalShort", inputProps: props });
   const outDir = mkdtempSync(join(tmpdir(), "critic-"));
   const frames: CritiqueFrame[] = [];
-  for (const i of sampleEvenly(beats.length, 5)) {
+  for (const i of sampleEvenly(beats.length, maxFrames)) {
     const midSec = starts[i] + Math.max(1, beats[i].durationSec) / 2;
     const frame = Math.min(composition.durationInFrames - 1, Math.max(0, Math.round(midSec * FPS)));
     const out = join(outDir, `kf-${i}.jpg`);
@@ -663,6 +685,7 @@ async function runFootageCritic(
   title: string,
   compId: "LongForm" | "VerticalShort",
   startOffsetSec: number,
+  maxFrames = 5,
 ): Promise<void> {
   const beats = props.beats;
   if (beats.length === 0) return;
@@ -678,7 +701,7 @@ async function runFootageCritic(
   const composition = await selectComposition({ serveUrl, id: compId, inputProps: props });
   const outDir = mkdtempSync(join(tmpdir(), "footcritic-"));
   const frames: FootageFrame[] = [];
-  for (const i of sampleEvenly(beats.length, 5)) {
+  for (const i of sampleEvenly(beats.length, maxFrames)) {
     const midSec = starts[i] + Math.max(1, beats[i].durationSec) / 2;
     const frame = Math.min(composition.durationInFrames - 1, Math.max(0, Math.round(midSec * FPS)));
     const out = join(outDir, `kf-${i}.jpg`);

@@ -97,6 +97,9 @@ Score each dimension 0–10 and overall. List concrete issues, each tied to its 
     content.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: f.jpegBase64 } });
   }
 
+  // Scale the output budget with frame count so more keyframes can yield more
+  // beat-anchored issues without truncating the tool call.
+  const maxTokens = Math.min(8000, 1200 + opts.frames.length * 220);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -106,7 +109,7 @@ Score each dimension 0–10 and overall. List concrete issues, each tied to its 
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 1800,
+      max_tokens: maxTokens,
       temperature: 0.3,
       tools: [DELIVER_CRITIQUE_TOOL],
       tool_choice: { type: "tool", name: "deliver_critique" },
