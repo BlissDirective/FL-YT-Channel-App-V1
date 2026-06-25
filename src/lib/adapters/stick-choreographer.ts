@@ -4,7 +4,9 @@ import {
   STICK_ACTIONS,
   STICK_FX,
   STICK_MOODS,
+  STICK_PROPS,
   STICK_SETTINGS,
+  type PropKey,
   type Setting,
   type StickAction,
   type StickFx,
@@ -65,6 +67,7 @@ const DELIVER_SCENES_TOOL = {
               description: "Optional emphasis effects (impact on a hit, speedlines on a chase). Use sparingly.",
             },
             action: { type: "string", enum: STICK_ACTIONS as unknown as string[], description: "What the protagonist does." },
+            prop: { type: "string", enum: STICK_PROPS as unknown as string[], description: "Optional object in the protagonist's hand (mic for a host, sword for a fight, sign, book…). Omit/none for most beats." },
             facing: { type: "string", enum: ["l", "r"] },
             say: { type: "string", description: "Optional speech bubble (≤6 words) — only with dialogue." },
             think: { type: "string", description: "Optional thought bubble (≤6 words) — only for inner thought." },
@@ -155,12 +158,15 @@ type RawScene = {
   mood?: string;
   fx?: string[];
   action?: string;
+  prop?: string;
   facing?: string;
   say?: string;
   think?: string;
   action2?: string;
   say2?: string;
 };
+
+const PROP_SET = new Set<string>(STICK_PROPS);
 
 const ACTION_SET = new Set<string>(STICK_ACTIONS);
 const SETTING_SET = new Set<string>(STICK_SETTINGS);
@@ -192,6 +198,7 @@ function normalizeScene(r: RawScene): StickScene {
         action: coerceAction(r.action),
         facing,
         x: hasTwo ? 0.36 : 0.5,
+        prop: r.prop && PROP_SET.has(r.prop) ? (r.prop as PropKey) : undefined,
         say: clip(r.say, 36),
         think: clip(r.think, 36),
       },

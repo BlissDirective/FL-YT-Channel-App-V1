@@ -115,8 +115,10 @@ fallback (no API key), exactly like the highlights and shorts adapters.
   editor (colour / build / accessory). Video page: a Stick Scenes editor with
   per-beat action/setting/mood overrides and a per-beat re-roll
   (`rerollStickScene` / `setStickScene`).
-- **Phase 4 — polish.** Two-hander choreography, parallax backgrounds,
-  transitions, sfx hooks, more props. *(No face/emote system — deliberate.)*
+- **Phase 4 — polish. ✅ Done.** Ground shadows; two-hander auto-facing +
+  spacing; per-scene cut-in entrance (fade + slide); idle camera drift; 7 more
+  props (sword/briefcase/book/cup/mic/ball/flag, choreographer-assignable).
+  *(No face/emote system — deliberate.)*
 - **Phase 5 — self-improving loops.** The four loops below, once there's live
   retention data to learn from.
 

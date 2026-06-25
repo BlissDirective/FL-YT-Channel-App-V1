@@ -26,7 +26,10 @@ export type Mood = (typeof STICK_MOODS)[number];
 export const STICK_FX = ["shake", "flash", "speedlines", "impact"] as const;
 export type StickFx = (typeof STICK_FX)[number];
 
-export const STICK_PROPS = ["none", "phone", "sign", "box", "knife", "bag", "torch"] as const;
+export const STICK_PROPS = [
+  "none", "phone", "sign", "box", "knife", "bag", "torch",
+  "sword", "briefcase", "book", "cup", "mic", "ball", "flag",
+] as const;
 export type PropKey = (typeof STICK_PROPS)[number];
 
 export const STICK_BUILDS = ["normal", "tall", "short", "heavy", "lanky", "kid"] as const;

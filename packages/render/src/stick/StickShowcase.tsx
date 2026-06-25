@@ -41,6 +41,15 @@ const SCENES: StickScene[] = [
     fx: ["speedlines"],
     actors: [{ id: "a", action: "run", x: 0.46, facing: "r", cast: { accessory: "cape" } }],
   },
+  // 5) Two-hander with NO explicit facing → auto-face each other; mic prop.
+  {
+    setting: "rooftop",
+    shot: "medium",
+    actors: [
+      { id: "host", action: "point", x: 0.3, prop: "mic", say: "Welcome back!" },
+      { id: "guest", action: "wave", x: 0.7, cast: { color: "#2E5E8C", accessory: "cap" } },
+    ],
+  },
 ];
 
 const BUILDS: Build[] = ["kid", "short", "normal", "heavy", "tall", "lanky"];

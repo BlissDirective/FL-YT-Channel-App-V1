@@ -39,7 +39,21 @@ export type StickAction =
   | "dead";
 
 export type Emote = "neutral" | "happy" | "sad" | "angry" | "shock";
-export type PropKey = "none" | "phone" | "sign" | "box" | "knife" | "bag" | "torch";
+export type PropKey =
+  | "none"
+  | "phone"
+  | "sign"
+  | "box"
+  | "knife"
+  | "bag"
+  | "torch"
+  | "sword"
+  | "briefcase"
+  | "book"
+  | "cup"
+  | "mic"
+  | "ball"
+  | "flag";
 export type Setting =
   | "void"
   | "room"
