@@ -229,8 +229,14 @@ YouTube OAuth upload (per-project token) · cron infra · MCP server.
   tracker** — subs/1,000 + watch-hours/4,000 (+ Shorts views/10M) progress bars with the
   nearer path highlighted, plus the current mix and reason. *Checkpoint: dashboard shows
   progress; mix auto-tilts.*
-- **F — Hardening + go-live:** dry-run, observability, then flip it on for the 2-month
-  run.
+- **F — Hardening + go-live:** ✅ **built.** `operator_events` (mig 0030) activity log
+  (seed/notify/hold/approve/skip/analytics/digest/cycle-roll/budget/start/pause/stop) +
+  **kill-switch & channel-paused guards** + a **budget-exhausted alert** (once/cycle, to
+  Telegram); `operator-readiness.ts` **go-live preflight** (brain/VO/visuals/publishing/
+  analytics/Telegram-webhook/cron/kill-switch/channel) surfaced as a **checklist on the
+  homepage** with a blocking banner on any fail; the panel shows a **live activity feed**.
+  See the **Go-live runbook** below. *Checkpoint: launch-blocked when mis-wired; every
+  action is logged.*
 
 ## 12. Top risks & mitigations
 
@@ -254,6 +260,45 @@ YouTube OAuth upload (per-project token) · cron infra · MCP server.
 2. **Analytics** (Phase D): re-consent YouTube OAuth with `yt-analytics.readonly`
    (+ monetary) and refresh the per-project token.
 3. **Posting slot** (Phase A): preferred daily time + timezone for the pre-Analytics slot.
+
+---
+
+## 15. Go-live runbook
+
+The system is built (Phases A–F). To launch The Silicon Layer:
+
+**One-time setup**
+1. **Telegram webhook** — after deploy, register it once:
+   `curl -X POST "https://<app>/api/telegram/register?key=$CRON_SECRET"` → expect `{"ok":true}`.
+   Then DM your bot `/status`; it should reply.
+2. **Analytics token** — paste the analytics-scoped refresh token into
+   The Silicon Layer → Settings → *Channel refresh token* (already done if the YPP
+   tracker shows numbers).
+3. **Crons** — the GitHub Actions schedules (build-runner, render, clips, auto-fix,
+   auto-pilot, stats) run on push; confirm they're enabled in the repo's Actions tab.
+
+**Launch**
+4. Open the project homepage → check the **Go-live checklist** on the Auto Pilot panel.
+   Green/▪ is fine; a red **Not ready** banner blocks a confident start — fix it first.
+5. Press **Start Auto Pipeline**. The 30-day budget cycle anchors now.
+
+**What to expect daily**
+- ~1pm CT slot: the operator seeds the day's video (diverse topic, ban-safe), it runs
+  through script → assets → render → auto-fix, then **holds**.
+- You get a **Telegram card** → tap **Approve** (or it auto-approves after 15h if QC ≥ 8.5).
+- Risky/low-QC videos arrive as **"Held for review"** instead — they never auto-post.
+- The **activity feed** on the panel logs every step; the **weekly digest** (Mon ~9am CT)
+  summarizes spend + YPP progress.
+
+**Controls**
+- **Pause / Resume / Stop** on the panel or via Telegram `/pause`, `/resume`, `/status`.
+- **Stop** ends the run; **Pause** keeps the budget clock elapsing. Neither resets the
+  $60 before the 30-day mark.
+- Emergency: the global **kill switch** halts all production instantly.
+
+**Tuning (operator_runs.config)**
+- `mixShortsPct`, per-format caps, `autoApproveHours`/`autoApproveQc`, `publishFloorQc`,
+  `taxonomy`, and `rampEnabled`/`maxDailyCap` (turn the cadence ramp on when ready).
 
 ---
 

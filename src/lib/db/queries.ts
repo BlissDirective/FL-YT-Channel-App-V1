@@ -13,6 +13,7 @@ import type {
   Idea,
   Insight,
   OperatorConfig,
+  OperatorEvent,
   OperatorRun,
   OperatorStrategy,
   Project,
@@ -77,6 +78,18 @@ export type OperatorView = {
   mixReason: string;
   dailyCap: number;
 };
+
+/** Recent Auto Pilot Operator activity (homepage event log). */
+export async function getOperatorEvents(projectId: string, limit = 8): Promise<OperatorEvent[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("operator_events")
+    .select("*")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return (data as OperatorEvent[]) ?? [];
+}
 
 /** The Auto Pilot Operator's live state for a project (drives the homepage
     panel). Reads the budget cycle straight from the ledger — no engine import,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pause, Play, Rocket, Square } from "lucide-react";
+import { AlertTriangle, Check, Minus, Pause, Play, Rocket, Square } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import {
@@ -10,6 +10,8 @@ import {
   stopOperatorAction,
 } from "@/lib/actions/operator";
 import type { OperatorView } from "@/lib/db/queries";
+import type { Readiness } from "@/lib/pipeline/operator-readiness";
+import type { OperatorEvent } from "@/lib/db/types";
 
 const HOUR_LABEL = (h: number) => {
   const am = h < 12;
@@ -18,12 +20,48 @@ const HOUR_LABEL = (h: number) => {
 };
 const TZ_ABBR = (tz: string) => (tz.includes("Chicago") ? "CT" : tz);
 
-export function OperatorPanel({ projectId, view }: { projectId: string; view: OperatorView }) {
+const EVENT_ICON: Record<string, string> = {
+  seed: "🌱",
+  notify: "📨",
+  hold: "⚠️",
+  approve: "✅",
+  auto_approve: "🤖",
+  skip: "⏭",
+  analytics: "📈",
+  digest: "📊",
+  cycle_roll: "🔄",
+  budget: "💸",
+  error: "❌",
+  start: "▶️",
+  pause: "⏸",
+  stop: "⏹",
+};
+
+function fmtAgo(iso: string): string {
+  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return "now";
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+  return `${Math.floor(s / 86400)}d`;
+}
+
+export function OperatorPanel({
+  projectId,
+  view,
+  readiness,
+  events,
+}: {
+  projectId: string;
+  view: OperatorView;
+  readiness: Readiness;
+  events: OperatorEvent[];
+}) {
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string>();
   const running = view.status === "active";
   const paused = view.status === "paused";
   const live = running || paused;
+  const blocker = readiness.checks.find((c) => c.status === "fail");
 
   const act = (fn: () => Promise<{ ok: boolean; error?: string }>, ok: string) =>
     start(async () => {
@@ -152,6 +190,54 @@ export function OperatorPanel({ projectId, view }: { projectId: string; view: Op
               {view.retentionPct > 0 ? `Avg retention ${view.retentionPct.toFixed(0)}% · ` : ""}cadence {view.dailyCap}/day
             </p>
           )}
+        </div>
+      )}
+
+      {blocker && (
+        <div className="mt-3 flex items-start gap-2 rounded-xl bg-coral/10 px-3 py-2 text-sm text-coral">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          <span>
+            <b>Not ready:</b> {blocker.label} — {blocker.detail}
+          </span>
+        </div>
+      )}
+
+      {/* Go-live checklist before launch; collapses to events once running. */}
+      {!live && (
+        <div className="mt-4 space-y-1.5 rounded-xl border border-line bg-canvas/50 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Go-live checklist</p>
+          {readiness.checks.map((c) => (
+            <div key={c.key} className="flex items-start gap-2 text-sm">
+              {c.status === "ok" ? (
+                <Check className="mt-0.5 size-4 shrink-0 text-success" />
+              ) : c.status === "warn" ? (
+                <Minus className="mt-0.5 size-4 shrink-0 text-muted" />
+              ) : (
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-coral" />
+              )}
+              <span>
+                <span className="font-medium text-ink">{c.label}</span>
+                <span className="text-muted"> — {c.detail}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {live && events.length > 0 && (
+        <div className="mt-4">
+          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Recent activity</p>
+          <ul className="space-y-1">
+            {events.slice(0, 6).map((e) => (
+              <li key={e.id} className="flex items-center justify-between gap-2 text-xs">
+                <span className="min-w-0 flex-1 truncate">
+                  <span className="text-muted">{EVENT_ICON[e.kind] ?? "•"} </span>
+                  {e.message}
+                </span>
+                <span className="shrink-0 tabular-nums text-muted">{fmtAgo(e.created_at)}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

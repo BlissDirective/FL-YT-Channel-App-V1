@@ -17,6 +17,7 @@ import {
   getBuildRuns,
   getIdeas,
   getKillSwitch,
+  getOperatorEvents,
   getOperatorView,
   getProject,
   getTrackedStats,
@@ -37,6 +38,7 @@ import { NeedsAttention } from "./needs-attention";
 import { BuildAndPost } from "./build/build-and-post";
 import { BuildRunsPanel } from "./build/build-runs-panel";
 import { OperatorPanel } from "./operator-panel";
+import { operatorReadiness } from "@/lib/pipeline/operator-readiness";
 
 export const dynamic = "force-dynamic";
 // Live script + voiceover stages run inside actions on this route.
@@ -63,14 +65,19 @@ export default async function ProjectHome({
   const project = await getProject(id);
   if (!project) notFound();
 
-  const [videos, killSwitch, tracked, buildRuns, ideas, operator] = await Promise.all([
+  const [videos, killSwitch, tracked, buildRuns, ideas, operator, operatorEvents] = await Promise.all([
     getVideos(id),
     getKillSwitch(),
     getTrackedStats(id),
     getBuildRuns(id),
     getIdeas(id),
     getOperatorView(id),
+    getOperatorEvents(id),
   ]);
+  const operatorReady = await operatorReadiness(project, {
+    strategyPulled: Boolean(operator.run?.config?.strategy?.channel),
+    killSwitch,
+  });
   const ideaOptions = ideas
     .filter((i) => i.status !== "dismissed")
     .map((i) => ({ id: i.id, title: i.title, angle: i.angle }));
@@ -94,7 +101,7 @@ export default async function ProjectHome({
 
   return (
     <div className="space-y-6 pt-2">
-      <RealtimeRefresher tables={["videos", "ideas", "projects", "approvals", "build_runs", "operator_runs"]} />
+      <RealtimeRefresher tables={["videos", "ideas", "projects", "approvals", "build_runs", "operator_runs", "operator_events"]} />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link href="/" className="text-sm font-medium text-muted hover:text-ink">
@@ -159,7 +166,7 @@ export default async function ProjectHome({
         }))}
       />
 
-      <OperatorPanel projectId={id} view={operator} />
+      <OperatorPanel projectId={id} view={operator} readiness={operatorReady} events={operatorEvents} />
 
       <BuildRunsPanel projectId={id} runs={buildRuns} />
 

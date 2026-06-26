@@ -324,6 +324,17 @@ export type OperatorStrategy = {
   updatedAt?: string;
 };
 
+/** Auto Pilot Operator activity-log entry (operator_events). */
+export type OperatorEvent = {
+  id: string;
+  project_id: string;
+  operator_run_id: string | null;
+  kind: string;
+  message: string;
+  meta: Record<string, unknown>;
+  created_at: string;
+};
+
 export type OperatorRun = {
   id: string;
   project_id: string;

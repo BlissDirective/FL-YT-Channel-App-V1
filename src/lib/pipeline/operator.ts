@@ -1,8 +1,8 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { startBuildRun, decideGate, zonedTimeToUtc, ymdInTz, type BuildRunConfig } from "@/lib/pipeline/engine";
+import { startBuildRun, decideGate, isKillSwitchOn, zonedTimeToUtc, ymdInTz, type BuildRunConfig } from "@/lib/pipeline/engine";
 import { reviewGate, isQcLive } from "@/lib/adapters/qc";
-import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest } from "@/lib/adapters/telegram";
+import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest, sendTelegram } from "@/lib/adapters/telegram";
 import { autofixInFlight } from "@/lib/pipeline/autofix";
 import { editorialGuard, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
 import {
@@ -96,6 +96,7 @@ export async function startOperator(
         .eq("id", existing.id)
         .select("*")
         .single();
+      await logEvent(db, projectId, existing.id, "start", "Resumed");
       return { ok: true, run: data as OperatorRun };
     }
     return { ok: true, run: existing }; // already active
@@ -112,6 +113,7 @@ export async function startOperator(
     .select("*")
     .single();
   if (error) return { ok: false, error: error.message };
+  await logEvent(db, projectId, (data as OperatorRun).id, "start", "Started — 30-day budget cycle begins");
   return { ok: true, run: data as OperatorRun };
 }
 
@@ -119,6 +121,7 @@ export async function pauseOperator(db: Db, projectId: string): Promise<{ ok: bo
   const run = await liveRun(db, projectId);
   if (!run) return { ok: false };
   await db.from("operator_runs").update({ status: "paused", updated_at: new Date().toISOString() }).eq("id", run.id);
+  await logEvent(db, projectId, run.id, "pause", "Paused (budget clock keeps elapsing)");
   return { ok: true };
 }
 
@@ -126,6 +129,7 @@ export async function stopOperator(db: Db, projectId: string): Promise<{ ok: boo
   const run = await liveRun(db, projectId);
   if (!run) return { ok: false };
   await db.from("operator_runs").update({ status: "stopped", updated_at: new Date().toISOString() }).eq("id", run.id);
+  await logEvent(db, projectId, run.id, "stop", "Stopped");
   return { ok: true };
 }
 
@@ -156,8 +160,29 @@ async function rollCycleIfDue(db: Db, run: OperatorRun): Promise<OperatorRun> {
     const iso = new Date(start).toISOString();
     await db.from("operator_runs").update({ cycle_start: iso, updated_at: new Date().toISOString() }).eq("id", run.id);
     run.cycle_start = iso;
+    await logEvent(db, run.project_id, run.id, "cycle_roll", `New 30-day cycle — fresh $${Number(run.cycle_budget_usd).toFixed(0)} budget`);
   }
   return run;
+}
+
+/** Alert (once per cycle) when the budget is exhausted. */
+async function alertBudgetOnce(db: Db, run: OperatorRun, project: Project, spent: number): Promise<void> {
+  const { count } = await db
+    .from("operator_events")
+    .select("id", { count: "exact", head: true })
+    .eq("operator_run_id", run.id)
+    .eq("kind", "budget")
+    .gte("created_at", run.cycle_start);
+  if ((count ?? 0) > 0) return;
+  const budget = Number(run.cycle_budget_usd).toFixed(0);
+  await logEvent(db, run.project_id, run.id, "budget", `Budget exhausted — $${spent.toFixed(2)}/$${budget}. Production paused until the cycle rolls.`);
+  if (isTelegramLive()) {
+    try {
+      await sendTelegram(`💸 <b>${project.name}</b> — monthly budget reached ($${spent.toFixed(2)}/$${budget}). Production pauses until the 30-day cycle resets.`);
+    } catch {
+      /* best-effort */
+    }
+  }
 }
 
 // ── Scheduling + cadence ──────────────────────────────────────────────
@@ -214,6 +239,8 @@ export type OperatorTick =
     budget, and the day's slot is unfilled) seed today's video via Build & Post. */
 export async function tickOperator(db: Db, run: OperatorRun, project: Project): Promise<OperatorTick> {
   await rollCycleIfDue(db, run);
+  // Global emergency stop halts everything (seeding + approvals + publishing).
+  if (await isKillSwitchOn(db)) return { acted: false, reason: "kill-switch" };
   // Pull analytics (≤1/day) → strategy, before approvals/digest/seeding so they
   // all see the freshest learning. Approvals + digest run for active AND paused
   // runs (a paused operator still lets you approve + get your digest).
@@ -221,11 +248,16 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
   await processOperatorApprovals(db, run, project);
   await maybeSendDigest(db, run, project);
   if (run.status !== "active") return { acted: false, reason: run.status };
+  // The operator never produces while the channel itself is paused.
+  if (project.status !== "active") return { acted: false, reason: "project-paused" };
 
   const cfg = operatorConfig(run);
   const spent = await cycleSpentUsd(db, run);
   const remaining = Number(run.cycle_budget_usd) - spent;
-  if (remaining <= 0) return { acted: false, reason: "budget-exhausted", spentUsd: spent };
+  if (remaining <= 0) {
+    await alertBudgetOnce(db, run, project, spent);
+    return { acted: false, reason: "budget-exhausted", spentUsd: spent };
+  }
 
   // Cadence cap: steady cfg.dailyCap, or a maturity-scaled ramp when enabled.
   const ageDays = (Date.now() - new Date(run.cycle_start).getTime()) / 86_400_000;
@@ -332,10 +364,28 @@ async function seedVideo(
     .update({ operator_run_id: run.id, scheduled_publish_at: slot.toISOString() })
     .eq("build_run_id", res.runId);
 
+  const { data: seeded } = await db.from("videos").select("title").eq("build_run_id", res.runId).limit(1).maybeSingle();
+  await logEvent(db, run.project_id, run.id, "seed", `Seeded ${kind}: ${(seeded?.title as string) ?? "(untitled)"}`);
   return { acted: true, kind };
 }
 
 // ── Approvals (Telegram notify → approve/skip / auto-approve) ─────────
+
+/** Append an activity-log entry (best-effort — never throws). */
+async function logEvent(
+  db: Db,
+  projectId: string,
+  runId: string | null,
+  kind: string,
+  message: string,
+  meta: Record<string, unknown> = {},
+): Promise<void> {
+  try {
+    await db.from("operator_events").insert({ project_id: projectId, operator_run_id: runId, kind, message, meta });
+  } catch {
+    /* logging must never break the loop */
+  }
+}
 
 async function recordCost(db: Db, video: Video, usd: number, description: string) {
   if (usd <= 0) return;
@@ -394,6 +444,14 @@ export async function approveOperatorVideo(db: Db, video: Video, by: string): Pr
   if (video.status === "FINAL_REVIEW") {
     await decideGate({ videoId: video.id, decision: "approved" }, db, by === "auto" ? "autopilot" : "mcp");
   }
+  await logEvent(
+    db,
+    video.project_id,
+    video.operator_run_id,
+    by === "auto" ? "auto_approve" : "approve",
+    `${by === "auto" ? "Auto-approved" : "Approved"} (${privacy}): ${video.title}`,
+    { by },
+  );
 }
 
 /** Skip an operator video → it is killed and won't post; the next slot reseeds. */
@@ -401,6 +459,7 @@ export async function skipOperatorVideo(db: Db, video: Video, by: string): Promi
   const rev = (video.operator_review ?? {}) as OperatorReview;
   await db.from("videos").update({ operator_review: { ...rev, decided: "skipped", by } }).eq("id", video.id);
   await decideGate({ videoId: video.id, decision: "killed" }, db, by === "auto" ? "autopilot" : "mcp");
+  await logEvent(db, video.project_id, video.operator_run_id, "skip", `Skipped: ${video.title}`, { by });
 }
 
 /** Load a video + its project for a webhook callback (by video id). */
@@ -479,6 +538,7 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
         } catch (err) {
           console.error("telegram review-needed failed:", err);
         }
+        await logEvent(db, project.id, run.id, "hold", `Held: ${video.title} — ${reason}`, { flags });
         continue;
       }
 
@@ -504,6 +564,7 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
       } catch (err) {
         console.error("telegram approval card failed:", err);
       }
+      await logEvent(db, project.id, run.id, "notify", `Awaiting approval: ${video.title} (QC ${qc.toFixed(1)})`, { noAuto });
     } else {
       const ageMs = Date.now() - new Date(rev.notifiedAt).getTime();
       if (
@@ -554,6 +615,13 @@ async function maybePullAnalytics(db: Db, run: OperatorRun, project: Project): P
       })
       .eq("id", run.id);
     run.config = { ...(run.config ?? {}), strategy, lastAnalyticsAt: new Date().toISOString() };
+    await logEvent(
+      db,
+      run.project_id,
+      run.id,
+      "analytics",
+      `Pulled analytics — ${strategy.channel?.subs ?? 0} subs · ${(strategy.channel?.watchHours365 ?? 0).toFixed(0)}h watched`,
+    );
   } catch (err) {
     console.error(`operator analytics pull ${run.id} failed:`, err);
   }
@@ -682,6 +750,7 @@ async function maybeSendDigest(db: Db, run: OperatorRun, project: Project): Prom
       .from("operator_runs")
       .update({ config: { ...(run.config ?? {}), lastDigestAt: new Date().toISOString() } })
       .eq("id", run.id);
+    await logEvent(db, run.project_id, run.id, "digest", "Sent weekly digest");
   } catch (err) {
     console.error("telegram digest failed:", err);
   }
