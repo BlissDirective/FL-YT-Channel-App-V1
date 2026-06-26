@@ -221,8 +221,14 @@ YouTube OAuth upload (per-project token) · cron infra · MCP server.
   (subs/1,000 · watch-hrs/4,000 · retention) + what's working. Degrades gracefully with
   no token/scope. verify-secrets gains a live analytics-scope check.
   *Checkpoint: strategy shifts from real retention/CTR.*
-- **E — Monetization + ramp:** YPP tracker, dynamic mix tilt, cadence ramp.
-  *Checkpoint: dashboard shows progress; mix auto-tilts.*
+- **E — Monetization + ramp:** ✅ **built.** `src/lib/pipeline/monetization.ts` (pure):
+  YPP constants, **desiredMixShortsPct** (chase subs via Shorts → then watch-hours via
+  long-form, clamped 60–85%), **nearerPath**, **mixReason**, **effectiveDailyCap** (opt-in
+  ramp). The operator's daily seed now uses the **dynamic, monetization-aware mix** and
+  the **maturity-scaled cadence cap** (off by default). The homepage panel shows a **YPP
+  tracker** — subs/1,000 + watch-hours/4,000 (+ Shorts views/10M) progress bars with the
+  nearer path highlighted, plus the current mix and reason. *Checkpoint: dashboard shows
+  progress; mix auto-tilts.*
 - **F — Hardening + go-live:** dry-run, observability, then flip it on for the 2-month
   run.
 

@@ -14,11 +14,22 @@ import type {
   Insight,
   OperatorConfig,
   OperatorRun,
+  OperatorStrategy,
   Project,
   Script,
   Video,
   VideoIntel,
 } from "./types";
+import {
+  YPP_SUBS,
+  YPP_WATCH_HOURS,
+  YPP_SHORTS_VIEWS,
+  desiredMixShortsPct,
+  effectiveDailyCap,
+  mixReason,
+  nearerPath,
+  type YppPath,
+} from "@/lib/pipeline/monetization";
 
 export async function getProjects(): Promise<Project[]> {
   const supabase = await createClient();
@@ -52,6 +63,19 @@ export type OperatorView = {
   seededToday: number;
   postingHour: number;
   postingTz: string;
+  /** Monetization (YPP) progress — present once analytics has been pulled. */
+  hasAnalytics: boolean;
+  subs: number;
+  subsGoal: number;
+  watchHours: number;
+  watchGoal: number;
+  shortsViews: number;
+  shortsGoal: number;
+  retentionPct: number;
+  nearerPath: YppPath;
+  mixShortsPct: number;
+  mixReason: string;
+  dailyCap: number;
 };
 
 /** The Auto Pilot Operator's live state for a project (drives the homepage
@@ -70,6 +94,9 @@ export async function getOperatorView(projectId: string): Promise<OperatorView> 
     run: null, status: null, cycleDay: 0, cycleDays: 30,
     budgetUsd: 60, spentUsd: 0, remainingUsd: 60,
     videosThisCycle: 0, seededToday: 0, postingHour: 13, postingTz: "America/Chicago",
+    hasAnalytics: false, subs: 0, subsGoal: YPP_SUBS, watchHours: 0, watchGoal: YPP_WATCH_HOURS,
+    shortsViews: 0, shortsGoal: YPP_SHORTS_VIEWS, retentionPct: 0,
+    nearerPath: "watch", mixShortsPct: 0.75, mixReason: "default mix", dailyCap: 1,
   };
   if (!run) return empty;
 
@@ -87,6 +114,11 @@ export async function getOperatorView(projectId: string): Promise<OperatorView> 
   const seededToday = ((vids ?? []) as { created_at: string }[]).filter(
     (v) => new Date(v.created_at).getTime() >= todayStart.getTime(),
   ).length;
+
+  const strat = cfg.strategy as OperatorStrategy | undefined;
+  const ch = strat?.channel;
+  const baseMix = Number(cfg.mixShortsPct ?? 0.75);
+  const ageDays = dayMs / 86_400_000;
   return {
     run,
     status: run.status === "stopped" ? null : run.status,
@@ -99,6 +131,24 @@ export async function getOperatorView(projectId: string): Promise<OperatorView> 
     seededToday,
     postingHour: Number(cfg.postingHour ?? 13),
     postingTz: String(cfg.postingTz ?? "America/Chicago"),
+    hasAnalytics: Boolean(ch),
+    subs: ch?.subs ?? 0,
+    subsGoal: YPP_SUBS,
+    watchHours: ch?.watchHours365 ?? 0,
+    watchGoal: YPP_WATCH_HOURS,
+    shortsViews: ch?.shortsViews90 ?? strat?.formatPerf?.short?.views ?? 0,
+    shortsGoal: YPP_SHORTS_VIEWS,
+    retentionPct: ch?.retentionPct ?? 0,
+    nearerPath: nearerPath(strat),
+    mixShortsPct: desiredMixShortsPct(baseMix, strat),
+    mixReason: mixReason(strat),
+    dailyCap: effectiveDailyCap({
+      baseCap: Number(cfg.dailyCap ?? 1),
+      maxCap: Number(cfg.maxDailyCap ?? 2),
+      rampEnabled: Boolean(cfg.rampEnabled),
+      ageDays,
+      subs: ch?.subs ?? 0,
+    }),
   };
 }
 

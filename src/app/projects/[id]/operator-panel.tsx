@@ -134,6 +134,27 @@ export function OperatorPanel({ projectId, view }: { projectId: string; view: Op
         </div>
       )}
 
+      {live && view.hasAnalytics && (
+        <div className="mt-4 space-y-2.5 rounded-xl border border-line bg-canvas/50 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Monetization · YPP</p>
+            <span className="text-[11px] text-muted">
+              {Math.round(view.mixShortsPct * 100)}% shorts · {view.mixReason}
+            </span>
+          </div>
+          <Goal label="Subscribers" value={view.subs} goal={view.subsGoal} fmt={compact} />
+          <Goal label="Watch-hours · 365d" value={view.watchHours} goal={view.watchGoal} fmt={(n) => n.toFixed(0)} highlight={view.nearerPath === "watch"} />
+          {view.shortsViews > 0 && (
+            <Goal label="Shorts views · 90d" value={view.shortsViews} goal={view.shortsGoal} fmt={compact} highlight={view.nearerPath === "shorts"} />
+          )}
+          {(view.retentionPct > 0 || view.dailyCap > 0) && (
+            <p className="text-[11px] text-muted">
+              {view.retentionPct > 0 ? `Avg retention ${view.retentionPct.toFixed(0)}% · ` : ""}cadence {view.dailyCap}/day
+            </p>
+          )}
+        </div>
+      )}
+
       {msg && <p className="mt-2 text-xs font-medium text-ink">{msg}</p>}
     </Card>
   );
@@ -144,6 +165,40 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
     <div className="rounded-xl bg-canvas px-3 py-2">
       <p className="text-[11px] uppercase tracking-wide text-muted">{label}</p>
       <div className="mt-0.5">{children}</div>
+    </div>
+  );
+}
+
+const compact = (n: number) => Intl.NumberFormat("en", { notation: "compact" }).format(n);
+
+function Goal({
+  label,
+  value,
+  goal,
+  fmt,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  goal: number;
+  fmt: (n: number) => string;
+  highlight?: boolean;
+}) {
+  const pct = goal > 0 ? Math.min(100, (value / goal) * 100) : 0;
+  return (
+    <div>
+      <div className="flex items-center justify-between text-[11px]">
+        <span className={highlight ? "font-semibold text-ink" : "text-muted"}>
+          {label}
+          {highlight ? " · nearer path" : ""}
+        </span>
+        <span className="tabular-nums text-muted">
+          {fmt(value)} / {fmt(goal)}
+        </span>
+      </div>
+      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-card">
+        <div className={`h-full rounded-full ${highlight ? "bg-accent" : "bg-ink/60"}`} style={{ width: `${pct}%` }} />
+      </div>
     </div>
   );
 }

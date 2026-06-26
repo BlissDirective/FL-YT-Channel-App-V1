@@ -11,6 +11,7 @@ import {
   getVideoMetrics,
   getYppSnapshot,
 } from "@/lib/adapters/youtube-analytics";
+import { desiredMixShortsPct, effectiveDailyCap } from "@/lib/pipeline/monetization";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import type { FrameCritique } from "@/lib/stick-types";
 import type {
@@ -50,6 +51,8 @@ const DEFAULTS: Required<OperatorConfig> = {
   autoApproveHours: 15,
   autoApproveQc: 8.5,
   publishFloorQc: 6.0,
+  rampEnabled: false,
+  maxDailyCap: 2,
   taxonomy: [],
   thumbStyle: "cinematic",
   lastDigestAt: "",
@@ -224,14 +227,24 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
   const remaining = Number(run.cycle_budget_usd) - spent;
   if (remaining <= 0) return { acted: false, reason: "budget-exhausted", spentUsd: spent };
 
-  if ((await seededTodayCount(db, run, cfg.postingTz)) >= cfg.dailyCap) {
+  // Cadence cap: steady cfg.dailyCap, or a maturity-scaled ramp when enabled.
+  const ageDays = (Date.now() - new Date(run.cycle_start).getTime()) / 86_400_000;
+  const dailyCap = effectiveDailyCap({
+    baseCap: cfg.dailyCap,
+    maxCap: cfg.maxDailyCap,
+    rampEnabled: cfg.rampEnabled,
+    ageDays,
+    subs: cfg.strategy?.channel?.subs ?? 0,
+  });
+  if ((await seededTodayCount(db, run, cfg.postingTz)) >= dailyCap) {
     return { acted: false, reason: "already-seeded-today", spentUsd: spent };
   }
 
-  // Choose today's format from the running mix, and refuse it if its cap won't
-  // fit the remaining pool (never start a video we can't afford).
+  // Choose today's format from the monetization-aware mix (tilts toward the
+  // nearer YPP path), and refuse it if its cap won't fit the remaining pool.
   const counts = await cycleFormatCounts(db, run);
-  const kind = pickFormat(counts.total, cfg.mixShortsPct);
+  const mixShortsPct = desiredMixShortsPct(cfg.mixShortsPct, cfg.strategy);
+  const kind = pickFormat(counts.total, mixShortsPct);
   const isShort = kind === "short";
   const cap = isShort ? cfg.shortsCapUsd : cfg.longCapUsd;
   if (remaining < cap) {
@@ -575,7 +588,10 @@ async function computeChannelStrategy(
 
   // Aggregate by subtopic (retention × reach) and by format (watch + subs).
   const bySub = new Map<string, { views: number; watch: number; retW: number }>();
-  const fmt = { short: { watchMin: 0, subs: 0, n: 0 }, long: { watchMin: 0, subs: 0, n: 0 } };
+  const fmt = {
+    short: { watchMin: 0, subs: 0, views: 0, n: 0 },
+    long: { watchMin: 0, subs: 0, views: 0, n: 0 },
+  };
   for (const r of rows) {
     const m = metrics.get(r.youtube_video_id);
     if (!m) continue;
@@ -588,6 +604,7 @@ async function computeChannelStrategy(
     const f = r.kind === "short" ? fmt.short : fmt.long;
     f.watchMin += m.watchMinutes;
     f.subs += m.subscribersGained;
+    f.views += m.views;
     f.n += 1;
   }
 
@@ -613,6 +630,7 @@ async function computeChannelStrategy(
       subsGained90: summary?.subscribersGained ?? 0,
       retentionPct: summary?.retentionPct ?? 0,
       ctr: summary?.ctr ?? 0,
+      shortsViews90: fmt.short.views,
     },
     updatedAt: new Date().toISOString(),
   };

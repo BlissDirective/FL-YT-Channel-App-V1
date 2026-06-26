@@ -285,6 +285,10 @@ export type OperatorConfig = {
   /** Below this QC the video is held for manual review, never offered for
       one-tap approval (quality floor). */
   publishFloorQc?: number;
+  /** Opt-in cadence ramp: raise the daily cap as the channel matures/performs. */
+  rampEnabled?: boolean;
+  /** Hard ceiling on the daily cap when ramping (ban-safe). */
+  maxDailyCap?: number;
   /** Topic taxonomy override for the dedup/coverage planner. */
   taxonomy?: string[];
   thumbStyle?: string;
@@ -303,8 +307,8 @@ export type OperatorStrategy = {
   topSubtopics?: string[];
   /** Per-format performance for the mix decision. */
   formatPerf?: {
-    short?: { watchMin: number; subs: number; n: number };
-    long?: { watchMin: number; subs: number; n: number };
+    short?: { watchMin: number; subs: number; views: number; n: number };
+    long?: { watchMin: number; subs: number; views: number; n: number };
   };
   /** Channel rollups (recent window + YPP progress). */
   channel?: {
@@ -314,6 +318,8 @@ export type OperatorStrategy = {
     subsGained90: number;
     retentionPct: number;
     ctr: number;
+    /** Operator Shorts' views in the recent window (toward the 10M Shorts path). */
+    shortsViews90?: number;
   };
   updatedAt?: string;
 };
