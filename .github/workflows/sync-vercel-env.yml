@@ -3,7 +3,7 @@ name: Sync Vercel Env
 # Pushes provider credentials from GitHub secrets into the Vercel project's
 # environment variables, then triggers a redeploy so they take effect.
 # Skips gracefully when VERCEL_TOKEN is not configured. Safe to re-run —
-# upsert semantics. (Re-sync trigger: CRON_SECRET rotation.)
+# upsert semantics. (Re-sync trigger: CRON_SECRET rotation v2.)
 
 on:
   workflow_dispatch:
