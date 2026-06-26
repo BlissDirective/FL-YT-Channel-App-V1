@@ -236,7 +236,7 @@ export type Video = {
 
 /** Per-video operator approval state (videos.operator_review). */
 export type OperatorReview = {
-  /** When the Telegram approval card was sent. */
+  /** When the Telegram approval/review message was sent. */
   notifiedAt?: string;
   /** FINAL QC score the card carried (for the auto-approve bar). */
   qc?: number;
@@ -244,6 +244,14 @@ export type OperatorReview = {
   decided?: "approved" | "skipped";
   /** Who decided: 'telegram' | 'auto' | 'app'. */
   by?: string;
+  /** Guardrails held this video for manual review (failed editorial guard or
+      below the quality floor) — never auto-approved. */
+  hold?: boolean;
+  holdReason?: string;
+  /** Editorial-guard caution flags shown on the approval card. */
+  caution?: string[];
+  /** Caution-flagged → require a manual tap (no auto-approve). */
+  noAuto?: boolean;
 };
 
 // ── Auto Pilot Operator ───────────────────────────────────────────────
@@ -274,7 +282,14 @@ export type OperatorConfig = {
   /** Auto-approve a held video after this many hours if QC clears the bar. */
   autoApproveHours?: number;
   autoApproveQc?: number;
+  /** Below this QC the video is held for manual review, never offered for
+      one-tap approval (quality floor). */
+  publishFloorQc?: number;
+  /** Topic taxonomy override for the dedup/coverage planner. */
+  taxonomy?: string[];
   thumbStyle?: string;
+  /** Last weekly digest send (ISO) — internal bookkeeping. */
+  lastDigestAt?: string;
 };
 
 export type OperatorRun = {

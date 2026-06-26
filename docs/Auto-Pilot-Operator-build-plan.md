@@ -202,8 +202,15 @@ YouTube OAuth upload (per-project token) · cron infra · MCP server.
   Approve/Skip buttons + /status, /pause, /resume) · one-time `/api/telegram/register`
   (CRON_SECRET-gated setWebhook). In-app approvals are finalized for release too.
   *Checkpoint: approve & control from your phone.*
-- **C — Guardrails:** topic planner + dedup, fact-check, copyright/legal, metadata,
-  quality floor. *Checkpoint: each guard blocks a planted bad case.*
+- **C — Guardrails:** ✅ **built.** `src/lib/adapters/guardrails.ts` — **planNextTopic**
+  (dedup vs recent titles + taxonomy-coverage → a fresh idea; seeded via
+  `ideaSource:'existing'`) and **editorialGuard** (fact-check + legal/copyright caution
+  + metadata-spam → pass / caution / fail). Wired into the operator: the pre-publish
+  gate holds on **fail or QC < publishFloor (6.0)** (Telegram "needs review", never
+  auto-approved), surfaces **caution** flags on the approval card (manual tap, no
+  auto-approve), and **passes** clean videos through. Media copyright is enforced by
+  construction (Pexels + FLUX + Remotion only). *Checkpoint: each guard blocks a
+  planted bad case.*
 - **D — Metrics loop:** Analytics scope + adapter + optimizer correlation.
   *Checkpoint: strategy shifts from real retention/CTR.*
 - **E — Monetization + ramp:** YPP tracker, dynamic mix tilt, cadence ramp.

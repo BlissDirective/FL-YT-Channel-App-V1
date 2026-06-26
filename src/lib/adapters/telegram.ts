@@ -75,19 +75,43 @@ export async function sendApprovalCard(opts: {
   kind: string;
   qc: number | null;
   slot: string | null;
+  /** Editorial-guard caution flags (publishable, but worth your eyes). */
+  caution?: string[];
 }): Promise<void> {
   const qcLine = opts.qc != null ? ` · QC <b>${opts.qc.toFixed(1)}</b>/10` : "";
   const slotLine = opts.slot ? `\n🕐 Scheduled ${fmtSlot(opts.slot)}` : "";
+  const cautionLine =
+    opts.caution && opts.caution.length
+      ? `\n⚠️ <i>${opts.caution.slice(0, 3).map(escapeHtml).join("; ")}</i>`
+      : "";
   const text =
     `🎬 <b>Awaiting approval</b>${qcLine}\n` +
     `${escapeHtml(opts.title)}\n` +
-    `<i>${opts.kind === "short" ? "Short" : "Long-form"}</i>${slotLine}`;
+    `<i>${opts.kind === "short" ? "Short" : "Long-form"}</i>${slotLine}${cautionLine}`;
   await sendTelegram(text, [
     [
       { text: "✅ Approve", callback_data: `ap:${opts.videoId}` },
       { text: "⏭ Skip", callback_data: `sk:${opts.videoId}` },
     ],
     [{ text: "👀 Preview", url: `${APP_BASE()}/projects/${opts.projectId}/videos/${opts.videoId}` }],
+  ]);
+}
+
+/** A video a guardrail held for manual review (no one-tap approval offered). */
+export async function sendReviewNeeded(opts: {
+  projectId: string;
+  videoId: string;
+  title: string;
+  reason: string;
+  flags?: string[];
+}): Promise<void> {
+  const flagLines = opts.flags && opts.flags.length ? `\n• ${opts.flags.slice(0, 3).map(escapeHtml).join("\n• ")}` : "";
+  const text =
+    `⚠️ <b>Held for review</b>\n` +
+    `${escapeHtml(opts.title)}\n` +
+    `<i>${escapeHtml(opts.reason)}</i>${flagLines}`;
+  await sendTelegram(text, [
+    [{ text: "👀 Review", url: `${APP_BASE()}/projects/${opts.projectId}/videos/${opts.videoId}` }],
   ]);
 }
 

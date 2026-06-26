@@ -2,8 +2,9 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { startBuildRun, decideGate, zonedTimeToUtc, ymdInTz, type BuildRunConfig } from "@/lib/pipeline/engine";
 import { reviewGate, isQcLive } from "@/lib/adapters/qc";
-import { isTelegramLive, sendApprovalCard, sendDigest } from "@/lib/adapters/telegram";
+import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest } from "@/lib/adapters/telegram";
 import { autofixInFlight } from "@/lib/pipeline/autofix";
+import { editorialGuard, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import type { FrameCritique } from "@/lib/stick-types";
 import type { OperatorConfig, OperatorRun, OperatorReview, Project, Video } from "@/lib/db/types";
@@ -35,7 +36,10 @@ const DEFAULTS: Required<OperatorConfig> = {
   longLenMax: 420,
   autoApproveHours: 15,
   autoApproveQc: 8.5,
+  publishFloorQc: 6.0,
+  taxonomy: [],
   thumbStyle: "cinematic",
+  lastDigestAt: "",
 };
 
 export function operatorConfig(run: Pick<OperatorRun, "config">): Required<OperatorConfig> {
@@ -238,10 +242,54 @@ async function seedVideo(
     lengthMaxSec: isShort ? cfg.shortLenMax : cfg.longLenMax,
     tier: (isShort ? cfg.shortsTier : cfg.longTier) as AutoTier,
     thumbStyle: project.brand_kit?.thumbnailStyle ?? cfg.thumbStyle,
-    ideaSource: "research", // fresh, researched idea each day (dedup guard: Phase C)
+    ideaSource: "research", // default; overridden below when the planner succeeds
     scheduleMode: "all_at_once",
     scheduleCfg: {},
   };
+
+  // Guardrail — anti-duplication / topic coverage: plan a fresh, non-overlapping
+  // idea that fills a taxonomy gap, and seed with it. Falls back to the built-in
+  // research path when the planner is unavailable.
+  const { data: recent } = await db
+    .from("videos")
+    .select("title")
+    .eq("project_id", run.project_id)
+    .order("created_at", { ascending: false })
+    .limit(15);
+  const recentTitles = ((recent ?? []) as { title: string }[]).map((r) => r.title).filter(Boolean);
+  const taxonomy = taxonomyFor(project, cfg.taxonomy && cfg.taxonomy.length ? cfg.taxonomy : undefined);
+  try {
+    const planned = await planNextTopic({ project, recentTitles, taxonomy, kind });
+    if (planned) {
+      const { data: idea } = await db
+        .from("ideas")
+        .insert({
+          project_id: run.project_id,
+          title: planned.title,
+          angle: planned.angle,
+          status: "approved",
+          source: { operator: true, subtopic: planned.subtopic },
+        })
+        .select("id")
+        .single();
+      if (idea) {
+        buildCfg.ideaSource = "existing";
+        buildCfg.ideaIds = [idea.id as string];
+      }
+      if (planned.costUsd > 0) {
+        await db.from("cost_ledger").insert({
+          project_id: run.project_id,
+          video_id: null,
+          provider: "anthropic",
+          description: `Operator topic plan — ${planned.subtopic || "topic"}`,
+          usd: planned.costUsd,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("operator topic planning failed (falling back to research):", err);
+  }
+
   const res = await startBuildRun(run.project_id, buildCfg, db);
   if (!res.ok) return { acted: false, reason: res.error };
 
@@ -358,13 +406,59 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
     .eq("auto_publish", false);
   for (const video of ((holding ?? []) as Video[])) {
     const rev = (video.operator_review ?? {}) as OperatorReview;
-    if (rev.decided) continue;
+    if (rev.decided || rev.hold) continue; // decided, or already held for review
     if (autofixInFlight(video)) continue; // let the fix loop settle first
     if (!rev.notifiedAt) {
       const qc = await finalQc(db, video, project);
+
+      // Guardrail — pre-publish editorial review of the finished script + metadata.
+      const { data: script } = await db
+        .from("scripts")
+        .select("body, metadata")
+        .eq("video_id", video.id)
+        .order("version", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const tags = ((script?.metadata ?? {}) as { tags?: string[] }).tags ?? [];
+      const guard = await editorialGuard({
+        title: video.title,
+        scriptBody: (script?.body as string) ?? "",
+        tags,
+        niche: project.niche,
+      });
+      if (guard.costUsd > 0) await recordCost(db, video, guard.costUsd, "Operator editorial guard");
+      const flags = [...guard.legalFlags, ...guard.factIssues, ...guard.metadataIssues];
+
+      // Quality floor or a hard editorial fail → hold for manual review (no
+      // one-tap approval; never auto-approved).
+      if (qc < cfg.publishFloorQc || guard.verdict === "fail") {
+        const reason =
+          guard.verdict === "fail"
+            ? `editorial review: ${guard.note || flags[0] || "flagged"}`
+            : `QC ${qc.toFixed(1)} below the ${cfg.publishFloorQc.toFixed(1)} floor`;
+        await db
+          .from("videos")
+          .update({
+            paused_reason: `Auto Pilot held — ${reason}. Manual review.`,
+            operator_review: { ...rev, notifiedAt: new Date().toISOString(), qc, hold: true, holdReason: reason },
+          })
+          .eq("id", video.id);
+        try {
+          await sendReviewNeeded({ projectId: project.id, videoId: video.id, title: video.title, reason, flags });
+        } catch (err) {
+          console.error("telegram review-needed failed:", err);
+        }
+        continue;
+      }
+
+      // Pass or caution → offer approval. Caution still surfaces flags and
+      // requires a manual tap (no auto-approve).
+      const noAuto = guard.verdict === "caution";
       await db
         .from("videos")
-        .update({ operator_review: { ...rev, notifiedAt: new Date().toISOString(), qc } })
+        .update({
+          operator_review: { ...rev, notifiedAt: new Date().toISOString(), qc, caution: noAuto ? flags : undefined, noAuto },
+        })
         .eq("id", video.id);
       try {
         await sendApprovalCard({
@@ -374,13 +468,18 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
           kind: video.kind,
           qc,
           slot: video.scheduled_publish_at,
+          caution: noAuto ? flags : undefined,
         });
       } catch (err) {
         console.error("telegram approval card failed:", err);
       }
     } else {
       const ageMs = Date.now() - new Date(rev.notifiedAt).getTime();
-      if (ageMs >= cfg.autoApproveHours * 3_600_000 && Number(rev.qc ?? 0) >= cfg.autoApproveQc) {
+      if (
+        !rev.noAuto &&
+        ageMs >= cfg.autoApproveHours * 3_600_000 &&
+        Number(rev.qc ?? 0) >= cfg.autoApproveQc
+      ) {
         await approveOperatorVideo(db, video, "auto");
       }
     }
