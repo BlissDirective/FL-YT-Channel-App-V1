@@ -290,6 +290,32 @@ export type OperatorConfig = {
   thumbStyle?: string;
   /** Last weekly digest send (ISO) — internal bookkeeping. */
   lastDigestAt?: string;
+  /** Last analytics pull (ISO) — internal bookkeeping. */
+  lastAnalyticsAt?: string;
+  /** Learned performance strategy from real YouTube Analytics (Phase D). */
+  strategy?: OperatorStrategy;
+};
+
+/** What the channel's real analytics say is working — feeds topic planning and
+    the monetization mix tilt. */
+export type OperatorStrategy = {
+  /** Subtopics ranked best-performing first (retention × reach). */
+  topSubtopics?: string[];
+  /** Per-format performance for the mix decision. */
+  formatPerf?: {
+    short?: { watchMin: number; subs: number; n: number };
+    long?: { watchMin: number; subs: number; n: number };
+  };
+  /** Channel rollups (recent window + YPP progress). */
+  channel?: {
+    subs: number;
+    watchHours365: number;
+    views90: number;
+    subsGained90: number;
+    retentionPct: number;
+    ctr: number;
+  };
+  updatedAt?: string;
 };
 
 export type OperatorRun = {

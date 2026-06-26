@@ -124,14 +124,21 @@ export async function planNextTopic(opts: {
   recentTitles: string[];
   taxonomy: string[];
   kind: "short" | "long";
+  /** Best-performing subtopics from real analytics — lean toward these (Phase D). */
+  winners?: string[];
 }): Promise<PlannedTopic | null> {
   if (!isLive()) return null;
   const system =
     `You are the content planner for the YouTube channel "${opts.project.name}" (niche: ${opts.project.niche}; angle: ${opts.project.angle}). ` +
     `Propose ONE new ${opts.kind === "short" ? "Short (snappy, single-idea)" : "long-form (deeper)"} video idea. ` +
     `Hard rules: it must NOT duplicate or closely overlap any recent title; it must fit the niche; prefer a taxonomy bucket that is under-represented in the recent list; be specific and accurate (no hype, no clickbait).`;
+  const winnersLine =
+    opts.winners && opts.winners.length
+      ? `BEST-PERFORMING THEMES so far (lean toward these when you can do so freshly):\n- ${opts.winners.join("\n- ")}\n\n`
+      : "";
   const user =
     `TAXONOMY (coverage buckets):\n- ${opts.taxonomy.join("\n- ")}\n\n` +
+    winnersLine +
     `RECENT TITLES (avoid overlap with these):\n${opts.recentTitles.length ? opts.recentTitles.map((t) => `- ${t}`).join("\n") : "- (none yet)"}\n\n` +
     `Call deliver_topic with a fresh idea.`;
   const out = await callTool<{ title: string; angle: string; subtopic: string }>(

@@ -123,17 +123,27 @@ export async function sendDigest(opts: {
   spentUsd: number;
   budgetUsd: number;
   awaiting: number;
-  views?: number;
+  /** YPP progress (from YouTube Analytics) when available. */
+  subs?: number;
+  watchHours365?: number;
+  retentionPct?: number;
+  topSubtopics?: string[];
 }): Promise<void> {
+  const compact = (n: number) => Intl.NumberFormat("en", { notation: "compact" }).format(n);
+  const ypp =
+    opts.subs != null || opts.watchHours365 != null
+      ? `\n📈 Toward YPP: <b>${compact(opts.subs ?? 0)}</b>/1,000 subs · <b>${(opts.watchHours365 ?? 0).toFixed(0)}</b>/4,000 watch-hrs` +
+        (opts.retentionPct ? ` · ${opts.retentionPct.toFixed(0)}% retention` : "")
+      : "";
+  const winners = opts.topSubtopics && opts.topSubtopics.length ? `\n🏆 Working: <i>${escapeHtml(opts.topSubtopics.join(", "))}</i>` : "";
   const text =
     `📊 <b>${escapeHtml(opts.projectName)} — weekly digest</b>\n` +
     `Cycle day ${opts.cycleDay}/30\n` +
     `Posted: <b>${opts.posted}</b> · Awaiting approval: <b>${opts.awaiting}</b>\n` +
     `Spend: <b>$${opts.spentUsd.toFixed(2)}</b> / $${opts.budgetUsd.toFixed(0)}` +
-    (opts.views != null ? `\nViews (tracked): <b>${Intl.NumberFormat("en", { notation: "compact" }).format(opts.views)}</b>` : "");
-  await sendTelegram(text, [
-    [{ text: "Open channel", url: `${APP_BASE()}` }],
-  ]);
+    ypp +
+    winners;
+  await sendTelegram(text, [[{ text: "Open channel", url: `${APP_BASE()}` }]]);
 }
 
 function fmtSlot(iso: string): string {

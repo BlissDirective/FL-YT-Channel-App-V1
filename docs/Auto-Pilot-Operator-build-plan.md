@@ -211,7 +211,15 @@ YouTube OAuth upload (per-project token) · cron infra · MCP server.
   auto-approve), and **passes** clean videos through. Media copyright is enforced by
   construction (Pexels + FLUX + Remotion only). *Checkpoint: each guard blocks a
   planted bad case.*
-- **D — Metrics loop:** Analytics scope + adapter + optimizer correlation.
+- **D — Metrics loop:** ✅ **built.** `src/lib/adapters/youtube-analytics.ts` — mints an
+  access token from the per-project/global refresh token and reads the channel's OWN
+  analytics (views, watch-minutes, **retention %**, subs gained; per-video reports; YPP
+  snapshot = subscriber count + trailing-365-day watch-hours; optional revenue). Operator
+  pulls ≤1/day → **computeChannelStrategy** ranks subtopics by retention×reach and
+  measures per-format performance, stored on `config.strategy`. The topic planner now
+  **leans toward winning subtopics**, and the **weekly digest shows YPP progress**
+  (subs/1,000 · watch-hrs/4,000 · retention) + what's working. Degrades gracefully with
+  no token/scope. verify-secrets gains a live analytics-scope check.
   *Checkpoint: strategy shifts from real retention/CTR.*
 - **E — Monetization + ramp:** YPP tracker, dynamic mix tilt, cadence ramp.
   *Checkpoint: dashboard shows progress; mix auto-tilts.*

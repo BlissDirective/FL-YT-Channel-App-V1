@@ -5,9 +5,22 @@ import { reviewGate, isQcLive } from "@/lib/adapters/qc";
 import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest } from "@/lib/adapters/telegram";
 import { autofixInFlight } from "@/lib/pipeline/autofix";
 import { editorialGuard, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
+import {
+  analyticsConfigured,
+  getChannelSummary,
+  getVideoMetrics,
+  getYppSnapshot,
+} from "@/lib/adapters/youtube-analytics";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import type { FrameCritique } from "@/lib/stick-types";
-import type { OperatorConfig, OperatorRun, OperatorReview, Project, Video } from "@/lib/db/types";
+import type {
+  OperatorConfig,
+  OperatorRun,
+  OperatorReview,
+  OperatorStrategy,
+  Project,
+  Video,
+} from "@/lib/db/types";
 
 /**
  * Auto Pilot Operator — Phase A core. A per-channel supervisor that seeds one
@@ -40,6 +53,8 @@ const DEFAULTS: Required<OperatorConfig> = {
   taxonomy: [],
   thumbStyle: "cinematic",
   lastDigestAt: "",
+  lastAnalyticsAt: "",
+  strategy: {},
 };
 
 export function operatorConfig(run: Pick<OperatorRun, "config">): Required<OperatorConfig> {
@@ -196,8 +211,10 @@ export type OperatorTick =
     budget, and the day's slot is unfilled) seed today's video via Build & Post. */
 export async function tickOperator(db: Db, run: OperatorRun, project: Project): Promise<OperatorTick> {
   await rollCycleIfDue(db, run);
-  // Approvals + digest run for active AND paused runs (a paused operator still
-  // lets you approve already-made videos and get your weekly digest).
+  // Pull analytics (≤1/day) → strategy, before approvals/digest/seeding so they
+  // all see the freshest learning. Approvals + digest run for active AND paused
+  // runs (a paused operator still lets you approve + get your digest).
+  await maybePullAnalytics(db, run, project);
   await processOperatorApprovals(db, run, project);
   await maybeSendDigest(db, run, project);
   if (run.status !== "active") return { acted: false, reason: run.status };
@@ -258,8 +275,9 @@ async function seedVideo(
     .limit(15);
   const recentTitles = ((recent ?? []) as { title: string }[]).map((r) => r.title).filter(Boolean);
   const taxonomy = taxonomyFor(project, cfg.taxonomy && cfg.taxonomy.length ? cfg.taxonomy : undefined);
+  const winners = (cfg.strategy as OperatorStrategy | undefined)?.topSubtopics;
   try {
-    const planned = await planNextTopic({ project, recentTitles, taxonomy, kind });
+    const planned = await planNextTopic({ project, recentTitles, taxonomy, kind, winners });
     if (planned) {
       const { data: idea } = await db
         .from("ideas")
@@ -501,6 +519,105 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
   }
 }
 
+// ── Metrics → strategy (Phase D) ──────────────────────────────────────
+
+/** Pull the channel's real analytics at most once/day and recompute the learned
+    performance strategy (best subtopics + per-format performance + YPP rollups),
+    stored on the run config for the planner, the mix tilt, and the digest. */
+async function maybePullAnalytics(db: Db, run: OperatorRun, project: Project): Promise<void> {
+  const refreshToken = project.youtube_refresh_token ?? null;
+  if (!analyticsConfigured(refreshToken)) return;
+  const lastIso = (run.config as { lastAnalyticsAt?: string }).lastAnalyticsAt;
+  const last = lastIso ? new Date(lastIso).getTime() : 0;
+  if (Date.now() - last < 22 * 3_600_000) return; // ~daily
+
+  try {
+    const strategy = await computeChannelStrategy(db, run, project, refreshToken);
+    await db
+      .from("operator_runs")
+      .update({
+        config: { ...(run.config ?? {}), strategy, lastAnalyticsAt: new Date().toISOString() },
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", run.id);
+    run.config = { ...(run.config ?? {}), strategy, lastAnalyticsAt: new Date().toISOString() };
+  } catch (err) {
+    console.error(`operator analytics pull ${run.id} failed:`, err);
+  }
+}
+
+async function computeChannelStrategy(
+  db: Db,
+  run: OperatorRun,
+  project: Project,
+  refreshToken: string | null,
+): Promise<OperatorStrategy> {
+  // The operator's published videos + the subtopic each was planned under.
+  const { data: vids } = await db
+    .from("videos")
+    .select("id, idea_id, kind, youtube_video_id")
+    .eq("operator_run_id", run.id)
+    .not("youtube_video_id", "is", null)
+    .limit(200);
+  const rows = (vids ?? []) as { id: string; idea_id: string | null; kind: string; youtube_video_id: string }[];
+
+  const ideaIds = rows.map((r) => r.idea_id).filter((x): x is string => Boolean(x));
+  const subtopicByIdea = new Map<string, string>();
+  if (ideaIds.length) {
+    const { data: ideas } = await db.from("ideas").select("id, source").in("id", ideaIds);
+    for (const i of ((ideas ?? []) as { id: string; source: { subtopic?: string } | null }[])) {
+      const st = i.source?.subtopic;
+      if (st) subtopicByIdea.set(i.id, st);
+    }
+  }
+
+  const metrics = await getVideoMetrics(refreshToken, rows.map((r) => r.youtube_video_id), 90);
+
+  // Aggregate by subtopic (retention × reach) and by format (watch + subs).
+  const bySub = new Map<string, { views: number; watch: number; retW: number }>();
+  const fmt = { short: { watchMin: 0, subs: 0, n: 0 }, long: { watchMin: 0, subs: 0, n: 0 } };
+  for (const r of rows) {
+    const m = metrics.get(r.youtube_video_id);
+    if (!m) continue;
+    const st = (r.idea_id && subtopicByIdea.get(r.idea_id)) || "uncategorized";
+    const agg = bySub.get(st) ?? { views: 0, watch: 0, retW: 0 };
+    agg.views += m.views;
+    agg.watch += m.watchMinutes;
+    agg.retW += m.retentionPct * Math.max(1, m.views); // view-weighted retention
+    bySub.set(st, agg);
+    const f = r.kind === "short" ? fmt.short : fmt.long;
+    f.watchMin += m.watchMinutes;
+    f.subs += m.subscribersGained;
+    f.n += 1;
+  }
+
+  const topSubtopics = [...bySub.entries()]
+    .map(([st, a]) => ({ st, score: (a.views > 0 ? a.retW / a.views : 0) * Math.log(a.views + 2) }))
+    .filter((x) => x.st !== "uncategorized")
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((x) => x.st);
+
+  const [summary, ypp] = await Promise.all([
+    getChannelSummary(refreshToken, 90),
+    getYppSnapshot(refreshToken),
+  ]);
+
+  return {
+    topSubtopics,
+    formatPerf: fmt,
+    channel: {
+      subs: ypp?.subscriberCount ?? 0,
+      watchHours365: ypp?.watchHours365 ?? 0,
+      views90: summary?.views ?? 0,
+      subsGained90: summary?.subscribersGained ?? 0,
+      retentionPct: summary?.retentionPct ?? 0,
+      ctr: summary?.ctr ?? 0,
+    },
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 // ── Weekly digest ─────────────────────────────────────────────────────
 
 async function maybeSendDigest(db: Db, run: OperatorRun, project: Project): Promise<void> {
@@ -528,6 +645,8 @@ async function maybeSendDigest(db: Db, run: OperatorRun, project: Project): Prom
     db.from("videos").select("id", { count: "exact", head: true })
       .eq("operator_run_id", run.id).eq("status", "FINAL_REVIEW").eq("auto_publish", false),
   ]);
+  const strat = (run.config as { strategy?: OperatorStrategy }).strategy;
+  const ch = strat?.channel;
   try {
     await sendDigest({
       projectName: project.name,
@@ -536,6 +655,10 @@ async function maybeSendDigest(db: Db, run: OperatorRun, project: Project): Prom
       spentUsd: snap.spentUsd,
       budgetUsd: snap.budgetUsd,
       awaiting: awaiting ?? 0,
+      subs: ch?.subs,
+      watchHours365: ch?.watchHours365,
+      retentionPct: ch?.retentionPct,
+      topSubtopics: strat?.topSubtopics,
     });
     await db
       .from("operator_runs")
