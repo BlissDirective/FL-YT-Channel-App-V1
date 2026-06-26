@@ -1,8 +1,12 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { startBuildRun, zonedTimeToUtc, ymdInTz, type BuildRunConfig } from "@/lib/pipeline/engine";
+import { startBuildRun, decideGate, zonedTimeToUtc, ymdInTz, type BuildRunConfig } from "@/lib/pipeline/engine";
+import { reviewGate, isQcLive } from "@/lib/adapters/qc";
+import { isTelegramLive, sendApprovalCard, sendDigest } from "@/lib/adapters/telegram";
+import { autofixInFlight } from "@/lib/pipeline/autofix";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
-import type { OperatorConfig, OperatorRun, Project } from "@/lib/db/types";
+import type { FrameCritique } from "@/lib/stick-types";
+import type { OperatorConfig, OperatorRun, OperatorReview, Project, Video } from "@/lib/db/types";
 
 /**
  * Auto Pilot Operator — Phase A core. A per-channel supervisor that seeds one
@@ -188,6 +192,10 @@ export type OperatorTick =
     budget, and the day's slot is unfilled) seed today's video via Build & Post. */
 export async function tickOperator(db: Db, run: OperatorRun, project: Project): Promise<OperatorTick> {
   await rollCycleIfDue(db, run);
+  // Approvals + digest run for active AND paused runs (a paused operator still
+  // lets you approve already-made videos and get your weekly digest).
+  await processOperatorApprovals(db, run, project);
+  await maybeSendDigest(db, run, project);
   if (run.status !== "active") return { acted: false, reason: run.status };
 
   const cfg = operatorConfig(run);
@@ -246,6 +254,197 @@ async function seedVideo(
     .eq("build_run_id", res.runId);
 
   return { acted: true, kind };
+}
+
+// ── Approvals (Telegram notify → approve/skip / auto-approve) ─────────
+
+async function recordCost(db: Db, video: Video, usd: number, description: string) {
+  if (usd <= 0) return;
+  await db.from("cost_ledger").insert({
+    project_id: video.project_id,
+    video_id: video.id,
+    provider: "anthropic",
+    description,
+    usd,
+  });
+  await db.from("videos").update({ total_cost_usd: Number(video.total_cost_usd) + usd }).eq("id", video.id);
+}
+
+/** FINAL quality for the approval bar: prefer the auto-fix loop's vision score;
+    otherwise score the final cut with the QC agent. */
+async function finalQc(db: Db, video: Video, project: Project): Promise<number> {
+  const vr = video.vision_review as FrameCritique | null;
+  if (vr && typeof vr.score === "number") return Number(vr.score);
+  if (!isQcLive()) return 7;
+  const { data: script } = await db
+    .from("scripts")
+    .select("beats")
+    .eq("video_id", video.id)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const review = await reviewGate({
+    gate: "FINAL",
+    context: {
+      title: video.title,
+      topic: video.topic,
+      niche: project.niche,
+      captionsOn: video.enable_captions,
+      targetLengthSec: video.target_length_sec,
+      beats: ((script?.beats ?? []) as unknown[]).length,
+    },
+  });
+  if (review.costUsd > 0) await recordCost(db, video, review.costUsd, "Operator final QC");
+  return review.score;
+}
+
+/** Approve an operator video → it publishes at its slot. Privacy from QC. */
+export async function approveOperatorVideo(db: Db, video: Video, by: string): Promise<void> {
+  const rev = (video.operator_review ?? {}) as OperatorReview;
+  const qc = Number(rev.qc ?? 8);
+  const privacy = qc >= 8 ? "public" : "unlisted";
+  await db
+    .from("videos")
+    .update({
+      auto_publish: true,
+      publish_privacy: privacy,
+      operator_review: { ...rev, decided: "approved", by },
+    })
+    .eq("id", video.id);
+  // Move FINAL_REVIEW → APPROVED (already-APPROVED in-app videos are a no-op).
+  if (video.status === "FINAL_REVIEW") {
+    await decideGate({ videoId: video.id, decision: "approved" }, db, by === "auto" ? "autopilot" : "mcp");
+  }
+}
+
+/** Skip an operator video → it is killed and won't post; the next slot reseeds. */
+export async function skipOperatorVideo(db: Db, video: Video, by: string): Promise<void> {
+  const rev = (video.operator_review ?? {}) as OperatorReview;
+  await db.from("videos").update({ operator_review: { ...rev, decided: "skipped", by } }).eq("id", video.id);
+  await decideGate({ videoId: video.id, decision: "killed" }, db, by === "auto" ? "autopilot" : "mcp");
+}
+
+/** Load a video + its project for a webhook callback (by video id). */
+export async function loadOperatorVideo(
+  db: Db,
+  videoId: string,
+): Promise<{ video: Video; project: Project } | null> {
+  const { data: v } = await db.from("videos").select("*").eq("id", videoId).maybeSingle();
+  const video = v as Video | null;
+  if (!video) return null;
+  const { data: p } = await db.from("projects").select("*").eq("id", video.project_id).maybeSingle();
+  const project = p as Project | null;
+  if (!project) return null;
+  return { video, project };
+}
+
+/**
+ * Notify on (and auto-approve) operator videos. Only runs when Telegram is live;
+ * without it, operator videos simply hold in the in-app review queue (Phase A).
+ *  • settled at FINAL_REVIEW, not yet notified → QC it, send the approval card.
+ *  • notified, aged past autoApproveHours, QC ≥ autoApproveQc → auto-approve.
+ *  • manually APPROVED in-app (no decision recorded) → finalize for release.
+ */
+async function processOperatorApprovals(db: Db, run: OperatorRun, project: Project): Promise<void> {
+  if (!isTelegramLive()) return;
+  const cfg = operatorConfig(run);
+
+  // 1) Settle + notify + auto-approve videos still at FINAL_REVIEW.
+  const { data: holding } = await db
+    .from("videos")
+    .select("*")
+    .eq("operator_run_id", run.id)
+    .eq("status", "FINAL_REVIEW")
+    .eq("auto_publish", false);
+  for (const video of ((holding ?? []) as Video[])) {
+    const rev = (video.operator_review ?? {}) as OperatorReview;
+    if (rev.decided) continue;
+    if (autofixInFlight(video)) continue; // let the fix loop settle first
+    if (!rev.notifiedAt) {
+      const qc = await finalQc(db, video, project);
+      await db
+        .from("videos")
+        .update({ operator_review: { ...rev, notifiedAt: new Date().toISOString(), qc } })
+        .eq("id", video.id);
+      try {
+        await sendApprovalCard({
+          projectId: project.id,
+          videoId: video.id,
+          title: video.title,
+          kind: video.kind,
+          qc,
+          slot: video.scheduled_publish_at,
+        });
+      } catch (err) {
+        console.error("telegram approval card failed:", err);
+      }
+    } else {
+      const ageMs = Date.now() - new Date(rev.notifiedAt).getTime();
+      if (ageMs >= cfg.autoApproveHours * 3_600_000 && Number(rev.qc ?? 0) >= cfg.autoApproveQc) {
+        await approveOperatorVideo(db, video, "auto");
+      }
+    }
+  }
+
+  // 2) Safety net: an operator video approved in-app (review queue) lands at
+  //    APPROVED with auto_publish=false — finalize it so the scheduler releases it.
+  const { data: approved } = await db
+    .from("videos")
+    .select("*")
+    .eq("operator_run_id", run.id)
+    .eq("status", "APPROVED")
+    .eq("auto_publish", false)
+    .is("youtube_video_id", null);
+  for (const video of ((approved ?? []) as Video[])) {
+    const rev = (video.operator_review ?? {}) as OperatorReview;
+    if (rev.decided) continue;
+    await approveOperatorVideo(db, video, "app");
+  }
+}
+
+// ── Weekly digest ─────────────────────────────────────────────────────
+
+async function maybeSendDigest(db: Db, run: OperatorRun, project: Project): Promise<void> {
+  if (!isTelegramLive()) return;
+  const cfg = run.config ?? {};
+  const lastIso = (cfg as { lastDigestAt?: string }).lastDigestAt;
+  const last = lastIso ? new Date(lastIso).getTime() : 0;
+  const now = Date.now();
+  // Mondays ~9am CT, at most once every 6 days.
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago",
+    weekday: "short",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(now));
+  const wd = parts.find((p) => p.type === "weekday")?.value;
+  const hr = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
+  const due = wd === "Mon" && hr >= 9 && now - last >= 6 * 86_400_000;
+  if (!due) return;
+
+  const snap = await operatorSnapshot(db, run);
+  const [{ count: posted }, { count: awaiting }] = await Promise.all([
+    db.from("videos").select("id", { count: "exact", head: true })
+      .eq("operator_run_id", run.id).not("youtube_video_id", "is", null),
+    db.from("videos").select("id", { count: "exact", head: true })
+      .eq("operator_run_id", run.id).eq("status", "FINAL_REVIEW").eq("auto_publish", false),
+  ]);
+  try {
+    await sendDigest({
+      projectName: project.name,
+      cycleDay: snap.cycleDay,
+      posted: posted ?? 0,
+      spentUsd: snap.spentUsd,
+      budgetUsd: snap.budgetUsd,
+      awaiting: awaiting ?? 0,
+    });
+    await db
+      .from("operator_runs")
+      .update({ config: { ...(run.config ?? {}), lastDigestAt: new Date().toISOString() } })
+      .eq("id", run.id);
+  } catch (err) {
+    console.error("telegram digest failed:", err);
+  }
 }
 
 // ── Sweep entry (cron) ────────────────────────────────────────────────

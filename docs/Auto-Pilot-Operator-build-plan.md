@@ -195,8 +195,13 @@ YouTube OAuth upload (per-project token) · cron infra · MCP server.
   the auto-pilot finalizer **defers operator videos** so they hold for approval;
   **Start / Pause / Stop** panel on the project homepage.
   *Checkpoint: produces 1/day to QC-hold under $60.*
-- **B — Telegram:** notifier + webhook + Approve/Skip/Start/Pause + auto-approve
-  timeout + weekly digest. *Checkpoint: approve & control from your phone.*
+- **B — Telegram:** ✅ **built.** Notifier `src/lib/adapters/telegram.ts` (approval
+  cards, digest, callbacks; reuses CRON_SECRET as the webhook secret) · `videos.operator_review`
+  (mig 0029) · operator notify + **auto-approve after 15h if QC ≥ 8.5** + **Mon 9am CT
+  weekly digest** · webhook `/api/telegram/webhook` (secret-token + chat-id locked;
+  Approve/Skip buttons + /status, /pause, /resume) · one-time `/api/telegram/register`
+  (CRON_SECRET-gated setWebhook). In-app approvals are finalized for release too.
+  *Checkpoint: approve & control from your phone.*
 - **C — Guardrails:** topic planner + dedup, fact-check, copyright/legal, metadata,
   quality floor. *Checkpoint: each guard blocks a planted bad case.*
 - **D — Metrics loop:** Analytics scope + adapter + optimizer correlation.

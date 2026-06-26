@@ -228,8 +228,22 @@ export type Video = {
   /** The Auto Pilot Operator run that seeded this video (null = made another way).
       Operator-owned videos hold for approval rather than auto-publishing. */
   operator_run_id: string | null;
+  /** Operator approval state (Telegram notify → approve/skip / auto-approve). */
+  operator_review: OperatorReview;
   created_at: string;
   updated_at: string;
+};
+
+/** Per-video operator approval state (videos.operator_review). */
+export type OperatorReview = {
+  /** When the Telegram approval card was sent. */
+  notifiedAt?: string;
+  /** FINAL QC score the card carried (for the auto-approve bar). */
+  qc?: number;
+  /** Operator decision; absent = still awaiting. */
+  decided?: "approved" | "skipped";
+  /** Who decided: 'telegram' | 'auto' | 'app'. */
+  by?: string;
 };
 
 // ── Auto Pilot Operator ───────────────────────────────────────────────

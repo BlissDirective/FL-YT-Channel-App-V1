@@ -1,0 +1,127 @@
+import "server-only";
+
+/**
+ * Telegram notifier for the Auto Pilot Operator — approval cards (one-tap
+ * Approve / Skip / Preview), Start/Pause controls, and the weekly digest. Live
+ * when TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID are set. Pluggable: a Slack notifier
+ * could implement the same surface later. See docs/Auto-Pilot-Operator-build-plan.md.
+ */
+
+const TOKEN = () => process.env.TELEGRAM_BOT_TOKEN?.trim() || "";
+const CHAT_ID = () => process.env.TELEGRAM_CHAT_ID?.trim() || "";
+const APP_BASE = () =>
+  (process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://fl-yt-channel-app-v1.vercel.app").replace(/\/$/, "");
+
+export function isTelegramLive(): boolean {
+  return Boolean(TOKEN() && CHAT_ID());
+}
+
+/** The webhook secret Telegram echoes back in a header — reuse CRON_SECRET so we
+    don't add another secret. */
+export function telegramWebhookSecret(): string {
+  return process.env.CRON_SECRET?.trim() || "";
+}
+
+type InlineButton = { text: string; callback_data?: string; url?: string };
+
+async function api(method: string, body: Record<string, unknown>): Promise<unknown> {
+  const token = TOKEN();
+  if (!token) return null;
+  const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    console.error(`telegram ${method} ${res.status}: ${(await res.text()).slice(0, 160)}`);
+    return null;
+  }
+  return res.json();
+}
+
+/** Send a message to the operator's chat (HTML), with optional inline buttons. */
+export async function sendTelegram(
+  text: string,
+  buttons?: InlineButton[][],
+): Promise<void> {
+  if (!isTelegramLive()) return;
+  await api("sendMessage", {
+    chat_id: CHAT_ID(),
+    text,
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+    ...(buttons ? { reply_markup: { inline_keyboard: buttons } } : {}),
+  });
+}
+
+export async function answerCallback(callbackQueryId: string, text?: string): Promise<void> {
+  await api("answerCallbackQuery", { callback_query_id: callbackQueryId, ...(text ? { text } : {}) });
+}
+
+/** Strip the buttons off a card and append the decision, after the operator acts. */
+export async function resolveCard(
+  messageId: number,
+  appendText: string,
+): Promise<void> {
+  await api("editMessageReplyMarkup", { chat_id: CHAT_ID(), message_id: messageId, reply_markup: { inline_keyboard: [] } });
+  await sendTelegram(appendText);
+}
+
+/** The approval card for a rendered, QC-passed operator video. */
+export async function sendApprovalCard(opts: {
+  projectId: string;
+  videoId: string;
+  title: string;
+  kind: string;
+  qc: number | null;
+  slot: string | null;
+}): Promise<void> {
+  const qcLine = opts.qc != null ? ` · QC <b>${opts.qc.toFixed(1)}</b>/10` : "";
+  const slotLine = opts.slot ? `\n🕐 Scheduled ${fmtSlot(opts.slot)}` : "";
+  const text =
+    `🎬 <b>Awaiting approval</b>${qcLine}\n` +
+    `${escapeHtml(opts.title)}\n` +
+    `<i>${opts.kind === "short" ? "Short" : "Long-form"}</i>${slotLine}`;
+  await sendTelegram(text, [
+    [
+      { text: "✅ Approve", callback_data: `ap:${opts.videoId}` },
+      { text: "⏭ Skip", callback_data: `sk:${opts.videoId}` },
+    ],
+    [{ text: "👀 Preview", url: `${APP_BASE()}/projects/${opts.projectId}/videos/${opts.videoId}` }],
+  ]);
+}
+
+/** The weekly digest. */
+export async function sendDigest(opts: {
+  projectName: string;
+  cycleDay: number;
+  posted: number;
+  spentUsd: number;
+  budgetUsd: number;
+  awaiting: number;
+  views?: number;
+}): Promise<void> {
+  const text =
+    `📊 <b>${escapeHtml(opts.projectName)} — weekly digest</b>\n` +
+    `Cycle day ${opts.cycleDay}/30\n` +
+    `Posted: <b>${opts.posted}</b> · Awaiting approval: <b>${opts.awaiting}</b>\n` +
+    `Spend: <b>$${opts.spentUsd.toFixed(2)}</b> / $${opts.budgetUsd.toFixed(0)}` +
+    (opts.views != null ? `\nViews (tracked): <b>${Intl.NumberFormat("en", { notation: "compact" }).format(opts.views)}</b>` : "");
+  await sendTelegram(text, [
+    [{ text: "Open channel", url: `${APP_BASE()}` }],
+  ]);
+}
+
+function fmtSlot(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: "America/Chicago",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }) + " CT";
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
