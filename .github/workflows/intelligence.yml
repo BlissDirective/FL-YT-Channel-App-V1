@@ -6,9 +6,7 @@ name: Daily Intelligence
 # (plain HTTP), so this job just triggers it.
 on:
   workflow_dispatch:
-  schedule:
-    # 06:30 UTC daily — fresh idea cards waiting each morning.
-    - cron: "30 6 * * *"
+  # Scheduling moved to Vercel Cron (vercel.json) for reliability; manual dispatch only.
 
 concurrency:
   group: intelligence-run

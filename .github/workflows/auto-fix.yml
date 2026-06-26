@@ -6,10 +6,7 @@ name: Auto-Fix Loop
 # Next app. The build-runner cron also sweeps before its finalizer.
 on:
   workflow_dispatch:
-  schedule:
-    # Every 10 minutes — paced to the render farm so a re-render is critiqued
-    # before the next pass acts on it.
-    - cron: "*/10 * * * *"
+  # Scheduling moved to Vercel Cron (vercel.json) for reliability; manual dispatch only.
 
 concurrency:
   group: auto-fix-run

@@ -274,8 +274,14 @@ The system is built (Phases A–F). To launch The Silicon Layer:
 2. **Analytics token** — paste the analytics-scoped refresh token into
    The Silicon Layer → Settings → *Channel refresh token* (already done if the YPP
    tracker shows numbers).
-3. **Crons** — the GitHub Actions schedules (build-runner, render, clips, auto-fix,
-   auto-pilot, stats) run on push; confirm they're enabled in the repo's Actions tab.
+3. **Crons** — the app's HTTP ping-crons run on **Vercel Cron** (`vercel.json`):
+   `build-runner` every 5 min (which also drives the operator seed/approve + auto-fix
+   sweeps), plus daily `refresh-stats`/`intelligence` and weekly `optimizer`. Vercel
+   auto-sends the `CRON_SECRET` bearer, so they authenticate themselves. The heavy
+   **workers** (`render`, `clips`, `video-intel`) stay on GitHub Actions schedules
+   (they run on GitHub runners, not as HTTP routes). The ping-cron GitHub workflows are
+   now manual-dispatch only (Vercel is the scheduler). Requires Vercel **Pro** for
+   sub-daily cron frequency.
 
 **Launch**
 4. Open the project homepage → check the **Go-live checklist** on the Auto Pilot panel.

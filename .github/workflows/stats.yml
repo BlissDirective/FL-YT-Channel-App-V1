@@ -7,9 +7,7 @@ name: Stats Refresh
 # stats" button in the app covers the rest.
 on:
   workflow_dispatch:
-  schedule:
-    # 07:10 UTC daily — after most channels' overnight activity settles.
-    - cron: "10 7 * * *"
+  # Scheduling moved to Vercel Cron (vercel.json) for reliability; manual dispatch only.
 
 concurrency:
   group: stats-refresh

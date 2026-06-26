@@ -6,10 +6,7 @@ name: Auto Pilot Operator
 # the Next app. See docs/Auto-Pilot-Operator-build-plan.md.
 on:
   workflow_dispatch:
-  schedule:
-    # Every 30 minutes — frequent enough to catch the daily slot promptly while
-    # the per-day cadence cap keeps it to one seed/day.
-    - cron: "*/30 * * * *"
+  # Scheduling moved to Vercel Cron (vercel.json) for reliability; manual dispatch only.
 
 concurrency:
   group: auto-pilot-run

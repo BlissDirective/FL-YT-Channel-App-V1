@@ -5,9 +5,7 @@ name: Weekly Optimizer
 # carrying a one-tap prompt-template revision. Runs inside the Next app.
 on:
   workflow_dispatch:
-  schedule:
-    # 08:00 UTC Mondays.
-    - cron: "0 8 * * 1"
+  # Scheduling moved to Vercel Cron (vercel.json) for reliability; manual dispatch only.
 
 concurrency:
   group: optimizer-run
