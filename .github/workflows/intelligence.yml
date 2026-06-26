@@ -6,7 +6,8 @@ name: Daily Intelligence
 # (plain HTTP), so this job just triggers it.
 on:
   workflow_dispatch:
-  # Scheduling moved to Vercel Cron (vercel.json) for reliability; manual dispatch only.
+  schedule:
+    - cron: "30 6 * * *"
 
 concurrency:
   group: intelligence-run

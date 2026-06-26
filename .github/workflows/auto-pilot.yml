@@ -6,7 +6,8 @@ name: Auto Pilot Operator
 # the Next app. See docs/Auto-Pilot-Operator-build-plan.md.
 on:
   workflow_dispatch:
-  # Scheduling moved to Vercel Cron (vercel.json) for reliability; manual dispatch only.
+  schedule:
+    - cron: "*/30 * * * *"
 
 concurrency:
   group: auto-pilot-run

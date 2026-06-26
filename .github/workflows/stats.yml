@@ -7,7 +7,8 @@ name: Stats Refresh
 # stats" button in the app covers the rest.
 on:
   workflow_dispatch:
-  # Scheduling moved to Vercel Cron (vercel.json) for reliability; manual dispatch only.
+  schedule:
+    - cron: "10 7 * * *"
 
 concurrency:
   group: stats-refresh

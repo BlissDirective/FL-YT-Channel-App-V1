@@ -274,14 +274,15 @@ The system is built (Phases A–F). To launch The Silicon Layer:
 2. **Analytics token** — paste the analytics-scoped refresh token into
    The Silicon Layer → Settings → *Channel refresh token* (already done if the YPP
    tracker shows numbers).
-3. **Crons** — the app's HTTP ping-crons run on **Vercel Cron** (`vercel.json`):
-   `build-runner` every 5 min (which also drives the operator seed/approve + auto-fix
-   sweeps), plus daily `refresh-stats`/`intelligence` and weekly `optimizer`. Vercel
-   auto-sends the `CRON_SECRET` bearer, so they authenticate themselves. The heavy
-   **workers** (`render`, `clips`, `video-intel`) stay on GitHub Actions schedules
-   (they run on GitHub runners, not as HTTP routes). The ping-cron GitHub workflows are
-   now manual-dispatch only (Vercel is the scheduler). Requires Vercel **Pro** for
-   sub-daily cron frequency.
+3. **Crons** — run on **GitHub Actions** schedules (build-runner `*/5`, auto-pilot,
+   auto-fix, optimizer, stats, intelligence + the render/clips/video-intel workers);
+   confirm they're enabled in the repo's Actions tab. The build-runner pass also drives
+   the operator seed/approve + auto-fix sweeps. **Reliability note:** GitHub throttles
+   frequent schedules (the `*/5` effectively fires ~every 1–2h). **Vercel Cron** would be
+   minute-accurate but needs the **Pro** plan (Hobby caps crons to daily / 2 jobs and
+   rejects the deploy otherwise). On Hobby, the most reliable upgrade is a free external
+   pinger (e.g. cron-job.org) hitting `…/api/cron/build-runner` every 5 min with the
+   `CRON_SECRET` bearer.
 
 **Launch**
 4. Open the project homepage → check the **Go-live checklist** on the Auto Pilot panel.

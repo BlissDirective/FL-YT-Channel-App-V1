@@ -7,7 +7,8 @@ name: Build Runner
 # when no run is active the route returns immediately (cheap).
 on:
   workflow_dispatch:
-  # Scheduling moved to Vercel Cron (vercel.json) for reliability; manual dispatch only.
+  schedule:
+    - cron: "*/5 * * * *"
 
 concurrency:
   group: build-runner
