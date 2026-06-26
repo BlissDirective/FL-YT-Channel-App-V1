@@ -1,0 +1,37 @@
+name: Auto Pilot Operator
+
+# Heartbeat for the autonomous Channel Operator. Pings the app's cron route,
+# which ticks every live operator run: rolls the 30-day budget cycle and seeds
+# the day's video (under budget, ban-safe cadence) via Build & Post. Runs inside
+# the Next app. See docs/Auto-Pilot-Operator-build-plan.md.
+on:
+  workflow_dispatch:
+  schedule:
+    # Every 30 minutes — frequent enough to catch the daily slot promptly while
+    # the per-day cadence cap keeps it to one seed/day.
+    - cron: "*/30 * * * *"
+
+concurrency:
+  group: auto-pilot-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_URL: ${{ vars.APP_BASE_URL || 'https://fl-yt-channel-app-v1.vercel.app' }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Trigger operator tick
+        run: |
+          echo "Pinging ${BASE_URL}/api/cron/operator"
+          CODE=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST \
+            "${BASE_URL}/api/cron/operator" \
+            -H "Authorization: Bearer ${CRON_SECRET}")
+          echo "HTTP $CODE — $(cat /tmp/r.json)"
+          case "$CODE" in
+            200) echo "✅ operator tick complete";;
+            401) echo "❌ unauthorized — set CRON_SECRET to match the app's env"; exit 1;;
+            *) echo "❌ tick failed (HTTP $CODE)"; exit 1;;
+          esac

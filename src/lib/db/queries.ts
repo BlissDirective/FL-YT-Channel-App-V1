@@ -12,6 +12,8 @@ import type {
   CostEntry,
   Idea,
   Insight,
+  OperatorConfig,
+  OperatorRun,
   Project,
   Script,
   Video,
@@ -35,6 +37,69 @@ export async function getProject(id: string): Promise<Project | null> {
     .eq("id", id)
     .maybeSingle();
   return (data as Project) ?? null;
+}
+
+export type OperatorView = {
+  run: OperatorRun | null;
+  /** Live snapshot (null when there is no live run). */
+  status: "active" | "paused" | null;
+  cycleDay: number;
+  cycleDays: number;
+  budgetUsd: number;
+  spentUsd: number;
+  remainingUsd: number;
+  videosThisCycle: number;
+  seededToday: number;
+  postingHour: number;
+  postingTz: string;
+};
+
+/** The Auto Pilot Operator's live state for a project (drives the homepage
+    panel). Reads the budget cycle straight from the ledger — no engine import,
+    no service-role client needed. */
+export async function getOperatorView(projectId: string): Promise<OperatorView> {
+  const supabase = await createClient();
+  const { data: runRow } = await supabase
+    .from("operator_runs")
+    .select("*")
+    .eq("project_id", projectId)
+    .in("status", ["active", "paused"])
+    .maybeSingle();
+  const run = (runRow as OperatorRun) ?? null;
+  const empty: OperatorView = {
+    run: null, status: null, cycleDay: 0, cycleDays: 30,
+    budgetUsd: 60, spentUsd: 0, remainingUsd: 60,
+    videosThisCycle: 0, seededToday: 0, postingHour: 13, postingTz: "America/Chicago",
+  };
+  if (!run) return empty;
+
+  const cfg = (run.config ?? {}) as OperatorConfig;
+  const [{ data: spendRows }, { data: vids }] = await Promise.all([
+    supabase.from("cost_ledger").select("usd").eq("project_id", projectId).gte("at", run.cycle_start),
+    supabase.from("videos").select("created_at").eq("operator_run_id", run.id).gte("created_at", run.cycle_start),
+  ]);
+  const spent = (spendRows ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
+  const budget = Number(run.cycle_budget_usd);
+  const dayMs = Date.now() - new Date(run.cycle_start).getTime();
+  const cycleDay = Math.max(1, Math.min(30, Math.floor(dayMs / 86_400_000) + 1));
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const seededToday = ((vids ?? []) as { created_at: string }[]).filter(
+    (v) => new Date(v.created_at).getTime() >= todayStart.getTime(),
+  ).length;
+  return {
+    run,
+    status: run.status === "stopped" ? null : run.status,
+    cycleDay,
+    cycleDays: 30,
+    budgetUsd: budget,
+    spentUsd: Math.round(spent * 100) / 100,
+    remainingUsd: Math.round((budget - spent) * 100) / 100,
+    videosThisCycle: (vids ?? []).length,
+    seededToday,
+    postingHour: Number(cfg.postingHour ?? 13),
+    postingTz: String(cfg.postingTz ?? "America/Chicago"),
+  };
 }
 
 /**

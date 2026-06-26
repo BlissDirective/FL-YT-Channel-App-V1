@@ -1406,7 +1406,7 @@ function tzOffsetMs(utcMs: number, tz: string): number {
 }
 
 /** The UTC instant for a wall-clock time on a given Y/M/D in a time zone. */
-function zonedTimeToUtc(
+export function zonedTimeToUtc(
   year: number,
   monthIdx: number,
   day: number,
@@ -1424,7 +1424,7 @@ function zonedTimeToUtc(
 }
 
 /** The Y/M/D in the posting time zone for a given instant. */
-function ymdInTz(d: Date, tz: string): { y: number; m: number; day: number } {
+export function ymdInTz(d: Date, tz: string): { y: number; m: number; day: number } {
   const dtf = new Intl.DateTimeFormat("en-CA", {
     timeZone: tz,
     year: "numeric",
@@ -2007,6 +2007,10 @@ export async function finalizeAutoPilotVideos(
       const project = await getProject(db, row.project_id);
       const video = await getVideo(db, row.id);
       if (!project || !video) continue;
+      // Auto Pilot Operator owns its videos' approval — they hold at
+      // FINAL_REVIEW for one-tap approval (or auto-approve) rather than the
+      // build-runner auto-publishing them here.
+      if (video.operator_run_id) continue;
       // Defer to the auto-fix loop: when this channel's loop is on and the
       // video hasn't converged ('done') or been held, let the loop fix it
       // first rather than publishing a pre-fix cut. (The sweep runs before this

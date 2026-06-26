@@ -188,8 +188,12 @@ YouTube OAuth upload (per-project token) · cron infra · MCP server.
 
 ## 11. Phased build order (each phase shippable + a checkpoint)
 
-- **A — Operator core:** `operator_runs`, heartbeat cron, anchored budget governor +
-  split caps, cadence seeding via Build & Post, Start/Stop UI.
+- **A — Operator core:** ✅ **built.** `operator_runs` (mig 0028) + `videos.operator_run_id`;
+  supervisor `src/lib/pipeline/operator.ts` (start/pause/stop, anchored 30-day cycle +
+  roll, ledger-summed spend, split-cap budget governor, **1pm CT** daily seeding via
+  `startBuildRun` with the 75/25 mix); `/api/cron/operator` + `auto-pilot.yml` (~30 min);
+  the auto-pilot finalizer **defers operator videos** so they hold for approval;
+  **Start / Pause / Stop** panel on the project homepage.
   *Checkpoint: produces 1/day to QC-hold under $60.*
 - **B — Telegram:** notifier + webhook + Approve/Skip/Start/Pause + auto-approve
   timeout + weekly digest. *Checkpoint: approve & control from your phone.*

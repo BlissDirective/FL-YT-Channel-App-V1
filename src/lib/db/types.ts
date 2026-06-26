@@ -225,6 +225,52 @@ export type Video = {
   autofix_enabled: boolean | null;
   /** Auto-fix loop state machine for this video. */
   autofix_state: AutofixState;
+  /** The Auto Pilot Operator run that seeded this video (null = made another way).
+      Operator-owned videos hold for approval rather than auto-publishing. */
+  operator_run_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// ── Auto Pilot Operator ───────────────────────────────────────────────
+// A per-channel supervisor; see docs/Auto-Pilot-Operator-build-plan.md.
+
+export type OperatorStatus = "active" | "paused" | "stopped";
+
+/** Tunables stored on operator_runs.config (all optional → sane defaults). */
+export type OperatorConfig = {
+  /** Daily posting slot (wall-clock) and its time zone. */
+  postingHour?: number;
+  postingTz?: string;
+  /** Max videos seeded per local day (cadence ceiling; 1 to start). */
+  dailyCap?: number;
+  /** Target share of Shorts in the format mix (0–1; 0.75 = 75% shorts). */
+  mixShortsPct?: number;
+  /** Hard per-video spend ceilings by format. */
+  shortsCapUsd?: number;
+  longCapUsd?: number;
+  /** Build & Post tier per format (cheap stack by default). */
+  shortsTier?: string;
+  longTier?: string;
+  /** Length bounds (seconds) per format. */
+  shortLenMin?: number;
+  shortLenMax?: number;
+  longLenMin?: number;
+  longLenMax?: number;
+  /** Auto-approve a held video after this many hours if QC clears the bar. */
+  autoApproveHours?: number;
+  autoApproveQc?: number;
+  thumbStyle?: string;
+};
+
+export type OperatorRun = {
+  id: string;
+  project_id: string;
+  status: OperatorStatus;
+  /** Anchor of the current 30-day budget cycle (rolls forward in 30-day steps). */
+  cycle_start: string;
+  cycle_budget_usd: number;
+  config: OperatorConfig;
   created_at: string;
   updated_at: string;
 };
