@@ -7,6 +7,7 @@ import {
   releaseScheduledVideos,
 } from "@/lib/pipeline/engine";
 import { sweepAutofix } from "@/lib/pipeline/autofix";
+import { sweepOperator } from "@/lib/pipeline/operator";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,15 @@ async function handle(request: NextRequest) {
     // render-stranded videos), then the heavy generation step under a wall-clock
     // budget so a pass never hard-times-out mid-video and strands it.
     const rel = await releaseScheduledVideos(6);
+    // Auto Pilot Operator tick here too (not just the sparse auto-pilot cron):
+    // seeds the daily video, and — crucially — sends Telegram approval cards and
+    // runs auto-approve PROMPTLY (within this 5-min loop) once a video settles.
+    let operator = { ticked: 0, seeded: 0 };
+    try {
+      operator = await sweepOperator(createAdminClient());
+    } catch (err) {
+      console.error("build-runner operator sweep failed:", err);
+    }
     // Auto-fix sweep BEFORE the finalizer so a weak auto-pilot cut is fixed
     // (and re-rendering, hence no longer at FINAL_REVIEW) before it can publish.
     let autofix = { scanned: 0, fixed: 0, done: 0, held: 0 };
@@ -71,6 +81,8 @@ async function handle(request: NextRequest) {
       autofixFixed: autofix.fixed,
       autofixDone: autofix.done,
       autofixHeld: autofix.held,
+      operatorTicked: operator.ticked,
+      operatorSeeded: operator.seeded,
     });
   } catch (err) {
     console.error("cron build-runner failed:", err);
