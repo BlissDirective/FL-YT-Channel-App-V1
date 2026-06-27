@@ -26,6 +26,12 @@ import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highligh
 import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
+import {
+  buildScriptLexicon,
+  remapWordTimings,
+  toSpokenText,
+  type Lexicon,
+} from "@/lib/adapters/pronunciation";
 import { generateImage, generateVideo, isFalLive } from "@/lib/adapters/fal";
 import {
   clampDuration,
@@ -427,11 +433,20 @@ export async function synthesizeBeatVo(
   video: Video,
   project: Project,
   beat: ScriptBeat,
+  lexicon?: Lexicon,
 ): Promise<{ costUsd: number; cached: boolean; provider: string }> {
   const voiceId = project.voice_id ?? "";
   // Visual-only sections have no narration — nothing to synthesize.
   if (!beat.text.trim()) return { costUsd: 0, cached: false, provider: voiceProviderFor(voiceId) };
-  const textHash = createHash("sha256").update(beat.text.trim()).digest("hex");
+  // Pronunciation pass: the voice hears the spoken form ("G P U"), captions keep
+  // the clean display form ("GPU"). With no lexicon, spoken === display (a no-op
+  // that preserves the original cache key). Cache on the SPOKEN text so changing
+  // a pronunciation re-synthesizes rather than serving stale audio.
+  const { spoken, plan } =
+    lexicon && Object.keys(lexicon).length > 0
+      ? toSpokenText(beat.text, lexicon)
+      : { spoken: beat.text, plan: null as null | ReturnType<typeof toSpokenText>["plan"] };
+  const textHash = createHash("sha256").update(spoken.trim()).digest("hex");
 
   const { data: hit } = await db
     .from("vo_cache")
@@ -452,11 +467,13 @@ export async function synthesizeBeatVo(
     durationSec = Number(hit.duration_sec ?? 0);
     words = hit.words ?? [];
   } else {
-    const result = await synthesizeSpeech({ text: beat.text, voiceId });
+    const result = await synthesizeSpeech({ text: spoken, voiceId });
     storagePath = `vo-cache/${project.id}/${textHash.slice(0, 24)}.${result.fileExt}`;
     await uploadMedia(storagePath, result.audio, result.contentType);
     durationSec = result.durationSec;
-    words = result.words;
+    // Fold the spoken-aligned timings back onto the clean display tokens so
+    // captions read "GPU" (not "G P U") while staying time-synced to the VO.
+    words = plan ? remapWordTimings(plan, result.words) : result.words;
     costUsd = result.costUsd;
     await db.from("vo_cache").upsert(
       {
@@ -537,6 +554,30 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   // AI-image text that can hallucinate brand names). Ledger writes happen
   // sequentially afterwards (recordCost mutates the running total).
   const liveVoice = canSynthesize(project.voice_id) && beats.length > 0;
+  // Pronunciation pass (runs alongside narration): a per-script lexicon so the
+  // narrator says "G P U" / "koo duh" instead of "gpoo" / "kewda". Curated niche
+  // dictionary + an LLM-researched long tail; best-effort (never blocks VO).
+  let lexicon: Lexicon | undefined;
+  if (liveVoice) {
+    try {
+      const built = await buildScriptLexicon({
+        title: video.title,
+        niche: project.niche,
+        topic: video.topic,
+        beats,
+      });
+      lexicon = built.lexicon;
+      if (built.costUsd > 0) {
+        await recordCost(db, video, {
+          provider: "anthropic",
+          usd: built.costUsd,
+          description: "Pronunciation research",
+        });
+      }
+    } catch (err) {
+      console.error("pronunciation lexicon build failed (non-fatal):", err);
+    }
+  }
   // Stick Studio projects render programmatic stick figures: the per-beat visual
   // is a choreographed StickScene (one LLM call), not an AI/stock clip.
   const stick = project.visual_style === "stick";
@@ -544,7 +585,7 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     // VO is the only unguarded provider call here — cap concurrency so a long
     // script can't 429 ElevenLabs and reject the whole stage.
     liveVoice
-      ? mapLimit(beats, 2, (beat) => synthesizeBeatVo(db, video, project, beat))
+      ? mapLimit(beats, 2, (beat) => synthesizeBeatVo(db, video, project, beat, lexicon))
       : Promise.resolve(null),
     stick
       ? makeStickClips(video, project, beats)
@@ -2796,7 +2837,17 @@ export async function editScriptBeat(opts: {
     .maybeSingle();
   if (voAsset && canSynthesize(project.voice_id)) {
     const beat = beats.find((b) => b.idx === opts.beatIdx)!;
-    const r = await synthesizeBeatVo(db, video, project, beat);
+    // Same pronunciation lexicon as the full asset stage so the re-synthesized
+    // beat says acronyms/jargon consistently with the rest of the narration.
+    let lexicon: Lexicon | undefined;
+    try {
+      lexicon = (
+        await buildScriptLexicon({ title: video.title, niche: project.niche, topic: video.topic, beats })
+      ).lexicon;
+    } catch {
+      /* dictionary-less fallback — synthesize plain */
+    }
+    const r = await synthesizeBeatVo(db, video, project, beat, lexicon);
     await recordCost(
       db,
       video,
