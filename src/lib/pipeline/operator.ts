@@ -278,6 +278,11 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
   // The operator never produces while the channel itself is paused.
   if (project.status !== "active") return { acted: false, reason: "project-paused" };
 
+  // Plan the 30-day calendar once per cycle — BEFORE the budget/cadence early
+  // returns, so it's generated (and visible) even on days the slot is already
+  // filled or the budget is tight.
+  await ensureCalendar(db, run, project);
+
   const cfg = operatorConfig(run);
   const spent = await cycleSpentUsd(db, run);
   const remaining = Number(run.cycle_budget_usd) - spent;
@@ -299,10 +304,8 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
     return { acted: false, reason: "already-seeded-today", spentUsd: spent };
   }
 
-  // Plan the 30-day calendar once at cycle start, then pull the next planned
-  // slot (it sets the format + subtopic). If the calendar is exhausted/absent,
-  // fall back to the monetization-aware mix.
-  await ensureCalendar(db, run, project);
+  // Pull the next planned calendar slot (it sets the format + subtopic). If the
+  // calendar is exhausted/absent, fall back to the monetization-aware mix.
   const slot = nextPlannedSlot(run);
   let kind: "short" | "long" = slot
     ? (slot.format as "short" | "long")

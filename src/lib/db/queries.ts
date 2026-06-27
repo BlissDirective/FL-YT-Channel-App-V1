@@ -333,6 +333,9 @@ export async function getReviewItems(projectId: string): Promise<ReviewItem[]> {
       GATE_FOR_STATUS[v.status] !== undefined ||
       v.status === "NEEDS_REVISION" ||
       DRIVABLE.has(v.status) ||
+      // APPROVED-but-not-yet-uploaded ("Ready" stage) — show them so the queue
+      // matches the pipeline's Ready count instead of hiding videos awaiting upload.
+      (v.status === "APPROVED" && !v.youtube_video_id) ||
       (v.paused_reason && !["KILLED", "APPROVED", "TRACKING"].includes(v.status)),
   );
   if (attention.length === 0) return [];

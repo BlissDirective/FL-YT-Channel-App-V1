@@ -9,6 +9,7 @@ import {
 import { sweepAutofix } from "@/lib/pipeline/autofix";
 import { sweepOperator } from "@/lib/pipeline/operator";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { dispatchWorkflow, ghDispatchConfigured } from "@/lib/adapters/gh-dispatch";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -68,6 +69,24 @@ async function handle(request: NextRequest) {
     // Reconcile run lifecycle last (after this pass's state changes) so a
     // completion alert reflects the freshest video states.
     const rec = await reconcileBuildRuns();
+
+    // Kick the GitHub render/clip WORKERS on demand when there's pending work —
+    // dispatched runs dodge GitHub's cron throttling, so videos don't crawl.
+    // No-op until GITHUB_DISPATCH_TOKEN is set.
+    let dispatched: { render?: boolean; clips?: boolean } = {};
+    if (ghDispatchConfigured()) {
+      try {
+        const db = createAdminClient();
+        const [{ count: assembling }, { count: queuedClips }] = await Promise.all([
+          db.from("videos").select("id", { count: "exact", head: true }).eq("status", "ASSEMBLING"),
+          db.from("clip_jobs").select("id", { count: "exact", head: true }).eq("status", "queued"),
+        ]);
+        if ((assembling ?? 0) > 0) dispatched.render = await dispatchWorkflow("render.yml");
+        if ((queuedClips ?? 0) > 0) dispatched.clips = await dispatchWorkflow("clips.yml");
+      } catch (err) {
+        console.error("build-runner workflow dispatch failed:", err);
+      }
+    }
     return NextResponse.json({
       ok: true,
       released: rel.released,
@@ -84,6 +103,7 @@ async function handle(request: NextRequest) {
       autofixHeld: autofix.held,
       operatorTicked: operator.ticked,
       operatorSeeded: operator.seeded,
+      dispatched,
     });
   } catch (err) {
     console.error("cron build-runner failed:", err);
