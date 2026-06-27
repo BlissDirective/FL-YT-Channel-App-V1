@@ -116,7 +116,7 @@ const DELIVER_SCRIPT_TOOL = {
       beats: {
         type: "array",
         description:
-          "Script beats in order. Beat 1 is the hook. Each beat is 60–90 seconds of narration.",
+          "Script beats in order. Beat 1 is the hook. Each beat is a FULLY-WRITTEN section of ~110–150 words of spoken narration (~45–60s each). Produce the exact number of beats the prompt asks for and write every one completely — do not return a short skeleton.",
         items: {
           type: "object",
           properties: {
@@ -231,35 +231,7 @@ export async function generateScript(opts: {
       : "";
   const fullPrompt = `${prompt}${hardRules}${lessons}`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": process.env.ANTHROPIC_API_KEY!,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 4096,
-      // Higher temperature for less robotic, more human phrasing.
-      temperature: 0.9,
-      system: VOICE_SYSTEM,
-      tools: [DELIVER_SCRIPT_TOOL],
-      tool_choice: { type: "tool", name: "deliver_script" },
-      messages: [{ role: "user", content: fullPrompt }],
-    }),
-  });
-  if (!res.ok) {
-    throw new Error(`Claude API error ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  }
-  const data = (await res.json()) as {
-    content: { type: string; input?: Record<string, unknown> }[];
-    usage: { input_tokens: number; output_tokens: number };
-  };
-  const toolUse = data.content.find((c) => c.type === "tool_use");
-  if (!toolUse?.input) throw new Error("Claude returned no script payload");
-
-  const input = toolUse.input as {
+  type ScriptInput = {
     beats: { text: string; visualPrompt: string; shotType: ScriptBeat["shotType"] }[];
     titles: string[];
     description: string;
@@ -268,14 +240,71 @@ export async function generateScript(opts: {
     runtimeSec: number;
     thumbPhrase?: string;
   };
-  const rawBeats: ScriptBeat[] = input.beats.map((b, idx) => ({ idx, ...b }));
-  // Hard cap: even with the word-budget prompt the model can run long, so trim
-  // trailing content beats (keeping the hook and the fixed outro) until the
-  // narration fits the target runtime. This is what guarantees the length cap.
-  const beats = capScriptToBudget(rawBeats, opts.targetLengthSec);
-  const costUsd =
-    (data.usage.input_tokens / 1e6) * PRICE.in +
-    (data.usage.output_tokens / 1e6) * PRICE.out;
+  let tokIn = 0;
+  let tokOut = 0;
+
+  async function runModel(extra: string): Promise<{ input: ScriptInput; raw: ScriptBeat[] }> {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 5120,
+        temperature: 0.9, // less robotic, more human phrasing
+        system: VOICE_SYSTEM,
+        tools: [DELIVER_SCRIPT_TOOL],
+        tool_choice: { type: "tool", name: "deliver_script" },
+        messages: [{ role: "user", content: `${fullPrompt}${extra}` }],
+      }),
+    });
+    if (!res.ok) throw new Error(`Claude API error ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const data = (await res.json()) as {
+      content: { type: string; input?: Record<string, unknown> }[];
+      usage: { input_tokens: number; output_tokens: number };
+    };
+    tokIn += data.usage.input_tokens;
+    tokOut += data.usage.output_tokens;
+    const toolUse = data.content.find((c) => c.type === "tool_use");
+    if (!toolUse?.input) throw new Error("Claude returned no script payload");
+    const inp = toolUse.input as ScriptInput;
+    return { input: inp, raw: inp.beats.map((b, idx) => ({ idx, ...b })) };
+  }
+
+  // First pass.
+  const first = await runModel("");
+  let input = first.input;
+  // Hard cap: trim trailing content beats so narration never overruns the target.
+  let beats = capScriptToBudget(first.raw, opts.targetLengthSec);
+
+  // Length FLOOR (operator concept #1): verify the script actually covers the
+  // target. If it under-fills it (the usual failure that tanks QC), ask once to
+  // expand to the full length with NEW substance — far cheaper than a bad render
+  // + auto-fix re-renders. The cap above already handles over-long drafts.
+  const minRuntimeSec = Math.round(opts.targetLengthSec * 0.85);
+  if (estimateRuntimeSec(beats) < minRuntimeSec) {
+    const haveSec = estimateRuntimeSec(beats);
+    const perBeat = Math.max(110, Math.round(budget.target / budget.beats));
+    const expand =
+      `\n\nLENGTH CHECK FAILED: your draft runs only ~${haveSec}s but the target is ${opts.targetLengthSec}s ` +
+      `(~${budget.target} words across ${budget.beats} beats, ~${perBeat} words each). ` +
+      `Rewrite the COMPLETE script to the full length by adding NEW substantive beats/sections — more concrete examples, mechanisms, stakes, who it affects, second-order implications — NOT filler, padding, or repetition. Every beat fully written.`;
+    try {
+      const retry = await runModel(expand);
+      const beats2 = capScriptToBudget(retry.raw, opts.targetLengthSec);
+      if (estimateRuntimeSec(beats2) > estimateRuntimeSec(beats)) {
+        input = retry.input;
+        beats = beats2;
+      }
+    } catch (err) {
+      console.error("script length-extend retry failed (keeping first draft):", err);
+    }
+  }
+
+  const costUsd = (tokIn / 1e6) * PRICE.in + (tokOut / 1e6) * PRICE.out;
 
   return {
     body: beats.map((b) => b.text).join("\n\n"),

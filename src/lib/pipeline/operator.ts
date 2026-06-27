@@ -46,7 +46,7 @@ const DEFAULTS: Required<OperatorConfig> = {
   shortLenMin: 30,
   shortLenMax: 180,
   longLenMin: 180,
-  longLenMax: 420,
+  longLenMax: 360, // 6 min cap — better quality density at this length
   autoApproveHours: 15,
   autoApproveQc: 8.5,
   publishFloorQc: 6.0,
