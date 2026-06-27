@@ -53,6 +53,9 @@ export type RenderBeat = {
   /** Hero clip: slow-pan + stretch to fill the section instead of looping. */
   heroHold?: boolean;
   shotType: string;
+  /** Art-director camera motion for stills/clips (default 'zoom-in' when unset):
+      'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'pan-up' | 'static'. */
+  motion?: string;
   /** Curated kinetic-highlight overlays anchored to this beat. */
   highlights?: Highlight[];
   /** Stick Studio: programmatic stick-figure scene for this beat. When set, the

@@ -416,11 +416,17 @@ export type CuratedHighlight = {
   maxLines: number;
 };
 
+/** Per-beat camera motion the render layer applies to stills/clips (art-director). */
+export const BEAT_MOTIONS = ["zoom-in", "zoom-out", "pan-left", "pan-right", "pan-up", "static"] as const;
+export type BeatMotion = (typeof BEAT_MOTIONS)[number];
+
 export type ScriptBeat = {
   idx: number;
   text: string;
   visualPrompt: string;
   shotType: "hero" | "broll" | "stock";
+  /** Art-director camera motion (undefined → render default zoom-in). */
+  motion?: BeatMotion;
 };
 
 export type Script = {

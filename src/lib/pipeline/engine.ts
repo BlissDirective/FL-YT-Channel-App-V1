@@ -36,6 +36,7 @@ import {
 } from "@/lib/adapters/video-models";
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
+import { directShots } from "@/lib/adapters/art-director";
 import type { StickScene } from "@/lib/stick-types";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
@@ -1200,6 +1201,37 @@ export type FullAutoResult =
   | { ok: true; enqueued: number; estCostUsd: number }
   | { ok: false; error: string };
 
+/** Art-director pass: refine the latest script's per-beat visual prompts +
+    assign camera motion, in place. Best-effort; cost billed to the video. */
+async function directArt(db: Db, video: Video, project: Project): Promise<void> {
+  const script = await loadLatestScript(db, video.id);
+  const beats = ((script?.beats ?? []) as ScriptBeat[]) ?? [];
+  if (!script || beats.length === 0) return;
+  const plan = await directShots({
+    title: video.title,
+    niche: project.niche,
+    topic: video.topic,
+    tone: project.tone,
+    format: video.format,
+    beats,
+  });
+  const next = beats.map((b) => {
+    const s = plan.shots.get(b.idx);
+    return s
+      ? { ...b, visualPrompt: s.visualPrompt || b.visualPrompt, shotType: s.shotType ?? b.shotType, motion: s.motion }
+      : b;
+  });
+  await db.from("scripts").update({ beats: next }).eq("id", (script as { id: string }).id);
+  if (plan.costUsd > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: "anthropic", usd: plan.costUsd, description: "Art-director shot plan" },
+      `“${video.title}”`,
+    );
+  }
+}
+
 export async function fullAutoGenerate(
   opts: {
     videoId: string;
@@ -1221,6 +1253,18 @@ export async function fullAutoGenerate(
 
   const project = await getProject(db, video.project_id);
   if (!project) return { ok: false, error: "Project not found" };
+
+  // 1b) Art-director pass (concept #2/#3): refine each beat's visual prompt for
+  // quality + beat-match and assign a per-beat camera motion BEFORE any asset is
+  // generated — better first renders (fewer re-rolls) and motion on cheap stills.
+  // Footage only — stick visuals are choreographed separately.
+  if (project.visual_style !== "stick") {
+    try {
+      await directArt(db, video, project);
+    } catch (err) {
+      console.error("art-director pass failed (non-fatal):", err);
+    }
+  }
   const script = await loadLatestScript(db, opts.videoId);
   const beats = (script?.beats ?? []) as ScriptBeat[];
   const voDur = await voDurations(db, opts.videoId);

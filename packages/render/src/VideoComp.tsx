@@ -129,6 +129,28 @@ export const VerticalShort: React.FC<VideoProps> = (props) => {
 
 // ── Scenes ────────────────────────────────────────────────────────────
 
+/** Per-beat camera move. Scale ≥1.12 on pans keeps the overscan from revealing
+    edges. Default (and unknown) = the classic slow zoom-in. */
+function motionStyle(motion: string | undefined, frame: number, dur: number): React.CSSProperties {
+  const p = dur > 0 ? Math.min(1, Math.max(0, frame / dur)) : 0;
+  const at = (a: number, b: number) => a + (b - a) * p;
+  switch (motion) {
+    case "zoom-out":
+      return { transform: `scale(${at(1.12, 1.02)})` };
+    case "pan-left":
+      return { transform: `scale(1.12) translateX(${at(3, -3)}%)` };
+    case "pan-right":
+      return { transform: `scale(1.12) translateX(${at(-3, 3)}%)` };
+    case "pan-up":
+      return { transform: `scale(1.12) translateY(${at(3, -3)}%)` };
+    case "static":
+      return { transform: `scale(${at(1.04, 1.06)})` }; // barely-there drift
+    case "zoom-in":
+    default:
+      return { transform: `scale(${at(1.02, 1.12)})` };
+  }
+}
+
 const BeatScene: React.FC<{
   beat: RenderBeat;
   brand: VideoProps["brand"];
@@ -139,7 +161,9 @@ const BeatScene: React.FC<{
 }> = ({ beat, brand, captionSize, vertical, captions = true, stickCast }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
-  const kenBurns = interpolate(frame, [0, durationInFrames], [1.02, 1.12]);
+  // Art-director per-beat camera motion (default: slow zoom-in). Gives cheap
+  // stills life and varies the rhythm across beats.
+  const motion = motionStyle(beat.motion, frame, durationInFrames);
   return (
     <AbsoluteFill>
       {beat.stickScene ? (
@@ -147,7 +171,7 @@ const BeatScene: React.FC<{
         <StickStage scene={beat.stickScene} cast={stickCast} />
       ) : beat.videoUrl && beat.heroHold ? (
         // Hero clip: slow + continuous Ken Burns pan to fill the section.
-        <AbsoluteFill style={{ transform: `scale(${kenBurns})` }}>
+        <AbsoluteFill style={motion}>
           <Loop
             durationInFrames={Math.max(
               1,
@@ -182,7 +206,7 @@ const BeatScene: React.FC<{
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            transform: `scale(${kenBurns})`,
+            ...motion,
           }}
         />
       ) : (

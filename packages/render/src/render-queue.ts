@@ -303,7 +303,7 @@ async function buildProps(videoId: string): Promise<{
   const { data: assets } = await db.from("assets").select("*").eq("video_id", sourceId);
   if (!project || !script || !assets) return null;
 
-  let scriptBeats = script.beats as { idx: number; text: string; shotType: string }[];
+  let scriptBeats = script.beats as { idx: number; text: string; shotType: string; motion?: string }[];
   // Cut the segment: keep only the parent beats this short was derived from,
   // in the segment's order. Original beat idx is preserved so asset lookup and
   // highlight anchoring (by beatIdx) stay valid.
@@ -345,6 +345,7 @@ async function buildProps(videoId: string): Promise<{
       idx: sb.idx,
       text: sb.text,
       shotType: sb.shotType,
+      motion: sb.motion,
       durationSec,
       words,
       voUrl: vo ? await sign(vo.storage_path) : null,
