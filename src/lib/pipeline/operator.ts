@@ -4,6 +4,7 @@ import { startBuildRun, decideGate, isKillSwitchOn, zonedTimeToUtc, ymdInTz, typ
 import { reviewGate, isQcLive } from "@/lib/adapters/qc";
 import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest, sendTelegram } from "@/lib/adapters/telegram";
 import { editorialGuard, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
+import { planMonthlyCalendar } from "@/lib/adapters/calendar";
 import {
   analyticsConfigured,
   getChannelSummary,
@@ -14,6 +15,7 @@ import { desiredMixShortsPct, effectiveDailyCap } from "@/lib/pipeline/monetizat
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import type { FrameCritique } from "@/lib/stick-types";
 import type {
+  CalendarSlot,
   OperatorConfig,
   OperatorRun,
   OperatorReview,
@@ -57,6 +59,7 @@ const DEFAULTS: Required<OperatorConfig> = {
   lastDigestAt: "",
   lastAnalyticsAt: "",
   strategy: {},
+  calendar: [],
 };
 
 export function operatorConfig(run: Pick<OperatorRun, "config">): Required<OperatorConfig> {
@@ -77,6 +80,26 @@ async function liveRun(db: Db, projectId: string): Promise<OperatorRun | null> {
 
 export async function getOperatorRun(db: Db, projectId: string): Promise<OperatorRun | null> {
   return liveRun(db, projectId);
+}
+
+/** Veto a calendar slot (operator skips it; the next planned slot is produced). */
+export async function skipCalendarSlot(db: Db, projectId: string, day: number): Promise<{ ok: boolean }> {
+  const run = await liveRun(db, projectId);
+  if (!run) return { ok: false };
+  await markSlot(db, run, day, { status: "skipped" });
+  return { ok: true };
+}
+
+/** Re-plan the whole calendar from scratch (operator-triggered). */
+export async function regenerateCalendarFor(db: Db, projectId: string): Promise<{ ok: boolean; error?: string }> {
+  const run = await liveRun(db, projectId);
+  if (!run) return { ok: false, error: "Operator is not running." };
+  const { data: p } = await db.from("projects").select("*").eq("id", projectId).maybeSingle();
+  const project = p as Project | null;
+  if (!project) return { ok: false, error: "Project not found." };
+  await persistCalendar(db, run, []);
+  await ensureCalendar(db, run, project);
+  return { ok: true };
 }
 
 /** Start (or resume) the operator for a project. The 30-day budget cycle is
@@ -157,7 +180,12 @@ async function rollCycleIfDue(db: Db, run: OperatorRun): Promise<OperatorRun> {
   }
   if (rolled) {
     const iso = new Date(start).toISOString();
-    await db.from("operator_runs").update({ cycle_start: iso, updated_at: new Date().toISOString() }).eq("id", run.id);
+    // Fresh budget AND a fresh calendar each cycle (strategy/memory persist).
+    run.config = { ...(run.config ?? {}), calendar: [] };
+    await db
+      .from("operator_runs")
+      .update({ cycle_start: iso, config: run.config, updated_at: new Date().toISOString() })
+      .eq("id", run.id);
     run.cycle_start = iso;
     await logEvent(db, run.project_id, run.id, "cycle_roll", `New 30-day cycle — fresh $${Number(run.cycle_budget_usd).toFixed(0)} budget`);
   }
@@ -271,21 +299,93 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
     return { acted: false, reason: "already-seeded-today", spentUsd: spent };
   }
 
-  // Choose today's format from the monetization-aware mix (tilts toward the
-  // nearer YPP path), and refuse it if its cap won't fit the remaining pool.
-  const counts = await cycleFormatCounts(db, run);
-  const mixShortsPct = desiredMixShortsPct(cfg.mixShortsPct, cfg.strategy);
-  const kind = pickFormat(counts.total, mixShortsPct);
-  const isShort = kind === "short";
-  const cap = isShort ? cfg.shortsCapUsd : cfg.longCapUsd;
+  // Plan the 30-day calendar once at cycle start, then pull the next planned
+  // slot (it sets the format + subtopic). If the calendar is exhausted/absent,
+  // fall back to the monetization-aware mix.
+  await ensureCalendar(db, run, project);
+  const slot = nextPlannedSlot(run);
+  let kind: "short" | "long" = slot
+    ? (slot.format as "short" | "long")
+    : pickFormat((await cycleFormatCounts(db, run)).total, desiredMixShortsPct(cfg.mixShortsPct, cfg.strategy));
+  let cap = kind === "short" ? cfg.shortsCapUsd : cfg.longCapUsd;
+
+  // Budget: never start a slot we can't afford. Near-exhaustion → downgrade a
+  // long slot to a high-quality Short so the channel keeps posting (concept #4).
   if (remaining < cap) {
-    // If a long won't fit but a short would, fall back to a short this slot.
-    if (!isShort && remaining >= cfg.shortsCapUsd) {
-      return seedVideo(db, run, project, "short", cfg);
+    if (kind === "long" && remaining >= cfg.shortsCapUsd) {
+      kind = "short";
+      cap = cfg.shortsCapUsd;
+      if (slot) await markSlot(db, run, slot.day, { format: "short", reservedUsd: cfg.shortsCapUsd });
+    } else {
+      return { acted: false, reason: "insufficient-budget-for-slot", spentUsd: spent };
     }
-    return { acted: false, reason: "insufficient-budget-for-slot", spentUsd: spent };
   }
-  return seedVideo(db, run, project, kind, cfg);
+  return seedVideo(db, run, project, kind, cfg, slot ?? undefined);
+}
+
+// ── 30-day content calendar (concept #4) ─────────────────────────────
+
+function calendarOf(run: OperatorRun): CalendarSlot[] {
+  return ((run.config as { calendar?: CalendarSlot[] }).calendar ?? []) as CalendarSlot[];
+}
+
+async function persistCalendar(db: Db, run: OperatorRun, calendar: CalendarSlot[]): Promise<void> {
+  run.config = { ...(run.config ?? {}), calendar };
+  await db.from("operator_runs").update({ config: run.config, updated_at: new Date().toISOString() }).eq("id", run.id);
+}
+
+/** The lowest-day still-planned slot (what to produce next). */
+function nextPlannedSlot(run: OperatorRun): CalendarSlot | null {
+  const planned = calendarOf(run).filter((s) => s.status === "planned").sort((a, b) => a.day - b.day);
+  return planned[0] ?? null;
+}
+
+async function markSlot(db: Db, run: OperatorRun, day: number, patch: Partial<CalendarSlot>): Promise<void> {
+  await persistCalendar(db, run, calendarOf(run).map((s) => (s.day === day ? { ...s, ...patch } : s)));
+}
+
+/** Plan the cycle's calendar once, at the start (when none exists). */
+async function ensureCalendar(db: Db, run: OperatorRun, project: Project): Promise<void> {
+  if (calendarOf(run).length > 0) return;
+  const cfg = operatorConfig(run);
+  const taxonomy = taxonomyFor(project, cfg.taxonomy && cfg.taxonomy.length ? cfg.taxonomy : undefined);
+  try {
+    const plan = await planMonthlyCalendar({
+      project,
+      taxonomy,
+      days: 30,
+      mixShortsPct: cfg.mixShortsPct,
+      shortsCapUsd: cfg.shortsCapUsd,
+      longCapUsd: cfg.longCapUsd,
+    });
+    await persistCalendar(db, run, plan.slots);
+    if (plan.costUsd > 0) {
+      await db.from("cost_ledger").insert({
+        project_id: run.project_id,
+        video_id: null,
+        provider: "anthropic",
+        description: "Operator 30-day calendar plan",
+        usd: plan.costUsd,
+      });
+    }
+    await logEvent(db, run.project_id, run.id, "calendar", `Planned ${plan.slots.length}-day calendar (${plan.provider})`);
+  } catch (err) {
+    console.error("operator calendar planning failed:", err);
+  }
+}
+
+/** Living plan: bias still-planned slots toward winning subtopics (earlier days). */
+function rerankCalendar(run: OperatorRun, winners?: string[]): CalendarSlot[] {
+  const cal = calendarOf(run);
+  const planned = cal.filter((s) => s.status === "planned");
+  if (planned.length < 2 || !winners || winners.length === 0) return cal;
+  const w = new Set(winners.map((s) => s.toLowerCase()));
+  const days = planned.map((s) => s.day).sort((a, b) => a - b);
+  const ordered = [...planned].sort(
+    (a, b) => (w.has(b.subtopic.toLowerCase()) ? 1 : 0) - (w.has(a.subtopic.toLowerCase()) ? 1 : 0),
+  );
+  const reassigned = ordered.map((s, i) => ({ ...s, day: days[i] }));
+  return [...cal.filter((s) => s.status !== "planned"), ...reassigned].sort((a, b) => a.day - b.day);
 }
 
 async function seedVideo(
@@ -294,6 +394,7 @@ async function seedVideo(
   project: Project,
   kind: "short" | "long",
   cfg: Required<OperatorConfig>,
+  slot?: CalendarSlot,
 ): Promise<OperatorTick> {
   const isShort = kind === "short";
   const buildCfg: BuildRunConfig = {
@@ -320,24 +421,23 @@ async function seedVideo(
   const recentTitles = ((recent ?? []) as { title: string }[]).map((r) => r.title).filter(Boolean);
   const taxonomy = taxonomyFor(project, cfg.taxonomy && cfg.taxonomy.length ? cfg.taxonomy : undefined);
   const winners = (cfg.strategy as OperatorStrategy | undefined)?.topSubtopics;
+
+  // Finalize the day's idea: the calendar slot sets the subtopic + working title;
+  // planNextTopic refreshes it (dedup + winners) so it stays adaptive. Fall back
+  // to the slot's pre-planned title, then to live research.
+  let chosen: { title: string; angle: string; subtopic: string } | null = null;
   try {
-    const planned = await planNextTopic({ project, recentTitles, taxonomy, kind, winners });
+    const planned = await planNextTopic({
+      project,
+      recentTitles,
+      taxonomy,
+      kind,
+      winners,
+      subtopic: slot?.subtopic,
+      plannedTitle: slot?.title || undefined,
+    });
     if (planned) {
-      const { data: idea } = await db
-        .from("ideas")
-        .insert({
-          project_id: run.project_id,
-          title: planned.title,
-          angle: planned.angle,
-          status: "approved",
-          source: { operator: true, subtopic: planned.subtopic },
-        })
-        .select("id")
-        .single();
-      if (idea) {
-        buildCfg.ideaSource = "existing";
-        buildCfg.ideaIds = [idea.id as string];
-      }
+      chosen = { title: planned.title, angle: planned.angle, subtopic: planned.subtopic };
       if (planned.costUsd > 0) {
         await db.from("cost_ledger").insert({
           project_id: run.project_id,
@@ -349,21 +449,47 @@ async function seedVideo(
       }
     }
   } catch (err) {
-    console.error("operator topic planning failed (falling back to research):", err);
+    console.error("operator topic planning failed:", err);
+  }
+  if (!chosen && slot?.title) {
+    chosen = { title: slot.title, angle: slot.angle, subtopic: slot.subtopic };
+  }
+  if (chosen) {
+    const { data: idea } = await db
+      .from("ideas")
+      .insert({
+        project_id: run.project_id,
+        title: chosen.title,
+        angle: chosen.angle,
+        status: "approved",
+        source: { operator: true, subtopic: chosen.subtopic, calendarDay: slot?.day },
+      })
+      .select("id")
+      .single();
+    if (idea) {
+      buildCfg.ideaSource = "existing";
+      buildCfg.ideaIds = [idea.id as string];
+    }
   }
 
   const res = await startBuildRun(run.project_id, buildCfg, db);
   if (!res.ok) return { acted: false, reason: res.error };
 
   // Claim the seeded video for the operator and stamp the day's publish slot.
-  // It holds at FINAL_REVIEW for approval (the finalizer defers operator videos).
-  const slot = nextSlotUtc(new Date(), cfg.postingHour, cfg.postingTz);
+  const publishAt = nextSlotUtc(new Date(), cfg.postingHour, cfg.postingTz);
   await db
     .from("videos")
-    .update({ operator_run_id: run.id, scheduled_publish_at: slot.toISOString() })
+    .update({ operator_run_id: run.id, scheduled_publish_at: publishAt.toISOString() })
     .eq("build_run_id", res.runId);
 
-  const { data: seeded } = await db.from("videos").select("title").eq("build_run_id", res.runId).limit(1).maybeSingle();
+  const { data: seeded } = await db
+    .from("videos")
+    .select("id, title")
+    .eq("build_run_id", res.runId)
+    .limit(1)
+    .maybeSingle();
+  // Tie the calendar slot to this video.
+  if (slot) await markSlot(db, run, slot.day, { status: "seeded", videoId: (seeded?.id as string) ?? undefined, format: kind });
   await logEvent(db, run.project_id, run.id, "seed", `Seeded ${kind}: ${(seeded?.title as string) ?? "(untitled)"}`);
   return { acted: true, kind };
 }
@@ -621,6 +747,8 @@ async function maybePullAnalytics(db: Db, run: OperatorRun, project: Project): P
       })
       .eq("id", run.id);
     run.config = { ...(run.config ?? {}), strategy, lastAnalyticsAt: new Date().toISOString() };
+    // Living calendar: bias the still-planned slots toward winning subtopics.
+    await persistCalendar(db, run, rerankCalendar(run, strategy.topSubtopics));
     await logEvent(
       db,
       run.project_id,

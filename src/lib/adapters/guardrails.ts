@@ -126,6 +126,10 @@ export async function planNextTopic(opts: {
   kind: "short" | "long";
   /** Best-performing subtopics from real analytics — lean toward these (Phase D). */
   winners?: string[];
+  /** Constrain the idea to this taxonomy bucket (the calendar slot's subtopic). */
+  subtopic?: string;
+  /** A pre-planned title to refine/replace (the calendar slot's title). */
+  plannedTitle?: string;
 }): Promise<PlannedTopic | null> {
   if (!isLive()) return null;
   const system =
@@ -136,8 +140,14 @@ export async function planNextTopic(opts: {
     opts.winners && opts.winners.length
       ? `BEST-PERFORMING THEMES so far (lean toward these when you can do so freshly):\n- ${opts.winners.join("\n- ")}\n\n`
       : "";
+  const slotLine = opts.subtopic
+    ? `THIS VIDEO'S PLANNED SUBTOPIC (stay within it): ${opts.subtopic}\n` +
+      (opts.plannedTitle ? `Planned working title (refine or replace for freshness/quality): ${opts.plannedTitle}\n` : "") +
+      `\n`
+    : "";
   const user =
     `TAXONOMY (coverage buckets):\n- ${opts.taxonomy.join("\n- ")}\n\n` +
+    slotLine +
     winnersLine +
     `RECENT TITLES (avoid overlap with these):\n${opts.recentTitles.length ? opts.recentTitles.map((t) => `- ${t}`).join("\n") : "- (none yet)"}\n\n` +
     `Call deliver_topic with a fresh idea.`;

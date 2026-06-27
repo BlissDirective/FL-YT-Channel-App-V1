@@ -10,6 +10,7 @@ import type {
   BuildRun,
   BuildRunStatus,
   CostEntry,
+  CalendarSlot,
   Idea,
   Insight,
   OperatorConfig,
@@ -77,6 +78,8 @@ export type OperatorView = {
   mixShortsPct: number;
   mixReason: string;
   dailyCap: number;
+  /** 30-day content calendar (planned/seeded/done/skipped slots). */
+  calendar: CalendarSlot[];
 };
 
 /** Recent Auto Pilot Operator activity (homepage event log). */
@@ -110,6 +113,7 @@ export async function getOperatorView(projectId: string): Promise<OperatorView> 
     hasAnalytics: false, subs: 0, subsGoal: YPP_SUBS, watchHours: 0, watchGoal: YPP_WATCH_HOURS,
     shortsViews: 0, shortsGoal: YPP_SHORTS_VIEWS, retentionPct: 0,
     nearerPath: "watch", mixShortsPct: 0.75, mixReason: "default mix", dailyCap: 1,
+    calendar: [],
   };
   if (!run) return empty;
 
@@ -162,6 +166,7 @@ export async function getOperatorView(projectId: string): Promise<OperatorView> 
       ageDays,
       subs: ch?.subs ?? 0,
     }),
+    calendar: ((cfg.calendar as CalendarSlot[] | undefined) ?? []).slice().sort((a, b) => a.day - b.day),
   };
 }
 

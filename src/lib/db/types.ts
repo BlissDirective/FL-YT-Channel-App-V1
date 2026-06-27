@@ -298,6 +298,23 @@ export type OperatorConfig = {
   lastAnalyticsAt?: string;
   /** Learned performance strategy from real YouTube Analytics (Phase D). */
   strategy?: OperatorStrategy;
+  /** 30-day living content calendar (planned upfront, adapts to performance). */
+  calendar?: CalendarSlot[];
+};
+
+/** One planned slot in the 30-day content calendar. */
+export type CalendarSlot = {
+  /** 1-based day in the cycle. */
+  day: number;
+  format: VideoKind;
+  subtopic: string;
+  title: string;
+  angle: string;
+  /** Reserved budget for this slot (per-format) so long-form isn't starved late. */
+  reservedUsd: number;
+  status: "planned" | "seeded" | "done" | "skipped";
+  /** The video produced from this slot, once seeded. */
+  videoId?: string;
 };
 
 /** What the channel's real analytics say is working — feeds topic planning and

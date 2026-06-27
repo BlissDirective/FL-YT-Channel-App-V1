@@ -8,6 +8,8 @@ import {
   stopOperator,
   tickOperator,
   getOperatorRun,
+  skipCalendarSlot,
+  regenerateCalendarFor,
 } from "@/lib/pipeline/operator";
 import { getProject } from "@/lib/db/queries";
 import type { Project } from "@/lib/db/types";
@@ -47,6 +49,28 @@ export async function stopOperatorAction(projectId: string): Promise<Result> {
     const r = await stopOperator(admin(), projectId);
     revalidatePath(`/projects/${projectId}`);
     return { ok: r.ok };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Veto a calendar slot — the operator skips it and produces the next one. */
+export async function skipCalendarSlotAction(projectId: string, day: number): Promise<Result> {
+  try {
+    const r = await skipCalendarSlot(admin(), projectId, day);
+    revalidatePath(`/projects/${projectId}`);
+    return { ok: r.ok };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Re-plan the 30-day calendar from scratch. */
+export async function regenerateCalendarAction(projectId: string): Promise<Result> {
+  try {
+    const r = await regenerateCalendarFor(admin(), projectId);
+    revalidatePath(`/projects/${projectId}`);
+    return { ok: r.ok, error: r.error };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }

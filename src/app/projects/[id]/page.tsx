@@ -38,6 +38,7 @@ import { NeedsAttention } from "./needs-attention";
 import { BuildAndPost } from "./build/build-and-post";
 import { BuildRunsPanel } from "./build/build-runs-panel";
 import { OperatorPanel } from "./operator-panel";
+import { CalendarPanel } from "./calendar-panel";
 import { operatorReadiness } from "@/lib/pipeline/operator-readiness";
 
 export const dynamic = "force-dynamic";
@@ -167,6 +168,8 @@ export default async function ProjectHome({
       />
 
       <OperatorPanel projectId={id} view={operator} readiness={operatorReady} events={operatorEvents} />
+
+      {operator.status && <CalendarPanel projectId={id} calendar={operator.calendar} />}
 
       <BuildRunsPanel projectId={id} runs={buildRuns} />
 
