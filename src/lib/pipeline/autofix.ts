@@ -156,6 +156,17 @@ function memoryHint(mem: AutofixMemory): string {
 
 const SEV_WEIGHT: Record<string, number> = { high: 2, med: 1, low: 0 };
 
+// Issues the visual fixer CAN'T resolve — they're about script length/structure
+// or pacing/content, not the visuals. Re-rolling images won't help, so we skip
+// them (and if a video has only structural issues, the loop holds it for a human
+// instead of burning re-renders). The right fix lives at the script stage.
+const STRUCTURAL_RE =
+  /\b(too short|too long|duration|runtime|\d+\s*-?\s*second|\d+\s*-?\s*minute|missing|more content|target length|word count|under-?run|add (?:a )?(?:beat|section)|needs more|expand the script|script structure|no (?:substantive )?(?:middle|section))\b/i;
+
+function isStructuralIssue(iss: FrameIssue): boolean {
+  return STRUCTURAL_RE.test(`${iss.note ?? ""} ${iss.fix ?? ""}`);
+}
+
 /** Animation reads the render farm's Tier-1 vision_review; AI-clip scores the
     final cut with the QC vision agent and writes a compatible critique. */
 async function getCritique(
@@ -250,9 +261,9 @@ async function planAnimation(
   const tier: "tier1" | "tier2" = isTwelveLabsLive() && wantsTemporalPass(critique) ? "tier2" : "tier1";
 
   // Highest-severity issues first; apply at most two coherent edits per render.
-  const issues = [...(critique.issues ?? [])].sort(
-    (a, b) => (SEV_WEIGHT[b.severity] ?? 0) - (SEV_WEIGHT[a.severity] ?? 0),
-  );
+  const issues = [...(critique.issues ?? [])]
+    .filter((i) => !isStructuralIssue(i))
+    .sort((a, b) => (SEV_WEIGHT[b.severity] ?? 0) - (SEV_WEIGHT[a.severity] ?? 0));
 
   let consistencyDone = false;
   for (const iss of issues) {
@@ -301,8 +312,11 @@ async function planAnimation(
     }
   }
 
-  // Nothing matched a known category → re-roll the weakest-looking beat 0.
-  if (changes.length === 0 && clips.length > 0) {
+  // Nothing actionable matched → re-roll the weakest-looking beat 0, UNLESS the
+  // critique's only complaints were structural (length/content): a visual re-roll
+  // can't fix those, so leave it for the loop to hold rather than waste a render.
+  const onlyStructural = (critique.issues ?? []).length > 0 && (critique.issues ?? []).every(isStructuralIssue);
+  if (changes.length === 0 && !onlyStructural && clips.length > 0) {
     const clip = byIdx.get(0) ?? clips[0];
     const beat = beats.find((b) => b.idx === clip.beat_index);
     if (beat) {
@@ -379,9 +393,9 @@ async function planFootage(
   const hint = memoryHint(mem);
   const tier: "tier1" | "tier2" = isTwelveLabsLive() && wantsTemporalPass(critique) ? "tier2" : "tier1";
 
-  const issues = [...(critique.issues ?? [])].sort(
-    (a, b) => (SEV_WEIGHT[b.severity] ?? 0) - (SEV_WEIGHT[a.severity] ?? 0),
-  );
+  const issues = [...(critique.issues ?? [])]
+    .filter((i) => !isStructuralIssue(i))
+    .sort((a, b) => (SEV_WEIGHT[b.severity] ?? 0) - (SEV_WEIGHT[a.severity] ?? 0));
   let captionsDone = false;
 
   for (const iss of issues) {

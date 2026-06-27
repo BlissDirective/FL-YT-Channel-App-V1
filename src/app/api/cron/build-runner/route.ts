@@ -40,22 +40,23 @@ async function handle(request: NextRequest) {
     // render-stranded videos), then the heavy generation step under a wall-clock
     // budget so a pass never hard-times-out mid-video and strands it.
     const rel = await releaseScheduledVideos(6);
-    // Auto Pilot Operator tick here too (not just the sparse auto-pilot cron):
-    // seeds the daily video, and — crucially — sends Telegram approval cards and
-    // runs auto-approve PROMPTLY (within this 5-min loop) once a video settles.
-    let operator = { ticked: 0, seeded: 0 };
-    try {
-      operator = await sweepOperator(createAdminClient());
-    } catch (err) {
-      console.error("build-runner operator sweep failed:", err);
-    }
-    // Auto-fix sweep BEFORE the finalizer so a weak auto-pilot cut is fixed
-    // (and re-rendering, hence no longer at FINAL_REVIEW) before it can publish.
+    // Auto-fix sweep FIRST so a weak cut is critiqued + fixed (and converges to a
+    // terminal state) BEFORE the operator decides whether to hold or offer it for
+    // approval — otherwise the operator can hold a video the loop is still improving.
     let autofix = { scanned: 0, fixed: 0, done: 0, held: 0 };
     try {
       autofix = await sweepAutofix(8, createAdminClient());
     } catch (err) {
       console.error("build-runner autofix sweep failed:", err);
+    }
+    // Auto Pilot Operator tick (not just the sparse auto-pilot cron): seeds the
+    // daily video, and sends Telegram approval cards / auto-approves promptly once
+    // a video has settled (auto-fix done/held).
+    let operator = { ticked: 0, seeded: 0 };
+    try {
+      operator = await sweepOperator(createAdminClient());
+    } catch (err) {
+      console.error("build-runner operator sweep failed:", err);
     }
     const fin = await finalizeAutoPilotVideos(5);
     const heal = await reconcileStuckRenders();

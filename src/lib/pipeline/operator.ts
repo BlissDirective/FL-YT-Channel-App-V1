@@ -3,7 +3,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { startBuildRun, decideGate, isKillSwitchOn, zonedTimeToUtc, ymdInTz, type BuildRunConfig } from "@/lib/pipeline/engine";
 import { reviewGate, isQcLive } from "@/lib/adapters/qc";
 import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest, sendTelegram } from "@/lib/adapters/telegram";
-import { autofixInFlight } from "@/lib/pipeline/autofix";
 import { editorialGuard, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
 import {
   analyticsConfigured,
@@ -497,7 +496,13 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
   for (const video of ((holding ?? []) as Video[])) {
     const rev = (video.operator_review ?? {}) as OperatorReview;
     if (rev.decided || rev.hold) continue; // decided, or already held for review
-    if (autofixInFlight(video)) continue; // let the fix loop settle first
+    // Wait for the auto-fix loop to FULLY converge (done/held) before deciding —
+    // otherwise the operator holds/approves a video the loop is still improving.
+    const loopOn =
+      (video.autofix_enabled ?? project.autofix_enabled ?? false) &&
+      (project.autofix_loop ?? "off") !== "off";
+    const afStatus = (video.autofix_state as { status?: string } | null)?.status;
+    if (loopOn && afStatus !== "done" && afStatus !== "held") continue;
     if (!rev.notifiedAt) {
       const qc = await finalQc(db, video, project);
 
@@ -559,6 +564,7 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
           kind: video.kind,
           qc,
           slot: video.scheduled_publish_at,
+          spentUsd: Number(video.total_cost_usd),
           caution: noAuto ? flags : undefined,
         });
       } catch (err) {

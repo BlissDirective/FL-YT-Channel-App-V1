@@ -75,10 +75,14 @@ export async function sendApprovalCard(opts: {
   kind: string;
   qc: number | null;
   slot: string | null;
+  /** This video's own cost (distinct from the channel's cycle spend). */
+  spentUsd?: number;
   /** Editorial-guard caution flags (publishable, but worth your eyes). */
   caution?: string[];
 }): Promise<void> {
-  const qcLine = opts.qc != null ? ` · QC <b>${opts.qc.toFixed(1)}</b>/10` : "";
+  const qcLine =
+    (opts.qc != null ? ` · QC <b>${opts.qc.toFixed(1)}</b>/10` : "") +
+    (opts.spentUsd != null ? ` · $${opts.spentUsd.toFixed(2)} this video` : "");
   const slotLine = opts.slot ? `\n🕐 Scheduled ${fmtSlot(opts.slot)}` : "";
   const cautionLine =
     opts.caution && opts.caution.length
