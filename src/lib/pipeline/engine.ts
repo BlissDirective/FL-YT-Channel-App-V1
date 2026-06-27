@@ -25,6 +25,8 @@ import {
 import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highlights";
 import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
+import { editorialGuard } from "@/lib/adapters/guardrails";
+import { getQualityGateConfig, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import {
   buildScriptLexicon,
@@ -42,7 +44,7 @@ import {
 } from "@/lib/adapters/video-models";
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
-import { directShots } from "@/lib/adapters/art-director";
+import { directShots, assessVisualPrompt, refineOneShot, isArtDirectorLive } from "@/lib/adapters/art-director";
 import type { StickScene } from "@/lib/stick-types";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
@@ -581,6 +583,8 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   // Stick Studio projects render programmatic stick figures: the per-beat visual
   // is a choreographed StickScene (one LLM call), not an AI/stock clip.
   const stick = project.visual_style === "stick";
+  // Opt-in prompt pre-check config, fetched once and shared across beats.
+  const qualityGate = await getQualityGateConfig(db);
   const [voResults, clipResults] = await Promise.all([
     // VO is the only unguarded provider call here — cap concurrency so a long
     // script can't 429 ElevenLabs and reject the whole stage.
@@ -591,7 +595,7 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
       ? makeStickClips(video, project, beats)
       : // Cap concurrency (like VO above): firing every beat's FLUX call at once
         // bursts fal's rate limit (429) and degrades most beats to blank tiles.
-        mapLimit(beats, 3, (beat) => makeBeatClip(video, project, beat)),
+        mapLimit(beats, 3, (beat) => makeBeatClip(video, project, beat, { qualityGate })),
   ]);
 
   if (voResults) {
@@ -625,6 +629,9 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   for (const clip of clipResults) {
     await db.from("assets").insert(clip.row);
     await recordCost(db, video, clip.cost, `beat ${(clip.row.beat_index ?? 0) + 1}`);
+    if (clip.extraCost) {
+      await recordCost(db, video, clip.extraCost, `beat ${(clip.row.beat_index ?? 0) + 1}`);
+    }
   }
 
   // Visual-floor guard: if every beat degraded to a mock tile (no FLUX, no
@@ -701,6 +708,9 @@ type AssetDraft = {
     cost_usd: number;
   };
   cost: { provider: string; usd: number; description: string };
+  /** Optional secondary cost (e.g. a prompt pre-check refine) recorded by the
+      caller sequentially — keeps parallel generation off the cost-total race. */
+  extraCost?: { provider: string; usd: number; description: string };
 };
 
 /** One beat's visual: stock beats search Pexels (free), hero beats get a
@@ -710,8 +720,13 @@ export async function makeBeatClip(
   video: Video,
   project: Project,
   beat: ScriptBeat,
+  opts?: { qualityGate?: QualityGateConfig },
 ): Promise<AssetDraft> {
-  const prompt = buildVisualPrompt(beat.visualPrompt, project.brand_kit.thumbnailStyle);
+  let scene = beat.visualPrompt;
+  let prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle);
+  // Visual-prompt pre-check (Tier 1): refine cost is returned to the caller and
+  // recorded sequentially (parallel recordCost would race the cost total).
+  let extraCost: AssetDraft["extraCost"];
   try {
     if (beat.shotType === "stock") {
       const stock = await searchStockClip(beat.visualPrompt);
@@ -739,26 +754,49 @@ export async function makeBeatClip(
       // No stock match → fall through to a generated still.
     }
     if (isFalLive()) {
-      const quality = beat.shotType === "hero" ? "dev" : "schnell";
-      const img = await generateImage({ prompt, quality });
-      const path = `videos/${video.id}/beat-${beat.idx}.jpg`;
-      await uploadMedia(path, img.image, "image/jpeg");
-      return {
-        row: {
-          video_id: video.id,
-          kind: "clip",
-          provider: "fal.ai",
-          storage_path: path,
-          beat_index: beat.idx,
-          meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}` },
-          cost_usd: img.costUsd,
-        },
-        cost: {
-          provider: "fal.ai",
-          usd: img.costUsd,
-          description: quality === "dev" ? "Hero shot (FLUX dev)" : "B-roll still (FLUX schnell)",
-        },
-      };
+      // Validate the prompt BEFORE paying FLUX. Weak prompt → one cheap re-prompt;
+      // if we can't refine (art-director unavailable) under the opt-in gate, skip
+      // the paid render and fall through to free stock/mock (fail-closed).
+      let canPay = true;
+      if (opts?.qualityGate?.enabled && !assessVisualPrompt(scene).ok) {
+        if (isArtDirectorLive()) {
+          const refined = await refineOneShot({ prompt: scene, niche: project.niche, title: video.title });
+          if (refined?.prompt) {
+            scene = refined.prompt;
+            prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle);
+            if (refined.costUsd > 0) {
+              extraCost = { provider: "anthropic", usd: refined.costUsd, description: "Prompt pre-check refine" };
+            }
+          } else {
+            canPay = false;
+          }
+        } else {
+          canPay = false;
+        }
+      }
+      if (canPay) {
+        const quality = beat.shotType === "hero" ? "dev" : "schnell";
+        const img = await generateImage({ prompt, quality });
+        const path = `videos/${video.id}/beat-${beat.idx}.jpg`;
+        await uploadMedia(path, img.image, "image/jpeg");
+        return {
+          row: {
+            video_id: video.id,
+            kind: "clip",
+            provider: "fal.ai",
+            storage_path: path,
+            beat_index: beat.idx,
+            meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}` },
+            cost_usd: img.costUsd,
+          },
+          cost: {
+            provider: "fal.ai",
+            usd: img.costUsd,
+            description: quality === "dev" ? "Hero shot (FLUX dev)" : "B-roll still (FLUX schnell)",
+          },
+          extraCost,
+        };
+      }
     }
   } catch (err) {
     console.error(`beat ${beat.idx} visual generation failed:`, err);
@@ -790,6 +828,7 @@ export async function makeBeatClip(
             cost_usd: 0,
           },
           cost: { provider: "pexels", usd: 0, description: "Stock fallback (FLUX unavailable) — free" },
+          extraCost,
         };
       }
     } catch (err) {
@@ -808,6 +847,7 @@ export async function makeBeatClip(
       cost_usd: stock ? MOCK_COSTS.stockClip.usd : MOCK_COSTS.clip.usd,
     },
     cost: stock ? MOCK_COSTS.stockClip : MOCK_COSTS.clip,
+    extraCost,
   };
 }
 
@@ -2004,6 +2044,43 @@ export async function processPendingBuildVideos(
           .eq("id", row.id);
         held++;
         continue;
+      }
+
+      // Editorial gate (Tier 1): when quality gates are on, review the finished
+      // SCRIPT for legal/factual/spam BEFORE paying for assets. A hard 'fail'
+      // here costs one script draft, not a full production. A lightweight
+      // metadata-only recheck still runs at publish (operator approvals).
+      const qg = await getQualityGateConfig(db);
+      if (qg.enabled) {
+        const latest = await loadLatestScript(db, row.id);
+        const tags = ((latest?.metadata ?? {}) as { tags?: string[] }).tags ?? [];
+        const guard = await editorialGuard({
+          title: video.title,
+          scriptBody: (latest?.body as string) ?? "",
+          tags,
+          niche: project.niche,
+          mode: "full",
+        });
+        if (guard.costUsd > 0) {
+          await recordCost(
+            db,
+            video,
+            { provider: "anthropic", usd: guard.costUsd, description: "Editorial guard (script)" },
+            `“${video.title}”`,
+          );
+        }
+        if (guard.verdict === "fail") {
+          const flags = [...guard.legalFlags, ...guard.factIssues, ...guard.metadataIssues];
+          await db
+            .from("videos")
+            .update({
+              auto_publish: false,
+              paused_reason: `Held — editorial review: ${guard.note || flags[0] || "flagged"}. Review the script.`,
+            })
+            .eq("id", row.id);
+          held++;
+          continue;
+        }
       }
 
       const tier = (run?.tier as AutoTier) ?? "economy";

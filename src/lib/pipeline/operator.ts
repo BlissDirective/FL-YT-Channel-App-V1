@@ -3,8 +3,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { startBuildRun, decideGate, isKillSwitchOn, zonedTimeToUtc, ymdInTz, type BuildRunConfig } from "@/lib/pipeline/engine";
 import { reviewGate, isQcLive } from "@/lib/adapters/qc";
 import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest, sendTelegram } from "@/lib/adapters/telegram";
-import { editorialGuard, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
+import { editorialGuard, gateIdea, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
 import { planMonthlyCalendar } from "@/lib/adapters/calendar";
+import { getQualityGateConfig, failClosedBlocksSpend } from "@/lib/pipeline/quality-gates";
 import {
   analyticsConfigured,
   getChannelSummary,
@@ -259,8 +260,12 @@ function pickFormat(total: number, mixShortsPct: number): "short" | "long" {
 // ── The per-run tick ──────────────────────────────────────────────────
 
 export type OperatorTick =
-  | { acted: false; reason: string; spentUsd?: number }
+  | { acted: false; reason: string; spentUsd?: number; retry?: boolean }
   | { acted: true; kind: "short" | "long"; title?: string };
+
+/** Max idea-gate misses to absorb in one tick before giving up for the day —
+    each rejected idea costs only the ~$0.002 gate, never a build. */
+const MAX_SEED_ATTEMPTS = 3;
 
 /** Advance one operator run one step: roll the cycle, then (if active, under
     budget, and the day's slot is unfilled) seed today's video via Build & Post. */
@@ -304,26 +309,37 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
     return { acted: false, reason: "already-seeded-today", spentUsd: spent };
   }
 
-  // Pull the next planned calendar slot (it sets the format + subtopic). If the
-  // calendar is exhausted/absent, fall back to the monetization-aware mix.
-  const slot = nextPlannedSlot(run);
-  let kind: "short" | "long" = slot
-    ? (slot.format as "short" | "long")
-    : pickFormat((await cycleFormatCounts(db, run)).total, desiredMixShortsPct(cfg.mixShortsPct, cfg.strategy));
-  let cap = kind === "short" ? cfg.shortsCapUsd : cfg.longCapUsd;
+  // Seed the day's video. The idea gate can reject a weak idea (after one
+  // improvement round) before any build spend — when it does, the slot is marked
+  // skipped and we try the next planned slot, up to MAX_SEED_ATTEMPTS, so a bad
+  // idea doesn't cost the day's post.
+  let lastReason = "no-slot";
+  for (let attempt = 0; attempt < MAX_SEED_ATTEMPTS; attempt++) {
+    // Pull the next planned calendar slot (it sets the format + subtopic). If the
+    // calendar is exhausted/absent, fall back to the monetization-aware mix.
+    const slot = nextPlannedSlot(run);
+    let kind: "short" | "long" = slot
+      ? (slot.format as "short" | "long")
+      : pickFormat((await cycleFormatCounts(db, run)).total, desiredMixShortsPct(cfg.mixShortsPct, cfg.strategy));
+    let cap = kind === "short" ? cfg.shortsCapUsd : cfg.longCapUsd;
 
-  // Budget: never start a slot we can't afford. Near-exhaustion → downgrade a
-  // long slot to a high-quality Short so the channel keeps posting (concept #4).
-  if (remaining < cap) {
-    if (kind === "long" && remaining >= cfg.shortsCapUsd) {
-      kind = "short";
-      cap = cfg.shortsCapUsd;
-      if (slot) await markSlot(db, run, slot.day, { format: "short", reservedUsd: cfg.shortsCapUsd });
-    } else {
-      return { acted: false, reason: "insufficient-budget-for-slot", spentUsd: spent };
+    // Budget: never start a slot we can't afford. Near-exhaustion → downgrade a
+    // long slot to a high-quality Short so the channel keeps posting (concept #4).
+    if (remaining < cap) {
+      if (kind === "long" && remaining >= cfg.shortsCapUsd) {
+        kind = "short";
+        cap = cfg.shortsCapUsd;
+        if (slot) await markSlot(db, run, slot.day, { format: "short", reservedUsd: cfg.shortsCapUsd });
+      } else {
+        return { acted: false, reason: "insufficient-budget-for-slot", spentUsd: spent };
+      }
     }
+
+    const res = await seedVideo(db, run, project, kind, cfg, slot ?? undefined);
+    if (res.acted || !res.retry) return res;
+    lastReason = res.reason; // idea-below-floor → try the next slot
   }
-  return seedVideo(db, run, project, kind, cfg, slot ?? undefined);
+  return { acted: false, reason: lastReason, spentUsd: spent };
 }
 
 // ── 30-day content calendar (concept #4) ─────────────────────────────
@@ -457,6 +473,63 @@ async function seedVideo(
   if (!chosen && slot?.title) {
     chosen = { title: slot.title, angle: slot.angle, subtopic: slot.subtopic };
   }
+
+  // Idea gate (Tier 1): grade the idea BEFORE any build spend. On a sub-floor
+  // miss, one improvement round rewrites it in place; still below → discard this
+  // idea and let the tick try the next slot (no build runs). Opt-in via the
+  // quality-gates flag; default off = unchanged behaviour.
+  let ideaScore: number | null = null;
+  if (chosen) {
+    const qg = await getQualityGateConfig(db);
+    if (qg.enabled) {
+      // Fail-closed: paid providers live but the grading model is mocked → don't
+      // pay to build something we can't judge. Hold the slot for today.
+      if (failClosedBlocksSpend(qg)) {
+        if (slot) await markSlot(db, run, slot.day, { status: "skipped" });
+        await logEvent(db, run.project_id, run.id, "hold", "Quality gates on but QC model unavailable — slot held (fail-closed).");
+        return { acted: false, reason: "quality-gate-fail-closed" };
+      }
+      try {
+        const gate = await gateIdea({
+          project,
+          title: chosen.title,
+          angle: chosen.angle,
+          subtopic: chosen.subtopic,
+          kind,
+          floor: qg.ideaFloor,
+        });
+        if (gate.costUsd > 0) {
+          await db.from("cost_ledger").insert({
+            project_id: run.project_id,
+            video_id: null,
+            provider: "anthropic",
+            description: `Operator idea gate${gate.improved ? " (+improve)" : ""}`,
+            usd: gate.costUsd,
+          });
+        }
+        if (gate.live && !gate.passed) {
+          if (slot) await markSlot(db, run, slot.day, { status: "skipped" });
+          await logEvent(
+            db,
+            run.project_id,
+            run.id,
+            "idea_rejected",
+            `Idea below ${qg.ideaFloor.toFixed(1)} after one improvement (scored ${gate.score.toFixed(1)}): ${chosen.title}`,
+            { score: gate.score },
+          );
+          return { acted: false, reason: "idea-below-floor", retry: true };
+        }
+        if (gate.live) {
+          // Build with the improved idea; remember the score for the idea row.
+          chosen = { title: gate.title, angle: gate.angle, subtopic: gate.subtopic };
+          ideaScore = gate.score;
+        }
+      } catch (err) {
+        console.error("operator idea gate failed:", err);
+      }
+    }
+  }
+
   if (chosen) {
     const { data: idea } = await db
       .from("ideas")
@@ -464,6 +537,7 @@ async function seedVideo(
         project_id: run.project_id,
         title: chosen.title,
         angle: chosen.angle,
+        score: ideaScore,
         status: "approved",
         source: { operator: true, subtopic: chosen.subtopic, calendarDay: slot?.day },
       })
@@ -614,6 +688,7 @@ export async function loadOperatorVideo(
 async function processOperatorApprovals(db: Db, run: OperatorRun, project: Project): Promise<void> {
   if (!isTelegramLive()) return;
   const cfg = operatorConfig(run);
+  const qg = await getQualityGateConfig(db);
 
   // 1) Settle + notify + auto-approve videos still at FINAL_REVIEW.
   const { data: holding } = await db
@@ -644,11 +719,15 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
         .limit(1)
         .maybeSingle();
       const tags = ((script?.metadata ?? {}) as { tags?: string[] }).tags ?? [];
+      // When quality gates are on, the FULL editorial check already ran at the
+      // script stage (pre-assets) — here we only re-verify title/tags. When off,
+      // run the full pre-publish check as before (this is the only editorial gate).
       const guard = await editorialGuard({
         title: video.title,
         scriptBody: (script?.body as string) ?? "",
         tags,
         niche: project.niche,
+        mode: qg.enabled ? "metadata" : "full",
       });
       if (guard.costUsd > 0) await recordCost(db, video, guard.costUsd, "Operator editorial guard");
       const flags = [...guard.legalFlags, ...guard.factIssues, ...guard.metadataIssues];

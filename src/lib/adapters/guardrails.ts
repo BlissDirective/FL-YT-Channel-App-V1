@@ -168,6 +168,162 @@ export async function planNextTopic(opts: {
   };
 }
 
+// ── Idea-score gate (Tier 1: grade an idea BEFORE it triggers a build) ─
+
+export type IdeaGateResult = {
+  /** false only when the model is unavailable (caller applies fail-closed). */
+  live: boolean;
+  /** true when the (possibly improved) idea clears the floor. */
+  passed: boolean;
+  /** Final 0–10 score (of the improved idea when an improvement round ran). */
+  score: number;
+  /** The idea to build with — improved fields when a round raised the score. */
+  title: string;
+  angle: string;
+  subtopic: string;
+  /** Whether an improvement round was applied. */
+  improved: boolean;
+  note: string;
+  costUsd: number;
+};
+
+const IDEA_SCORE_TOOL = {
+  name: "deliver_idea_score",
+  description: "Grade a single video idea for a faceless YouTube channel.",
+  input_schema: {
+    type: "object",
+    properties: {
+      score: {
+        type: "number",
+        description:
+          "0–10. Judge topic appeal to the audience, angle originality (would it survive YouTube's inauthentic/reused-content bar?), title promise/CTR, and retention potential. 8+ = strong, 6–8 = solid, <6 = weak.",
+      },
+      reasons: { type: "array", items: { type: "string" }, description: "Concrete weaknesses, most important first (max 4)." },
+      note: { type: "string", description: "One-sentence overall verdict." },
+    },
+    required: ["score", "reasons", "note"],
+  },
+} as const;
+
+const IDEA_IMPROVE_TOOL = {
+  name: "deliver_improved_idea",
+  description: "Rewrite a weak idea into a stronger one within the same subtopic.",
+  input_schema: {
+    type: "object",
+    properties: {
+      title: { type: "string", description: "A sharper, specific, non-clickbait YouTube title (≤70 chars)." },
+      angle: { type: "string", description: "The stronger unique angle/hook in one sentence." },
+      subtopic: { type: "string", description: "Keep the same taxonomy bucket." },
+    },
+    required: ["title", "angle", "subtopic"],
+  },
+} as const;
+
+async function scoreIdea(opts: {
+  project: Project;
+  title: string;
+  angle: string;
+  subtopic: string;
+  kind: "short" | "long";
+}): Promise<{ score: number; reasons: string[]; note: string; costUsd: number } | null> {
+  const system =
+    `You are a strict content critic for the YouTube channel "${opts.project.name}" ` +
+    `(niche: ${opts.project.niche}; audience: ${opts.project.audience}; angle: ${opts.project.angle}). ` +
+    `Grade ONE ${opts.kind === "short" ? "Short" : "long-form"} video idea. Be decisive and concrete.`;
+  const user =
+    `TITLE: ${opts.title}\nANGLE: ${opts.angle}\nSUBTOPIC: ${opts.subtopic || "(unspecified)"}\n\nCall deliver_idea_score.`;
+  const out = await callTool<{ score: number; reasons: string[]; note: string }>(
+    GUARD_MODEL,
+    system,
+    user,
+    IDEA_SCORE_TOOL,
+  );
+  if (!out) return null;
+  return {
+    score: Math.max(0, Math.min(10, Number(out.input.score))),
+    reasons: (out.input.reasons ?? []).slice(0, 4),
+    note: (out.input.note ?? "").slice(0, 200),
+    costUsd: out.costUsd,
+  };
+}
+
+/**
+ * Grade an idea before it triggers an (expensive) build. On a sub-floor miss, run
+ * ONE improvement round that rewrites the idea in place (rather than discarding),
+ * then re-score. The caller discards-and-tries-another-slot only if the improved
+ * idea is still below the floor. A ~$0.002 haiku gate in front of a multi-dollar
+ * build. Returns live:false when the model is unavailable (caller decides).
+ */
+export async function gateIdea(opts: {
+  project: Project;
+  title: string;
+  angle: string;
+  subtopic: string;
+  kind: "short" | "long";
+  floor: number;
+}): Promise<IdeaGateResult> {
+  const base: IdeaGateResult = {
+    live: false,
+    passed: true,
+    score: 0,
+    title: opts.title,
+    angle: opts.angle,
+    subtopic: opts.subtopic,
+    improved: false,
+    note: "",
+    costUsd: 0,
+  };
+  if (!isLive()) return base;
+
+  const first = await scoreIdea(opts);
+  if (!first) return base; // scoring unavailable → treat as not-live
+  let costUsd = first.costUsd;
+  if (first.score >= opts.floor) {
+    return { ...base, live: true, passed: true, score: first.score, note: first.note, costUsd };
+  }
+
+  // One improvement round: rewrite the idea to address the weaknesses, re-score.
+  const system =
+    `You are the content planner for "${opts.project.name}" (niche: ${opts.project.niche}; angle: ${opts.project.angle}). ` +
+    `An idea scored below the quality bar. Rewrite it into a stronger version in the SAME subtopic: a sharper, specific, ` +
+    `non-clickbait title and a more original angle. Keep it accurate and on-niche.`;
+  const user =
+    `ORIGINAL TITLE: ${opts.title}\nORIGINAL ANGLE: ${opts.angle}\nSUBTOPIC: ${opts.subtopic || "(unspecified)"}\n\n` +
+    `WEAKNESSES TO FIX:\n${first.reasons.length ? first.reasons.map((r) => `- ${r}`).join("\n") : "- weak hook / low originality"}\n\n` +
+    `Call deliver_improved_idea.`;
+  const imp = await callTool<{ title: string; angle: string; subtopic: string }>(
+    PLAN_MODEL,
+    system,
+    user,
+    IDEA_IMPROVE_TOOL,
+  );
+  if (!imp || !imp.input.title?.trim()) {
+    // Couldn't improve → report the original sub-floor score.
+    return { ...base, live: true, passed: false, score: first.score, note: first.note, costUsd };
+  }
+  costUsd += imp.costUsd;
+  const improved = {
+    title: imp.input.title.trim().slice(0, 100),
+    angle: (imp.input.angle ?? opts.angle).trim().slice(0, 240),
+    subtopic: (imp.input.subtopic ?? opts.subtopic).trim().slice(0, 80),
+  };
+
+  const second = await scoreIdea({ ...opts, ...improved });
+  if (second) costUsd += second.costUsd;
+  const finalScore = second ? second.score : first.score;
+  return {
+    live: true,
+    passed: finalScore >= opts.floor,
+    score: finalScore,
+    title: improved.title,
+    angle: improved.angle,
+    subtopic: improved.subtopic,
+    improved: true,
+    note: second?.note ?? first.note,
+    costUsd,
+  };
+}
+
 // ── Editorial guard (fact / legal / metadata) ─────────────────────────
 
 export type EditorialVerdict = {
@@ -200,24 +356,35 @@ const GUARD_TOOL = {
   },
 } as const;
 
-/** Pre-publish review of the finished script + metadata. Never blocks on a
-    missing key (returns 'pass'). */
+/** Editorial review of the script + metadata. Never blocks on a missing key
+    (returns 'pass').
+     • mode 'full' (default) — fact + legal + metadata, reads the script body.
+       Run this at the SCRIPT stage, BEFORE assets, so a hard fail costs one
+       script draft rather than a full production.
+     • mode 'metadata' — title/tags only (no script body). A lightweight
+       pre-publish recheck once the full check already ran upstream. */
 export async function editorialGuard(opts: {
   title: string;
   scriptBody: string;
   tags: string[];
   niche: string;
+  mode?: "full" | "metadata";
 }): Promise<EditorialVerdict> {
   const safe: EditorialVerdict = { verdict: "pass", factIssues: [], legalFlags: [], metadataIssues: [], note: "", costUsd: 0 };
   if (!isLive()) return safe;
-  const system =
-    `You are a strict editorial + legal reviewer for a faceless YouTube channel (niche: ${opts.niche}). ` +
-    `Review the script and metadata for: (1) factual/statistical accuracy — flag unsupported or likely-wrong claims; ` +
-    `(2) legal/copyright caution — flag defamation risk, unverified claims about named companies, and financial guidance framed as a guarantee; ` +
-    `(3) metadata spam — keyword stuffing or misleading/clickbait titles/tags. ` +
-    `Be decisive: 'fail' ONLY for serious problems that must not auto-publish.`;
-  const user =
-    `TITLE: ${opts.title}\nTAGS: ${opts.tags.join(", ") || "(none)"}\n\nSCRIPT:\n${opts.scriptBody.slice(0, 6000)}\n\nCall deliver_guard.`;
+  const metadataOnly = opts.mode === "metadata";
+  const system = metadataOnly
+    ? `You are a strict metadata reviewer for a faceless YouTube channel (niche: ${opts.niche}). ` +
+      `Review ONLY the title and tags for keyword stuffing, misleading/clickbait framing, and policy-risky wording. ` +
+      `Be decisive: 'fail' ONLY for serious violations that must not auto-publish.`
+    : `You are a strict editorial + legal reviewer for a faceless YouTube channel (niche: ${opts.niche}). ` +
+      `Review the script and metadata for: (1) factual/statistical accuracy — flag unsupported or likely-wrong claims; ` +
+      `(2) legal/copyright caution — flag defamation risk, unverified claims about named companies, and financial guidance framed as a guarantee; ` +
+      `(3) metadata spam — keyword stuffing or misleading/clickbait titles/tags. ` +
+      `Be decisive: 'fail' ONLY for serious problems that must not auto-publish.`;
+  const user = metadataOnly
+    ? `TITLE: ${opts.title}\nTAGS: ${opts.tags.join(", ") || "(none)"}\n\nReview the metadata only. Call deliver_guard.`
+    : `TITLE: ${opts.title}\nTAGS: ${opts.tags.join(", ") || "(none)"}\n\nSCRIPT:\n${opts.scriptBody.slice(0, 6000)}\n\nCall deliver_guard.`;
   const out = await callTool<Omit<EditorialVerdict, "costUsd">>(GUARD_MODEL, system, user, GUARD_TOOL);
   if (!out) return safe;
   const v = out.input.verdict;

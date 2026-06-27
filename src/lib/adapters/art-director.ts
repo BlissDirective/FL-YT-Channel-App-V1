@@ -27,6 +27,91 @@ export function isArtDirectorLive(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
+// ── Single-prompt pre-check (Tier 1: validate before paying for FLUX) ──
+
+/** Words an image model renders as garbled gibberish (on-screen text) or that
+    carry brand/legal risk. A prompt asking for these is likely to waste a render. */
+const RISKY_PROMPT_WORDS = [
+  "text", "logo", "sign", "signage", "caption", "subtitle", "word", "words",
+  "letter", "letters", "watermark", "label", "chart", "graph", "screen",
+  "interface", "menu", "headline", "newspaper", "ui",
+];
+const RISKY_RE = new RegExp(`\\b(${RISKY_PROMPT_WORDS.join("|")})\\b`, "i");
+
+/** Cheap, LOCAL check (no LLM): is this visual prompt likely to render well?
+    Flags empty/too-vague prompts and ones requesting on-screen text/brands. */
+export function assessVisualPrompt(prompt: string): { ok: boolean; reasons: string[] } {
+  const reasons: string[] = [];
+  const p = (prompt ?? "").trim();
+  const words = p.split(/\s+/).filter(Boolean);
+  if (p.length < 12 || words.length < 3) reasons.push("too short/vague");
+  const m = p.match(RISKY_RE);
+  if (m) reasons.push(`asks for on-screen text/brand ("${m[1].toLowerCase()}")`);
+  return { ok: reasons.length === 0, reasons };
+}
+
+const REFINE_MODEL = "claude-haiku-4-5"; // cheap one-shot fix
+const REFINE_TOOL = {
+  name: "deliver_prompt",
+  description: "Deliver one improved, purely-visual scene prompt.",
+  input_schema: {
+    type: "object",
+    properties: {
+      visualPrompt: {
+        type: "string",
+        description:
+          "A vivid, concrete, purely-visual scene for an image model. HARD RULES: never name any company, brand, product, logo, or real person; never request on-screen text, words, letters, numbers, signage, labels, charts/graphs with text, or screens/UI with readable writing. Describe symbolic, atmospheric, concrete imagery instead.",
+      },
+    },
+    required: ["visualPrompt"],
+  },
+} as const;
+
+/** One cheap (Haiku) re-prompt for a single weak beat visual, right before we'd
+    pay to render it. Returns null when unavailable (caller decides). */
+export async function refineOneShot(opts: {
+  prompt: string;
+  niche: string;
+  title: string;
+}): Promise<{ prompt: string; costUsd: number } | null> {
+  if (!isArtDirectorLive()) return null;
+  const system =
+    `You are an art director for a ${opts.niche} YouTube video. Rewrite ONE draft visual prompt into a stronger, ` +
+    `concrete, purely-visual scene that an image model will render cleanly.`;
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: REFINE_MODEL,
+        max_tokens: 400,
+        tools: [REFINE_TOOL],
+        tool_choice: { type: "tool", name: "deliver_prompt" },
+        messages: [
+          { role: "user", content: `${system}\n\nVIDEO: ${opts.title}\nDRAFT VISUAL PROMPT: ${opts.prompt}\n\nCall deliver_prompt.` },
+        ],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      content: { type: string; input?: Record<string, unknown> }[];
+      usage: { input_tokens: number; output_tokens: number };
+    };
+    const refined = (data.content.find((c) => c.type === "tool_use")?.input as { visualPrompt?: string } | undefined)?.visualPrompt?.trim();
+    if (!refined) return null;
+    const price = PRICING[REFINE_MODEL] ?? { in: 1, out: 5 };
+    const costUsd =
+      Math.round(((data.usage.input_tokens / 1e6) * price.in + (data.usage.output_tokens / 1e6) * price.out) * 1000) / 1000;
+    return { prompt: refined.slice(0, 600), costUsd };
+  } catch {
+    return null;
+  }
+}
+
 export type ShotPlan = {
   visualPrompt: string;
   shotType: ScriptBeat["shotType"];
