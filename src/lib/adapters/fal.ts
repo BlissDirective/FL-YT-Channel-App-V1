@@ -17,19 +17,33 @@ export function isFalLive(): boolean {
   return Boolean(process.env.FAL_KEY);
 }
 
+/**
+ * POST to a fal sync model, retrying transient failures. fal rate-limits bursts
+ * (429) and occasionally 5xx's; without a retry these degrade a beat straight to
+ * an invisible mock tile. Up to 3 attempts with exponential backoff + jitter.
+ * A 4xx other than 429 (bad key, bad input) fails fast — retrying won't help.
+ */
 async function falRun<T>(model: string, input: Record<string, unknown>): Promise<T> {
-  const res = await fetch(`https://fal.run/${model}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Key ${process.env.FAL_KEY}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(input),
-  });
-  if (!res.ok) {
-    throw new Error(`fal ${model} error ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const MAX_ATTEMPTS = 3;
+  let lastErr = "";
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const res = await fetch(`https://fal.run/${model}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Key ${process.env.FAL_KEY}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+    if (res.ok) return (await res.json()) as T;
+    lastErr = `fal ${model} error ${res.status}: ${(await res.text()).slice(0, 200)}`;
+    const transient = res.status === 429 || res.status >= 500;
+    if (!transient || attempt === MAX_ATTEMPTS) throw new Error(lastErr);
+    // 0.6s, 1.8s … with jitter so concurrent callers don't retry in lockstep.
+    const backoff = 600 * Math.pow(3, attempt - 1) + Math.floor(Math.random() * 400);
+    await new Promise((r) => setTimeout(r, backoff));
   }
-  return (await res.json()) as T;
+  throw new Error(lastErr || `fal ${model} failed`);
 }
 
 async function download(url: string): Promise<Buffer> {

@@ -210,11 +210,10 @@ const BeatScene: React.FC<{
           }}
         />
       ) : (
-        <AbsoluteFill
-          style={{
-            background: `linear-gradient(135deg, ${brand.secondary}, ${brand.primary})`,
-          }}
-        />
+        // Last-resort fallback when a beat has no usable footage/still (provider
+        // failure). NEVER a blank screen: a branded gradient with the beat's
+        // headline so the frame still reads as designed content, not broken.
+        <FallbackCard beat={beat} brand={brand} motion={motion} />
       )}
       {/* readability scrim behind captions */}
       <AbsoluteFill
@@ -233,6 +232,51 @@ const BeatScene: React.FC<{
         />
       )}
       <HighlightLayer highlights={beat.highlights} brand={brand} vertical={vertical} />
+    </AbsoluteFill>
+  );
+};
+
+/** Branded fallback scene when a beat has no footage/still. Shows a faded
+    keyword from the beat over a moving gradient so the frame still looks like
+    intentional design (and never a flat blank screen). */
+const FallbackCard: React.FC<{
+  beat: RenderBeat;
+  brand: VideoProps["brand"];
+  motion: React.CSSProperties;
+}> = ({ beat, brand, motion }) => {
+  // A short, brand-safe headline: the first few words of the beat narration.
+  const headline = (beat.text || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .slice(0, 6)
+    .join(" ");
+  return (
+    <AbsoluteFill
+      style={{
+        background: `linear-gradient(135deg, ${brand.secondary} 20%, ${brand.primary} 140%)`,
+        justifyContent: "center",
+        alignItems: "center",
+        ...motion,
+      }}
+    >
+      {headline && (
+        <div
+          style={{
+            color: "white",
+            opacity: 0.16,
+            fontSize: 150,
+            fontWeight: 800,
+            lineHeight: 1.05,
+            textAlign: "center",
+            padding: "0 100px",
+            textTransform: "uppercase",
+            letterSpacing: 2,
+          }}
+        >
+          {headline}
+        </div>
+      )}
     </AbsoluteFill>
   );
 };

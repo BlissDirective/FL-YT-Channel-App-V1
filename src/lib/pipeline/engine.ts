@@ -548,7 +548,9 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
       : Promise.resolve(null),
     stick
       ? makeStickClips(video, project, beats)
-      : Promise.all(beats.map((beat) => makeBeatClip(video, project, beat))),
+      : // Cap concurrency (like VO above): firing every beat's FLUX call at once
+        // bursts fal's rate limit (429) and degrades most beats to blank tiles.
+        mapLimit(beats, 3, (beat) => makeBeatClip(video, project, beat)),
   ]);
 
   if (voResults) {
@@ -582,6 +584,29 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   for (const clip of clipResults) {
     await db.from("assets").insert(clip.row);
     await recordCost(db, video, clip.cost, `beat ${(clip.row.beat_index ?? 0) + 1}`);
+  }
+
+  // Visual-floor guard: if every beat degraded to a mock tile (no FLUX, no
+  // stock — e.g. an exhausted/invalid fal key AND no Pexels key) the render
+  // would be wall-to-wall fallback cards. Flag it loudly so the cut surfaces as
+  // needing attention rather than silently shipping a "blank" video. (A partial
+  // failure still renders — captions + branded cards + any real beats.)
+  if (!stick && clipResults.length > 0) {
+    const mockCount = clipResults.filter((c) => c.row.provider.startsWith("mock:")).length;
+    if (mockCount === clipResults.length) {
+      console.error(
+        `⚠️  ${video.id}: all ${mockCount} beat visuals failed (no FLUX + no stock). ` +
+          `Check FAL_KEY credit/validity and PEXELS_API_KEY.`,
+      );
+      await db
+        .from("videos")
+        .update({
+          paused_reason:
+            "No beat visuals could be generated (image provider failed for every section). " +
+            "Check the fal.ai key/credit and Pexels key, then re-run.",
+        })
+        .eq("id", video.id);
+    }
   }
 
   // Captions: aggregate the per-beat word timings into one track.
@@ -696,6 +721,39 @@ export async function makeBeatClip(
     }
   } catch (err) {
     console.error(`beat ${beat.idx} visual generation failed:`, err);
+  }
+  // Last-resort visible fallback: when FLUX failed (rate limit, outage, no
+  // credit) on a non-stock beat, try free Pexels stock so the beat still has
+  // real footage rather than shipping a blank tile. (Stock beats already tried
+  // Pexels above.) Only an empty/failed stock search drops to the mock tile.
+  if (beat.shotType !== "stock") {
+    try {
+      const rescue = await searchStockClip(beat.visualPrompt);
+      if (rescue) {
+        return {
+          row: {
+            video_id: video.id,
+            kind: "clip",
+            provider: "pexels",
+            storage_path: "",
+            beat_index: beat.idx,
+            meta: {
+              shotType: beat.shotType,
+              url: rescue.url,
+              posterUrl: rescue.posterUrl,
+              durationSec: rescue.durationSec,
+              pexelsId: rescue.pexelsId,
+              credit: rescue.photographer,
+              rescued: true,
+            },
+            cost_usd: 0,
+          },
+          cost: { provider: "pexels", usd: 0, description: "Stock fallback (FLUX unavailable) — free" },
+        };
+      }
+    } catch (err) {
+      console.error(`beat ${beat.idx} stock fallback failed:`, err);
+    }
   }
   const stock = beat.shotType === "stock";
   return {
