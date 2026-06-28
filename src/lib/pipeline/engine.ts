@@ -45,6 +45,7 @@ import {
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { directShots, assessVisualPrompt, refineOneShot, isArtDirectorLive } from "@/lib/adapters/art-director";
+import { inspectStill } from "@/lib/adapters/image-check";
 import type { StickScene } from "@/lib/stick-types";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
@@ -543,13 +544,40 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     .limit(1)
     .maybeSingle();
   const beats = (script?.beats ?? []) as ScriptBeat[];
+  const stick = project.visual_style === "stick";
 
-  // Re-running after a revision replaces the previous attempt's assets.
-  await db
-    .from("assets")
-    .delete()
-    .eq("video_id", video.id)
-    .in("kind", ["vo", "clip", "thumb", "captions"]);
+  // Tier 2 — changed-beat-only regen: keep the existing CLIP for any beat whose
+  // content (visual prompt + shot type + narration) is unchanged since the last
+  // generation; only changed/new beats are re-rendered (the expensive part).
+  // VO/thumb/captions always refresh — VO is cached, so unchanged beats re-voice
+  // for free. (Stick visuals are cheap to recompute, so they full-regen.)
+  const hashByIdx = new Map(beats.map((b) => [b.idx, beatContentHash(b)]));
+  const keepClipIdx = new Set<number>();
+  if (!stick) {
+    const { data: existingClips } = await db
+      .from("assets")
+      .select("beat_index, meta")
+      .eq("video_id", video.id)
+      .eq("kind", "clip");
+    for (const c of (existingClips ?? []) as { beat_index: number | null; meta: { beatHash?: string } | null }[]) {
+      if (c.beat_index != null && c.meta?.beatHash && c.meta.beatHash === hashByIdx.get(c.beat_index)) {
+        keepClipIdx.add(c.beat_index);
+      }
+    }
+  }
+
+  // Replace the previous attempt's assets, but preserve unchanged-beat clips.
+  await db.from("assets").delete().eq("video_id", video.id).in("kind", ["vo", "thumb", "captions"]);
+  if (keepClipIdx.size > 0) {
+    await db
+      .from("assets")
+      .delete()
+      .eq("video_id", video.id)
+      .eq("kind", "clip")
+      .not("beat_index", "in", `(${[...keepClipIdx].join(",")})`);
+  } else {
+    await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip");
+  }
 
   // VO and clips generate in parallel; the thumbnail is rendered later by the
   // farm (a hero still/frame + a controlled Claude kinetic phrase — no
@@ -580,11 +608,11 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
       console.error("pronunciation lexicon build failed (non-fatal):", err);
     }
   }
-  // Stick Studio projects render programmatic stick figures: the per-beat visual
-  // is a choreographed StickScene (one LLM call), not an AI/stock clip.
-  const stick = project.visual_style === "stick";
-  // Opt-in prompt pre-check config, fetched once and shared across beats.
+  // Quality-gate config (prompt pre-check + cache), fetched once for all beats.
   const qualityGate = await getQualityGateConfig(db);
+  // Stick visuals (choreographed StickScene per beat) regen wholesale; footage
+  // clips regen only for changed/new beats (unchanged ones keep their asset).
+  const clipBeats = stick ? beats : beats.filter((b) => !keepClipIdx.has(b.idx));
   const [voResults, clipResults] = await Promise.all([
     // VO is the only unguarded provider call here — cap concurrency so a long
     // script can't 429 ElevenLabs and reject the whole stage.
@@ -595,7 +623,7 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
       ? makeStickClips(video, project, beats)
       : // Cap concurrency (like VO above): firing every beat's FLUX call at once
         // bursts fal's rate limit (429) and degrades most beats to blank tiles.
-        mapLimit(beats, 3, (beat) => makeBeatClip(video, project, beat, { qualityGate })),
+        mapLimit(clipBeats, 3, (beat) => makeBeatClip(video, project, beat, { db, qualityGate })),
   ]);
 
   if (voResults) {
@@ -627,10 +655,14 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   }
 
   for (const clip of clipResults) {
+    const idx = clip.row.beat_index ?? 0;
+    // Stamp the beat content hash so the next revision can detect unchanged beats.
+    const h = hashByIdx.get(idx);
+    if (h) clip.row.meta = { ...clip.row.meta, beatHash: h };
     await db.from("assets").insert(clip.row);
-    await recordCost(db, video, clip.cost, `beat ${(clip.row.beat_index ?? 0) + 1}`);
-    if (clip.extraCost) {
-      await recordCost(db, video, clip.extraCost, `beat ${(clip.row.beat_index ?? 0) + 1}`);
+    await recordCost(db, video, clip.cost, `beat ${idx + 1}`);
+    for (const ec of clip.extraCosts ?? []) {
+      await recordCost(db, video, ec, `beat ${idx + 1}`);
     }
   }
 
@@ -708,10 +740,20 @@ type AssetDraft = {
     cost_usd: number;
   };
   cost: { provider: string; usd: number; description: string };
-  /** Optional secondary cost (e.g. a prompt pre-check refine) recorded by the
-      caller sequentially — keeps parallel generation off the cost-total race. */
-  extraCost?: { provider: string; usd: number; description: string };
+  /** Secondary costs (e.g. a prompt pre-check refine, or a discarded blank
+      render) recorded by the caller sequentially — keeps parallel generation off
+      the cost-total race. */
+  extraCosts?: { provider: string; usd: number; description: string }[];
 };
+
+/** Stable content hash of a beat's visual identity (Tier 2): used to keep a
+    beat's existing clip on revision when nothing about it changed. "Stricter"
+    mode includes the narration text, so any text edit re-generates the beat. */
+function beatContentHash(beat: ScriptBeat): string {
+  return createHash("sha256")
+    .update(`${beat.visualPrompt}|${beat.shotType}|${beat.text}`)
+    .digest("hex");
+}
 
 /** One beat's visual: stock beats search Pexels (free), hero beats get a
     premium FLUX render, b-roll gets the fast/cheap FLUX tier. Any provider
@@ -720,13 +762,15 @@ export async function makeBeatClip(
   video: Video,
   project: Project,
   beat: ScriptBeat,
-  opts?: { qualityGate?: QualityGateConfig },
+  opts?: { db?: Db; qualityGate?: QualityGateConfig },
 ): Promise<AssetDraft> {
   let scene = beat.visualPrompt;
   let prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle);
-  // Visual-prompt pre-check (Tier 1): refine cost is returned to the caller and
-  // recorded sequentially (parallel recordCost would race the cost total).
-  let extraCost: AssetDraft["extraCost"];
+  // Secondary costs (prompt refine, discarded blank renders) are returned to the
+  // caller and recorded sequentially (parallel recordCost would race the total).
+  const extraCosts: NonNullable<AssetDraft["extraCosts"]> = [];
+  const db = opts?.db;
+  const gateOn = Boolean(opts?.qualityGate?.enabled);
   try {
     if (beat.shotType === "stock") {
       const stock = await searchStockClip(beat.visualPrompt);
@@ -755,17 +799,17 @@ export async function makeBeatClip(
     }
     if (isFalLive()) {
       // Validate the prompt BEFORE paying FLUX. Weak prompt → one cheap re-prompt;
-      // if we can't refine (art-director unavailable) under the opt-in gate, skip
-      // the paid render and fall through to free stock/mock (fail-closed).
+      // if we can't refine (art-director unavailable), skip the paid render and
+      // fall through to free stock/mock (fail-closed).
       let canPay = true;
-      if (opts?.qualityGate?.enabled && !assessVisualPrompt(scene).ok) {
+      if (gateOn && !assessVisualPrompt(scene).ok) {
         if (isArtDirectorLive()) {
           const refined = await refineOneShot({ prompt: scene, niche: project.niche, title: video.title });
           if (refined?.prompt) {
             scene = refined.prompt;
             prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle);
             if (refined.costUsd > 0) {
-              extraCost = { provider: "anthropic", usd: refined.costUsd, description: "Prompt pre-check refine" };
+              extraCosts.push({ provider: "anthropic", usd: refined.costUsd, description: "Prompt pre-check refine" });
             }
           } else {
             canPay = false;
@@ -776,26 +820,85 @@ export async function makeBeatClip(
       }
       if (canPay) {
         const quality = beat.shotType === "hero" ? "dev" : "schnell";
-        const img = await generateImage({ prompt, quality });
-        const path = `videos/${video.id}/beat-${beat.idx}.jpg`;
-        await uploadMedia(path, img.image, "image/jpeg");
-        return {
-          row: {
-            video_id: video.id,
-            kind: "clip",
-            provider: "fal.ai",
-            storage_path: path,
-            beat_index: beat.idx,
-            meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}` },
-            cost_usd: img.costUsd,
-          },
-          cost: {
-            provider: "fal.ai",
-            usd: img.costUsd,
-            description: quality === "dev" ? "Hero shot (FLUX dev)" : "B-roll still (FLUX schnell)",
-          },
-          extraCost,
-        };
+
+        // Per-project FLUX still cache: an identical (prompt, quality) is rendered
+        // once per project and reused — unchanged beats re-gen for $0.
+        const cacheKey = createHash("sha256").update(`${prompt}|${quality}`).digest("hex");
+        if (db) {
+          try {
+            const { data: hit } = await db
+              .from("flux_cache")
+              .select("storage_path")
+              .eq("project_id", project.id)
+              .eq("cache_key", cacheKey)
+              .maybeSingle();
+            if (hit?.storage_path) {
+              return {
+                row: {
+                  video_id: video.id,
+                  kind: "clip",
+                  provider: "fal.ai",
+                  storage_path: hit.storage_path,
+                  beat_index: beat.idx,
+                  meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}`, cached: true },
+                  cost_usd: 0,
+                },
+                cost: { provider: "fal.ai", usd: 0, description: "FLUX still reused from cache — free" },
+                extraCosts,
+              };
+            }
+          } catch {
+            /* cache table absent (migration pending) → generate normally */
+          }
+        }
+
+        let img = await generateImage({ prompt, quality });
+        let genUsd = img.costUsd;
+        // Pixel check (Tier 2): reject blank/solid/tiny renders. One re-roll; if
+        // it's still bad, record the wasted spend and fall through to stock/mock.
+        let usable = true;
+        if (gateOn && (await inspectStill(img.image)).bad) {
+          const retry = await generateImage({ prompt, quality });
+          genUsd += retry.costUsd;
+          if ((await inspectStill(retry.image)).bad) usable = false;
+          else img = retry;
+        }
+        if (usable) {
+          const path = db
+            ? `flux-cache/${project.id}/${cacheKey.slice(0, 24)}.jpg`
+            : `videos/${video.id}/beat-${beat.idx}.jpg`;
+          await uploadMedia(path, img.image, "image/jpeg");
+          if (db) {
+            try {
+              await db.from("flux_cache").upsert(
+                { project_id: project.id, cache_key: cacheKey, quality, storage_path: path, cost_usd: genUsd },
+                { onConflict: "project_id,cache_key" },
+              );
+            } catch {
+              /* cache table absent → skip caching, the asset still renders */
+            }
+          }
+          return {
+            row: {
+              video_id: video.id,
+              kind: "clip",
+              provider: "fal.ai",
+              storage_path: path,
+              beat_index: beat.idx,
+              meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}` },
+              cost_usd: genUsd,
+            },
+            cost: {
+              provider: "fal.ai",
+              usd: genUsd,
+              description: quality === "dev" ? "Hero shot (FLUX dev)" : "B-roll still (FLUX schnell)",
+            },
+            extraCosts,
+          };
+        }
+        // Both renders were blank — record the paid-but-discarded spend so it is
+        // not lost, then fall through to the free stock/mock fallback below.
+        extraCosts.push({ provider: "fal.ai", usd: genUsd, description: "Discarded blank FLUX renders" });
       }
     }
   } catch (err) {
@@ -828,7 +931,7 @@ export async function makeBeatClip(
             cost_usd: 0,
           },
           cost: { provider: "pexels", usd: 0, description: "Stock fallback (FLUX unavailable) — free" },
-          extraCost,
+          extraCosts,
         };
       }
     } catch (err) {
@@ -847,7 +950,7 @@ export async function makeBeatClip(
       cost_usd: stock ? MOCK_COSTS.stockClip.usd : MOCK_COSTS.clip.usd,
     },
     cost: stock ? MOCK_COSTS.stockClip : MOCK_COSTS.clip,
-    extraCost,
+    extraCosts,
   };
 }
 
