@@ -750,20 +750,6 @@ export async function setKillSwitchAction(enabled: boolean): Promise<void> {
   revalidatePath("/");
 }
 
-/** Toggle the Tier-1 upfront quality gates (opt-in; default off). Optionally set
-    the idea-score floor (0–10) the idea gate enforces. */
-export async function setQualityGatesAction(opts: {
-  enabled: boolean;
-  ideaFloor?: number;
-}): Promise<void> {
-  const supabase = await createClient();
-  const value: { enabled: boolean; ideaFloor?: number } = { enabled: opts.enabled };
-  if (typeof opts.ideaFloor === "number") value.ideaFloor = opts.ideaFloor;
-  await supabase.from("app_settings").upsert({ key: "quality_gates", value });
-  revalidatePath("/settings");
-  revalidatePath("/");
-}
-
 export async function savePushSubscriptionAction(subscription: {
   endpoint: string;
   keys: { p256dh: string; auth: string };

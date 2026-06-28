@@ -476,8 +476,7 @@ async function seedVideo(
 
   // Idea gate (Tier 1): grade the idea BEFORE any build spend. On a sub-floor
   // miss, one improvement round rewrites it in place; still below → discard this
-  // idea and let the tick try the next slot (no build runs). Opt-in via the
-  // quality-gates flag; default off = unchanged behaviour.
+  // idea and let the tick try the next slot (no build runs). Always on.
   let ideaScore: number | null = null;
   if (chosen) {
     const qg = await getQualityGateConfig(db);
