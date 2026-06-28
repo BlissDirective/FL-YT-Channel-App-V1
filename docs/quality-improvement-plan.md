@@ -141,7 +141,7 @@ nudge stops silent revision spirals.
 
 Tiers 1–3 are live. These next ideas exist *only* because the real models/
 providers are present — they turn live capability into spend reduction. Build
-scope: items 1–4. Items 5–6 add a dependency/provider and are optional.
+scope: items 1–4 (shipped). The two infra-adding ideas moved to **Tier 5** below.
 
 ### 1. Seed-still vision gate before paid video generation  ⟵ build first
 AI video clips (Kling/Veo/Seedance) are billed per second and dominate the
@@ -175,14 +175,43 @@ and (b) widen FLUX cache hits to perceptually-similar prompts, not just exact
 matches. No new dependency (`sharp` is already in).
 - Touch points: `image-check.ts` / `dedup.ts`, `engine.ts` `makeBeatClip`.
 
-### 5. Real semantic dedup (embeddings + pgvector) — optional, adds infra
-Upgrade Tier 3's lexical dedup to true semantic similarity (catches paraphrase
-dupes). Requires an embeddings provider (Voyage/OpenAI — Anthropic has none) +
-a `pgvector` column + a backfill.
+## Tier 5 — Optional upgrades (add infrastructure)
 
-### 6. Search-grounded editorial fact-check — optional, adds a tool
-Give `editorialGuard` a live search tool to verify the specific stats/claims it
-flags, cutting both missed errors and false holds.
+Both are real improvements but introduce a new provider/extension, so they're
+deliberately separated from Tiers 1–4. Build only if the added infra is wanted.
+
+### 5. Real semantic dedup (embeddings + pgvector)
+Upgrade Tier 3's lexical dedup to **true semantic** similarity so paraphrased
+duplicates ("Ways AI Saves Money" vs "How Artificial Intelligence Cuts Costs")
+are caught — the one case lexical Jaccard misses.
+
+- **Provider:** an embeddings model. Anthropic has none, so add Voyage
+  (`voyage-3`) or OpenAI (`text-embedding-3-small`). New API key + adapter.
+- **Schema:** enable the `pgvector` extension; add an `embedding vector(N)`
+  column (or an `idea_embeddings` table) keyed to ideas/videos; an HNSW/IVFFlat
+  index; a one-time **backfill** of existing titles (~pennies).
+- **Flow:** embed `title + angle`; cosine top-k against the catalog; over the
+  threshold → feed `gateIdea`'s improve-or-skip loop (same as today). Keep the
+  Tier 3 lexical check as a free prefilter so most candidates never embed.
+- **Cost/effort:** per-idea embed is sub-cent; the work is the migration,
+  backfill, and a new provider key. Medium effort.
+- **Risk:** Supabase supports `pgvector`; index tuning + the extra key are the
+  only operational additions.
+
+### 6. Search-grounded editorial fact-check
+Give `editorialGuard` a live **web-search tool** so it verifies the specific
+stats/claims it flags instead of judging from model memory — fewer missed
+errors AND fewer false holds (each false hold is manual toil or a needless re-do).
+
+- **Tool:** a web-search capability — Anthropic's server-side `web_search` tool,
+  or a search API/MCP. (The existing YouTube search is too narrow for facts.)
+- **Flow:** `editorialGuard` runs an agentic loop — for each factual claim it can
+  call search, then return a verdict grounded in results. Cap search calls per
+  check to bound cost/latency.
+- **Cost/effort:** a few search calls per video + a multi-turn tool loop in the
+  guard. Medium effort.
+- **Risk:** added latency and per-video cost; needs a search provider/key. Keep
+  it behind the same fail-safe (no key → today's memory-only behavior).
 
 ## The mental model shift
 
