@@ -137,6 +137,53 @@ nudge stops silent revision spirals.
 
 ---
 
+## Tier 4 — Live-mode upfront quality (leverages all keys set)
+
+Tiers 1–3 are live. These next ideas exist *only* because the real models/
+providers are present — they turn live capability into spend reduction. Build
+scope: items 1–4. Items 5–6 add a dependency/provider and are optional.
+
+### 1. Seed-still vision gate before paid video generation  ⟵ build first
+AI video clips (Kling/Veo/Seedance) are billed per second and dominate the
+per-video budget (up to ~$8). Each is generated image-to-video **from a seed
+still**, but nothing checks that seed semantically before paying for the clip —
+the frame-critic only runs after the full render. Add a cheap Claude-vision
+critique (~$0.003) of the seed still right before the i2v video call; if it's
+off-prompt/weak, re-roll the still (cheap) and only then pay for the video.
+Stops paying dollars to animate a bad frame.
+- Touch points: the AI-clip enqueue path (`engine.ts` `generateBeatVideo` /
+  clip-job seed) + the footage frame-critic (`packages/render/.../frame-critic`).
+
+### 2. Outline-first script gate
+A sub-floor script currently triggers a full re-generation. Instead, generate a
+cheap **outline** (hook + beat list), QC the outline (~$0.002), and expand to the
+full script only once the outline clears the bar. The expensive full-script pass
+runs once from a vetted skeleton; the hook is locked before any prose.
+- Touch points: `script.ts`, `engine.ts` `runScripting` / `gateScriptForAutoPilot`.
+
+### 3. Real-analytics-weighted idea scoring
+The operator already pulls YouTube Analytics into "winners," but the idea gate
+scores on Claude's judgment alone. Feed actual per-subtopic retention/CTR into
+`gateIdea` so capital flows to themes that measurably perform — caught at the
+$0.002 gate, not after production.
+- Touch points: `guardrails.ts` `gateIdea`, `operator.ts` (strategy/analytics).
+
+### 4. Perceptual-hash visual variety + smarter cache
+Use a `sharp` pHash of each still to (a) catch near-identical shots across beats
+before render (a frame-critic failure mode we currently only find after paying)
+and (b) widen FLUX cache hits to perceptually-similar prompts, not just exact
+matches. No new dependency (`sharp` is already in).
+- Touch points: `image-check.ts` / `dedup.ts`, `engine.ts` `makeBeatClip`.
+
+### 5. Real semantic dedup (embeddings + pgvector) — optional, adds infra
+Upgrade Tier 3's lexical dedup to true semantic similarity (catches paraphrase
+dupes). Requires an embeddings provider (Voyage/OpenAI — Anthropic has none) +
+a `pgvector` column + a backfill.
+
+### 6. Search-grounded editorial fact-check — optional, adds a tool
+Give `editorialGuard` a live search tool to verify the specific stats/claims it
+flags, cutting both missed errors and false holds.
+
 ## The mental model shift
 
 The current spend curve is **generate-heavy, gate-late**. The cheapest dollar is

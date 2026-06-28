@@ -220,19 +220,40 @@ const IDEA_IMPROVE_TOOL = {
   },
 } as const;
 
+/** Real-performance signal fed into idea scoring (Tier 4 #3). */
+export type IdeaPerformance = {
+  /** Best-performing subtopics, ranked (operator strategy / analytics). */
+  topSubtopics?: string[];
+  /** Recent channel retention % and CTR % (for context). */
+  retentionPct?: number;
+  ctr?: number;
+};
+
 async function scoreIdea(opts: {
   project: Project;
   title: string;
   angle: string;
   subtopic: string;
   kind: "short" | "long";
+  performance?: IdeaPerformance;
 }): Promise<{ score: number; reasons: string[]; note: string; costUsd: number } | null> {
+  const perf = opts.performance;
+  const hasPerf = Boolean(perf && ((perf.topSubtopics?.length ?? 0) > 0 || perf.retentionPct || perf.ctr));
+  const perfLine = hasPerf
+    ? `\n\nCHANNEL PERFORMANCE SIGNAL (real analytics — weight your score by this):\n` +
+      ((perf!.topSubtopics?.length ?? 0) > 0
+        ? `- Best-performing subtopics so far (reward ideas that fit or extend these): ${perf!.topSubtopics!.slice(0, 6).join(", ")}.\n`
+        : "") +
+      (perf!.retentionPct || perf!.ctr
+        ? `- Recent retention ~${perf!.retentionPct ? Math.round(perf!.retentionPct) : "?"}%, CTR ~${perf!.ctr ? Math.round(perf!.ctr * 10) / 10 : "?"}. Reward ideas likely to beat these; be skeptical of off-trend themes unless exceptional.\n`
+        : "")
+    : "";
   const system =
     `You are a strict content critic for the YouTube channel "${opts.project.name}" ` +
     `(niche: ${opts.project.niche}; audience: ${opts.project.audience}; angle: ${opts.project.angle}). ` +
     `Grade ONE ${opts.kind === "short" ? "Short" : "long-form"} video idea. Be decisive and concrete.`;
   const user =
-    `TITLE: ${opts.title}\nANGLE: ${opts.angle}\nSUBTOPIC: ${opts.subtopic || "(unspecified)"}\n\nCall deliver_idea_score.`;
+    `TITLE: ${opts.title}\nANGLE: ${opts.angle}\nSUBTOPIC: ${opts.subtopic || "(unspecified)"}${perfLine}\n\nCall deliver_idea_score.`;
   const out = await callTool<{ score: number; reasons: string[]; note: string }>(
     GUARD_MODEL,
     system,
@@ -265,6 +286,8 @@ export async function gateIdea(opts: {
   /** The channel's existing titles — a near-duplicate fails the gate and the
       improvement round is asked to differentiate (reused content = #1 risk). */
   catalogTitles?: string[];
+  /** Real analytics signal — scoring rewards proven subtopics (Tier 4 #3). */
+  performance?: IdeaPerformance;
 }): Promise<IdeaGateResult> {
   const base: IdeaGateResult = {
     live: false,

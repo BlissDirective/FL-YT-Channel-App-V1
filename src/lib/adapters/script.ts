@@ -165,6 +165,98 @@ const DELIVER_SCRIPT_TOOL = {
   },
 } as const;
 
+// ── Outline-first gate (Tier 4 #2) ────────────────────────────────────
+// A cheap Haiku outline (hook + one line per beat) is self-rated and revised
+// once if weak, BEFORE the expensive full-script pass writes from it. Locking a
+// strong hook + coverage up front cuts full re-scripts (the costly QC-miss path).
+
+const OUTLINE_MODEL = "claude-haiku-4-5";
+
+const DELIVER_OUTLINE_TOOL = {
+  name: "deliver_outline",
+  description: "Deliver a script outline: a cold-open hook and one line per beat.",
+  input_schema: {
+    type: "object",
+    properties: {
+      hook: { type: "string", description: "The cold-open hook (1–2 sentences): a real stake or bold claim, no throat-clearing." },
+      beats: {
+        type: "array",
+        items: { type: "string" },
+        description: "One short line per beat describing what it covers, in order — exactly the requested count.",
+      },
+      hookScore: { type: "number", description: "0–10 self-rating of the hook's stopping power AND the outline's coverage/originality. Be harsh." },
+      weaknesses: { type: "array", items: { type: "string" }, description: "What's weak, most important first (max 3)." },
+    },
+    required: ["hook", "beats", "hookScore", "weaknesses"],
+  },
+} as const;
+
+async function generateOutline(opts: {
+  title: string;
+  topic: string;
+  niche: string;
+  audience: string;
+  angle: string;
+  tone: string;
+  beatCount: number;
+  floor: number;
+}): Promise<{ hook: string; beats: string[]; costUsd: number } | null> {
+  if (!isScriptLive()) return null;
+  const price = PRICING[OUTLINE_MODEL] ?? { in: 1, out: 5 };
+  let costUsd = 0;
+  const system =
+    `You are a YouTube content strategist. Plan a tight ${opts.beatCount}-beat outline for ONE video in a ${opts.tone} tone. ` +
+    `The hook must stop a scroll cold. Rate yourself harshly.`;
+  const baseUser =
+    `TITLE: ${opts.title}\nTOPIC: ${opts.topic}\nNICHE: ${opts.niche}\nAUDIENCE: ${opts.audience}\nANGLE: ${opts.angle}\n\n` +
+    `Produce a cold-open hook and exactly ${opts.beatCount} beat lines. Call deliver_outline.`;
+
+  type Outline = { hook: string; beats: string[]; hookScore: number; weaknesses: string[] };
+  async function once(extra: string): Promise<Outline | null> {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: OUTLINE_MODEL,
+        max_tokens: 1024,
+        temperature: 0.8,
+        system,
+        tools: [DELIVER_OUTLINE_TOOL],
+        tool_choice: { type: "tool", name: "deliver_outline" },
+        messages: [{ role: "user", content: `${baseUser}${extra}` }],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      content: { type: string; input?: Record<string, unknown> }[];
+      usage: { input_tokens: number; output_tokens: number };
+    };
+    costUsd += (data.usage.input_tokens / 1e6) * price.in + (data.usage.output_tokens / 1e6) * price.out;
+    const inp = data.content.find((c) => c.type === "tool_use")?.input as Outline | undefined;
+    return inp ?? null;
+  }
+
+  const first = await once("");
+  if (!first?.hook) return null;
+  let chosen = first;
+  if (Number(first.hookScore) < opts.floor) {
+    const extra =
+      `\n\nThe previous outline scored ${first.hookScore}/10. Fix: ` +
+      `${(first.weaknesses ?? []).join("; ") || "sharpen the hook and coverage"}. Deliver a stronger outline.`;
+    const second = await once(extra);
+    if (second?.hook && Number(second.hookScore) >= Number(first.hookScore)) chosen = second;
+  }
+  return {
+    hook: chosen.hook,
+    beats: (chosen.beats ?? []).slice(0, opts.beatCount),
+    costUsd: Math.round(costUsd * 1000) / 1000,
+  };
+}
+
 export async function generateScript(opts: {
   title: string;
   topic: string;
@@ -229,7 +321,37 @@ export async function generateScript(opts: {
           .map((l) => `- ${l}`)
           .join("\n")}`
       : "";
-  const fullPrompt = `${prompt}${hardRules}${lessons}`;
+
+  // Outline-first gate (Tier 4 #2): on a fresh draft, plan + self-vet a cheap
+  // outline and have the full pass expand from it. Skipped on a revision — that
+  // already carries specific QC notes to address.
+  let outlineBlock = "";
+  let outlineCostUsd = 0;
+  if (!opts.revisionNotes) {
+    try {
+      const outline = await generateOutline({
+        title: opts.title,
+        topic: opts.topic,
+        niche: opts.niche,
+        audience: opts.audience,
+        angle: opts.angle,
+        tone: opts.tone,
+        beatCount: budget.beats,
+        floor: 6,
+      });
+      if (outline) {
+        outlineCostUsd = outline.costUsd;
+        const perBeatWords = Math.max(110, Math.round(budget.target / budget.beats));
+        outlineBlock =
+          `\n\nAPPROVED OUTLINE — expand each line into a full ~${perBeatWords}-word spoken beat (beat 1 opens with the hook):\n` +
+          `HOOK: ${outline.hook}\n` +
+          outline.beats.map((b, i) => `Beat ${i + 1}: ${b}`).join("\n");
+      }
+    } catch (err) {
+      console.error("outline pre-pass failed (writing full script directly):", err);
+    }
+  }
+  const fullPrompt = `${prompt}${hardRules}${lessons}${outlineBlock}`;
 
   type ScriptInput = {
     beats: { text: string; visualPrompt: string; shotType: ScriptBeat["shotType"] }[];
@@ -304,7 +426,7 @@ export async function generateScript(opts: {
     }
   }
 
-  const costUsd = (tokIn / 1e6) * PRICE.in + (tokOut / 1e6) * PRICE.out;
+  const costUsd = (tokIn / 1e6) * PRICE.in + (tokOut / 1e6) * PRICE.out + outlineCostUsd;
 
   return {
     body: beats.map((b) => b.text).join("\n\n"),

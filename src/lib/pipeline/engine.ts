@@ -45,7 +45,8 @@ import {
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { directShots, assessVisualPrompt, refineOneShot, isArtDirectorLive } from "@/lib/adapters/art-director";
-import { inspectStill } from "@/lib/adapters/image-check";
+import { inspectStill, perceptualHash, hammingDistance } from "@/lib/adapters/image-check";
+import { critiqueSeedStill, isSeedVisionLive } from "@/lib/adapters/seed-vision";
 import type { StickScene } from "@/lib/stick-types";
 import { searchStockClip } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
@@ -695,6 +696,12 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     }
   }
 
+  // Pre-render visual variety check (Tier 4 #4): if two freshly-generated stills
+  // are near-identical, re-roll one before paying to render the cut.
+  if (!stick && clipResults.length > 1) {
+    await diversifyBeatVisuals(db, video, project, beats, clipResults);
+  }
+
   // Captions: aggregate the per-beat word timings into one track.
   if (voResults) {
     const { data: voAssets } = await db
@@ -768,7 +775,7 @@ export async function makeBeatClip(
   video: Video,
   project: Project,
   beat: ScriptBeat,
-  opts?: { db?: Db; qualityGate?: QualityGateConfig },
+  opts?: { db?: Db; qualityGate?: QualityGateConfig; forceRegen?: boolean },
 ): Promise<AssetDraft> {
   let scene = beat.visualPrompt;
   let prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle);
@@ -835,7 +842,7 @@ export async function makeBeatClip(
         // Per-project FLUX still cache: an identical (prompt, quality) is rendered
         // once per project and reused — unchanged beats re-gen for $0.
         const cacheKey = createHash("sha256").update(`${prompt}|${quality}`).digest("hex");
-        if (db) {
+        if (db && !opts?.forceRegen) {
           try {
             const { data: hit } = await db
               .from("flux_cache")
@@ -879,6 +886,8 @@ export async function makeBeatClip(
             ? `flux-cache/${project.id}/${cacheKey.slice(0, 24)}.jpg`
             : `videos/${video.id}/beat-${beat.idx}.jpg`;
           await uploadMedia(path, img.image, "image/jpeg");
+          // Perceptual hash for cross-beat variety detection (Tier 4 #4).
+          const phash = await perceptualHash(img.image);
           if (db) {
             try {
               await db.from("flux_cache").upsert(
@@ -896,7 +905,7 @@ export async function makeBeatClip(
               provider: "fal.ai",
               storage_path: path,
               beat_index: beat.idx,
-              meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}` },
+              meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}`, ...(phash ? { phash } : {}) },
               cost_usd: genUsd,
             },
             cost: {
@@ -963,6 +972,104 @@ export async function makeBeatClip(
     cost: stock ? MOCK_COSTS.stockClip : MOCK_COSTS.clip,
     extraCosts,
   };
+}
+
+/** A seed still scoring below this gets one re-roll before it's animated. */
+const SEED_VISION_FLOOR = 6.0;
+
+/**
+ * Tier 4 #1 — seed-still vision gate. Before a beat's still is animated into a
+ * PAID video clip, critique it with the vision model; a weak/off-prompt seed is
+ * re-rolled (cheap) rather than animated (expensive). Best-effort: never throws,
+ * skips when the vision model is unavailable or the seed isn't a real still.
+ */
+async function vetSeedStillForBeat(db: Db, video: Video, project: Project, beat: ScriptBeat): Promise<void> {
+  if (!isSeedVisionLive()) return;
+  try {
+    const { data: still } = await db
+      .from("assets")
+      .select("storage_path, provider, meta")
+      .eq("video_id", video.id)
+      .eq("kind", "clip")
+      .eq("beat_index", beat.idx)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    // Only vet a real still we own — skip mock placeholders and existing videos.
+    if (!still?.storage_path || String(still.provider).startsWith("mock:")) return;
+    if ((still.meta as { isVideo?: boolean } | null)?.isVideo) return;
+    const url = await getSignedMediaUrl(still.storage_path);
+    if (!url) return;
+
+    const critique = await critiqueSeedStill({ imageUrl: url, visualPrompt: beat.visualPrompt, beatText: beat.text });
+    if (!critique) return;
+    let fresh = (await getVideo(db, video.id)) ?? video;
+    if (critique.costUsd > 0) {
+      await recordCost(db, fresh, { provider: "anthropic", usd: critique.costUsd, description: "Seed-still vision gate" }, `beat ${beat.idx + 1}`);
+    }
+    if (critique.score >= SEED_VISION_FLOOR) return;
+
+    // Weak seed → re-roll a fresh still (forceRegen bypasses + overwrites the
+    // cache so the rejected image is never re-served) and replace the asset.
+    const qg = await getQualityGateConfig(db);
+    fresh = (await getVideo(db, video.id)) ?? fresh;
+    const draft = await makeBeatClip(fresh, project, beat, { db, qualityGate: qg, forceRegen: true });
+    if (String(draft.row.provider).startsWith("mock:")) return; // re-roll failed → keep the original
+    draft.row.meta = { ...draft.row.meta, beatHash: beatContentHash(beat), seedRerolled: true };
+    await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", beat.idx);
+    await db.from("assets").insert(draft.row);
+    fresh = (await getVideo(db, video.id)) ?? fresh;
+    await recordCost(db, fresh, draft.cost, `beat ${beat.idx + 1} (seed re-roll)`);
+    for (const ec of draft.extraCosts ?? []) await recordCost(db, fresh, ec, `beat ${beat.idx + 1}`);
+  } catch (err) {
+    console.error(`seed-still vision gate failed (beat ${beat.idx}):`, err);
+  }
+}
+
+/** pHash Hamming distance below this ≈ near-identical shots (variety problem). */
+const VARIETY_MIN_DISTANCE = 6;
+
+/**
+ * Tier 4 #4 — pre-render visual variety. Compare freshly-generated stills by
+ * perceptual hash; if two beats are near-identical, re-roll the later one ONCE
+ * (bounded) so the cut isn't wall-to-wall the same shot — a frame-critic failure
+ * mode we'd otherwise only pay to discover after a full render. Best-effort.
+ */
+async function diversifyBeatVisuals(
+  db: Db,
+  video: Video,
+  project: Project,
+  beats: ScriptBeat[],
+  clipResults: AssetDraft[],
+): Promise<void> {
+  try {
+    const hashed = clipResults
+      .map((c) => ({ idx: c.row.beat_index ?? -1, phash: (c.row.meta as { phash?: string }).phash }))
+      .filter((x): x is { idx: number; phash: string } => x.idx >= 0 && Boolean(x.phash));
+    if (hashed.length < 2) return;
+    let worst: { idx: number; d: number } | null = null;
+    for (let i = 0; i < hashed.length; i++) {
+      for (let j = i + 1; j < hashed.length; j++) {
+        const d = hammingDistance(hashed[i].phash, hashed[j].phash);
+        if (!worst || d < worst.d) worst = { idx: Math.max(hashed[i].idx, hashed[j].idx), d };
+      }
+    }
+    if (!worst || worst.d > VARIETY_MIN_DISTANCE) return;
+    const beat = beats.find((b) => b.idx === worst!.idx);
+    if (!beat) return;
+    const qg = await getQualityGateConfig(db);
+    const fresh = (await getVideo(db, video.id)) ?? video;
+    const draft = await makeBeatClip(fresh, project, beat, { db, qualityGate: qg, forceRegen: true });
+    if (String(draft.row.provider).startsWith("mock:")) return;
+    draft.row.meta = { ...draft.row.meta, beatHash: beatContentHash(beat), varietyReroll: true };
+    await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", worst.idx);
+    await db.from("assets").insert(draft.row);
+    const v2 = (await getVideo(db, video.id)) ?? fresh;
+    await recordCost(db, v2, draft.cost, `beat ${worst.idx + 1} (variety re-roll)`);
+    for (const ec of draft.extraCosts ?? []) await recordCost(db, v2, ec, `beat ${worst.idx + 1}`);
+  } catch (err) {
+    console.error("variety diversify failed:", err);
+  }
 }
 
 /** Stick Studio: one choreographer call → a stick scene per beat, stored as the
@@ -1632,6 +1739,12 @@ export async function fullAutoGenerate(
     await db.from("videos").update({ auto_finish: false }).eq("id", opts.videoId);
     await decideGate({ videoId: opts.videoId, decision: "approved" }, db); // ASSETS → ASSEMBLING
   } else {
+    // Seed-still vision gate (Tier 4 #1): vet each selected seed and re-roll a
+    // weak one BEFORE queuing the paid video job that would animate it.
+    for (const c of clips) {
+      const beat = beats.find((b) => b.idx === c.idx);
+      if (beat) await vetSeedStillForBeat(db, video, project, beat);
+    }
     await db.from("clip_jobs").insert(
       clips.map((c) => ({
         video_id: opts.videoId,
@@ -2802,6 +2915,10 @@ export async function generateBeatVideo(opts: {
     .maybeSingle();
   const beat = ((script?.beats ?? []) as ScriptBeat[]).find((b) => b.idx === opts.beatIdx);
   if (!beat) return { ok: false, error: "Beat not found" };
+
+  // Seed-still vision gate (Tier 4 #1): re-roll a weak seed before paying to
+  // animate it (runs before we read the keyframe below, so we use the new one).
+  await vetSeedStillForBeat(db, video, project, beat);
 
   // Prefer image-to-video from our own keyframe still, if one exists.
   const { data: still } = await db

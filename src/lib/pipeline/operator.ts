@@ -495,6 +495,7 @@ async function seedVideo(
           .select("title")
           .eq("project_id", run.project_id);
         const catalogTitles = ((allTitles ?? []) as { title: string }[]).map((r) => r.title).filter(Boolean);
+        const strategy = cfg.strategy as OperatorStrategy | undefined;
         const gate = await gateIdea({
           project,
           title: chosen.title,
@@ -503,6 +504,10 @@ async function seedVideo(
           kind,
           floor: qg.ideaFloor,
           catalogTitles,
+          // Tier 4 #3: weight scoring by real analytics (proven subtopics + reach).
+          performance: strategy
+            ? { topSubtopics: strategy.topSubtopics, retentionPct: strategy.channel?.retentionPct, ctr: strategy.channel?.ctr }
+            : undefined,
         });
         if (gate.costUsd > 0) {
           await db.from("cost_ledger").insert({

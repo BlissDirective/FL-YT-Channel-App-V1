@@ -33,3 +33,42 @@ export async function inspectStill(bytes: Buffer | Uint8Array): Promise<ImageVer
     return { bad: false };
   }
 }
+
+/**
+ * 64-bit average perceptual hash (16 hex chars) of an image, for cheap
+ * near-identical-visual detection across a video's beats. Returns null when
+ * sharp is unavailable or decoding fails.
+ */
+export async function perceptualHash(bytes: Buffer | Uint8Array): Promise<string | null> {
+  try {
+    const sharp = (await import("sharp")).default;
+    const buf = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
+    const data = await sharp(buf).grayscale().resize(8, 8, { fit: "fill" }).raw().toBuffer();
+    let sum = 0;
+    for (let i = 0; i < 64; i++) sum += data[i];
+    const avg = sum / 64;
+    let hex = "";
+    for (let i = 0; i < 64; i += 4) {
+      let nibble = 0;
+      for (let b = 0; b < 4; b++) nibble = (nibble << 1) | (data[i + b] >= avg ? 1 : 0);
+      hex += nibble.toString(16);
+    }
+    return hex;
+  } catch {
+    return null;
+  }
+}
+
+/** Hamming distance between two equal-length hex pHashes (0 = identical). */
+export function hammingDistance(a: string, b: string): number {
+  if (!a || !b || a.length !== b.length) return 64;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) {
+    let x = parseInt(a[i], 16) ^ parseInt(b[i], 16);
+    while (x) {
+      d += x & 1;
+      x >>= 1;
+    }
+  }
+  return d;
+}
