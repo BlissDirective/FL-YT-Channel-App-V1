@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { searchNiche } from "@/lib/adapters/youtube";
 import { scoreIdeas } from "@/lib/adapters/intelligence";
+import { findNearDuplicate } from "@/lib/pipeline/dedup";
 
 /**
  * Daily intelligence run (Phase 8). For one project: search its niche for
@@ -44,16 +45,25 @@ export async function runIntelligence(
     candidates,
   });
 
-  // Dedupe against existing idea titles for this project.
-  const { data: existing } = await db
-    .from("ideas")
-    .select("title")
-    .eq("project_id", projectId);
-  const seen = new Set((existing ?? []).map((e) => normalize(e.title)));
+  // Dedupe against the full catalog (existing ideas + produced videos) with
+  // lexical near-duplicate detection — not just exact-title matches.
+  const [{ data: existingIdeas }, { data: existingVideos }] = await Promise.all([
+    db.from("ideas").select("title").eq("project_id", projectId),
+    db.from("videos").select("title").eq("project_id", projectId),
+  ]);
+  const catalog = [
+    ...((existingIdeas ?? []) as { title: string }[]).map((e) => e.title),
+    ...((existingVideos ?? []) as { title: string }[]).map((v) => v.title),
+  ].filter(Boolean);
 
-  const picks = ideas
-    .filter((i) => i.flag !== "SKIP" && !seen.has(normalize(i.title)))
-    .slice(0, limit);
+  const picks: typeof ideas = [];
+  for (const i of ideas) {
+    if (i.flag === "SKIP") continue;
+    if (findNearDuplicate(`${i.title} ${i.angle}`, catalog)) continue;
+    picks.push(i);
+    catalog.push(i.title); // also guard against near-dup picks within this run
+    if (picks.length >= limit) break;
+  }
 
   let created = 0;
   for (const idea of picks) {
@@ -111,8 +121,4 @@ export async function runIntelligenceAllProjects(): Promise<{ created: number; p
     created += r.created;
   }
   return { created, projects: (projects ?? []).length };
-}
-
-function normalize(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }

@@ -73,11 +73,15 @@ export async function refineOneShot(opts: {
   prompt: string;
   niche: string;
   title: string;
+  /** Learned art-direction anti-patterns to steer away from (autofix_memory). */
+  antiPatterns?: string[];
 }): Promise<{ prompt: string; costUsd: number } | null> {
   if (!isArtDirectorLive()) return null;
+  const avoid = (opts.antiPatterns ?? []).slice(0, 6);
   const system =
     `You are an art director for a ${opts.niche} YouTube video. Rewrite ONE draft visual prompt into a stronger, ` +
-    `concrete, purely-visual scene that an image model will render cleanly.`;
+    `concrete, purely-visual scene that an image model will render cleanly.` +
+    (avoid.length ? ` AVOID these patterns that hurt past videos: ${avoid.join("; ")}.` : "");
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -160,6 +164,18 @@ const DELIVER_TOOL = {
   },
 } as const;
 
+/** Fold the channel's learned wins/anti-patterns into a prompt section so the
+    FIRST render avoids mistakes the auto-fix loop already paid to discover. */
+function memoryBlock(playbook?: string[], antiPatterns?: string[]): string {
+  const wins = (playbook ?? []).slice(0, 6);
+  const avoid = (antiPatterns ?? []).slice(0, 6);
+  if (!wins.length && !avoid.length) return "";
+  let s = "LEARNED ART-DIRECTION from past videos on this channel:\n";
+  if (wins.length) s += `DO (these improved quality):\n- ${wins.join("\n- ")}\n`;
+  if (avoid.length) s += `AVOID (these regressed quality — do not repeat):\n- ${avoid.join("\n- ")}\n`;
+  return s + "\n";
+}
+
 export async function directShots(opts: {
   title: string;
   niche: string;
@@ -167,6 +183,10 @@ export async function directShots(opts: {
   tone: string;
   format: string;
   beats: ScriptBeat[];
+  /** Learned art-direction wins (autofix_memory.playbook). */
+  playbook?: string[];
+  /** Learned art-direction anti-patterns (autofix_memory.antiPatterns). */
+  antiPatterns?: string[];
 }): Promise<ArtDirection> {
   const usable = opts.beats.filter((b) => b.text?.trim());
   if (usable.length === 0 || !isArtDirectorLive()) {
@@ -181,6 +201,7 @@ export async function directShots(opts: {
     `Plan the visuals for the WHOLE video at once so the shots feel coherent and varied, each one tightly matching its beat's narration. ` +
     `For each beat: refine the visual prompt for maximum quality and beat-match, keep/adjust the shot type, and assign a camera MOTION (vary it for rhythm). ` +
     `Aim for the highest quality possible so the first render is great and needs no re-roll.\n\n` +
+    memoryBlock(opts.playbook, opts.antiPatterns) +
     `BEATS:\n${beatLines}\n\nCall deliver_shot_plan with exactly ${usable.length} shots, one per beat.`;
 
   try {

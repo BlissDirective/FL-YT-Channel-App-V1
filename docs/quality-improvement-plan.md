@@ -3,6 +3,13 @@
 > Audit date: 2026-06-27 · Scope: operator quality gates that determine **idea**,
 > **script**, and **video/image/asset** quality, and the cost/re-run machinery
 > behind them.
+>
+> **Status: Tiers 1–3 shipped (always-on).** Tier 1 — idea-score gate (with one
+> improvement round), script-stage editorial gate (+ metadata recheck at
+> publish), FLUX prompt pre-check. Tier 2 — per-project FLUX still cache
+> (`flux_cache`), changed-beat-only regen, pixel-level blank/solid detection.
+> Tier 3 — local lexical dedup across the full catalog, `autofix_memory` →
+> art-director/refine prompts, hybrid revision cap, fail-closed mock-spend block.
 
 ## The one-sentence diagnosis
 

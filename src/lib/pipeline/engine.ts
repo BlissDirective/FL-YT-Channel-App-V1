@@ -26,7 +26,7 @@ import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highligh
 import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
 import { editorialGuard } from "@/lib/adapters/guardrails";
-import { getQualityGateConfig, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
+import { getQualityGateConfig, failClosedBlocksSpend, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import {
   buildScriptLexicon,
@@ -68,7 +68,13 @@ import { DEFAULT_SCRIPT_TEMPLATE } from "./templates";
 
 type Db = Awaited<ReturnType<typeof createClient>>;
 
-export type EngineResult = { ok: boolean; error?: string };
+export type EngineResult = { ok: boolean; error?: string; warning?: string };
+
+/** Tier 3 — cost-aware human-revision cap (hybrid): warn from this revision on,
+    hard-block at the cap. Auto-pilot's single revision is exempt (it's its own
+    one-shot limit and uses decided_by 'autopilot'). */
+const REVISION_WARN_AT = 3;
+const REVISION_HARD_CAP = 4;
 
 const STAGE_DELAY_MS = 700; // lets Realtime dashboards show in-progress states
 
@@ -804,7 +810,12 @@ export async function makeBeatClip(
       let canPay = true;
       if (gateOn && !assessVisualPrompt(scene).ok) {
         if (isArtDirectorLive()) {
-          const refined = await refineOneShot({ prompt: scene, niche: project.niche, title: video.title });
+          const refined = await refineOneShot({
+            prompt: scene,
+            niche: project.niche,
+            title: video.title,
+            antiPatterns: project.autofix_memory?.antiPatterns,
+          });
           if (refined?.prompt) {
             scene = refined.prompt;
             prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle);
@@ -1456,6 +1467,9 @@ async function directArt(db: Db, video: Video, project: Project): Promise<void> 
     tone: project.tone,
     format: video.format,
     beats,
+    // Tier 3: steer the first render with what the auto-fix loop already learned.
+    playbook: project.autofix_memory?.playbook,
+    antiPatterns: project.autofix_memory?.antiPatterns,
   });
   const next = beats.map((b) => {
     const s = plan.shots.get(b.idx);
@@ -1495,6 +1509,24 @@ export async function fullAutoGenerate(
 
   const project = await getProject(db, video.project_id);
   if (!project) return { ok: false, error: "Project not found" };
+
+  // Fail-closed (Tier 3): for footage projects, if the paid image/video provider
+  // is live but the QC model is mocked, pause rather than pay for generation we
+  // can't quality-check. No effect when ANTHROPIC_API_KEY is set; stick projects
+  // don't use paid image/video so they're exempt.
+  if (project.visual_style !== "stick") {
+    const qg = await getQualityGateConfig(db);
+    if (failClosedBlocksSpend(qg)) {
+      await db
+        .from("videos")
+        .update({
+          paused_reason:
+            "Held — asset providers are live but the QC model is unavailable (fail-closed). Set ANTHROPIC_API_KEY to resume paid generation.",
+        })
+        .eq("id", opts.videoId);
+      return { ok: false, error: "Quality gate: QC model unavailable while paid providers are live — paused to avoid un-QC'd spend." };
+    }
+  }
 
   // 1b) Art-director pass (concept #2/#3): refine each beat's visual prompt for
   // quality + beat-match and assign a per-beat camera motion BEFORE any asset is
@@ -3342,6 +3374,30 @@ export async function decideGate(
   const gate = GATE_FOR_STATUS[video.status];
   if (!gate) return { ok: false, error: `No open gate for status ${video.status}` };
 
+  // Cost-aware revision cap (hybrid): count prior human/MCP revisions on this
+  // video; hard-block beyond the cap, warn as it approaches. Auto-pilot's own
+  // single revision (decided_by 'autopilot') is exempt.
+  let revisionWarning: string | undefined;
+  if (opts.decision === "revision" && decidedBy !== "autopilot") {
+    const { count } = await db
+      .from("approvals")
+      .select("id", { count: "exact", head: true })
+      .eq("video_id", video.id)
+      .eq("decision", "revision")
+      .in("decided_by", ["human", "mcp"]);
+    const priorRevisions = count ?? 0;
+    const spent = Number(video.total_cost_usd ?? 0).toFixed(2);
+    if (priorRevisions >= REVISION_HARD_CAP) {
+      return {
+        ok: false,
+        error: `Revision limit reached (${REVISION_HARD_CAP} revisions, $${spent} spent on this video). Approve, kill, or step back manually instead of revising again.`,
+      };
+    }
+    if (priorRevisions + 1 >= REVISION_WARN_AT) {
+      revisionWarning = `This is revision #${priorRevisions + 1} ($${spent} spent so far). Each revision re-bills the regenerated beats.`;
+    }
+  }
+
   await db.from("approvals").insert({
     video_id: video.id,
     gate,
@@ -3368,10 +3424,11 @@ export async function decideGate(
         .from("videos")
         .update({ status: target, topic: video.topic })
         .eq("id", video.id);
-      return { ok: true };
+      return { ok: true, warning: revisionWarning };
     }
     await setStatus(db, video.id, target);
-    return runPipeline(video.id, db);
+    const r = await runPipeline(video.id, db);
+    return { ...r, warning: revisionWarning ?? r.warning };
   }
 
   const next = ON_APPROVE[video.status];

@@ -1,5 +1,6 @@
 import "server-only";
 import type { Project } from "@/lib/db/types";
+import { findNearDuplicate } from "@/lib/pipeline/dedup";
 
 /**
  * Auto Pilot Operator guardrails (Phase C). Two Claude-backed detectors that
@@ -261,6 +262,9 @@ export async function gateIdea(opts: {
   subtopic: string;
   kind: "short" | "long";
   floor: number;
+  /** The channel's existing titles — a near-duplicate fails the gate and the
+      improvement round is asked to differentiate (reused content = #1 risk). */
+  catalogTitles?: string[];
 }): Promise<IdeaGateResult> {
   const base: IdeaGateResult = {
     live: false,
@@ -274,22 +278,29 @@ export async function gateIdea(opts: {
     costUsd: 0,
   };
   if (!isLive()) return base;
+  const catalog = opts.catalogTitles ?? [];
 
   const first = await scoreIdea(opts);
   if (!first) return base; // scoring unavailable → treat as not-live
   let costUsd = first.costUsd;
-  if (first.score >= opts.floor) {
+  const dup1 = findNearDuplicate(`${opts.title} ${opts.angle}`, catalog);
+  if (first.score >= opts.floor && !dup1) {
     return { ...base, live: true, passed: true, score: first.score, note: first.note, costUsd };
   }
 
-  // One improvement round: rewrite the idea to address the weaknesses, re-score.
+  // One improvement round: address the QC weaknesses AND/OR differentiate from
+  // the near-duplicate, then re-score and re-check for duplication.
+  const reasons = [...first.reasons];
+  if (dup1) {
+    reasons.unshift(`Too similar to an existing video ("${dup1.title}") — make the title and angle clearly distinct.`);
+  }
   const system =
     `You are the content planner for "${opts.project.name}" (niche: ${opts.project.niche}; angle: ${opts.project.angle}). ` +
-    `An idea scored below the quality bar. Rewrite it into a stronger version in the SAME subtopic: a sharper, specific, ` +
-    `non-clickbait title and a more original angle. Keep it accurate and on-niche.`;
+    `An idea needs work (low quality and/or too close to an existing video). Rewrite it into a stronger, clearly distinct ` +
+    `version in the SAME subtopic: a sharper, specific, non-clickbait title and a more original angle. Keep it accurate and on-niche.`;
   const user =
     `ORIGINAL TITLE: ${opts.title}\nORIGINAL ANGLE: ${opts.angle}\nSUBTOPIC: ${opts.subtopic || "(unspecified)"}\n\n` +
-    `WEAKNESSES TO FIX:\n${first.reasons.length ? first.reasons.map((r) => `- ${r}`).join("\n") : "- weak hook / low originality"}\n\n` +
+    `WEAKNESSES TO FIX:\n${reasons.length ? reasons.map((r) => `- ${r}`).join("\n") : "- weak hook / low originality"}\n\n` +
     `Call deliver_improved_idea.`;
   const imp = await callTool<{ title: string; angle: string; subtopic: string }>(
     PLAN_MODEL,
@@ -298,8 +309,15 @@ export async function gateIdea(opts: {
     IDEA_IMPROVE_TOOL,
   );
   if (!imp || !imp.input.title?.trim()) {
-    // Couldn't improve → report the original sub-floor score.
-    return { ...base, live: true, passed: false, score: first.score, note: first.note, costUsd };
+    // Couldn't improve → report the original sub-floor / duplicate verdict.
+    return {
+      ...base,
+      live: true,
+      passed: false,
+      score: first.score,
+      note: dup1 ? `Near-duplicate of "${dup1.title}"` : first.note,
+      costUsd,
+    };
   }
   costUsd += imp.costUsd;
   const improved = {
@@ -311,15 +329,16 @@ export async function gateIdea(opts: {
   const second = await scoreIdea({ ...opts, ...improved });
   if (second) costUsd += second.costUsd;
   const finalScore = second ? second.score : first.score;
+  const dup2 = findNearDuplicate(`${improved.title} ${improved.angle}`, catalog);
   return {
     live: true,
-    passed: finalScore >= opts.floor,
+    passed: finalScore >= opts.floor && !dup2,
     score: finalScore,
     title: improved.title,
     angle: improved.angle,
     subtopic: improved.subtopic,
     improved: true,
-    note: second?.note ?? first.note,
+    note: dup2 ? `Still near-duplicate of "${dup2.title}"` : (second?.note ?? first.note),
     costUsd,
   };
 }

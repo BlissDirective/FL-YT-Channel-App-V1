@@ -489,6 +489,12 @@ async function seedVideo(
         return { acted: false, reason: "quality-gate-fail-closed" };
       }
       try {
+        // Full catalog for near-duplicate detection (not just the recent 15).
+        const { data: allTitles } = await db
+          .from("videos")
+          .select("title")
+          .eq("project_id", run.project_id);
+        const catalogTitles = ((allTitles ?? []) as { title: string }[]).map((r) => r.title).filter(Boolean);
         const gate = await gateIdea({
           project,
           title: chosen.title,
@@ -496,6 +502,7 @@ async function seedVideo(
           subtopic: chosen.subtopic,
           kind,
           floor: qg.ideaFloor,
+          catalogTitles,
         });
         if (gate.costUsd > 0) {
           await db.from("cost_ledger").insert({
