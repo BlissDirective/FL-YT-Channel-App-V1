@@ -213,6 +213,41 @@ errors AND fewer false holds (each false hold is manual toil or a needless re-do
 - **Risk:** added latency and per-video cost; needs a search provider/key. Keep
   it behind the same fail-safe (no key → today's memory-only behavior).
 
+## Tier 6 — Thumbnail overhaul (best frame + bold kinetic highlight, no captions)
+
+Make the thumbnail an *applicable* still pulled from the video, overlaid with a
+bold kinetic highlight placed in varied, subject-aware locations, and never any
+narration captions. Two of the three are already close in today's pipeline
+(`packages/render/src/Thumbnail.tsx`, `render-queue.ts:485-528`); the new work
+is vision-driven frame selection + placement.
+
+### 6.1 Vision-pick the most thumbnail-worthy frame
+Today the farm grabs the *first* hero beat's still (`render-queue.ts:497`).
+Instead, score the candidate beat stills with the vision model (reuse the Tier 4
+seed-vision adapter) and pick the most striking, clear-subject frame — optionally
+generating a dedicated hero still if none scores well.
+- Touch points: `render-queue.ts` (thumbnail block), `seed-vision.ts`.
+
+### 6.2 Varied, subject-aware phrase placement
+The phrase is hard-coded bottom-left (`Thumbnail.tsx:58`). Add a `placement`
+prop (top-left / top-right / center / bottom) and choose it to AVOID covering the
+main subject — ideally via a quick vision pass on the chosen frame (a clear-zone
+hint), composing with 6.1. Keep the existing bold treatment (900 weight,
+uppercase, stroke, shadow) + legibility scrim.
+- Touch points: `Thumbnail.tsx`, `render-queue.ts`.
+
+### 6.3 Most-applicable kinetic highlight as the phrase
+Source the overlay from the video's actual kinetic highlights / `thumbPhrase` and
+pick the one that best matches the chosen frame, rather than always the script
+phrase or the first highlight (`thumbPhraseFor`, `render-queue.ts:136`).
+
+### 6.4 Hard no-captions guarantee
+Already true (the component renders only the kinetic phrase; the subtitle track is
+never composited). Lock it in: source the frame strictly from PRE-caption beat
+assets (never the final captioned render), which the Tier 1 prompt pre-check
+already keeps text-free. NB: the bold kinetic phrase (wanted) is distinct from
+narration captions (never on the thumbnail).
+
 ## The mental model shift
 
 The current spend curve is **generate-heavy, gate-late**. The cheapest dollar is
