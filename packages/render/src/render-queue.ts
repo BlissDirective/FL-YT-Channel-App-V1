@@ -30,6 +30,7 @@ import {
 } from "./types";
 import { critiqueStickFrames, type CritiqueFrame } from "./stick/frame-critic";
 import { critiqueFootageFrames, type FootageFrame } from "./footage/frame-critic";
+import { pickThumbnail, type ThumbPlacement } from "./thumbnail-pick";
 import { uploadVideo, youtubeUploadConfigured } from "./youtube";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
@@ -133,9 +134,16 @@ async function storeImage(videoId: string, bytes: Buffer): Promise<string> {
 /** Brand-safe kinetic phrase for the thumbnail: prefer the script's phrase,
     else the first curated highlight, else a trimmed (brand names not stripped)
     slice of the title as a last resort. */
-function thumbPhraseFor(scriptPhrase: string | undefined, video: { title: string; highlights?: unknown }): string {
+function thumbPhraseFor(
+  scriptPhrase: string | undefined,
+  video: { title: string; highlights?: unknown },
+  preferred?: string,
+): string {
   const fromScript = (scriptPhrase ?? "").trim();
   if (fromScript) return fromScript;
+  // Tier 6: a vision-matched highlight is the next-best source after the script.
+  const pref = (preferred ?? "").trim();
+  if (pref) return pref;
   const hl = (video.highlights as { text?: string }[] | null) ?? [];
   const fromHl = hl.find((h) => h.text && h.text.trim())?.text?.trim();
   if (fromHl) return fromHl;
@@ -278,7 +286,7 @@ function resolveHighlights(
 async function buildProps(videoId: string): Promise<{
   props: VideoProps;
   project: { id: string };
-  video: { id: string; title: string; target_length_sec: number; kind: string };
+  video: { id: string; title: string; target_length_sec: number; kind: string; project_id: string; highlights?: unknown };
 } | null> {
   const { data: video } = await db.from("videos").select("*").eq("id", videoId).single();
   if (!video) return null;
@@ -494,15 +502,55 @@ async function renderOne(
       .limit(1)
       .maybeSingle();
     const meta = (scriptRow?.metadata ?? {}) as { thumbPhrase?: string };
+
+    // Tier 6 — vision pick: score the existing beat stills, choose the most
+    // thumbnail-worthy frame + a subject-avoiding headline placement (one call).
+    const candidates = props.beats
+      .filter((b) => b.imageUrl)
+      .map((b) => ({ beatIdx: b.idx, imageUrl: b.imageUrl as string, text: b.text }));
+    const highlightTexts = (((video.highlights as { text?: string }[] | null) ?? [])
+      .map((h) => (h.text ?? "").trim())
+      .filter(Boolean));
+    let chosenBeatIdx: number | undefined;
+    let placement: ThumbPlacement = "bottom-left";
+    let matchedHighlight: string | undefined;
+    try {
+      const pick = await pickThumbnail({ title: video.title, candidates, highlights: highlightTexts });
+      if (pick) {
+        chosenBeatIdx = pick.beatIdx;
+        placement = pick.placement;
+        if (pick.highlightIdx >= 0) matchedHighlight = highlightTexts[pick.highlightIdx];
+        if (pick.costUsd > 0) {
+          const { data: vrow } = await db.from("videos").select("total_cost_usd").eq("id", videoId).maybeSingle();
+          await db.from("cost_ledger").insert({
+            project_id: video.project_id,
+            video_id: videoId,
+            provider: "anthropic",
+            description: "Thumbnail vision pick",
+            usd: pick.costUsd,
+          });
+          await db
+            .from("videos")
+            .update({ total_cost_usd: Number(vrow?.total_cost_usd ?? 0) + pick.costUsd })
+            .eq("id", videoId);
+        }
+      }
+    } catch (err) {
+      console.error(`⚠️  thumbnail vision pick failed (fallback to first hero): ${String(err).slice(0, 160)}`);
+    }
+
     const heroBeat =
+      (chosenBeatIdx != null ? props.beats.find((b) => b.idx === chosenBeatIdx) : undefined) ??
       props.beats.find((b) => b.shotType === "hero" && (b.imageUrl || b.videoUrl)) ??
       props.beats.find((b) => b.imageUrl || b.videoUrl) ??
       props.beats[0];
-    const phrase = thumbPhraseFor(meta.thumbPhrase, video);
+    // Script phrase stays primary; the vision-matched highlight is the fallback.
+    const phrase = thumbPhraseFor(meta.thumbPhrase, video, matchedHighlight);
     const thumbProps = {
       imageUrl: heroBeat?.imageUrl ?? null,
       videoUrl: heroBeat?.videoUrl ?? null,
       phrase,
+      placement,
       brand: props.brand,
     };
     const thumbComp = await selectComposition({ serveUrl, id: "Thumbnail", inputProps: thumbProps });
@@ -522,7 +570,7 @@ async function renderOne(
       kind: "thumb",
       provider: "remotion",
       storage_path: thumbPath,
-      meta: { variant: 0, format: "hero-kinetic", phrase, selected: true },
+      meta: { variant: 0, format: "hero-kinetic", phrase, placement, beatIdx: heroBeat?.idx, selected: true },
       cost_usd: 0,
     });
     console.log(`🖼️  ${video.title}: thumbnail "${phrase}" → ${thumbPath}`);

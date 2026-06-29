@@ -1,6 +1,9 @@
 import React from "react";
 import { AbsoluteFill, Img, OffthreadVideo } from "remotion";
 
+/** Where the bold headline sits — chosen to avoid the frame's subject (Tier 6). */
+export type ThumbPlacement = "top-left" | "top-right" | "center" | "bottom-left" | "bottom-right";
+
 export type ThumbnailProps = {
   /** Hero still (preferred) — a frame/snapshot used as the background. */
   imageUrl?: string | null;
@@ -8,6 +11,8 @@ export type ThumbnailProps = {
   videoUrl?: string | null;
   /** Brand-safe kinetic phrase rendered big over the image. */
   phrase: string;
+  /** Headline placement zone (default bottom-left). */
+  placement?: ThumbPlacement;
   brand: { primary: string; secondary: string };
 };
 
@@ -24,13 +29,29 @@ function phraseSize(phrase: string): number {
   return 74;
 }
 
+/** Map a placement to flex alignment (column flex: justify = vertical). */
+function placementStyle(p: ThumbPlacement): {
+  justifyContent: "flex-start" | "center" | "flex-end";
+  alignItems: "flex-start" | "center" | "flex-end";
+  textAlign: "left" | "center" | "right";
+} {
+  const justifyContent = p.startsWith("top") ? "flex-start" : p === "center" ? "center" : "flex-end";
+  const alignItems = p.endsWith("right") ? "flex-end" : p === "center" ? "center" : "flex-start";
+  const textAlign = p.endsWith("right") ? "right" : p === "center" ? "center" : "left";
+  return { justifyContent, alignItems, textAlign };
+}
+
 /**
  * YouTube thumbnail: a striking hero still/frame + a bold, brand-safe kinetic
  * phrase. Rendered as a still by the farm — deterministic text, so no
  * AI-image hallucinated brand names/logos.
  */
-export const Thumbnail: React.FC<ThumbnailProps> = ({ imageUrl, videoUrl, phrase, brand }) => {
+export const Thumbnail: React.FC<ThumbnailProps> = ({ imageUrl, videoUrl, phrase, placement = "bottom-left", brand }) => {
   const size = phraseSize(phrase);
+  const pos = placementStyle(placement);
+  // Kicker bar follows the text's horizontal alignment.
+  const kickerMargin =
+    pos.textAlign === "right" ? { marginLeft: "auto" } : pos.textAlign === "center" ? { marginLeft: "auto", marginRight: "auto" } : {};
   return (
     <AbsoluteFill style={{ backgroundColor: brand.secondary, fontFamily: FONT }}>
       {imageUrl ? (
@@ -47,16 +68,25 @@ export const Thumbnail: React.FC<ThumbnailProps> = ({ imageUrl, videoUrl, phrase
         />
       )}
 
-      {/* Cinematic scrim for text legibility on any image. */}
+      {/* Balanced scrim — darkens top AND bottom so the headline stays legible
+          wherever it's placed; strong text shadow/stroke covers the centre. */}
       <AbsoluteFill
         style={{
           background:
-            "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.25) 48%, rgba(0,0,0,0.45) 100%)",
+            "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.12) 32%, rgba(0,0,0,0.12) 66%, rgba(0,0,0,0.72) 100%)",
         }}
       />
 
-      <AbsoluteFill style={{ display: "flex", alignItems: "flex-end", padding: "70px 84px" }}>
-        <div style={{ maxWidth: "94%" }}>
+      <AbsoluteFill
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: pos.justifyContent,
+          alignItems: pos.alignItems,
+          padding: "70px 84px",
+        }}
+      >
+        <div style={{ maxWidth: "80%", textAlign: pos.textAlign }}>
           {/* accent kicker bar */}
           <div
             style={{
@@ -66,6 +96,7 @@ export const Thumbnail: React.FC<ThumbnailProps> = ({ imageUrl, videoUrl, phrase
               borderRadius: 7,
               marginBottom: 28,
               boxShadow: "0 4px 18px rgba(0,0,0,0.5)",
+              ...kickerMargin,
             }}
           />
           <p
