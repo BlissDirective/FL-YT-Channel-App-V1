@@ -321,6 +321,70 @@ at `FINAL_REVIEW` need Telegram + a 15h age + QC ≥ 8.5 + a tap.
 - Hard caps remain backstops: per-video budget, `max_video_usd`, the $100/mo
   portfolio video cap, and the actual-ledger `cycleSpentUsd ≥ 60` stop.
 
+## Tier 9 — Visual richness + QC remediation (shorts/base/economy-first)
+
+Root cause of sub-7 QC is sparse/static/blank visuals, not the score bar — so
+the fix is to raise upfront visual quality (and remediate the *cause* when a
+video misses), built shorts/base/economy-first (75% of auto-pilot output).
+
+**Build status:** 9.1, 9.2, 9.3, 9.4, 9.6 shipped. 9.5 (D3/Lottie) is spec-only
+pending the data-source decision (see notes below). Implementation specifics
+that refined the original spec:
+- **9.1** — the prompt-rewrite/regenerate remediation already existed in
+  `autofix.planFootage`; it simply wasn't running because the loop defaulted
+  *off*. `resolveAutofix` now defaults remediation **on** (loop inferred from
+  `visual_style`: `aiclip` for footage, `animation` for stick), bounded by the
+  existing `maxRenders: 2` + `spendCapUsd: 1`. `DEFAULTS.publishFloorQc` 6.0 → 7.0.
+- **9.2** — `IntroSting` renders the chosen hero still under a scrim with a
+  word-by-word kinetic phrase; the hook line is synthesized as a VO at
+  `beat_index -1` and played over the card (`INTRO_SEC` 2.5 → 3.0). Degrades to
+  the branded gradient + title when no hero/phrase exists. Long-form only.
+- **9.3** — `ensureCtaBeat` appends a tailored CTA beat when the writer omits one
+  (regex-detected); the script prompt also requires it.
+- **9.4** — extras default to **free Pexels photos for all tiers**; economy only
+  tops up with cheap FLUX schnell when stock is thin (so base stays $0 and
+  economy still gets motion when Pexels is dry). Gated to non-accent still beats
+  with est. duration ≥ 10s; paid-extra fan-out capped at 4 beats/video against a
+  clip-jobs race. Render cross-dissolves through ≤3 frames with varied Ken-Burns.
+- **9.6** — captions scale font by composition width, auto-shrink + wrap to ≤2
+  lines within an 86%-safe width; highlight curation gained a banned-slang filter
+  (`isProfessionalPhrase`) + an authoritative tone instruction.
+
+### 9.1 QC remediation pass (fix the cause, not the frame)
+When a video is below the floor after the auto-fix re-renders, run ONE pass that
+rewrites the **weak beats' visual prompts from the frame-critic's notes**,
+regenerates just those beats, and re-scores — before holding. `maxRenders` stays
+2, per-video remediation spend stays ≤ $1. Lessons persist to `autofix_memory`
+(Tier 3 already injects those into future generation prompts) so quality
+compounds over time without adding upfront spend.
+
+### 9.2 Narrated intro title card (~2–3s)
+Open every video with a hero-shot title card + a bold kinetic phrase of the
+topic (thumbnail-style), narrated by the hook, dissolving into the body.
+
+### 9.3 LLM-written CTA outro beat (~10–15s)
+End every video with a real narrated closing beat: like/subscribe + "drop your
+next-topic idea in the comments," tailored to the video/channel. Guaranteed
+present (deterministic fallback if the writer omits it).
+
+### 9.4 Multi-image sections (base/economy)
+Beats ≥ ~10s get 2–3 stills cross-dissolved with varied Ken-Burns instead of one
+static image; short beats stay single. Base uses free stock (no cost); economy
+adds cheap FLUX schnell. Fills dead air → higher retention + QC.
+
+### 9.5 Programmatic b-roll inserts (Finance/AI/Authoritative) — needs new deps
+D3 data-viz reveals (charts/rankings) + Lottie icon/diagram b-roll, inserted as
+beats within footage videos (~$0 marginal). **New npm deps** (`d3`,
+`@remotion/lottie`, `lottie-web`) and a **data-source decision** (LLM-supplied
+illustrative figures vs a real finance-data API/MCP) — detailed in chat; built
+after 9.1–9.4.
+
+### 9.6 Responsive captions + professional highlight tone
+Captions auto-fit to a safe width, wrap to ≤2 lines, scale by resolution (fixes
+overflow on Shorts + long-form). Kinetic highlights gain an authoritative/
+professional tone guard + a banned casual-slang filter ("bro", "lol", …), with
+an optional per-channel tone override.
+
 ## The mental model shift
 
 The current spend curve is **generate-heavy, gate-late**. The cheapest dollar is

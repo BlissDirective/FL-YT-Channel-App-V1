@@ -45,10 +45,15 @@ export function resolveAutofix(
   project: Project,
   video: Video,
 ): { on: boolean; loop: Loop; config: AutofixConfig } {
-  const loop = (project.autofix_loop ?? "off") as AutofixLoop;
-  const enabled = video.autofix_enabled ?? project.autofix_enabled ?? false;
-  const on = enabled && loop !== "off";
-  return { on, loop: (loop === "off" ? "animation" : loop) as Loop, config: configOf(project) };
+  // Tier 9.1: remediation is ON by default so auto-pilot videos get the
+  // prompt-rewrite + regenerate pass before holding (bounded by maxRenders +
+  // spendCap). An explicit `false` still opts out. The loop strategy is inferred
+  // from the channel's visual style when not pinned.
+  const rawLoop = (project.autofix_loop ?? "off") as AutofixLoop;
+  const loop: Loop =
+    rawLoop !== "off" ? (rawLoop as Loop) : project.visual_style === "stick" ? "animation" : "aiclip";
+  const on = video.autofix_enabled ?? project.autofix_enabled ?? true;
+  return { on, loop, config: configOf(project) };
 }
 
 // ── Small DB helpers (all threaded through the admin client) ──────────

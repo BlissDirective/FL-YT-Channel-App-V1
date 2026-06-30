@@ -83,6 +83,17 @@ export function isHighlightLive(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
+/** Casual/meme slang that undercuts an authoritative, educational channel
+    (Tier 9.6). Highlights matching this are rejected so the on-screen text reads
+    like a confident expert headline, never "WRONG LAYER, BRO". */
+const BANNED_SLANG =
+  /\b(bro|bruh|dude|lol|lmao|lmfao|omg|wtf|fr|ngl|tbh|vibe|vibes|lit|sus|yeet|slay|slayed|based|cringe|sheesh|rizz|skibidi|gyatt|bussin|cap|no cap|deadass|fam|bet|finna|gonna lie|mid|goated|sigma)\b/i;
+
+/** True when a phrase is clean enough for a professional/educational channel. */
+export function isProfessionalPhrase(text: string): boolean {
+  return Boolean(text?.trim()) && !BANNED_SLANG.test(text);
+}
+
 const POSITIONS: HighlightPosition[] = ["center", "upper-third", "lower-third-safe"];
 
 const DELIVER_HIGHLIGHTS_TOOL = {
@@ -167,6 +178,8 @@ export async function curateHighlights(opts: {
     .join("\n\n");
   const prompt = `You are the on-screen-text director for a ${opts.niche} YouTube video titled "${opts.title}" (${opts.format}; tone: ${opts.tone}).
 
+TONE — match the channel's ${opts.tone} voice but keep every phrase AUTHORITATIVE, professional, insightful, and educational: confident expert headlines, not memes. BANNED — never use casual/meme slang or filler ("bro", "dude", "lol", "vibe", "lit", "sus", "fr", "ngl", "sheesh", etc.), no emojis, no joke interjections. A phrase like "WRONG LAYER, BRO" is unacceptable; "THE WRONG LAYER" or "MEMORY, NOT COMPUTE" is right.
+
 Pick the ${target} MOST attention-grabbing moments to reinforce with bold burned-in on-screen text. Less is more — only moments that genuinely earn a viewer's eyes: a shocking statistic, a surprising fact, a quotable line, the hook, or the payoff.
 
 CRITICAL — Beat 0 (the hook) is ALSO published on its own as a vertical Short, our single biggest channel-growth driver. Place AT LEAST ${SHORT_HOOK_MIN_HIGHLIGHTS} of your most scroll-stopping highlights on Beat 0, each tied to a DIFFERENT spoken moment, using the highest-energy styles (sticker-tag, color-flash-pop, word-pop) at "high" intensity. They must be bold, unique, and impossible to scroll past. Then spread the remaining highlights across later beats; never two back-to-back in the same later beat.
@@ -217,7 +230,9 @@ Call deliver_highlights with at least ${SHORT_HOOK_MIN_HIGHLIGHTS} highlights on
 
   const validBeats = new Set(opts.beats.map((b) => b.idx));
   const highlights: CuratedHighlight[] = raw
-    .filter((h) => validBeats.has(h.beatIdx) && h.text?.trim())
+    // Tier 9.6: reject casual/meme slang so on-screen text stays professional.
+    // The hook is topped up from clean narration by withHookGuarantee below.
+    .filter((h) => validBeats.has(h.beatIdx) && h.text?.trim() && isProfessionalPhrase(h.text))
     // Allow the hook's extra highlights through the cap (≥2 there by design).
     .slice(0, target + SHORT_HOOK_MIN_HIGHLIGHTS)
     .map((h, i) => ({

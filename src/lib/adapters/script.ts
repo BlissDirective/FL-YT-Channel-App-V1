@@ -70,6 +70,28 @@ export function capScriptToBudget(beats: ScriptBeat[], targetLengthSec: number):
   return [...kept, outro].map((b, idx) => ({ ...b, idx }));
 }
 
+/** Tier 9.3 — guarantee a closing call-to-action beat. If the writer didn't end
+    on a CTA, append a warm, on-niche one (like/subscribe + comment a next-topic
+    idea). Kept short; the cap protects the last beat so it always survives. */
+export function ensureCtaBeat(beats: ScriptBeat[], niche: string): ScriptBeat[] {
+  if (beats.length === 0) return beats;
+  const last = beats[beats.length - 1];
+  if (/\b(subscrib|comment|drop a|let me know|hit (the )?like|in the comments)\b/i.test(last.text)) {
+    return beats;
+  }
+  const topic = niche?.trim() || "this";
+  const cta: ScriptBeat = {
+    idx: beats.length,
+    text:
+      `If this made ${topic} a little clearer, hit like and subscribe so the next breakdown finds you — ` +
+      `and tell me in the comments which ${topic} topic I should unpack next.`,
+    visualPrompt:
+      "A calm, premium closing scene — soft abstract gradient light with a sense of forward momentum. No text, no logos, no people.",
+    shotType: "broll",
+  };
+  return [...beats, cta].map((b, idx) => ({ ...b, idx }));
+}
+
 /**
  * Voice DNA — a system prompt that fights the "AI essay" register: writes
  * like a real creator with a point of view, varies rhythm, and bans the
@@ -314,7 +336,8 @@ export async function generateScript(opts: {
     `\n\nHARD STRUCTURE RULES — a QC reviewer will reject the script if any is violated:\n` +
     `- Write the COMPLETE script: produce all ${budget.beats} beats, each fully written, totaling about ${budget.target} words. NEVER stop after the hook or hand back a skeleton.\n` +
     `- Deliver every chapter, section, and timestamp your metadata promises — never reference content you didn't actually write.\n` +
-    `- Each beat must advance the argument; do not restate the same point across multiple beats.`;
+    `- Each beat must advance the argument; do not restate the same point across multiple beats.\n` +
+    `- The FINAL beat MUST be a short (~10–15s) call-to-action where the narrator asks viewers to like and subscribe, and to comment a suggested ${opts.niche} topic for the next video — tailored to this channel. Keep it warm and confident, not desperate.`;
   const lessons =
     opts.qcLessons && opts.qcLessons.length > 0
       ? `\n\nAVOID these specific problems QC flagged on earlier scripts for this channel:\n${opts.qcLessons
@@ -425,6 +448,10 @@ export async function generateScript(opts: {
       console.error("script length-extend retry failed (keeping first draft):", err);
     }
   }
+
+  // Tier 9.3: guarantee a closing CTA beat (the prompt asks for one; this is the
+  // deterministic safety net).
+  beats = ensureCtaBeat(beats, opts.niche);
 
   const costUsd = (tokIn / 1e6) * PRICE.in + (tokOut / 1e6) * PRICE.out + outlineCostUsd;
 

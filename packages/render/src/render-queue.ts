@@ -303,7 +303,7 @@ async function buildProps(videoId: string): Promise<{
 
   const { data: script } = await db
     .from("scripts")
-    .select("beats")
+    .select("beats, metadata")
     .eq("video_id", sourceId)
     .order("version", { ascending: false })
     .limit(1)
@@ -342,6 +342,8 @@ async function buildProps(videoId: string): Promise<{
       heroHold?: boolean;
       durationSec?: number;
       stickScene?: StickScene;
+      /** Tier 9 #4 — extra still paths/urls for a multi-image section. */
+      images?: string[];
     };
     // Generated video clips live in Storage (no meta.url) — sign the path and
     // treat as video. Stills are signed as images. External (Pexels) use url.
@@ -349,6 +351,18 @@ async function buildProps(videoId: string): Promise<{
     const isVideoClip = Boolean(clipMeta.isVideo || clipMeta.url);
     const durationSec = Number(voMeta.durationSec ?? 5);
     const words = voMeta.words ?? [];
+    // Tier 9 #4 — resolve extra stills (external urls pass through; storage
+    // paths get signed). The primary still leads, so the cross-dissolve always
+    // includes the frame the rest of the pipeline already vetted/cached.
+    const primaryStill = !isVideoClip ? (clipSigned ?? undefined) : undefined;
+    let images: string[] | undefined;
+    if (!isVideoClip && clipMeta.images?.length) {
+      const extra = await Promise.all(
+        clipMeta.images.map((p) => (/^https?:\/\//.test(p) ? Promise.resolve(p) : sign(p))),
+      );
+      images = [primaryStill, ...extra].filter((u): u is string => Boolean(u));
+      if (images.length < 2) images = undefined;
+    }
     beats.push({
       idx: sb.idx,
       text: sb.text,
@@ -360,7 +374,8 @@ async function buildProps(videoId: string): Promise<{
       videoUrl: clipMeta.url ?? (clipMeta.isVideo ? (clipSigned ?? undefined) : undefined),
       videoDurationSec: clipMeta.durationSec,
       heroHold: Boolean(clipMeta.heroHold),
-      imageUrl: !isVideoClip ? (clipSigned ?? undefined) : undefined,
+      imageUrl: primaryStill,
+      images,
       // Stick Studio: a stick scene on the clip asset drives programmatic
       // rendering instead of footage (Phase 2 writes it; here we just pass it).
       stickScene: clipMeta.stickScene,
@@ -373,6 +388,18 @@ async function buildProps(videoId: string): Promise<{
   }
   // A render without narration would be silent — treat as not ready.
   if (!beats.some((b) => b.voUrl)) return null;
+
+  // Tier 9 #2 — narrated intro title card. Hero shot = the strongest available
+  // frame (a hero still, else the first still/clip); phrase = the script's
+  // kinetic thumb phrase (falls back to the title in IntroSting). The optional
+  // narrated hook is stored as a vo asset at beat_index -1 by asset gen.
+  const scriptMeta = (script.metadata ?? {}) as { thumbPhrase?: string };
+  const heroBeat =
+    beats.find((b) => b.shotType === "hero" && (b.imageUrl || b.videoUrl)) ??
+    beats.find((b) => b.imageUrl) ??
+    beats.find((b) => b.videoUrl);
+  const introVo = assets.find((a) => a.kind === "vo" && a.beat_index === -1);
+  const introVoUrl = introVo?.storage_path ? await sign(introVo.storage_path) : undefined;
 
   return {
     props: {
@@ -387,6 +414,10 @@ async function buildProps(videoId: string): Promise<{
       // Stick Studio: recurring character identity (Phase 2 migration adds the
       // column; undefined falls back to the default cast at render).
       stickCast: (project.stick_cast as StickCast | null) ?? undefined,
+      heroImageUrl: heroBeat?.imageUrl,
+      heroVideoUrl: heroBeat?.imageUrl ? undefined : heroBeat?.videoUrl,
+      introPhrase: scriptMeta.thumbPhrase?.trim() || video.title,
+      introVoUrl: introVoUrl ?? undefined,
     },
     project,
     video,

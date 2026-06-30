@@ -48,7 +48,7 @@ import { directShots, assessVisualPrompt, refineOneShot, isArtDirectorLive } fro
 import { inspectStill, perceptualHash, hammingDistance } from "@/lib/adapters/image-check";
 import { critiqueSeedStill, isSeedVisionLive } from "@/lib/adapters/seed-vision";
 import type { StickScene } from "@/lib/stick-types";
-import { searchStockClip } from "@/lib/adapters/stock";
+import { searchStockClip, searchStockPhotos } from "@/lib/adapters/stock";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import type { BuildRunStatus, CustomSpec, Project, ScriptBeat, Video } from "@/lib/db/types";
@@ -545,13 +545,35 @@ async function mapLimit<T, R>(
 async function runAssetGeneration(db: Db, video: Video, project: Project) {
   const { data: script } = await db
     .from("scripts")
-    .select("beats")
+    .select("beats, metadata")
     .eq("video_id", video.id)
     .order("version", { ascending: false })
     .limit(1)
     .maybeSingle();
   const beats = (script?.beats ?? []) as ScriptBeat[];
+  const scriptMeta = (script?.metadata ?? {}) as { thumbPhrase?: string };
   const stick = project.visual_style === "stick";
+
+  // Tier 9 #4 — multi-image context: the auto tier (FREE stock extras for all;
+  // economy may top up with cheap FLUX schnell) and which beats are AI-video
+  // accents (skip those — their stills are i2v seeds, not the final visual).
+  let autoTier: AutoTier = "economy";
+  try {
+    const runId = (video as { build_run_id?: string }).build_run_id;
+    if (runId) {
+      const { data: run } = await db.from("build_runs").select("tier").eq("id", runId).maybeSingle();
+      if (run?.tier) autoTier = run.tier as AutoTier;
+    }
+  } catch {
+    /* tier lookup is best-effort; defaults keep extras free */
+  }
+  const accentIdx = new Set<number>();
+  try {
+    const { data: jobs } = await db.from("clip_jobs").select("beat_idx").eq("video_id", video.id);
+    for (const j of (jobs ?? []) as { beat_idx: number }[]) accentIdx.add(j.beat_idx);
+  } catch {
+    /* clip_jobs may not be queued yet — over-generation is bounded below */
+  }
 
   // Tier 2 — changed-beat-only regen: keep the existing CLIP for any beat whose
   // content (visual prompt + shot type + narration) is unchanged since the last
@@ -648,6 +670,33 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
         `beat ${i + 1}`,
       );
     }
+    // Tier 9 #2 — narrated intro hook. Synthesize the kinetic thumb phrase as a
+    // short VO stored at beat_index -1; the render farm plays it over the intro
+    // title card. Cached like any line, best-effort (never blocks the stage).
+    const introPhrase = (scriptMeta.thumbPhrase ?? "").trim();
+    if (liveVoice && introPhrase) {
+      try {
+        const introBeat: ScriptBeat = {
+          idx: -1,
+          text: introPhrase,
+          visualPrompt: "",
+          shotType: "broll",
+        };
+        const r = await synthesizeBeatVo(db, video, project, introBeat, lexicon);
+        await recordCost(
+          db,
+          video,
+          {
+            provider: r.provider,
+            usd: r.costUsd,
+            description: r.cached ? "Intro hook VO reused — free" : "Intro hook VO",
+          },
+          "intro",
+        );
+      } catch (err) {
+        console.error("intro hook VO failed (non-fatal):", err);
+      }
+    }
   } else {
     await sleep(STAGE_DELAY_MS);
     await db.from("assets").insert({
@@ -661,11 +710,32 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     await recordCost(db, video, MOCK_COSTS.voiceover);
   }
 
+  // Tier 9 #4 — cap economy's paid FLUX-extra fan-out per video so a clip_jobs
+  // race (accents not yet queued) can't quietly run up schnell spend.
+  let fluxExtraBudget = 4;
   for (const clip of clipResults) {
     const idx = clip.row.beat_index ?? 0;
     // Stamp the beat content hash so the next revision can detect unchanged beats.
     const h = hashByIdx.get(idx);
     if (h) clip.row.meta = { ...clip.row.meta, beatHash: h };
+    // Multi-image section: only for still beats (FLUX stills, not stock VIDEO or
+    // generated clips) that are long enough and aren't AI-video accents. Free
+    // stock photos for all tiers; economy may top up with cheap FLUX schnell.
+    const meta = clip.row.meta as { stillImage?: boolean; images?: string[] };
+    const beat = beats.find((b) => b.idx === idx);
+    const estSec = beat ? Math.max(4, beat.text.trim().split(/\s+/).length / 2.5) : 0;
+    if (
+      !stick &&
+      meta.stillImage === true &&
+      beat &&
+      !accentIdx.has(idx) &&
+      estSec >= MULTI_IMAGE_MIN_SEC
+    ) {
+      const allowFlux = autoTier === "economy" && fluxExtraBudget > 0;
+      const { images, fluxUsed } = await extraStillsForBeat(db, video, project, beat, { allowFlux });
+      fluxExtraBudget -= fluxUsed;
+      if (images.length) clip.row.meta = { ...clip.row.meta, images };
+    }
     await db.from("assets").insert(clip.row);
     await recordCost(db, video, clip.cost, `beat ${idx + 1}`);
     for (const ec of clip.extraCosts ?? []) {
@@ -709,6 +779,9 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
       .select("beat_index, meta")
       .eq("video_id", video.id)
       .eq("kind", "vo")
+      // Exclude the intro hook VO (beat_index -1) — it plays over the title
+      // card, not the beat timeline, so it must not shift the caption track.
+      .gte("beat_index", 0)
       .order("beat_index", { ascending: true });
     let offset = 0;
     const track: { w: string; start: number; end: number }[] = [];
@@ -766,6 +839,60 @@ function beatContentHash(beat: ScriptBeat): string {
   return createHash("sha256")
     .update(`${beat.visualPrompt}|${beat.shotType}|${beat.text}`)
     .digest("hex");
+}
+
+/** Tier 9 #4 — extra stills so a long still section can cross-dissolve through
+    2–3 frames instead of holding one. Base (and the default) pull FREE Pexels
+    photos; economy tops up with a cheap FLUX schnell variant only when stock is
+    thin (so base stays $0 and economy still gets motion when Pexels is dry).
+    Best-effort and cheap — returns storage paths (FLUX) and external urls
+    (stock); the render farm resolves both. Never throws into the asset stage. */
+export const MULTI_IMAGE_EXTRA = 2; // + the primary still = up to 3 frames.
+/** A still section must be at least this long to earn extra cross-dissolve
+    frames (mirrors MULTI_IMAGE_MIN_SEC in packages/render so the asset stage
+    only generates extras the renderer will actually use). */
+export const MULTI_IMAGE_MIN_SEC = 10;
+export async function extraStillsForBeat(
+  db: Db,
+  video: Video,
+  project: Project,
+  beat: ScriptBeat,
+  opts: { allowFlux: boolean },
+): Promise<{ images: string[]; fluxUsed: number }> {
+  const images: string[] = [];
+  let fluxUsed = 0;
+  try {
+    images.push(...(await searchStockPhotos(beat.visualPrompt, MULTI_IMAGE_EXTRA)));
+  } catch {
+    /* stock is optional */
+  }
+  if (opts.allowFlux && images.length < MULTI_IMAGE_EXTRA && isFalLive()) {
+    const need = MULTI_IMAGE_EXTRA - images.length;
+    for (let i = 0; i < need; i++) {
+      try {
+        const prompt = buildVisualPrompt(
+          `${beat.visualPrompt} — alternate composition ${i + 2}`,
+          project.brand_kit.thumbnailStyle,
+        );
+        const img = await generateImage({ prompt, quality: "schnell" });
+        const path = `videos/${video.id}/beat-${beat.idx}-extra-${i}.jpg`;
+        await uploadMedia(path, img.image, "image/jpeg");
+        images.push(path);
+        fluxUsed++;
+        if (img.costUsd > 0) {
+          await recordCost(
+            db,
+            video,
+            { provider: "fal.ai", usd: img.costUsd, description: "Multi-image extra still (FLUX schnell)" },
+            `beat ${beat.idx + 1}`,
+          );
+        }
+      } catch {
+        /* an extra still is best-effort — never blocks the cut */
+      }
+    }
+  }
+  return { images: images.slice(0, MULTI_IMAGE_EXTRA), fluxUsed };
 }
 
 /** One beat's visual: stock beats search Pexels (free), hero beats get a

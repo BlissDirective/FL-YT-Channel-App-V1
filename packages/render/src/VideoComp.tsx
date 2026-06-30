@@ -151,6 +151,57 @@ function motionStyle(motion: string | undefined, frame: number, dur: number): Re
   }
 }
 
+/** Tier 9 #4 — a section that cross-dissolves through 2–3 stills, each with a
+    different Ken-Burns move, instead of holding a single frame. Used for long
+    still beats (base = free stock, economy = + cheap FLUX schnell) so the
+    visual keeps evolving across a 10s+ section. */
+const MULTI_IMAGE_MIN_SEC = 10;
+const MULTI_IMAGE_MAX = 3;
+const KENBURNS_CYCLE = ["zoom-in", "pan-right", "zoom-out", "pan-left", "pan-up"];
+const MultiImageSection: React.FC<{ images: string[] }> = ({ images }) => {
+  const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
+  const imgs = images.slice(0, MULTI_IMAGE_MAX);
+  const n = imgs.length;
+  const segLen = durationInFrames / n;
+  const fade = Math.min(Math.round(0.6 * FPS), Math.round(segLen * 0.4));
+  return (
+    <AbsoluteFill>
+      {imgs.map((src, i) => {
+        const start = i * segLen;
+        const end = (i + 1) * segLen;
+        // Crossfade in (except the first image, already on) and out (except the
+        // last, which holds to the cut).
+        const opacity = interpolate(
+          frame,
+          [start - fade, start, end - fade, end],
+          [i === 0 ? 1 : 0, 1, 1, i === n - 1 ? 1 : 0],
+          { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+        );
+        // Per-still Ken-Burns, varied across the section; progress is local to
+        // each still's window so every image pans fresh.
+        const local = Math.min(segLen, Math.max(0, frame - start));
+        const motion = motionStyle(KENBURNS_CYCLE[i % KENBURNS_CYCLE.length], local, segLen);
+        return (
+          <Img
+            key={i}
+            src={src}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              opacity,
+              ...motion,
+            }}
+          />
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+
 const BeatScene: React.FC<{
   beat: RenderBeat;
   brand: VideoProps["brand"];
@@ -199,6 +250,9 @@ const BeatScene: React.FC<{
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         </Loop>
+      ) : beat.images && beat.images.length >= 2 && beat.durationSec >= MULTI_IMAGE_MIN_SEC ? (
+        // Long still section: cross-dissolve through 2–3 stills (Tier 9 #4).
+        <MultiImageSection images={beat.images} />
       ) : beat.imageUrl ? (
         <Img
           src={beat.imageUrl}
@@ -281,7 +335,16 @@ const FallbackCard: React.FC<{
   );
 };
 
-/** Word-window captions: a sliding phrase with the spoken word highlighted. */
+/** Word-window captions: a sliding phrase with the spoken word highlighted.
+
+    Responsive (Tier 9 #6a): the phrase auto-fits the frame's safe width and
+    wraps to ≤2 lines instead of bleeding off-screen. The base font size is
+    scaled by the actual composition width (so a 1080-wide Short and a
+    4K long-form read the same), then shrunk further when the windowed phrase
+    is long enough that it would overflow two lines at the safe width. */
+const SAFE_WIDTH_FRAC = 0.86; // 7% horizontal margin each side (title-safe).
+const CAPTION_MAX_LINES = 2;
+const AVG_GLYPH_FRAC = 0.56; // mean glyph advance ≈ 0.56·fontSize for this weight.
 const Captions: React.FC<{
   words: RenderBeat["words"];
   brand: VideoProps["brand"];
@@ -289,6 +352,7 @@ const Captions: React.FC<{
   vertical?: boolean;
 }> = ({ words, brand, size, vertical }) => {
   const frame = useCurrentFrame();
+  const { width } = useVideoConfig();
   const t = frame / FPS;
   if (words.length === 0) return null;
   let active = -1;
@@ -299,30 +363,62 @@ const Captions: React.FC<{
   if (active < 0) return null;
   const winStart = Math.max(0, active - (active % 5));
   const window = words.slice(winStart, winStart + 5);
+
+  // Scale the base size by resolution (caller's 54/72 are tuned for
+  // 1920-wide long-form / 1080-wide vertical respectively).
+  const refWidth = vertical ? 1080 : 1920;
+  const scaled = size * (width / refWidth);
+
+  // Auto-fit: keep the phrase within CAPTION_MAX_LINES at the safe width by
+  // shrinking the font when the windowed glyph run is too long. Per-word
+  // padding/margin (~24px) is added to the run length so spans don't overflow.
+  const safeWidth = width * SAFE_WIDTH_FRAC;
+  const glyphs = window.reduce((s, w) => s + w.w.length, 0);
+  const perWordChrome = 24;
+  const fitSize =
+    glyphs > 0
+      ? (safeWidth * CAPTION_MAX_LINES - window.length * perWordChrome) /
+        (glyphs * AVG_GLYPH_FRAC)
+      : scaled;
+  const fontSize = Math.max(scaled * 0.55, Math.min(scaled, fitSize));
+
   return (
     <AbsoluteFill
       style={{
         justifyContent: vertical ? "center" : "flex-end",
         alignItems: "center",
         paddingBottom: vertical ? 0 : 70,
-        paddingLeft: 80,
-        paddingRight: 80,
+        paddingLeft: width * ((1 - SAFE_WIDTH_FRAC) / 2),
+        paddingRight: width * ((1 - SAFE_WIDTH_FRAC) / 2),
       }}
     >
-      <div style={{ textAlign: "center", lineHeight: 1.25 }}>
+      <div
+        style={{
+          maxWidth: safeWidth,
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+          lineHeight: 1.2,
+          maxHeight: fontSize * 1.2 * CAPTION_MAX_LINES,
+          overflow: "hidden",
+        }}
+      >
         {window.map((w, i) => {
           const isActive = winStart + i === active;
           return (
             <span
               key={winStart + i}
               style={{
-                fontSize: size,
+                fontSize,
                 fontWeight: 800,
                 color: isActive ? brand.secondary : "white",
                 backgroundColor: isActive ? brand.primary : "transparent",
                 borderRadius: 12,
                 padding: "2px 10px",
                 margin: "0 2px",
+                whiteSpace: "nowrap",
                 textShadow: isActive ? "none" : "0 2px 12px rgba(0,0,0,0.9)",
               }}
             >
@@ -335,46 +431,127 @@ const Captions: React.FC<{
   );
 };
 
-const IntroSting: React.FC<VideoProps> = ({ title, projectName, brand }) => {
+/** Tier 9 #2 — narrated intro title card. A hero shot (the chosen thumbnail
+    frame, slow Ken-Burns) under a darkening scrim, with a bold kinetic phrase
+    of the topic that springs in word-by-word, plus an optional short narrated
+    hook line. Degrades to the legacy branded gradient + title when no hero
+    asset/phrase is supplied. */
+const IntroSting: React.FC<VideoProps> = ({
+  title,
+  projectName,
+  brand,
+  heroImageUrl,
+  heroVideoUrl,
+  introPhrase,
+  introVoUrl,
+}) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
   const enter = spring({ frame, fps, config: { damping: 14 } });
   const fadeOut = interpolate(frame, [INTRO_SEC * FPS - 12, INTRO_SEC * FPS], [1, 0], {
     extrapolateLeft: "clamp",
   });
+  // Slow push-in on the hero frame across the card.
+  const zoom = interpolate(frame, [0, INTRO_SEC * FPS], [1.04, 1.14], {
+    extrapolateRight: "clamp",
+  });
+  const phrase = (introPhrase || title || "").trim();
+  const phraseWords = phrase.split(/\s+/).filter(Boolean);
+  const hasHero = Boolean(heroImageUrl || heroVideoUrl);
+  // Phrase size scales with frame width; clamps so long hooks still fit.
+  const baseSize = width >= 1900 ? 92 : width >= 1280 ? 76 : 64;
+  const phraseSize = Math.max(
+    baseSize * 0.5,
+    Math.min(baseSize, (width * 0.86 * 2) / Math.max(8, phrase.length * 0.56)),
+  );
   return (
-    <AbsoluteFill
-      style={{
-        background: `linear-gradient(135deg, ${brand.secondary} 30%, ${brand.primary} 160%)`,
-        justifyContent: "center",
-        alignItems: "center",
-        opacity: fadeOut,
-      }}
-    >
-      <div
-        style={{
-          transform: `translateY(${(1 - enter) * 60}px)`,
-          opacity: enter,
-          textAlign: "center",
-          padding: "0 120px",
-        }}
-      >
-        <div
+    <AbsoluteFill style={{ opacity: fadeOut }}>
+      {/* Hero shot (or branded gradient fallback). */}
+      {heroVideoUrl ? (
+        <AbsoluteFill style={{ transform: `scale(${zoom})` }}>
+          <OffthreadVideo
+            src={heroVideoUrl}
+            muted
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </AbsoluteFill>
+      ) : heroImageUrl ? (
+        <Img
+          src={heroImageUrl}
+          style={{ width: "100%", height: "100%", objectFit: "cover", transform: `scale(${zoom})` }}
+        />
+      ) : (
+        <AbsoluteFill
           style={{
-            color: brand.primary,
-            fontSize: 34,
-            fontWeight: 700,
-            letterSpacing: 6,
-            textTransform: "uppercase",
-            marginBottom: 24,
+            background: `linear-gradient(135deg, ${brand.secondary} 30%, ${brand.primary} 160%)`,
           }}
-        >
-          {projectName}
+        />
+      )}
+      {/* Cinematic scrim so the phrase stays legible over any frame. */}
+      <AbsoluteFill
+        style={{
+          background: hasHero
+            ? "linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.55) 100%)"
+            : "transparent",
+        }}
+      />
+      {introVoUrl && <Audio src={introVoUrl} />}
+      <AbsoluteFill
+        style={{ justifyContent: "center", alignItems: "center", padding: `0 ${width * 0.07}px` }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              color: brand.primary,
+              fontSize: Math.round(baseSize * 0.36),
+              fontWeight: 800,
+              letterSpacing: 6,
+              textTransform: "uppercase",
+              marginBottom: 22,
+              opacity: enter,
+              transform: `translateY(${(1 - enter) * 24}px)`,
+              textShadow: "0 2px 14px rgba(0,0,0,0.8)",
+            }}
+          >
+            {projectName}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "0 0.28em",
+              lineHeight: 1.06,
+            }}
+          >
+            {phraseWords.map((w, i) => {
+              // Stagger each word's spring so the phrase builds kinetically.
+              const wEnter = spring({
+                frame: frame - i * 3,
+                fps,
+                config: { damping: 13, stiffness: 120 },
+              });
+              return (
+                <span
+                  key={i}
+                  style={{
+                    color: "white",
+                    fontSize: phraseSize,
+                    fontWeight: 900,
+                    letterSpacing: -1,
+                    textTransform: "uppercase",
+                    opacity: wEnter,
+                    transform: `translateY(${(1 - wEnter) * 40}px) scale(${0.9 + wEnter * 0.1})`,
+                    textShadow: "0 4px 24px rgba(0,0,0,0.85)",
+                  }}
+                >
+                  {w}
+                </span>
+              );
+            })}
+          </div>
         </div>
-        <div style={{ color: "white", fontSize: 76, fontWeight: 800, lineHeight: 1.1 }}>
-          {title}
-        </div>
-      </div>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };

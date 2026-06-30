@@ -19,6 +19,32 @@ export function isStockLive(): boolean {
   return Boolean(process.env.PEXELS_API_KEY);
 }
 
+/** Free Pexels still photos for multi-image sections (Tier 9 #4). Returns up to
+    `count` large landscape photo URLs for the query, $0 under the Pexels
+    license. Empty array when no key / no match / request fails. */
+export async function searchStockPhotos(query: string, count = 2): Promise<string[]> {
+  if (!isStockLive() || count <= 0) return [];
+  try {
+    const res = await fetch(
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=${Math.min(
+        15,
+        Math.max(count, 6),
+      )}&orientation=landscape`,
+      { headers: { Authorization: process.env.PEXELS_API_KEY! } },
+    );
+    if (!res.ok) return [];
+    const data = (await res.json()) as {
+      photos?: { src?: { large2x?: string; large?: string; original?: string } }[];
+    };
+    return (data.photos ?? [])
+      .map((p) => p.src?.large2x || p.src?.large || p.src?.original)
+      .filter((u): u is string => Boolean(u))
+      .slice(0, count);
+  } catch {
+    return [];
+  }
+}
+
 export async function searchStockClip(query: string): Promise<StockClip | null> {
   if (!isStockLive()) return null;
   const res = await fetch(

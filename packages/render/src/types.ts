@@ -46,6 +46,11 @@ export type RenderBeat = {
   voUrl: string | null;
   /** Still image (FLUX) — gets a slow Ken Burns move. */
   imageUrl?: string;
+  /** Tier 9 #4 — extra stills for a multi-image section. When a still beat is
+      long enough (≥ MULTI_IMAGE_MIN_SEC) and this holds ≥2 entries, BeatScene
+      cross-dissolves through them with varied Ken-Burns instead of holding one
+      frame. imageUrl is always the first image; these are the additions. */
+  images?: string[];
   /** Stock or generated footage — looped/held to the beat. */
   videoUrl?: string;
   /** Source footage length, so loops cut cleanly. */
@@ -73,10 +78,19 @@ export type VideoProps = {
   captions?: boolean;
   /** Stick Studio: the recurring character identity for stick-figure videos. */
   stickCast?: StickCast;
+  /** Tier 9 #2 — narrated intro title card. Hero still/clip + a bold kinetic
+      phrase of the topic at video start. All optional: missing fields degrade
+      to the branded gradient + title (the legacy sting). */
+  heroImageUrl?: string;
+  heroVideoUrl?: string;
+  introPhrase?: string;
+  /** Short narrated hook line played over the intro card (≤ INTRO_SEC). */
+  introVoUrl?: string;
 };
 
 export const FPS = 30;
-export const INTRO_SEC = 2.5;
+/** Intro title card. ~3s — long enough for a short narrated hook line. */
+export const INTRO_SEC = 3;
 export const OUTRO_SEC = 4;
 /** CTA tail appended after the last beat of a full vertical short. */
 export const SHORT_TAIL_SEC = 1.5;
