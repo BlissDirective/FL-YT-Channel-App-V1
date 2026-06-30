@@ -101,6 +101,18 @@ export function tierJobForSection(
   }
 }
 
+/** Rough per-video clip-cost estimate (USD) by format + tier, for calendar
+    budget allocation BEFORE scripts exist. Planning only — actual spend is
+    enforced at generation time by the per-video / portfolio caps. */
+export const TIER_PLAN_COST: Record<"short" | "long", Record<AutoTier, number>> = {
+  short: { base: 0, economy: 0.3, premium: 1.2, platinum: 2.5, custom: 1.5 },
+  long: { base: 0, economy: 1.0, premium: 3.5, platinum: 7.0, custom: 4.0 },
+};
+
+export function planCostFor(format: "short" | "long", tier: AutoTier): number {
+  return TIER_PLAN_COST[format]?.[tier] ?? 0;
+}
+
 export const AUTO_TIERS: { id: AutoTier; label: string; blurb: string }[] = [
   { id: "base", label: "Base", blurb: "Free equivalent — stills + Pexels stock + Ken Burns, no AI video" },
   { id: "economy", label: "Economy", blurb: "A few Seedance Fast accents (≤3); rest stays stills/stock" },

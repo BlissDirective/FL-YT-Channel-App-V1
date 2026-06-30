@@ -13,7 +13,7 @@ import {
   getYppSnapshot,
 } from "@/lib/adapters/youtube-analytics";
 import { desiredMixShortsPct, effectiveDailyCap } from "@/lib/pipeline/monetization";
-import type { AutoTier } from "@/lib/adapters/auto-tiers";
+import { planCostFor, type AutoTier } from "@/lib/adapters/auto-tiers";
 import type { FrameCritique } from "@/lib/stick-types";
 import type {
   CalendarSlot,
@@ -61,6 +61,7 @@ const DEFAULTS: Required<OperatorConfig> = {
   lastAnalyticsAt: "",
   strategy: {},
   calendar: [],
+  autonomy: "copilot",
 };
 
 export function operatorConfig(run: Pick<OperatorRun, "config">): Required<OperatorConfig> {
@@ -335,7 +336,7 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
       }
     }
 
-    const res = await seedVideo(db, run, project, kind, cfg, slot ?? undefined);
+    const res = await seedVideo(db, run, project, kind, cfg, slot ?? undefined, remaining);
     if (res.acted || !res.retry) return res;
     lastReason = res.reason; // idea-below-floor → try the next slot
   }
@@ -376,6 +377,7 @@ async function ensureCalendar(db: Db, run: OperatorRun, project: Project): Promi
       mixShortsPct: cfg.mixShortsPct,
       shortsCapUsd: cfg.shortsCapUsd,
       longCapUsd: cfg.longCapUsd,
+      cycleBudgetUsd: Number(run.cycle_budget_usd ?? 60),
     });
     await persistCalendar(db, run, plan.slots);
     if (plan.costUsd > 0) {
@@ -414,14 +416,26 @@ async function seedVideo(
   kind: "short" | "long",
   cfg: Required<OperatorConfig>,
   slot?: CalendarSlot,
+  remainingUsd: number = Number.POSITIVE_INFINITY,
 ): Promise<OperatorTick> {
   const isShort = kind === "short";
+  const fmt: "short" | "long" = isShort ? "short" : "long";
+  // Tier 8B: use the calendar slot's allocated tier (the 75/25 mix), falling
+  // back to the per-format default. Then downgrade at seed time if the slot's
+  // estimate no longer fits the remaining cycle budget (protects day-30 output).
+  let tier = ((slot?.tier as AutoTier | undefined) ?? (isShort ? cfg.shortsTier : cfg.longTier)) as AutoTier;
+  const STEP: AutoTier[] = ["platinum", "premium", "economy", "base"];
+  if (STEP.includes(tier)) {
+    while (STEP.indexOf(tier) < STEP.length - 1 && planCostFor(fmt, tier) > remainingUsd) {
+      tier = STEP[STEP.indexOf(tier) + 1];
+    }
+  }
   const buildCfg: BuildRunConfig = {
     count: 1,
     kind,
     lengthMinSec: isShort ? cfg.shortLenMin : cfg.longLenMin,
     lengthMaxSec: isShort ? cfg.shortLenMax : cfg.longLenMax,
-    tier: (isShort ? cfg.shortsTier : cfg.longTier) as AutoTier,
+    tier,
     thumbStyle: project.brand_kit?.thumbnailStyle ?? cfg.thumbStyle,
     ideaSource: "research", // default; overridden below when the planner succeeds
     scheduleMode: "all_at_once",
@@ -697,9 +711,10 @@ export async function loadOperatorVideo(
  *  • manually APPROVED in-app (no decision recorded) → finalize for release.
  */
 async function processOperatorApprovals(db: Db, run: OperatorRun, project: Project): Promise<void> {
-  if (!isTelegramLive()) return;
   const cfg = operatorConfig(run);
   const qg = await getQualityGateConfig(db);
+  const mode: "copilot" | "autopilot" = cfg.autonomy ?? "copilot";
+  const telegram = isTelegramLive();
 
   // 1) Settle + notify + auto-approve videos still at FINAL_REVIEW.
   const { data: holding } = await db
@@ -718,87 +733,93 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
       (project.autofix_loop ?? "off") !== "off";
     const afStatus = (video.autofix_state as { status?: string } | null)?.status;
     if (loopOn && afStatus !== "done" && afStatus !== "held") continue;
-    if (!rev.notifiedAt) {
-      const qc = await finalQc(db, video, project);
+    const qc = await finalQc(db, video, project);
+    // Pre-publish editorial review (metadata-only when the full check already
+    // ran at the script stage; full otherwise).
+    const { data: script } = await db
+      .from("scripts")
+      .select("body, metadata")
+      .eq("video_id", video.id)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const tags = ((script?.metadata ?? {}) as { tags?: string[] }).tags ?? [];
+    const guard = await editorialGuard({
+      title: video.title,
+      scriptBody: (script?.body as string) ?? "",
+      tags,
+      niche: project.niche,
+      mode: qg.enabled ? "metadata" : "full",
+    });
+    if (guard.costUsd > 0) await recordCost(db, video, guard.costUsd, "Operator editorial guard");
+    const flags = [...guard.legalFlags, ...guard.factIssues, ...guard.metadataIssues];
 
-      // Guardrail — pre-publish editorial review of the finished script + metadata.
-      const { data: script } = await db
-        .from("scripts")
-        .select("body, metadata")
-        .eq("video_id", video.id)
-        .order("version", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const tags = ((script?.metadata ?? {}) as { tags?: string[] }).tags ?? [];
-      // When quality gates are on, the FULL editorial check already ran at the
-      // script stage (pre-assets) — here we only re-verify title/tags. When off,
-      // run the full pre-publish check as before (this is the only editorial gate).
-      const guard = await editorialGuard({
-        title: video.title,
-        scriptBody: (script?.body as string) ?? "",
-        tags,
-        niche: project.niche,
-        mode: qg.enabled ? "metadata" : "full",
-      });
-      if (guard.costUsd > 0) await recordCost(db, video, guard.costUsd, "Operator editorial guard");
-      const flags = [...guard.legalFlags, ...guard.factIssues, ...guard.metadataIssues];
-
-      // Quality floor or a hard editorial fail → hold for manual review (no
-      // one-tap approval; never auto-approved).
-      if (qc < cfg.publishFloorQc || guard.verdict === "fail") {
-        const reason =
-          guard.verdict === "fail"
-            ? `editorial review: ${guard.note || flags[0] || "flagged"}`
-            : `QC ${qc.toFixed(1)} below the ${cfg.publishFloorQc.toFixed(1)} floor`;
-        await db
-          .from("videos")
-          .update({
-            paused_reason: `Auto Pilot held — ${reason}. Manual review.`,
-            operator_review: { ...rev, notifiedAt: new Date().toISOString(), qc, hold: true, holdReason: reason },
-          })
-          .eq("id", video.id);
+    // Hard gate: below the publish floor or an editorial FAIL → hold for the one
+    // human touch (never auto-published, in either mode).
+    if (qc < cfg.publishFloorQc || guard.verdict === "fail") {
+      const reason =
+        guard.verdict === "fail"
+          ? `editorial review: ${guard.note || flags[0] || "flagged"}`
+          : `QC ${qc.toFixed(1)} below the ${cfg.publishFloorQc.toFixed(1)} floor`;
+      await db
+        .from("videos")
+        .update({
+          paused_reason: `Auto Pilot held — ${reason}. Manual review.`,
+          operator_review: { ...rev, notifiedAt: rev.notifiedAt ?? new Date().toISOString(), qc, hold: true, holdReason: reason },
+        })
+        .eq("id", video.id);
+      if (telegram && !rev.notifiedAt) {
         try {
           await sendReviewNeeded({ projectId: project.id, videoId: video.id, title: video.title, reason, flags });
         } catch (err) {
           console.error("telegram review-needed failed:", err);
         }
-        await logEvent(db, project.id, run.id, "hold", `Held: ${video.title} — ${reason}`, { flags });
-        continue;
       }
+      await logEvent(db, project.id, run.id, "hold", `Held: ${video.title} — ${reason}`, { flags });
+      continue;
+    }
 
-      // Pass or caution → offer approval. Caution still surfaces flags and
-      // requires a manual tap (no auto-approve).
-      const noAuto = guard.verdict === "caution";
+    const caution = guard.verdict === "caution";
+    // Approve vs hold by autonomy mode (no aging; Telegram is optional notify):
+    //  • autopilot → gates passed, so approve + auto-publish now (caution still
+    //    ships, flags logged).
+    //  • copilot   → approve only high-QC, no-caution; else hold for a manual tap.
+    const approve = mode === "autopilot" ? true : !caution && qc >= cfg.autoApproveQc;
+    if (approve) {
+      video.operator_review = { ...rev, qc } as OperatorReview; // QC drives publish privacy
+      await approveOperatorVideo(db, video, "auto");
+      if (caution) {
+        await logEvent(db, project.id, run.id, "auto_approve", `Auto-published with caution flags: ${video.title}`, { flags });
+      }
+      continue;
+    }
+
+    // copilot hold-for-review: surface once (notify if Telegram is live), then
+    // wait for a manual tap (handled by the in-app safety net below).
+    if (!rev.notifiedAt) {
       await db
         .from("videos")
         .update({
-          operator_review: { ...rev, notifiedAt: new Date().toISOString(), qc, caution: noAuto ? flags : undefined, noAuto },
+          operator_review: { ...rev, notifiedAt: new Date().toISOString(), qc, caution: caution ? flags : undefined, noAuto: caution },
         })
         .eq("id", video.id);
-      try {
-        await sendApprovalCard({
-          projectId: project.id,
-          videoId: video.id,
-          title: video.title,
-          kind: video.kind,
-          qc,
-          slot: video.scheduled_publish_at,
-          spentUsd: Number(video.total_cost_usd),
-          caution: noAuto ? flags : undefined,
-        });
-      } catch (err) {
-        console.error("telegram approval card failed:", err);
+      if (telegram) {
+        try {
+          await sendApprovalCard({
+            projectId: project.id,
+            videoId: video.id,
+            title: video.title,
+            kind: video.kind,
+            qc,
+            slot: video.scheduled_publish_at,
+            spentUsd: Number(video.total_cost_usd),
+            caution: caution ? flags : undefined,
+          });
+        } catch (err) {
+          console.error("telegram approval card failed:", err);
+        }
       }
-      await logEvent(db, project.id, run.id, "notify", `Awaiting approval: ${video.title} (QC ${qc.toFixed(1)})`, { noAuto });
-    } else {
-      const ageMs = Date.now() - new Date(rev.notifiedAt).getTime();
-      if (
-        !rev.noAuto &&
-        ageMs >= cfg.autoApproveHours * 3_600_000 &&
-        Number(rev.qc ?? 0) >= cfg.autoApproveQc
-      ) {
-        await approveOperatorVideo(db, video, "auto");
-      }
+      await logEvent(db, project.id, run.id, "notify", `Awaiting approval: ${video.title} (QC ${qc.toFixed(1)})`, { noAuto: caution });
     }
   }
 

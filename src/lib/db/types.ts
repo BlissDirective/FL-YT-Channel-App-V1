@@ -300,6 +300,10 @@ export type OperatorConfig = {
   strategy?: OperatorStrategy;
   /** 30-day living content calendar (planned upfront, adapts to performance). */
   calendar?: CalendarSlot[];
+  /** Autonomy level (Tier 8A). 'copilot' auto-approves only high-QC videos and
+      holds the rest for review; 'autopilot' auto-approves + auto-publishes the
+      moment the quality gates pass (no aging, no Telegram requirement). */
+  autonomy?: "copilot" | "autopilot";
 };
 
 /** One planned slot in the 30-day content calendar. */
@@ -312,6 +316,12 @@ export type CalendarSlot = {
   angle: string;
   /** Reserved budget for this slot (per-format) so long-form isn't starved late. */
   reservedUsd: number;
+  /** Production tier assigned by the budget allocator (Tier 8B). */
+  tier?: string;
+  /** Estimated clip-cost (USD) for the assigned tier — used for $60 planning. */
+  estUsd?: number;
+  /** Tentpole priority 0..1 (LLM-proposed) — drives tier upgrades. */
+  priority?: number;
   status: "planned" | "seeded" | "done" | "skipped";
   /** The video produced from this slot, once seeded. */
   videoId?: string;

@@ -1,5 +1,6 @@
 import "server-only";
 import type { CalendarSlot, Project } from "@/lib/db/types";
+import { planCostFor, type AutoTier } from "@/lib/adapters/auto-tiers";
 
 /**
  * 30-day content-calendar planner (operator concept #4). At the start of each
@@ -42,8 +43,13 @@ const TOOL = {
             subtopic: { type: "string", description: "Which taxonomy bucket this fills." },
             title: { type: "string", description: "Specific, non-clickbait YouTube title (≤70 chars)." },
             angle: { type: "string", description: "The unique angle/hook in one sentence." },
+            priority: {
+              type: "number",
+              description:
+                "0–1 tentpole potential: how much this idea deserves premium production (broad appeal, evergreen value, monetization, shareability). The top ~25% get the higher tiers; reserve high scores for genuine standouts.",
+            },
           },
-          required: ["day", "subtopic", "title", "angle"],
+          required: ["day", "subtopic", "title", "angle", "priority"],
         },
       },
     },
@@ -53,6 +59,40 @@ const TOOL = {
 
 export type CalendarPlan = { slots: CalendarSlot[]; costUsd: number; provider: "anthropic" | "heuristic" };
 
+/** Assign a production tier per slot (Tier 8B): a cheap baseline for all, then
+    upgrade the top ~25% by priority to premium/platinum until the budget
+    estimate is consumed. Guarantees the planned estimate stays ≤ budgetUsd —
+    the LLM proposes priority, this code enforces the $60 cap. */
+function allocateTiers(slots: CalendarSlot[], budgetUsd: number): void {
+  const fmt = (s: CalendarSlot): "short" | "long" => (s.format === "long" ? "long" : "short");
+  for (const s of slots) {
+    s.tier = s.format === "long" ? "economy" : "base";
+    s.estUsd = planCostFor(fmt(s), s.tier as AutoTier);
+  }
+  let spent = slots.reduce((sum, s) => sum + (s.estUsd ?? 0), 0);
+  const highCount = Math.round(slots.length * 0.25);
+  const platCount = Math.ceil(highCount / 3);
+  const ranked = [...slots].sort(
+    (a, b) => (b.priority ?? 0) - (a.priority ?? 0) || (a.format === "long" ? -1 : 1),
+  );
+  const tryUpgrade = (s: CalendarSlot, tier: AutoTier): boolean => {
+    const est = planCostFor(fmt(s), tier);
+    const delta = est - (s.estUsd ?? 0);
+    if (delta <= 0 || spent + delta > budgetUsd) return false;
+    s.tier = tier;
+    s.estUsd = est;
+    s.reservedUsd = est;
+    spent += delta;
+    return true;
+  };
+  let upgraded = 0;
+  for (const s of ranked) {
+    if (upgraded >= highCount) break;
+    const target: AutoTier = upgraded < platCount ? "platinum" : "premium";
+    if (tryUpgrade(s, target) || (target === "platinum" && tryUpgrade(s, "premium"))) upgraded++;
+  }
+}
+
 export async function planMonthlyCalendar(opts: {
   project: Project;
   taxonomy: string[];
@@ -60,6 +100,8 @@ export async function planMonthlyCalendar(opts: {
   mixShortsPct: number;
   shortsCapUsd: number;
   longCapUsd: number;
+  /** The operator's 30-day cycle budget — the allocator keeps the tier mix ≤ this. */
+  cycleBudgetUsd: number;
 }): Promise<CalendarPlan> {
   const days = Math.max(1, Math.min(60, Math.round(opts.days)));
   const formats: ("long" | "short")[] = Array.from({ length: days }, (_, i) =>
@@ -68,14 +110,17 @@ export async function planMonthlyCalendar(opts: {
   const reserve = (f: "long" | "short") => (f === "long" ? opts.longCapUsd : opts.shortsCapUsd);
 
   const finalize = (
-    raw: { day: number; subtopic: string; title: string; angle: string }[] | null,
+    raw: { day: number; subtopic: string; title: string; angle: string; priority?: number }[] | null,
   ): CalendarSlot[] => {
-    const byDay = new Map<number, { subtopic: string; title: string; angle: string }>();
+    const byDay = new Map<number, { subtopic: string; title: string; angle: string; priority?: number }>();
     for (const r of raw ?? []) if (typeof r?.day === "number") byDay.set(r.day, r);
-    return formats.map((format, i) => {
+    const slots = formats.map((format, i) => {
       const day = i + 1;
       const r = byDay.get(day);
       const tax = opts.taxonomy[i % opts.taxonomy.length] || "general";
+      // Heuristic priority when the model didn't supply one: long-form skews higher.
+      const priority =
+        typeof r?.priority === "number" ? Math.max(0, Math.min(1, r.priority)) : format === "long" ? 0.6 : 0.4;
       return {
         day,
         format,
@@ -83,9 +128,13 @@ export async function planMonthlyCalendar(opts: {
         title: r?.title?.trim() || "",
         angle: r?.angle?.trim() || "",
         reservedUsd: reserve(format),
+        priority,
         status: "planned",
       } as CalendarSlot;
     });
+    // Tier 8B: assign a 75/25 base-economy vs higher-tier mix within the cycle budget.
+    allocateTiers(slots, opts.cycleBudgetUsd);
+    return slots;
   };
 
   if (!isLive()) return { slots: finalize(null), costUsd: 0, provider: "heuristic" };
@@ -96,7 +145,7 @@ export async function planMonthlyCalendar(opts: {
     `(niche: ${opts.project.niche}; angle: ${opts.project.angle}). ` +
     `Produce ${days} DISTINCT, non-overlapping video ideas — no two should be near-duplicates — spread EVENLY across these taxonomy buckets so the month has broad coverage:\n- ${opts.taxonomy.join("\n- ")}\n\n` +
     `Each day's FORMAT is fixed (Shorts are snappy single-ideas; long-form goes deeper):\n${schedule}\n\n` +
-    `For each day return: day, subtopic (the bucket), a specific non-clickbait title, and a one-line angle. Be accurate and on-niche. Call deliver_calendar with exactly ${days} slots.`;
+    `For each day return: day, subtopic (the bucket), a specific non-clickbait title, a one-line angle, and a priority 0–1 (tentpole potential — reserve high scores for genuine standouts; ~25% of the slate will get premium production). Be accurate and on-niche. Call deliver_calendar with exactly ${days} slots.`;
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -121,7 +170,7 @@ export async function planMonthlyCalendar(opts: {
       usage: { input_tokens: number; output_tokens: number };
     };
     const raw =
-      (data.content.find((c) => c.type === "tool_use")?.input as { slots?: { day: number; subtopic: string; title: string; angle: string }[] } | undefined)?.slots ?? null;
+      (data.content.find((c) => c.type === "tool_use")?.input as { slots?: { day: number; subtopic: string; title: string; angle: string; priority?: number }[] } | undefined)?.slots ?? null;
     const PRICE: Record<string, { in: number; out: number }> = {
       "claude-opus-4-8": { in: 15, out: 75 },
       "claude-sonnet-4-6": { in: 3, out: 15 },
