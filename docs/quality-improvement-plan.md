@@ -289,6 +289,38 @@ worker that renders mp4s to storage. Owns the premium **education** niche.
 **Suggested order:** 7.1 (small, high visible-quality win) → 7.2 (unlocks the
 top-RPM data lane) → 7.3 (IP moat) → 7.4/7.5 if those niches are pursued.
 
+## Tier 8 — Full autonomy + per-idea tier allocation
+
+Make the operator genuinely hands-off and let the 30-day plan assign a *mix* of
+production tiers per idea under the $60/cycle cap. The Tier 1–7 quality gates are
+the approval authority that replaces the human.
+
+### 8A — Autonomy modes (operator `autonomy`: `copilot` | `autopilot`)
+Today every gate defaults to `assist` (holds for a human), and operator videos
+at `FINAL_REVIEW` need Telegram + a 15h age + QC ≥ 8.5 + a tap.
+- **co-pilot:** auto-approve at FINAL when `finalQc ≥ autoApproveQc`; else hold
+  for manual review (notify via Telegram/push if available). No aging.
+- **full auto-pilot:** auto-approve + **auto-publish to YouTube** the moment the
+  gates pass (`finalQc ≥ publishFloorQc` and editorial guard ≠ fail), privacy by
+  QC (≥pub → public, floor..pub → unlisted, <floor → the one human touch). **No
+  15h delay, no Telegram requirement** — Telegram/push becomes optional notify.
+- Approvals no longer require `isTelegramLive()`; the existing scheduler handles
+  the YouTube upload once a video is APPROVED + `auto_publish`.
+
+### 8B — Per-idea tier allocation (75% base/economy · 25% higher), ≤ $60
+- Add `tier` + `estUsd` (+ `priority`) to `CalendarSlot`.
+- The calendar LLM returns a **priority** (tentpole potential) per idea; a
+  **deterministic allocator** then assigns tiers: a cheap baseline for all
+  (short→base, long→economy), then **upgrades the top ~25% by priority** to
+  premium/platinum **until the $60 estimate is consumed** — guaranteeing the plan
+  is ≤ $60 (LLM proposes, code enforces). Target split ≈ 75% base/economy, 25%
+  higher.
+- `seedVideo` uses `slot.tier` instead of the fixed per-format tier, and
+  **downgrades a slot's tier at seed time** if remaining cycle budget < its
+  estimate, so day-30 still ships.
+- Hard caps remain backstops: per-video budget, `max_video_usd`, the $100/mo
+  portfolio video cap, and the actual-ledger `cycleSpentUsd ≥ 60` stop.
+
 ## The mental model shift
 
 The current spend curve is **generate-heavy, gate-late**. The cheapest dollar is
