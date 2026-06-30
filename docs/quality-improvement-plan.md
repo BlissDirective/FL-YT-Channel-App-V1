@@ -248,6 +248,47 @@ assets (never the final captioned render), which the Tier 1 prompt pre-check
 already keeps text-free. NB: the bold kinetic phrase (wanted) is distinct from
 narration captions (never on the thumbnail).
 
+## Tier 7 — Programmatic animation engine expansion
+
+Programmatic animation is near-zero marginal cost (render compute vs $0.003–$8/
+clip for FLUX/Veo), produces a *unique, non-"AI-slop"* look that dodges the 2025
+inauthentic-content crackdown, and maps onto the high-RPM education/finance
+niches. We already own the hard parts: a Remotion render farm, the Stick
+"composition-type" pattern (`packages/render/src/stick`), an LLM choreographer,
+and TTS word timings. Two integration shapes: **new Remotion composition types**
+(siblings of `StickStage`, selected by a project's `visual_style`) or **separate
+workers** (like `clip-queue`) that store mp4s.
+
+### 7.1 Stick quality upgrade  ⟵ build first (contained: stick/ only)
+Today motion is pose-to-pose with basic transforms — no springs, IK, or motion
+blur. Add: `spring()` + eased `interpolate()` transitions; inverse kinematics for
+limbs (solve elbow/knee from hand/foot targets); squash/stretch + secondary
+motion (follow-through, overshoot, anticipation); motion blur on fast moves;
+parallax depth on backgrounds; blink/lip-flap synced to VO word timings. Lifts
+"clean vector" → "expressive 2D motion-graphics" with no per-video extra cost.
+
+### 7.2 D3 data-viz composition type  (`visual_style: "dataviz"`)
+Chart-races, animated rankings, and maps (D3 / D3-geo in a Remotion composition).
+Data-driven (CSV/JSON → video), endlessly remixable, and lands the **highest-RPM
+finance/business lane ($25–65 CPM)** at ~$0 marginal cost.
+
+### 7.3 Rive mascot composition type  (`visual_style: "mascot"`)
+One original character rig (Rive state machine + mesh deform/IK), lip-synced to
+the existing TTS and parameterized (pose/expression) per script. This is the
+**edutainment IP moat**: a recurring, trademark-safe, ownable character animated
+fully programmatically — never hand-animated.
+
+### 7.4 Lottie b-roll library  (optional)
+`@remotion/lottie` + a curated, recolorable Lottie set for explainer/edutainment
+b-roll — cheap reusable motion-graphics inserts.
+
+### 7.5 Manim explainer worker  (optional, separate Python worker)
+Premium math/CS/science animation (3Blue1Brown engine) as a `clip-queue`-style
+worker that renders mp4s to storage. Owns the premium **education** niche.
+
+**Suggested order:** 7.1 (small, high visible-quality win) → 7.2 (unlocks the
+top-RPM data lane) → 7.3 (IP moat) → 7.4/7.5 if those niches are pursued.
+
 ## The mental model shift
 
 The current spend curve is **generate-heavy, gate-late**. The cheapest dollar is
