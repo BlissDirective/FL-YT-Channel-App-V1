@@ -3,8 +3,8 @@
 // mood tint + ground shadows + per-scene entrance. BeatScene renders this.
 
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
-import { ACTIONS } from "./poses";
+import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { ACTIONS, type Pose } from "./poses";
 import { StickFigure, standingFootOffset } from "./StickFigure";
 import { Background } from "./backgrounds";
 import { Bubble, ImpactBurst, SpeedLines } from "./bubbles";
@@ -41,17 +41,23 @@ export const StickStage: React.FC<{ scene: StickScene; cast?: StickCast }> = ({
   const t = frame / fps;
   const p = durationInFrames > 1 ? frame / durationInFrames : 0; // 0..1 over the beat
   const ground = height * 0.82;
-  const enter = Math.min(1, frame / ENTER_FRAMES); // cut-in transition
+  // Springy cut-in (slight overshoot) instead of a linear ramp.
+  const enter = spring({ frame, fps, config: { damping: 16, stiffness: 140, mass: 0.6 }, durationInFrames: ENTER_FRAMES + 6 });
 
   // Camera: shot sets the base zoom; a move (or a gentle idle drift) eases it.
+  // Camera moves ease in/out (smoothstep) so they accelerate and settle.
+  const pe = (() => {
+    const x = Math.min(1, Math.max(0, p));
+    return x * x * (3 - 2 * x);
+  })();
   const baseZoom = SHOT_ZOOM[scene.shot ?? "wide"];
   const move = scene.camera?.move ?? "none";
   let zoom = (scene.camera?.zoom ?? 1) * baseZoom;
   let panX = scene.camera?.panX ?? 0;
-  if (move === "push") zoom *= 1 + 0.14 * p;
-  else if (move === "pull") zoom *= 1.14 - 0.14 * p;
-  else if (move === "panRight") panX += (p - 0.5) * width * 0.5;
-  else if (move === "panLeft") panX -= (p - 0.5) * width * 0.5;
+  if (move === "push") zoom *= 1 + 0.14 * pe;
+  else if (move === "pull") zoom *= 1.14 - 0.14 * pe;
+  else if (move === "panRight") panX += (pe - 0.5) * width * 0.5;
+  else if (move === "panLeft") panX -= (pe - 0.5) * width * 0.5;
   else zoom *= 1 + 0.05 * p; // idle drift — a slow push keeps a static scene alive
 
   const shake = scene.fx?.includes("shake") ? Math.sin(frame * 1.7) * 7 : 0;
@@ -96,6 +102,8 @@ export const StickStage: React.FC<{ scene: StickScene; cast?: StickCast }> = ({
               ground={ground}
               facing={facingFor(i)}
               enter={enter}
+              fps={fps}
+              idx={i}
             />
           ))}
           <ImpactBurst x={focalX} y={ground - 130} pulse={impactPulse} />
@@ -109,6 +117,8 @@ export const StickStage: React.FC<{ scene: StickScene; cast?: StickCast }> = ({
   );
 };
 
+const SPEED_KEYS: (keyof Pose)[] = ["lSh", "lEl", "rSh", "rEl", "lHip", "lKn", "rHip", "rKn", "lean", "rot"];
+
 const Actor: React.FC<{
   actor: StickActor;
   cast: StickCast;
@@ -117,18 +127,28 @@ const Actor: React.FC<{
   ground: number;
   facing: "l" | "r";
   enter: number;
-}> = ({ actor, cast, t, x, ground, facing, enter }) => {
+  fps: number;
+  idx: number;
+}> = ({ actor, cast, t, x, ground, facing, enter, fps, idx }) => {
   const c: StickCast = { ...cast, ...(actor.cast ?? {}) };
   const pose = ACTIONS[actor.action](t);
+  // Secondary motion: sample the pose one frame back to derive limb velocity →
+  // motion blur on fast frames, and vertical velocity → squash/stretch.
+  const prev = ACTIONS[actor.action](Math.max(0, t - 1 / fps));
+  let speed = 0;
+  for (const k of SPEED_KEYS) speed += Math.abs(Number(pose[k]) - Number(prev[k]));
+  const blur = Math.min(7, Math.max(0, (speed - 30) * 0.05));
+  const bobVel = pose.bob - prev.bob;
+  const stretchY = Math.max(0.93, Math.min(1.07, 1 - bobVel * 0.004));
   const hipY = ground - standingFootOffset(c);
   const bubbleY = hipY - 150 * c.scale;
   const dy = (1 - enter) * 24; // slide up into place
 
   return (
-    <g opacity={enter} transform={`translate(0, ${dy})`}>
+    <g opacity={Math.min(1, enter)} transform={`translate(0, ${dy})`}>
       {/* ground shadow — grounds the figure and adds depth */}
       <ellipse cx={x} cy={ground} rx={38 * c.scale} ry={8 * c.scale} fill="#000000" opacity={0.12} />
-      <StickFigure pose={pose} cast={c} facing={facing} x={x} hipY={hipY} />
+      <StickFigure pose={pose} cast={c} facing={facing} x={x} hipY={hipY} blur={blur} stretchY={stretchY} fid={`mb-${idx}`} />
       {actor.prop && actor.prop !== "none" && (
         <Prop kind={actor.prop} x={x} hipY={hipY} ground={ground} facing={facing} color={c.color} />
       )}

@@ -35,6 +35,37 @@ function seg(x: number, y: number, angDeg: number, len: number): [number, number
   return [x + len * Math.sin(r), y + len * Math.cos(r)];
 }
 
+/**
+ * Two-bone inverse kinematics. Returns the ABSOLUTE segment angles (deg, from
+ * straight-down — same convention as `seg`) so a limb rooted at (rx,ry) with
+ * bone lengths l1,l2 places its tip at target (tx,ty). The target is clamped to
+ * the reachable annulus so the limb never "pops"; `bend` (±1) picks the
+ * elbow/knee side. Exported for poses/choreography that target a point.
+ */
+export function solveIK2(
+  rx: number,
+  ry: number,
+  tx: number,
+  ty: number,
+  l1: number,
+  l2: number,
+  bend: 1 | -1 = 1,
+): { a1: number; a2: number } {
+  const dx = tx - rx;
+  const dy = ty - ry;
+  const dist = Math.hypot(dx, dy) || 1e-6;
+  const d = Math.max(Math.abs(l1 - l2) + 1e-3, Math.min(l1 + l2 - 1e-3, dist));
+  const baseDeg = (Math.atan2(dx, dy) * 180) / Math.PI; // line root→target, from down
+  const cosA = Math.max(-1, Math.min(1, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d)));
+  const A = (Math.acos(cosA) * 180) / Math.PI;
+  const a1 = baseDeg + bend * A;
+  const r1 = (a1 * Math.PI) / 180;
+  const ex = rx + l1 * Math.sin(r1);
+  const ey = ry + l1 * Math.cos(r1);
+  const a2 = (Math.atan2(tx - ex, ty - ey) * 180) / Math.PI; // forearm points to target
+  return { a1, a2 };
+}
+
 export const StickFigure: React.FC<{
   pose: Pose;
   cast: StickCast;
@@ -42,7 +73,13 @@ export const StickFigure: React.FC<{
   /** Stage coordinates of the hip. */
   x: number;
   hipY: number;
-}> = ({ pose, cast, facing, x, hipY }) => {
+  /** Motion-blur radius (px) for fast frames; 0 = none. */
+  blur?: number;
+  /** Vertical scale for squash (<1) / stretch (>1) secondary motion. */
+  stretchY?: number;
+  /** Unique SVG filter id (needed when blur > 0). */
+  fid?: string;
+}> = ({ pose, cast, facing, x, hipY, blur = 0, stretchY = 1, fid }) => {
   const { lean, bob, rot, lSh, lEl, rSh, rEl, lHip, lKn, rHip, rKn } = pose;
   const [mt, ma, ml, mh] = BUILD[cast.build] ?? BUILD.normal;
   const L = {
@@ -61,8 +98,16 @@ export const StickFigure: React.FC<{
 
   const [lex, ley] = seg(nx, ny, lSh, L.uArm);
   const [lhx, lhy] = seg(lex, ley, lEl, L.fArm);
-  const [rex, rey] = seg(nx, ny, rSh, L.uArm);
-  const [rhx, rhy] = seg(rex, rey, rEl, L.fArm);
+  // Right arm: IK-solve to a reach target when the pose provides one, else FK.
+  let rShA = rSh;
+  let rElA = rEl;
+  if (pose.reach) {
+    const ik = solveIK2(nx, ny, pose.reach.x, pose.reach.y, L.uArm, L.fArm, 1);
+    rShA = ik.a1;
+    rElA = ik.a2;
+  }
+  const [rex, rey] = seg(nx, ny, rShA, L.uArm);
+  const [rhx, rhy] = seg(rex, rey, rElA, L.fArm);
 
   const [lkx, lky] = seg(0, 0, lHip, L.thigh);
   const [lfx, lfy] = seg(lkx, lky, lKn, L.shin);
@@ -85,10 +130,20 @@ export const StickFigure: React.FC<{
   );
 
   const sx = (facing === "l" ? -1 : 1) * cast.scale;
+  const blurOn = blur > 0.05 && Boolean(fid);
 
   return (
-    <g transform={`translate(${x}, ${hipY + bob}) rotate(${rot}) scale(${sx}, ${cast.scale})`}>
-      <Accessory accessory={cast.accessory} hcx={hcx} hcy={hcy} nx={nx} ny={ny} headR={headR} stroke={stroke} sw={sw} />
+    <>
+      {blurOn && (
+        <filter id={fid} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation={blur} />
+        </filter>
+      )}
+      <g
+        filter={blurOn ? `url(#${fid})` : undefined}
+        transform={`translate(${x}, ${hipY + bob}) rotate(${rot}) scale(${sx}, ${cast.scale * stretchY})`}
+      >
+        <Accessory accessory={cast.accessory} hcx={hcx} hcy={hcy} nx={nx} ny={ny} headR={headR} stroke={stroke} sw={sw} />
       {bone(0, 0, nx, ny, "torso")}
       {bone(nx, ny, lex, ley, "lu")}
       {bone(lex, ley, lhx, lhy, "lf")}
@@ -99,7 +154,8 @@ export const StickFigure: React.FC<{
       {bone(0, 0, rkx, rky, "rt")}
       {bone(rkx, rky, rfx, rfy, "rs")}
       <circle cx={hcx} cy={hcy} r={headR} fill="none" stroke={stroke} strokeWidth={sw} />
-    </g>
+      </g>
+    </>
   );
 };
 

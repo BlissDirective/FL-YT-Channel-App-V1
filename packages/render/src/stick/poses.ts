@@ -27,6 +27,10 @@ export type Pose = {
   rKn: number;
   /** Head tilt (deg). */
   head: number;
+  /** Optional IK target for the RIGHT hand, in local hip-space units
+      (+x forward toward facing, +y down). When set, the renderer solves the
+      right arm (two-bone IK) to reach it instead of using rSh/rEl. */
+  reach?: { x: number; y: number };
 };
 
 /** Relaxed standing baseline — every action starts from this shape. */
@@ -347,13 +351,14 @@ const reach: ActionFn = (t) => {
   return {
     ...NEUTRAL,
     lean: 10,
-    rSh: 150 + s,
-    rEl: 160 + s,
     lSh: -20,
     lEl: -30,
     lHip: -12,
     rHip: 12,
     head: -4,
+    // IK target: the right hand reaches forward at ~shoulder height, breathing
+    // slightly. Two-bone IK solves the arm to land exactly here (no joint pop).
+    reach: { x: 56, y: -56 + s },
   };
 };
 
