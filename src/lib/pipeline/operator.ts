@@ -61,7 +61,7 @@ const DEFAULTS: Required<OperatorConfig> = {
   lastAnalyticsAt: "",
   strategy: {},
   calendar: [],
-  autonomy: "copilot",
+  autonomy: "autopilot",
 };
 
 export function operatorConfig(run: Pick<OperatorRun, "config">): Required<OperatorConfig> {

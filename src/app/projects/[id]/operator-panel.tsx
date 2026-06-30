@@ -6,6 +6,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import {
   pauseOperatorAction,
+  setOperatorAutonomyAction,
   startOperatorAction,
   stopOperatorAction,
 } from "@/lib/actions/operator";
@@ -58,6 +59,7 @@ export function OperatorPanel({
 }) {
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string>();
+  const [autonomy, setAutonomy] = useState<"copilot" | "autopilot">(view.autonomy);
   const running = view.status === "active";
   const paused = view.status === "paused";
   const live = running || paused;
@@ -68,6 +70,25 @@ export function OperatorPanel({
       setMsg(undefined);
       const r = await fn();
       setMsg(r.ok ? ok : r.error ?? "Failed.");
+    });
+
+  const setMode = (next: "copilot" | "autopilot") =>
+    start(async () => {
+      if (next === autonomy) return;
+      const prev = autonomy;
+      setAutonomy(next); // optimistic
+      setMsg(undefined);
+      const r = await setOperatorAutonomyAction(projectId, next);
+      if (!r.ok) {
+        setAutonomy(prev);
+        setMsg(r.error ?? "Failed.");
+      } else {
+        setMsg(
+          next === "autopilot"
+            ? "Full Auto-Pilot — approves & publishes when the quality gates pass."
+            : "Co-pilot — auto-publishes high-QC videos; holds the rest for your tap.",
+        );
+      }
     });
 
   const pct = view.budgetUsd > 0 ? Math.min(100, (view.spentUsd / view.budgetUsd) * 100) : 0;
@@ -83,7 +104,7 @@ export function OperatorPanel({
             <CardTitle>Auto Pilot</CardTitle>
             <p className="text-xs text-muted">
               {running
-                ? `Running · posts 1/day at ${HOUR_LABEL(view.postingHour)} ${TZ_ABBR(view.postingTz)}, holds for your approval`
+                ? `Running · posts 1/day at ${HOUR_LABEL(view.postingHour)} ${TZ_ABBR(view.postingTz)} · ${autonomy === "autopilot" ? "fully autonomous" : "co-pilot review"}`
                 : paused
                   ? "Paused · budget clock still elapsing"
                   : "Autonomous channel operator — produces daily, holds for approval"}
@@ -133,6 +154,34 @@ export function OperatorPanel({
           )}
         </div>
       </div>
+
+      {live && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-canvas/50 p-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Autonomy</p>
+            <p className="mt-0.5 text-[11px] text-muted">
+              {autonomy === "autopilot"
+                ? "Full Auto-Pilot — approves & publishes to YouTube the moment the quality gates pass."
+                : "Co-pilot — auto-publishes only high-QC videos; holds the rest for your tap."}
+            </p>
+          </div>
+          <div className="inline-flex shrink-0 overflow-hidden rounded-full border border-line bg-card p-0.5">
+            {(["copilot", "autopilot"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                disabled={pending}
+                onClick={() => setMode(m)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                  autonomy === m ? "bg-ink text-card" : "text-muted hover:text-ink"
+                }`}
+              >
+                {m === "copilot" ? "Co-pilot" : "Auto-Pilot"}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {live && (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">

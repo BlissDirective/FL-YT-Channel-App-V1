@@ -65,6 +65,8 @@ export type OperatorView = {
   seededToday: number;
   postingHour: number;
   postingTz: string;
+  /** Autonomy level (Tier 8A) — defaults to autopilot when unset. */
+  autonomy: "copilot" | "autopilot";
   /** Monetization (YPP) progress — present once analytics has been pulled. */
   hasAnalytics: boolean;
   subs: number;
@@ -110,6 +112,7 @@ export async function getOperatorView(projectId: string): Promise<OperatorView> 
     run: null, status: null, cycleDay: 0, cycleDays: 30,
     budgetUsd: 60, spentUsd: 0, remainingUsd: 60,
     videosThisCycle: 0, seededToday: 0, postingHour: 13, postingTz: "America/Chicago",
+    autonomy: "autopilot",
     hasAnalytics: false, subs: 0, subsGoal: YPP_SUBS, watchHours: 0, watchGoal: YPP_WATCH_HOURS,
     shortsViews: 0, shortsGoal: YPP_SHORTS_VIEWS, retentionPct: 0,
     nearerPath: "watch", mixShortsPct: 0.75, mixReason: "default mix", dailyCap: 1,
@@ -148,6 +151,7 @@ export async function getOperatorView(projectId: string): Promise<OperatorView> 
     seededToday,
     postingHour: Number(cfg.postingHour ?? 13),
     postingTz: String(cfg.postingTz ?? "America/Chicago"),
+    autonomy: cfg.autonomy === "copilot" ? "copilot" : "autopilot",
     hasAnalytics: Boolean(ch),
     subs: ch?.subs ?? 0,
     subsGoal: YPP_SUBS,
