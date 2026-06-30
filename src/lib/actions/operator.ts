@@ -76,6 +76,31 @@ export async function regenerateCalendarAction(projectId: string): Promise<Resul
   }
 }
 
+/** Flip the operator's autonomy level without a DB edit (Tier 8A). Read fresh
+    every tick and only affects the FINAL-approval decision — safe to toggle
+    anytime. Flipping to 'autopilot' auto-publishes gate-passing videos on the
+    next tick; 'copilot' holds marginal ones for a manual tap. */
+export async function setOperatorAutonomyAction(
+  projectId: string,
+  mode: "copilot" | "autopilot",
+): Promise<Result> {
+  try {
+    const db = admin();
+    const run = await getOperatorRun(db, projectId);
+    if (!run) return { ok: false, error: "Operator is not running — start it first." };
+    const config = { ...(run.config ?? {}), autonomy: mode };
+    const { error } = await db
+      .from("operator_runs")
+      .update({ config, updated_at: new Date().toISOString() })
+      .eq("id", run.id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/projects/${projectId}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /** Run one operator tick now (operator-triggered) — seeds today's video if the
     slot is open and budget allows, instead of waiting for the cron. */
 export async function runOperatorNowAction(
