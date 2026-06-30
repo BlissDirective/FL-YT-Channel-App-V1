@@ -49,6 +49,7 @@ import { inspectStill, perceptualHash, hammingDistance } from "@/lib/adapters/im
 import { critiqueSeedStill, isSeedVisionLive } from "@/lib/adapters/seed-vision";
 import type { StickScene } from "@/lib/stick-types";
 import { searchStockClip, searchStockPhotos } from "@/lib/adapters/stock";
+import { planVerifiedCharts, type ChartSpec as DataVizChart } from "@/lib/adapters/dataviz";
 import { classifyLicense, type SourceCandidate } from "@/lib/adapters/sources";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import type { BuildRunStatus, CustomSpec, Project, ScriptBeat, Video } from "@/lib/db/types";
@@ -639,9 +640,38 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   }
   // Quality-gate config (prompt pre-check + cache), fetched once for all beats.
   const qualityGate = await getQualityGateConfig(db);
+
+  // Tier 9.5 — programmatic data-viz inserts (footage projects only). Claude
+  // proposes charts for number/ranking/trend beats and a research-operator pass
+  // fact-checks the figures (corrects, downgrades to "illustrative", or drops).
+  // A chart beat's visual IS the chart, so it's excluded from footage gen below.
+  const chartByIdx = new Map<number, DataVizChart>();
+  if (!stick) {
+    try {
+      const { charts, costUsd, dropped } = await planVerifiedCharts({
+        title: video.title,
+        niche: project.niche,
+        beats,
+      });
+      for (const c of charts) chartByIdx.set(c.beatIdx, c);
+      if (costUsd > 0) {
+        await recordCost(db, video, {
+          provider: "anthropic",
+          usd: costUsd,
+          description: `Data-viz propose + fact-check${dropped ? ` (${dropped} dropped)` : ""}`,
+        });
+      }
+    } catch (err) {
+      console.error("data-viz planning failed (non-fatal):", err);
+    }
+  }
+
   // Stick visuals (choreographed StickScene per beat) regen wholesale; footage
   // clips regen only for changed/new beats (unchanged ones keep their asset).
-  const clipBeats = stick ? beats : beats.filter((b) => !keepClipIdx.has(b.idx));
+  // Chart beats never generate footage — their visual is the chart.
+  const clipBeats = stick
+    ? beats
+    : beats.filter((b) => !keepClipIdx.has(b.idx) && !chartByIdx.has(b.idx));
   const [voResults, clipResults] = await Promise.all([
     // VO is the only unguarded provider call here — cap concurrency so a long
     // script can't 429 ElevenLabs and reject the whole stage.
@@ -741,6 +771,28 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     for (const ec of clip.extraCosts ?? []) {
       await recordCost(db, video, ec, `beat ${idx + 1}`);
     }
+  }
+
+  // Tier 9.5 — persist verified charts as clip assets (meta.dataViz). The visual
+  // is drawn programmatically at render, so there's no storage_path/footage and
+  // the cost is $0. Replace any prior clip on those beats (e.g. a beat that used
+  // to be footage and is now a chart).
+  for (const [idx, chart] of chartByIdx) {
+    await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", idx);
+    const h = hashByIdx.get(idx);
+    await db.from("assets").insert({
+      video_id: video.id,
+      kind: "clip",
+      provider: "remotion",
+      storage_path: "",
+      beat_index: idx,
+      meta: {
+        shotType: "broll",
+        dataViz: chart,
+        ...(h ? { beatHash: h } : {}),
+      },
+      cost_usd: 0,
+    });
   }
 
   // Visual-floor guard: if every beat degraded to a mock tile (no FLUX, no

@@ -24,6 +24,8 @@ import {
 import { HighlightLayer } from "./highlights/HighlightLayer";
 import { HighlightFonts } from "./highlights/fonts";
 import { StickStage } from "./stick/StickStage";
+import { ChartReveal } from "./dataviz/ChartReveal";
+import { LottieInsert } from "./dataviz/LottieInsert";
 
 const FONT =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -217,7 +219,13 @@ const BeatScene: React.FC<{
   const motion = motionStyle(beat.motion, frame, durationInFrames);
   return (
     <AbsoluteFill>
-      {beat.stickScene ? (
+      {beat.dataViz ? (
+        // Tier 9.5: programmatic data-viz reveal replaces footage for this beat.
+        <ChartReveal spec={beat.dataViz} brand={brand} />
+      ) : beat.lottie ? (
+        // Tier 9.5: Lottie icon/diagram b-roll insert.
+        <LottieInsert spec={beat.lottie} brand={brand} />
+      ) : beat.stickScene ? (
         // Stick Studio: programmatic performance replaces footage/stills.
         <StickStage scene={beat.stickScene} cast={stickCast} />
       ) : beat.videoUrl && beat.heroHold ? (

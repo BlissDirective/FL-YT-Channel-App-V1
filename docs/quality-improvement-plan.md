@@ -327,9 +327,8 @@ Root cause of sub-7 QC is sparse/static/blank visuals, not the score bar — so
 the fix is to raise upfront visual quality (and remediate the *cause* when a
 video misses), built shorts/base/economy-first (75% of auto-pilot output).
 
-**Build status:** 9.1, 9.2, 9.3, 9.4, 9.6 shipped. 9.5 (D3/Lottie) is spec-only
-pending the data-source decision (see notes below). Implementation specifics
-that refined the original spec:
+**Build status:** 9.1–9.6 all shipped. Implementation specifics that refined the
+original spec:
 - **9.1** — the prompt-rewrite/regenerate remediation already existed in
   `autofix.planFootage`; it simply wasn't running because the loop defaulted
   *off*. `resolveAutofix` now defaults remediation **on** (loop inferred from
@@ -372,12 +371,30 @@ Beats ≥ ~10s get 2–3 stills cross-dissolved with varied Ken-Burns instead of
 static image; short beats stay single. Base uses free stock (no cost); economy
 adds cheap FLUX schnell. Fills dead air → higher retention + QC.
 
-### 9.5 Programmatic b-roll inserts (Finance/AI/Authoritative) — needs new deps
-D3 data-viz reveals (charts/rankings) + Lottie icon/diagram b-roll, inserted as
-beats within footage videos (~$0 marginal). **New npm deps** (`d3`,
-`@remotion/lottie`, `lottie-web`) and a **data-source decision** (LLM-supplied
-illustrative figures vs a real finance-data API/MCP) — detailed in chat; built
-after 9.1–9.4.
+### 9.5 Programmatic b-roll inserts (Finance/AI/Authoritative) — **shipped**
+D3 data-viz reveals (bar / ranking / line) + Lottie icon/diagram b-roll,
+inserted as beats within footage videos (~$0 marginal). **Deps added** to
+`@studio/render`: `d3-scale`, `d3-shape` (lean D3 submodules), `@remotion/lottie`,
+`lottie-web` (+ `@types/d3-*`). No new paid data API.
+
+**Data source — Option A (LLM-supplied figures) with two honesty gates:**
+1. **Generate** (`dataviz.proposeCharts`) — Claude proposes ≤2 charts for
+   number/ranking/trend beats and supplies figures, self-labelling each as
+   factual or illustrative.
+2. **Research-operator fact-check** (`dataviz.verifyChartFacts`) — a separate
+   skeptical pass corrects obvious errors, **downgrades anything it can't stand
+   behind to `illustrative`** (rendered with an on-screen "Illustrative" tag),
+   or **drops** misleading/fabricated charts. Fail-closed: no verdict → forced
+   illustrative.
+3. **Post-render vision QC** (`dataviz/chart-verify` in the render farm) — after
+   the chart beat renders, Claude vision inspects the ACTUAL frame for
+   proportionality, label correctness, axis honesty, and title match. A flagged
+   chart sets `auto_publish=false` + a review reason (the video still renders).
+
+Gated to data-friendly niches (finance/AI/tech/econ/etc.) via keyword match;
+chart beats skip footage gen (the chart IS the visual, $0). Lottie inserts play
+any supplied animation-JSON URL with a branded fallback; the curated/recolorable
+Lottie *library* is a content follow-up (the render path is ready).
 
 ### 9.6 Responsive captions + professional highlight tone
 Captions auto-fit to a safe width, wrap to ≤2 lines, scale by resolution (fixes

@@ -66,6 +66,36 @@ export type RenderBeat = {
   /** Stick Studio: programmatic stick-figure scene for this beat. When set, the
       visual layer renders <StickStage> instead of footage/stills. */
   stickScene?: StickScene;
+  /** Tier 9.5 — programmatic data-viz insert (D3). When set, the beat renders an
+      animated chart reveal instead of footage/stills. */
+  dataViz?: ChartSpec;
+  /** Tier 9.5 — Lottie icon/diagram b-roll insert (animationData URL). */
+  lottie?: LottieSpec;
+};
+
+// ── Tier 9.5 — programmatic b-roll (data-viz + Lottie) ─────────────────
+
+export type ChartKind = "bar" | "ranking" | "line";
+export type ChartPoint = { label: string; value: number };
+/** A data-viz reveal. Figures are LLM-supplied and fact-checked upstream; when
+    they can't be confirmed the chart is flagged `illustrative` and rendered with
+    an on-screen "Illustrative" tag so it never implies sourced precision. */
+export type ChartSpec = {
+  kind: ChartKind;
+  title: string;
+  /** Value unit, e.g. "$B", "%", "M users". Shown on labels. */
+  unit?: string;
+  /** 2–6 data points, pre-ordered for ranking/bar. */
+  points: ChartPoint[];
+  /** Attribution or basis label (e.g. "Source: FRED, 2024" or "Illustrative"). */
+  source?: string;
+  illustrative?: boolean;
+};
+
+export type LottieSpec = {
+  /** Signed URL (or storage path resolved upstream) to a Lottie JSON file. */
+  url: string;
+  loop?: boolean;
 };
 
 export type VideoProps = {

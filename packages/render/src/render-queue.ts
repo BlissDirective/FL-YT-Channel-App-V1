@@ -31,6 +31,7 @@ import {
 import { critiqueStickFrames, type CritiqueFrame } from "./stick/frame-critic";
 import { critiqueFootageFrames, type FootageFrame } from "./footage/frame-critic";
 import { pickThumbnail, type ThumbPlacement } from "./thumbnail-pick";
+import { verifyRenderedChart } from "./dataviz/chart-verify";
 import { uploadVideo, youtubeUploadConfigured } from "./youtube";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
@@ -344,6 +345,10 @@ async function buildProps(videoId: string): Promise<{
       stickScene?: StickScene;
       /** Tier 9 #4 — extra still paths/urls for a multi-image section. */
       images?: string[];
+      /** Tier 9.5 — programmatic data-viz spec; render draws the chart. */
+      dataViz?: RenderBeat["dataViz"];
+      /** Tier 9.5 — Lottie b-roll spec (url may be a storage path to sign). */
+      lottie?: { url?: string; loop?: boolean };
     };
     // Generated video clips live in Storage (no meta.url) — sign the path and
     // treat as video. Stills are signed as images. External (Pexels) use url.
@@ -379,6 +384,16 @@ async function buildProps(videoId: string): Promise<{
       // Stick Studio: a stick scene on the clip asset drives programmatic
       // rendering instead of footage (Phase 2 writes it; here we just pass it).
       stickScene: clipMeta.stickScene,
+      // Tier 9.5 — programmatic b-roll inserts (data-viz / Lottie).
+      dataViz: clipMeta.dataViz,
+      lottie: clipMeta.lottie?.url
+        ? {
+            url: /^https?:\/\//.test(clipMeta.lottie.url)
+              ? clipMeta.lottie.url
+              : ((await sign(clipMeta.lottie.url)) ?? clipMeta.lottie.url),
+            loop: clipMeta.lottie.loop,
+          }
+        : undefined,
       highlights: resolveHighlights(
         curated.filter((h) => h.beatIdx === sb.idx),
         words,
@@ -519,6 +534,64 @@ async function renderOne(
     }
     throw err;
    }
+  }
+
+  // ── Tier 9.5 post-render data-viz QC gate. For each chart beat, render the
+  //    ACTUAL frame at the beat's midpoint and have Claude vision confirm the
+  //    graphic represents the data accurately and isn't misleading. Fail-closed:
+  //    a failed/uncertain chart marks the video for human review (it still
+  //    rendered — we just don't auto-publish a misleading statistic). Long-form
+  //    only (charts live in the long cut); best-effort, never fails the render.
+  if (video.kind !== "short") {
+    const chartBeats = props.beats.filter((b) => b.dataViz);
+    const chartIssues: string[] = [];
+    for (const cb of chartBeats) {
+      try {
+        const t = timeline.find((x) => x.idx === cb.idx);
+        if (!t) continue;
+        const midFrame = Math.max(1, Math.round(((t.start + t.end) / 2) * FPS));
+        const comp = await selectComposition({ serveUrl, id: "LongForm", inputProps: props });
+        const stillOut = join(outDir, `chart-${cb.idx}.jpg`);
+        await renderStill({
+          composition: comp,
+          serveUrl,
+          output: stillOut,
+          inputProps: props,
+          frame: Math.min(midFrame, comp.durationInFrames - 1),
+          imageFormat: "jpeg",
+          jpegQuality: 85,
+        });
+        const verdict = await verifyRenderedChart({
+          spec: cb.dataViz!,
+          imageBase64: readFileSync(stillOut).toString("base64"),
+          mediaType: "image/jpeg",
+        });
+        if (verdict.costUsd > 0) {
+          await db.from("cost_ledger").insert({
+            project_id: built.project.id,
+            video_id: videoId,
+            provider: "anthropic",
+            description: "Data-viz post-render QC",
+            usd: verdict.costUsd,
+          });
+        }
+        if (!verdict.ok) {
+          chartIssues.push(`Beat ${cb.idx} ("${cb.dataViz!.title}"): ${verdict.issues.join("; ") || "inaccurate/misleading"}`);
+        }
+        console.log(`📊 ${video.title}: chart beat ${cb.idx} → ${verdict.ok ? "ok" : "FLAGGED"}`);
+      } catch (err) {
+        console.error(`⚠️  chart QC failed (non-fatal) beat ${cb.idx}: ${String(err).slice(0, 140)}`);
+      }
+    }
+    if (chartIssues.length) {
+      await db
+        .from("videos")
+        .update({
+          auto_publish: false,
+          paused_reason: `Held — data-viz QC flagged a chart as inaccurate/misleading: ${chartIssues[0]}. Review the chart data.`,
+        })
+        .eq("id", videoId);
+    }
   }
 
   // ── Thumbnail: a hero frame + a brand-safe Claude kinetic phrase rendered

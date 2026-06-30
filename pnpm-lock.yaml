@@ -128,6 +128,9 @@ importers:
       '@remotion/bundler':
         specifier: 4.0.290
         version: 4.0.290(postcss@8.5.15)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@remotion/lottie':
+        specifier: 4.0.290
+        version: 4.0.290(lottie-web@5.13.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@remotion/renderer':
         specifier: 4.0.290
         version: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -137,6 +140,15 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.49.4
         version: 2.108.1
+      d3-scale:
+        specifier: ^4.0.2
+        version: 4.0.2
+      d3-shape:
+        specifier: ^3.2.0
+        version: 3.2.0
+      lottie-web:
+        specifier: ^5.13.0
+        version: 5.13.0
       react:
         specifier: ^19.0.0
         version: 19.2.7
@@ -147,6 +159,12 @@ importers:
         specifier: 4.0.290
         version: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
     devDependencies:
+      '@types/d3-scale':
+        specifier: ^4.0.9
+        version: 4.0.9
+      '@types/d3-shape':
+        specifier: ^3.1.8
+        version: 3.1.8
       '@types/react':
         specifier: ^19
         version: 19.2.17
@@ -878,6 +896,13 @@ packages:
     resolution: {integrity: sha512-acRUOIeswQuJ74tKnuziwZIUcsQ6isQpwYUla0CiFrC9MVdbTFlt37eyvmkgXXkCartPWlFptfDYDv9li6mBmA==}
     cpu: [x64]
     os: [win32]
+
+  '@remotion/lottie@4.0.290':
+    resolution: {integrity: sha512-2wwPGs/RmUynF37mdhAIIXMw++uT7FbpTXv773mOoyMQf1VUq4J9XYpcewTm9nAIKIJhCF7D3l1FoZIrwIVqeQ==}
+    peerDependencies:
+      lottie-web: ^5
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   '@remotion/media-parser@4.0.290':
     resolution: {integrity: sha512-u3/nRI7ghf0Cnci2DrbHrdHLIW7GFCaV5qVNT6IzOqdpVmwiS9sz3jAM85r7wrMKfed2QqVbKsRaLSY3MGA0RQ==}
@@ -1650,6 +1675,9 @@ packages:
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
+
+  lottie-web@5.13.0:
+    resolution: {integrity: sha512-+gfBXl6sxXMPe8tKQm7qzLnUy5DUPJPKIyRHwtpCpyUEYjHYRJC/5gjUvdkuO2c3JllrPtHXH5UJJK8LRYl5yQ==}
 
   lru-cache@6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
@@ -2728,6 +2756,13 @@ snapshots:
   '@remotion/compositor-win32-x64-msvc@4.0.290':
     optional: true
 
+  '@remotion/lottie@4.0.290(lottie-web@5.13.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+    dependencies:
+      lottie-web: 5.13.0
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
+      remotion: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+
   '@remotion/media-parser@4.0.290': {}
 
   '@remotion/media-utils@4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
@@ -3540,6 +3575,8 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
+
+  lottie-web@5.13.0: {}
 
   lru-cache@6.0.0:
     dependencies:
