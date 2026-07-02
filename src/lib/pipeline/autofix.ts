@@ -2,7 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { reviewGate } from "@/lib/adapters/qc";
-import { isAutofixEnabled } from "@/lib/pipeline/quality-gates";
+import { isAutofixEnabled, getQualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import { isTwelveLabsLive, wantsTemporalPass } from "@/lib/adapters/twelvelabs";
 import { makeBeatClip } from "@/lib/pipeline/engine";
@@ -31,10 +31,11 @@ const DEFAULT_CONFIG: AutofixConfig = { threshold: 7, maxRenders: 2, spendCapUsd
 
 // ── Config / eligibility ──────────────────────────────────────────────
 
-function configOf(project: Project): AutofixConfig {
+function configOf(project: Project, gateThreshold?: number): AutofixConfig {
   const c = project.autofix_config ?? DEFAULT_CONFIG;
   return {
-    threshold: Number(c.threshold ?? DEFAULT_CONFIG.threshold),
+    // Per-project pin wins; else the Settings-tunable quality-gates value.
+    threshold: Number(c.threshold ?? gateThreshold ?? DEFAULT_CONFIG.threshold),
     maxRenders: Number(c.maxRenders ?? DEFAULT_CONFIG.maxRenders),
     spendCapUsd: Number(c.spendCapUsd ?? DEFAULT_CONFIG.spendCapUsd),
   };
@@ -46,6 +47,7 @@ function configOf(project: Project): AutofixConfig {
 export function resolveAutofix(
   project: Project,
   video: Video,
+  gateThreshold?: number,
 ): { on: boolean; loop: Loop; config: AutofixConfig } {
   // Tier 9.1: remediation is ON by default so auto-pilot videos get the
   // prompt-rewrite + regenerate pass before holding (bounded by maxRenders +
@@ -55,7 +57,7 @@ export function resolveAutofix(
   const loop: Loop =
     rawLoop !== "off" ? (rawLoop as Loop) : project.visual_style === "stick" ? "animation" : "aiclip";
   const on = isAutofixEnabled(project, video);
-  return { on, loop, config: configOf(project) };
+  return { on, loop, config: configOf(project, gateThreshold) };
 }
 
 // ── Small DB helpers (all threaded through the admin client) ──────────
@@ -521,7 +523,8 @@ export async function processAutofixForVideo(
   video: Video,
   project: Project,
 ): Promise<AutofixOutcome> {
-  const { on, loop, config } = resolveAutofix(project, video);
+  const { autofixThreshold } = await getQualityGateConfig(db);
+  const { on, loop, config } = resolveAutofix(project, video, autofixThreshold);
   if (!on) return { acted: false, reason: "disabled" };
   if (video.status !== "FINAL_REVIEW") return { acted: false, reason: "not-at-final-review" };
 

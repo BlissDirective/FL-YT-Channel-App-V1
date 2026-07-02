@@ -1,4 +1,5 @@
 import "server-only";
+import { embedText, isEmbeddingsLive } from "@/lib/adapters/embeddings";
 
 /**
  * Tier 3 — local lexical near-duplicate detection. "Reused content" is the #1
@@ -61,3 +62,45 @@ export function findNearDuplicate(
   }
   return best;
 }
+
+/** Cosine similarity at/above which two idea embeddings are near-duplicates.
+    (Real embeddings; the hash fallback rarely reaches this, by design —
+    the lexical gate still runs first either way.) */
+export const SEMANTIC_DEDUP_THRESHOLD = 0.86;
+
+type RpcDb = {
+  rpc: (
+    fn: string,
+    args: Record<string, unknown>,
+  ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
+};
+
+/**
+ * Semantic near-duplicate lookup against a project's embedded ideas
+ * (pgvector `match_ideas`). Returns the closest match at/above threshold,
+ * or null. Best-effort: any RPC/adapter failure returns null (the lexical
+ * gate remains the floor).
+ */
+export async function findSemanticDuplicate(
+  db: RpcDb,
+  projectId: string,
+  text: string,
+  threshold: number = SEMANTIC_DEDUP_THRESHOLD,
+): Promise<{ title: string; score: number } | null> {
+  try {
+    const { vector } = await embedText(text);
+    const { data, error } = await db.rpc("match_ideas", {
+      p_project: projectId,
+      p_embedding: JSON.stringify(vector),
+      p_count: 3,
+    });
+    if (error) return null;
+    const rows = (data ?? []) as { title: string; similarity: number }[];
+    const best = rows.find((r) => Number(r.similarity) >= threshold);
+    return best ? { title: best.title, score: Number(best.similarity) } : null;
+  } catch {
+    return null;
+  }
+}
+
+export { isEmbeddingsLive };

@@ -14,3 +14,4 @@ dist/
 /playwright-report/
 /playwright/.cache/
 /.lighthouseci/
+.claude/

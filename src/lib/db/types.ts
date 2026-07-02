@@ -65,6 +65,8 @@ export type Project = {
   visual_style: "footage" | "stick";
   /** Recurring stick-figure character identity (null → default cast). */
   stick_cast: StickCast | null;
+  /** Optimizer proposals auto-apply as a canary template version (Phase 4.3). */
+  auto_apply_insights: boolean;
   /** Which auto-fix strategy runs for this channel (off until chosen). */
   autofix_loop: AutofixLoop;
   /** Master on/off for the automatic auto-fix loop on this channel. */
@@ -225,6 +227,8 @@ export type Video = {
   autofix_enabled: boolean | null;
   /** Auto-fix loop state machine for this video. */
   autofix_state: AutofixState;
+  /** Script prose fact-check verdict ({risk, claims[], searched, at}). */
+  fact_check: { risk: number; claims: { claim: string; verdict: string; note: string }[]; searched: boolean; at: string } | null;
   /** The Auto Pilot Operator run that seeded this video (null = made another way).
       Operator-owned videos hold for approval rather than auto-publishing. */
   operator_run_id: string | null;
@@ -528,9 +532,21 @@ export type Insight = {
   evidence: Record<string, unknown>;
   proposed_template_kind: string | null;
   proposed_template_body: string | null;
-  status: "new" | "applied" | "dismissed";
+  status: "new" | "applied" | "dismissed" | "reverted";
   applied_template_version: number | null;
+  /** Canary bookkeeping when auto-applied ({templateVersion, kind, appliedAt, baselineQc, evaluatedAt?, outcome?}). */
+  canary: InsightCanary | null;
   created_at: string;
+};
+
+export type InsightCanary = {
+  templateVersion: number;
+  kind: string;
+  appliedAt: string;
+  /** Trailing average FINAL-gate QC score at apply time. */
+  baselineQc: number | null;
+  evaluatedAt?: string;
+  outcome?: "kept" | "reverted" | "insufficient-data";
 };
 
 export type Idea = {

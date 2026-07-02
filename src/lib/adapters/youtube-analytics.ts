@@ -151,6 +151,38 @@ export async function getVideoMetrics(
   return out;
 }
 
+export type RetentionPoint = {
+  /** Elapsed position as a 0..1 ratio of video length. */
+  ratio: number;
+  /** Share of starting viewers still watching at this position (0..1+). */
+  watchRatio: number;
+};
+
+/**
+ * Per-video audience retention curve (Phase 4.6). ~100 samples across the
+ * video's length. Null when analytics isn't configured or YouTube has no
+ * data yet (young/low-view videos).
+ */
+export async function getRetentionCurve(
+  refreshToken: string | null,
+  videoId: string,
+): Promise<RetentionPoint[] | null> {
+  const token = await accessToken(refreshToken);
+  if (!token) return null;
+  const r = await report(token, {
+    startDate: ymd(daysAgo(365)),
+    endDate: ymd(new Date()),
+    dimensions: "elapsedVideoTimeRatio",
+    metrics: "audienceWatchRatio",
+    filters: `video==${videoId}`,
+  });
+  if (!r?.rows || r.rows.length === 0) return null;
+  return r.rows.map((row) => ({
+    ratio: Number(row[0] ?? 0),
+    watchRatio: Number(row[1] ?? 0),
+  }));
+}
+
 export type YppSnapshot = {
   subscriberCount: number;
   /** Public watch-hours over the trailing 365 days (toward the 4,000-hour bar). */

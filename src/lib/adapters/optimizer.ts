@@ -70,6 +70,8 @@ export async function generateInsights(opts: {
   audience: string;
   videos: OptimizerVideo[];
   scriptTemplate: string;
+  /** Beat-level retention findings ("beat 4 (broll) loses 18% of viewers"). */
+  retentionNotes?: string[];
 }): Promise<{ insights: OptimizerInsight[]; costUsd: number }> {
   if (opts.videos.length < 2) return { insights: [], costUsd: 0 };
   if (!isOptimizerLive()) return { insights: heuristic(opts.videos), costUsd: 0 };
@@ -85,7 +87,7 @@ Niche: ${opts.niche}. Audience: ${opts.audience}.
 
 Tracked videos:
 ${rows}
-
+${opts.retentionNotes?.length ? `\nAudience-retention findings (beat-level, from YouTube Analytics):\n${opts.retentionNotes.map((n) => `- ${n}`).join("\n")}\n` : ""}
 Find 1–3 actionable patterns correlating attributes (format, length, hook/title
 style) with views/engagement. Be concrete and grounded in the numbers above. If a
 pattern implies a concrete change to the script prompt template below, return the

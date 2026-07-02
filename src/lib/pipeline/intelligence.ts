@@ -2,7 +2,8 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { searchNiche } from "@/lib/adapters/youtube";
 import { scoreIdeas } from "@/lib/adapters/intelligence";
-import { findNearDuplicate } from "@/lib/pipeline/dedup";
+import { findNearDuplicate, findSemanticDuplicate } from "@/lib/pipeline/dedup";
+import { embedText } from "@/lib/adapters/embeddings";
 
 /**
  * Daily intelligence run (Phase 8). For one project: search its niche for
@@ -60,6 +61,9 @@ export async function runIntelligence(
   for (const i of ideas) {
     if (i.flag === "SKIP") continue;
     if (findNearDuplicate(`${i.title} ${i.angle}`, catalog)) continue;
+    // Tier 5 — semantic pass: catches paraphrased ANGLES the lexical gate
+    // can't see. Best-effort (null on any failure), so it only ever tightens.
+    if (await findSemanticDuplicate(db, projectId, `${i.title} ${i.angle}`)) continue;
     picks.push(i);
     catalog.push(i.title); // also guard against near-dup picks within this run
     if (picks.length >= limit) break;
@@ -67,6 +71,16 @@ export async function runIntelligence(
 
   let created = 0;
   for (const idea of picks) {
+    // Store the embedding with the idea so future semantic checks see it.
+    let embedding: string | null = null;
+    let embeddingModel: string | null = null;
+    try {
+      const e = await embedText(`${idea.title} ${idea.angle}`);
+      embedding = JSON.stringify(e.vector);
+      embeddingModel = e.model;
+    } catch {
+      /* embedding is an enhancement — never block idea intake */
+    }
     const { data: ideaRow } = await db
       .from("ideas")
       .insert({
@@ -77,6 +91,8 @@ export async function runIntelligence(
         flag: idea.flag,
         status: "new",
         source: idea.source,
+        embedding,
+        embedding_model: embeddingModel,
       })
       .select("id")
       .single();

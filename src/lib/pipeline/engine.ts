@@ -26,6 +26,7 @@ import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highligh
 import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
 import { editorialGuard } from "@/lib/adapters/guardrails";
+import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
 import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
 import { providerOutage } from "@/lib/pipeline/provider-health";
@@ -77,8 +78,7 @@ export type EngineResult = { ok: boolean; error?: string; warning?: string };
 /** Tier 3 — cost-aware human-revision cap (hybrid): warn from this revision on,
     hard-block at the cap. Auto-pilot's single revision is exempt (it's its own
     one-shot limit and uses decided_by 'autopilot'). */
-const REVISION_WARN_AT = 3;
-const REVISION_HARD_CAP = 4;
+// Revision warn/cap thresholds live in quality-gates config (Settings-tunable).
 
 const STAGE_DELAY_MS = 700; // lets Realtime dashboards show in-progress states
 
@@ -177,6 +177,7 @@ async function arriveAtGate(
   // and never block the gate.
   const mode: AutonomyMode = project.autonomy?.[gate] ?? "assist";
   let qcScore: number | null = null;
+  let qcErrored = false;
   try {
     const review = await reviewGate({
       gate,
@@ -203,6 +204,7 @@ async function arriveAtGate(
       );
     }
   } catch (err) {
+    qcErrored = true;
     console.error("QC review failed:", err);
   }
 
@@ -224,6 +226,23 @@ async function arriveAtGate(
   if (gate === "ASSETS" && video.auto_finish) return;
   if (mode !== "autopilot" && !copilotApproved) return;
 
+  // Phase 4.4 — "grader down" must not mean "publish anyway": when the QC
+  // review errored and this gate would auto-advance, hold for a human instead.
+  if (qcErrored && isQcLive()) {
+    await db
+      .from("videos")
+      .update({ paused_reason: "QC unavailable — held for manual review (auto-advance blocked)" })
+      .eq("id", video.id);
+    return;
+  }
+
+  // Phase 4.2 — prose fact-check gate: before an auto-advance past SCRIPT,
+  // verify the script's load-bearing claims; high risk holds the video.
+  if (gate === "SCRIPT") {
+    const held = await factCheckAtScriptGate(db, video, project);
+    if (held) return;
+  }
+
   await db.from("approvals").insert({
     video_id: video.id,
     gate,
@@ -239,6 +258,42 @@ async function arriveAtGate(
     // under the service role (MCP/cron/autopilot), which RLS blocks → stall.
     await runPipeline(video.id, db);
   }
+}
+
+/**
+ * Run the prose fact-check for a script about to auto-advance. Stores the
+ * verdict on the video, ledgers the cost, and pauses the video (returns true)
+ * when risk >= quality_gates.factRiskMax. Best-effort: adapter outages
+ * fail open with an "unavailable" marker rather than holding every script.
+ */
+async function factCheckAtScriptGate(db: Db, video: Video, project: Project): Promise<boolean> {
+  if (!isFactCheckLive()) return false;
+  try {
+    const script = await loadLatestScript(db, video.id);
+    const beats = ((script?.beats ?? []) as ScriptBeat[]).map((b) => ({ idx: b.idx, text: b.text }));
+    if (beats.length === 0) return false;
+    const fc = await factCheckScript({ title: video.title, niche: project.niche, beats });
+    await db
+      .from("videos")
+      .update({ fact_check: { risk: fc.risk, claims: fc.claims, searched: fc.searched, at: new Date().toISOString() } })
+      .eq("id", video.id);
+    if (fc.costUsd > 0) {
+      await recordCost(db, video, { provider: "anthropic", usd: fc.costUsd, description: "Script fact-check" });
+    }
+    const { factRiskMax } = await getQualityGateConfig(db);
+    if (fc.risk >= factRiskMax) {
+      const worst = fc.claims.filter((c) => c.verdict === "false").slice(0, 2);
+      const detail = worst.length ? ` — ${worst.map((c) => c.claim).join("; ").slice(0, 140)}` : "";
+      await db
+        .from("videos")
+        .update({ paused_reason: `Fact-check risk ${fc.risk}/10${detail}` })
+        .eq("id", video.id);
+      return true;
+    }
+  } catch (err) {
+    console.error("fact-check step failed (non-blocking):", err);
+  }
+  return false;
 }
 
 async function latestNotes(db: Db, videoId: string): Promise<string | undefined> {
@@ -260,12 +315,13 @@ async function qcLessons(db: Db, projectId: string): Promise<string[]> {
   const { data: vids } = await db.from("videos").select("id").eq("project_id", projectId);
   const ids = ((vids as { id: string }[]) ?? []).map((v) => v.id);
   if (ids.length === 0) return [];
+  const { qcLessonBelow } = await getQualityGateConfig(db);
   const { data: revs } = await db
     .from("qc_reviews")
     .select("issues, score, created_at")
     .in("video_id", ids)
     .eq("gate", "SCRIPT")
-    .lt("score", 7)
+    .lt("score", qcLessonBelow)
     .order("created_at", { ascending: false })
     .limit(6);
   const seen = new Set<string>();
@@ -1132,8 +1188,7 @@ export async function makeBeatClip(
   };
 }
 
-/** A seed still scoring below this gets one re-roll before it's animated. */
-const SEED_VISION_FLOOR = 6.0;
+// Seed-still floor lives in quality-gates config (seedVisionFloor).
 
 /**
  * Tier 4 #1 — seed-still vision gate. Before a beat's still is animated into a
@@ -1165,7 +1220,7 @@ async function vetSeedStillForBeat(db: Db, video: Video, project: Project, beat:
     if (critique.costUsd > 0) {
       await recordCost(db, fresh, { provider: "anthropic", usd: critique.costUsd, description: "Seed-still vision gate" }, `beat ${beat.idx + 1}`);
     }
-    if (critique.score >= SEED_VISION_FLOOR) return;
+    if (critique.score >= (await getQualityGateConfig(db)).seedVisionFloor) return;
 
     // Weak seed → re-roll a fresh still (forceRegen bypasses + overwrites the
     // cache so the rejected image is never re-served) and replace the asset.
@@ -1184,8 +1239,7 @@ async function vetSeedStillForBeat(db: Db, video: Video, project: Project, beat:
   }
 }
 
-/** pHash Hamming distance below this ≈ near-identical shots (variety problem). */
-const VARIETY_MIN_DISTANCE = 6;
+// Variety min-distance lives in quality-gates config (varietyMinDistance).
 
 /**
  * Tier 4 #4 — pre-render visual variety. Compare freshly-generated stills by
@@ -1212,7 +1266,7 @@ async function diversifyBeatVisuals(
         if (!worst || d < worst.d) worst = { idx: Math.max(hashed[i].idx, hashed[j].idx), d };
       }
     }
-    if (!worst || worst.d > VARIETY_MIN_DISTANCE) return;
+    if (!worst || worst.d > (await getQualityGateConfig(db)).varietyMinDistance) return;
     const beat = beats.find((b) => b.idx === worst!.idx);
     if (!beat) return;
     const qg = await getQualityGateConfig(db);
@@ -1780,8 +1834,13 @@ export async function fullAutoGenerate(
 
   // Fail-closed (Tier 3): for footage projects, if the paid image/video provider
   // is live but the QC model is mocked, pause rather than pay for generation we
-  // can't quality-check. No effect when ANTHROPIC_API_KEY is set; stick projects
-  // don't use paid image/video so they're exempt.
+  // can't quality-check. No effect when ANTHROPIC_API_KEY is set.
+  //
+  // Stick exemption (audited, Phase 4.5): the guard's condition is
+  // isFalLive() && !isQcLive(). Stick renders are programmatic (no fal
+  // image/video spend), and their choreography runs on the same Anthropic key
+  // as QC — so when choreography is live, QC is live too. The only paid stick
+  // dependency is VO, which no vision QC could judge either way.
   if (project.visual_style !== "stick") {
     const qg = await getQualityGateConfig(db);
     if (failClosedBlocksSpend(qg)) {
@@ -2136,7 +2195,7 @@ export async function estimateBuildCost(
 
 /** Published videos with ≥1 stats snapshot needed before performance bias
     activates (P7); below it, fall back to QC + niche heuristics. */
-const COLD_START_MIN = 5;
+// Cold-start minimum lives in quality-gates config (coldStartMin).
 
 export type ChannelPlaybook = {
   coldStart: boolean;
@@ -2195,10 +2254,11 @@ export async function channelPlaybook(db: Db, projectId: string): Promise<Channe
     if (!views.has(s.video_id)) views.set(s.video_id, Number(s.views ?? 0));
   }
   const withStats = vids.filter((v) => views.has(v.id));
-  if (withStats.length < COLD_START_MIN) {
+  const { coldStartMin } = await getQualityGateConfig(db);
+  if (withStats.length < coldStartMin) {
     return cold(
       withStats.length,
-      `Cold start — ${withStats.length}/${COLD_START_MIN} published videos have stats; using QC + niche heuristics.`,
+      `Cold start — ${withStats.length}/${coldStartMin} published videos have stats; using QC + niche heuristics.`,
     );
   }
 
@@ -2569,7 +2629,10 @@ async function gateScriptForAutoPilot(
   if (!isQcLive()) return { ok: true, score: null };
 
   const first = await scoreAndRecordGate(db, video, project, "SCRIPT");
-  if (first.score >= floor) return { ok: true, score: first.score };
+  if (first.score >= floor) {
+    const held = await factCheckAtScriptGate(db, video, project);
+    return { ok: !held, score: first.score };
+  }
 
   // Revise once: feed the QC issues back as revision notes (runScripting reads
   // the latest revision approval), rewrite, and re-score.
@@ -2587,7 +2650,11 @@ async function gateScriptForAutoPilot(
   await runScripting(db, video, project); // reads latestNotes → SCRIPT_READY
 
   const second = await scoreAndRecordGate(db, video, project, "SCRIPT");
-  return { ok: second.score >= floor, score: second.score };
+  if (second.score >= floor) {
+    const held = await factCheckAtScriptGate(db, video, project);
+    return { ok: !held, score: second.score };
+  }
+  return { ok: false, score: second.score };
 }
 
 /** Resolve a run's QC thresholds (floor to publish at all; public threshold). */
@@ -2595,13 +2662,14 @@ async function runThresholds(
   db: Db,
   buildRunId: string | null,
 ): Promise<{ floor: number; pub: number }> {
-  if (!buildRunId) return { floor: 7.0, pub: 8.0 };
+  const cfg = await getQualityGateConfig(db);
+  if (!buildRunId) return { floor: cfg.runFloor, pub: cfg.runPublic };
   const { data } = await db
     .from("build_runs")
     .select("qc_floor, qc_public")
     .eq("id", buildRunId)
     .maybeSingle();
-  return { floor: Number(data?.qc_floor ?? 7.0), pub: Number(data?.qc_public ?? 8.0) };
+  return { floor: Number(data?.qc_floor ?? cfg.runFloor), pub: Number(data?.qc_public ?? cfg.runPublic) };
 }
 
 /**
@@ -3694,13 +3762,14 @@ export async function decideGate(
       .in("decided_by", ["human", "mcp"]);
     const priorRevisions = count ?? 0;
     const spent = Number(video.total_cost_usd ?? 0).toFixed(2);
-    if (priorRevisions >= REVISION_HARD_CAP) {
+    const caps = await getQualityGateConfig(db);
+    if (priorRevisions >= caps.revisionHardCap) {
       return {
         ok: false,
-        error: `Revision limit reached (${REVISION_HARD_CAP} revisions, $${spent} spent on this video). Approve, kill, or step back manually instead of revising again.`,
+        error: `Revision limit reached (${caps.revisionHardCap} revisions, $${spent} spent on this video). Approve, kill, or step back manually instead of revising again.`,
       };
     }
-    if (priorRevisions + 1 >= REVISION_WARN_AT) {
+    if (priorRevisions + 1 >= caps.revisionWarnAt) {
       revisionWarning = `This is revision #${priorRevisions + 1} ($${spent} spent so far). Each revision re-bills the regenerated beats.`;
     }
   }
