@@ -11,6 +11,7 @@ import {
 import { analyzeVideoIntel } from "@/lib/adapters/video-intel";
 import { analyzeYoutubeVideo } from "@/lib/adapters/gemini-video";
 import type { Blueprint, IntelCompetitor, Perception, VideoIntel } from "@/lib/db/types";
+import { dispatchWorkflow, ghDispatchConfigured } from "@/lib/adapters/gh-dispatch";
 
 const EMPTY_BLUEPRINT: Blueprint = {
   works: [],
@@ -110,6 +111,15 @@ export async function runVideoIntelAction(input: {
         .select("*")
         .single();
       if (error) return { ok: false, error: error.message };
+      // Kick the worker now (Phase 8): its fallback cron is 30-min; a
+      // dispatched run picks the scan up in ~1 min. No-op without the token.
+      if (ghDispatchConfigured()) {
+        try {
+          await dispatchWorkflow("video-intel.yml");
+        } catch (err) {
+          console.error("video-intel dispatch failed (cron will pick it up):", err);
+        }
+      }
       revalidatePath("/intel");
       return { ok: true, intel: data as VideoIntel };
     }

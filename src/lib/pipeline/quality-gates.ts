@@ -119,3 +119,12 @@ export function isAutofixEnabled(
 ): boolean {
   return video.autofix_enabled ?? project.autofix_enabled ?? true;
 }
+
+/**
+ * QC score → publish privacy. Shared by BOTH final-gate settlers — the
+ * build-runner finalizer and the operator approval pass — so the two owners
+ * can't drift on what "public-worthy" means (Phase 7).
+ */
+export function privacyForScore(score: number, publicAt: number): "public" | "unlisted" {
+  return score >= publicAt ? "public" : "unlisted";
+}

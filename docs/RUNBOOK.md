@@ -52,14 +52,23 @@ run **Sync Vercel Env** (Actions tab) so Vercel picks it up and redeploys.
 
 | Workflow | Schedule | Endpoint | Auth |
 |---|---|---|---|
-| Render Farm | every 10 min | (worker, direct DB) | service role |
+| Render Farm | every 30 min (fallback; dispatched on demand) | (worker, direct DB) | service role |
+| Long Clip Worker | every 30 min (fallback; dispatched on demand) | (worker, direct DB) | service role |
+| Video Intel Worker | every 30 min (fallback; dispatched on queue) | (worker, direct DB) | service role |
+| Build Runner | every 15 min | `/api/cron/build-runner` | `CRON_SECRET` |
+| Auto-Fix | every 30 min (build-runner also sweeps each pass) | `/api/cron/auto-fix` | `CRON_SECRET` |
 | Stats Refresh | 07:10 UTC daily | `/api/cron/refresh-stats` | `CRON_SECRET` |
 | Daily Intelligence | 06:30 UTC daily | `/api/cron/intelligence` | `CRON_SECRET` |
 | Weekly Optimizer | 08:00 UTC Mon | `/api/cron/optimizer` | `CRON_SECRET` |
 
-All cron routes are public in middleware but reject without the matching
-`CRON_SECRET` bearer (unset = open, for local/mock). On-demand buttons exist
-in the UI for stats refresh, intelligence, and the optimizer.
+Worker crons peek at their queue with one REST call and exit before
+checkout/install when it's empty (Phase 8 idle-cron guard); the build-runner
+dispatches them the moment work exists, so the 30-min fallback rarely gates
+latency. All cron routes require the `CRON_SECRET` bearer; on Vercel an unset
+secret fails closed.
+
+On-demand buttons exist in the UI for stats refresh, intelligence, and
+the optimizer.
 
 `APP_BASE_URL` repo **variable** overrides the production URL the cron
 Actions ping (defaults to `https://fl-yt-channel-app-v1.vercel.app`).

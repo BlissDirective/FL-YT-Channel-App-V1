@@ -4,7 +4,7 @@ name: Long Clip Worker
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/30 * * * *"
   push:
     paths:
       - packages/clips/**
@@ -19,15 +19,38 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # Idle-cron guard (Phase 8): peek at the queue with one cheap REST call
+      # BEFORE checkout/install — an empty queue used to cost a full runner
+      # spin-up every pass. Dispatched runs skip the peek.
+      - name: Check for queued work
+        id: peek
+        if: github.event_name == 'schedule'
+        env:
+          SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          COUNT=$(curl -s "https://reffwibuitzrkertuuvy.supabase.co/rest/v1/clip_jobs?select=id&status=eq.queued" \
+            -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" \
+            -H "Prefer: count=exact" -H "Range: 0-0" -D - -o /dev/null \
+            | tr -d '\r' | awk -F'/' 'tolower($0) ~ /^content-range:/ {print $NF}')
+          echo "count=${COUNT:-0}" >> "$GITHUB_OUTPUT"
+          echo "clip queue: ${COUNT:-0}"
+      - name: Queue empty — exit early
+        if: github.event_name == 'schedule' && steps.peek.outputs.count == '0'
+        run: echo "Nothing queued — skipping checkout/install."
       - uses: actions/checkout@v4
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - name: Install ffmpeg
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg && ffmpeg -version | head -1
       - uses: pnpm/action-setup@v4
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - uses: actions/setup-node@v4
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile --filter @studio/clips...
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - name: Run clip queue
         working-directory: packages/clips
         env:

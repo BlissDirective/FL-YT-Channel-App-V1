@@ -27,7 +27,7 @@ import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
 import { editorialGuard } from "@/lib/adapters/guardrails";
 import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
-import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
+import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
 import { keywords } from "@/lib/pipeline/dedup";
 import { providerOutage } from "@/lib/pipeline/provider-health";
@@ -2706,7 +2706,7 @@ export async function finalizeAutoPilotVideos(
       const { score } = await scoreAndRecordGate(db, video, project, "FINAL");
 
       if (score >= floor) {
-        const privacy = score >= pub ? "public" : "unlisted";
+        const privacy = privacyForScore(score, pub);
         await db
           .from("videos")
           .update({ publish_privacy: privacy, auto_publish: true, paused_reason: null })

@@ -14,6 +14,7 @@ import {
   Upload,
 } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createClient } from "@/lib/supabase/server";
 import {
   getActivity,
   getMonthlyBudgetUsd,
@@ -61,6 +62,25 @@ export default async function Home() {
     const list = videosByProject.get(v.project_id) ?? [];
     list.push(v);
     videosByProject.set(v.project_id, list);
+  }
+
+  // Idea-gate pass rate per project (Phase 8 economics): the share of
+  // researched ideas that survived the gate. A consistently low rate means
+  // the niche/angle is starving the channel of usable topics.
+  const supabase = await createClient();
+  const { data: ideaRows } = await supabase.from("ideas").select("project_id, flag, status");
+  const ideaPassRates = new Map<string, number>();
+  {
+    const byProject = new Map<string, { total: number; passed: number }>();
+    for (const i of (ideaRows ?? []) as { project_id: string; flag: string | null; status: string }[]) {
+      const agg = byProject.get(i.project_id) ?? { total: 0, passed: 0 };
+      agg.total += 1;
+      if (i.flag !== "SKIP" && i.status !== "dismissed") agg.passed += 1;
+      byProject.set(i.project_id, agg);
+    }
+    for (const [pid, agg] of byProject) {
+      if (agg.total >= 3) ideaPassRates.set(pid, agg.passed / agg.total);
+    }
   }
 
   // Same "stalled video" definition as the project page's needs-attention.
@@ -140,6 +160,7 @@ export default async function Home() {
                   project={p}
                   videoCount={vids.length}
                   inPipeline={inPipeline}
+                  ideaPassRate={ideaPassRates.get(p.id) ?? null}
                 />
               );
             })}

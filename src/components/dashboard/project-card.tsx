@@ -7,10 +7,13 @@ export function ProjectCard({
   project,
   videoCount,
   inPipeline,
+  ideaPassRate,
 }: {
   project: Project;
   videoCount: number;
   inPipeline: number;
+  /** Share (0..1) of researched ideas that survived the idea gate; null = no ideas yet. */
+  ideaPassRate: number | null;
 }) {
   return (
     <Link
@@ -42,6 +45,18 @@ export function ProjectCard({
               <p className="text-xl font-bold tabular-nums">{inPipeline}</p>
               <p className="text-xs text-muted">in pipeline</p>
             </div>
+            {/* Niche economics at a glance (Phase 8): a structurally
+                unprofitable channel should be visible in week 2, not month 4. */}
+            <div>
+              <p className="text-xl font-bold tabular-nums">${Number(project.rpm_usd ?? 0).toFixed(0)}</p>
+              <p className="text-xs text-muted">RPM</p>
+            </div>
+            {ideaPassRate != null && (
+              <div>
+                <p className="text-xl font-bold tabular-nums">{Math.round(ideaPassRate * 100)}%</p>
+                <p className="text-xs text-muted">ideas pass</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

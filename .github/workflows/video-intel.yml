@@ -6,7 +6,7 @@ name: Video Intel Worker
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/30 * * * *"
   push:
     paths:
       - packages/intel/**
@@ -21,8 +21,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      # Idle-cron guard (Phase 8): peek at the queue with one cheap REST call
+      # BEFORE checkout/install — an empty queue used to cost a full runner
+      # spin-up every pass. Dispatched runs skip the peek.
+      - name: Check for queued work
+        id: peek
+        if: github.event_name == 'schedule'
+        env:
+          SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          COUNT=$(curl -s "https://reffwibuitzrkertuuvy.supabase.co/rest/v1/video_intel?select=id&status=eq.queued" \
+            -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" \
+            -H "Prefer: count=exact" -H "Range: 0-0" -D - -o /dev/null \
+            | tr -d '\r' | awk -F'/' 'tolower($0) ~ /^content-range:/ {print $NF}')
+          echo "count=${COUNT:-0}" >> "$GITHUB_OUTPUT"
+          echo "intel queue: ${COUNT:-0}"
+      - name: Queue empty — exit early
+        if: github.event_name == 'schedule' && steps.peek.outputs.count == '0'
+        run: echo "Nothing queued — skipping checkout/install."
       - uses: actions/checkout@v4
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - name: Install ffmpeg + yt-dlp
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         run: |
           sudo apt-get -qq update
           sudo apt-get -qq install -y ffmpeg
@@ -30,13 +50,17 @@ jobs:
           sudo chmod a+rx /usr/local/bin/yt-dlp
           yt-dlp --version && ffmpeg -version | head -1
       - uses: pnpm/action-setup@v4
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - uses: actions/setup-node@v4
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         with:
           node-version: 22
           cache: pnpm
       - name: Install worker deps
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         run: pnpm install --frozen-lockfile --filter @studio/intel...
       - name: Run intel queue
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         working-directory: packages/intel
         env:
           SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co

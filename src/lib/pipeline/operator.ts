@@ -5,7 +5,7 @@ import { reviewGate, isQcLive } from "@/lib/adapters/qc";
 import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest, sendTelegram } from "@/lib/adapters/telegram";
 import { editorialGuard, gateIdea, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
 import { planMonthlyCalendar } from "@/lib/adapters/calendar";
-import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled } from "@/lib/pipeline/quality-gates";
+import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, privacyForScore } from "@/lib/pipeline/quality-gates";
 import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import {
   analyticsConfigured,
@@ -231,6 +231,38 @@ function startOfTodayUtc(now: Date, tz: string): Date {
   return zonedTimeToUtc(t.y, t.m - 1, t.day, 0, 0, tz);
 }
 
+/**
+ * Auto-tier promotion gate (Phase 8): true when the format's last 3 tracked
+ * videos average at/above the channel's median views. Below the data floor
+ * (fewer than 4 tracked videos overall or 3 in-format) it returns false —
+ * premium spend must be earned, not assumed.
+ */
+async function formatEarnedPremium(db: Db, projectId: string, fmt: "short" | "long"): Promise<boolean> {
+  const { data: vids } = await db
+    .from("videos")
+    .select("id, kind")
+    .eq("project_id", projectId)
+    .not("youtube_video_id", "is", null);
+  const tracked = (vids ?? []) as { id: string; kind: string }[];
+  if (tracked.length < 4) return false;
+  const { data: snaps } = await db
+    .from("analytics_snapshots")
+    .select("video_id, views, captured_at")
+    .in("video_id", tracked.map((v) => v.id))
+    .order("captured_at", { ascending: false });
+  const latest = new Map<string, number>();
+  for (const sn of (snaps ?? []) as { video_id: string; views: number }[]) {
+    if (!latest.has(sn.video_id)) latest.set(sn.video_id, Number(sn.views ?? 0));
+  }
+  const all = tracked.map((v) => latest.get(v.id) ?? 0).sort((a, b) => a - b);
+  if (all.length < 4) return false;
+  const median = all[Math.floor(all.length / 2)];
+  const inFormat = tracked.filter((v) => (v.kind === "short") === (fmt === "short")).slice(-3);
+  if (inFormat.length < 3) return false;
+  const avg = inFormat.reduce((sum, v) => sum + (latest.get(v.id) ?? 0), 0) / inFormat.length;
+  return avg >= median;
+}
+
 async function seededTodayCount(db: Db, run: OperatorRun, tz: string): Promise<number> {
   const since = startOfTodayUtc(new Date(), tz).toISOString();
   const { count } = await db
@@ -443,6 +475,13 @@ async function seedVideo(
   // estimate no longer fits the remaining cycle budget (protects day-30 output).
   let tier = ((slot?.tier as AutoTier | undefined) ?? (isShort ? cfg.shortsTier : cfg.longTier)) as AutoTier;
   const STEP: AutoTier[] = ["platinum", "premium", "economy", "base"];
+  // Phase 8 — earn the premium tiers: spending Premium/Platinum money on an
+  // unproven format is the fastest way to burn a cycle budget. Until this
+  // format's recent videos beat the channel's median views, cap the tier at
+  // economy; a winning format graduates automatically.
+  if ((tier === "premium" || tier === "platinum") && !(await formatEarnedPremium(db, run.project_id, fmt))) {
+    tier = "economy";
+  }
   if (STEP.includes(tier)) {
     while (STEP.indexOf(tier) < STEP.length - 1 && planCostFor(fmt, tier) > remainingUsd) {
       tier = STEP[STEP.indexOf(tier) + 1];
@@ -668,7 +707,10 @@ async function finalQc(db: Db, video: Video, project: Project): Promise<number> 
 export async function approveOperatorVideo(db: Db, video: Video, by: string): Promise<void> {
   const rev = (video.operator_review ?? {}) as OperatorReview;
   const qc = Number(rev.qc ?? 8);
-  const privacy = qc >= 8 ? "public" : "unlisted";
+  // Same tunable public threshold as the build-runner finalizer (was a
+  // hardcoded 8 that could drift from Settings).
+  const { runPublic } = await getQualityGateConfig(db);
+  const privacy = privacyForScore(qc, runPublic);
   await db
     .from("videos")
     .update({
