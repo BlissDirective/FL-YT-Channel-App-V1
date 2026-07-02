@@ -930,7 +930,18 @@ async function main() {
     const entry = fileURLToPath(new URL("./index.ts", import.meta.url));
     const serveUrl = await bundle({ entryPoint: entry });
 
+    // Wall-clock budget: the job is SIGKILLed at 60 min (workflow timeout),
+    // which would skip the catch below and strand a mid-render video at
+    // ASSEMBLING with no paused_reason. Stop STARTING new renders at ~45 min
+    // so the batch always ends cleanly; the rest wait for the next pass.
+    const startedAt = Date.now();
+    const WALL_BUDGET_MS = 45 * 60 * 1000;
+
     for (const v of queue) {
+      if (Date.now() - startedAt > WALL_BUDGET_MS) {
+        console.log(`⏳ wall-clock budget reached — deferring remaining videos to the next pass`);
+        break;
+      }
       try {
         await renderOne(serveUrl, v.id);
       } catch (err) {

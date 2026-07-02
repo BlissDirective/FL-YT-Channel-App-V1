@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type { ScriptBeat } from "@/lib/db/types";
 import { mockScript } from "@/lib/pipeline/mock-content";
 import { anthropicPriceOf } from "./pricing";
@@ -230,7 +231,7 @@ async function generateOutline(opts: {
 
   type Outline = { hook: string; beats: string[]; hookScore: number; weaknesses: string[] };
   async function once(extra: string): Promise<Outline | null> {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,
@@ -384,7 +385,7 @@ export async function generateScript(opts: {
   let tokOut = 0;
 
   async function runModel(extra: string): Promise<{ input: ScriptInput; raw: ScriptBeat[] }> {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,
@@ -516,7 +517,7 @@ async function callClaude(
   input: Record<string, unknown>;
   costUsd: number;
 }> {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await anthropicFetch({
     method: "POST",
     headers: {
       "x-api-key": process.env.ANTHROPIC_API_KEY!,

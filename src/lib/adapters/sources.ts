@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 
 /**
  * Source Library agent — Phase 6.5. Fans out across COMPLIANT, licensed
@@ -329,7 +330,7 @@ export async function rankCandidates(opts: {
   const { candidates } = opts;
   if (!process.env.ANTHROPIC_API_KEY || candidates.length === 0) return candidates;
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY,

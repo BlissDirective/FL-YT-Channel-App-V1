@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type { ScriptBeat } from "@/lib/db/types";
 
 /**
@@ -104,7 +105,7 @@ async function callTool(opts: {
   maxTokens?: number;
 }): Promise<{ input: Record<string, unknown> | undefined; costUsd: number } | null> {
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,

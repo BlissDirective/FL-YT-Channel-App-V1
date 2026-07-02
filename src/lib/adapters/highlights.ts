@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type {
   CuratedHighlight,
   HighlightPreset,
@@ -191,7 +192,7 @@ ${script}
 
 Call deliver_highlights with at least ${SHORT_HOOK_MIN_HIGHLIGHTS} highlights on Beat 0 and ${target} total.`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await anthropicFetch({
     method: "POST",
     headers: {
       "x-api-key": process.env.ANTHROPIC_API_KEY!,

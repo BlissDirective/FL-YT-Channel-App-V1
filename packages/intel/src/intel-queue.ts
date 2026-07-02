@@ -296,12 +296,38 @@ Design a blueprint for OUR ORIGINAL video. Call deliver_blueprint.`,
   }
 }
 
+const MAX_INTEL_ATTEMPTS = 3;
+
+/** Requeue crashed 'running' scans (bounded) so they don't strand forever. */
+async function reapStaleRunning() {
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const { data: stale } = await db
+    .from("video_intel")
+    .select("id, attempts")
+    .eq("status", "running")
+    .lt("claimed_at", cutoff);
+  for (const j of stale ?? []) {
+    const dead = Number(j.attempts ?? 0) >= MAX_INTEL_ATTEMPTS;
+    await db
+      .from("video_intel")
+      .update(
+        dead
+          ? { status: "error", error: `stale after ${MAX_INTEL_ATTEMPTS} attempts (worker died mid-scan)` }
+          : { status: "queued" },
+      )
+      .eq("id", j.id)
+      .eq("status", "running");
+    console.log(`🩹 ${j.id}: stale running → ${dead ? "error" : "requeued"}`);
+  }
+}
+
 async function main() {
+  await reapStaleRunning();
   // Claim queued jobs one at a time (single-worker concurrency in the workflow).
   for (let i = 0; i < 5; i++) {
     const { data: row } = await db
       .from("video_intel")
-      .select("id,project_id,topic,source_url,competitors")
+      .select("id,project_id,topic,source_url,competitors,attempts")
       .eq("status", "queued")
       .order("created_at", { ascending: true })
       .limit(1)
@@ -310,7 +336,18 @@ async function main() {
       if (i === 0) console.log("No queued intel jobs.");
       return;
     }
-    await db.from("video_intel").update({ status: "running" }).eq("id", row.id);
+    // Atomic claim: queued→running with a conditional write.
+    const { data: claimed } = await db
+      .from("video_intel")
+      .update({
+        status: "running",
+        claimed_at: new Date().toISOString(),
+        attempts: Number(row.attempts ?? 0) + 1,
+      })
+      .eq("id", row.id)
+      .eq("status", "queued")
+      .select("id");
+    if (!claimed || claimed.length === 0) continue;
     try {
       await processRow(row);
     } catch (err) {

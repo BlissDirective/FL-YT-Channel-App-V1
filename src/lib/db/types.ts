@@ -370,6 +370,8 @@ export type OperatorRun = {
   cycle_start: string;
   cycle_budget_usd: number;
   config: OperatorConfig;
+  /** CAS target for the daily seed slot (Phase 3 atomic claim). */
+  last_seed_key: string | null;
   created_at: string;
   updated_at: string;
 };

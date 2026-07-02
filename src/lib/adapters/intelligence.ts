@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type { NicheVideo } from "./youtube";
 
 /**
@@ -100,7 +101,7 @@ ${top
   .join("\n")}`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,

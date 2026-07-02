@@ -2425,8 +2425,17 @@ export async function processPendingBuildVideos(
     try {
       const project = await getProject(db, row.project_id);
       if (!project) throw new Error("Project not found");
-      // Claim by moving out of the seed state so it can't be re-picked.
-      await setStatus(db, row.id, "SCRIPTING");
+      // ATOMIC claim (Phase 3): conditional update — only the runner that
+      // flips IDEA_APPROVED→SCRIPTING owns the seed. A concurrent cron pass
+      // or "Run now" click matches zero rows and skips instead of running the
+      // full script+asset generation twice.
+      const { data: claimed } = await db
+        .from("videos")
+        .update({ status: "SCRIPTING" })
+        .eq("id", row.id)
+        .eq("status", "IDEA_APPROVED")
+        .select("id");
+      if (!claimed || claimed.length === 0) continue; // someone else claimed it
       const video = await getVideo(db, row.id);
       if (!video) throw new Error("Video not found after claim");
       const { data: run } = await db

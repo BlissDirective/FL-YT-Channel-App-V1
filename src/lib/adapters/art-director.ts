@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type { ScriptBeat, BeatMotion } from "@/lib/db/types";
 import { BEAT_MOTIONS } from "@/lib/db/types";
 
@@ -83,7 +84,7 @@ export async function refineOneShot(opts: {
     `concrete, purely-visual scene that an image model will render cleanly.` +
     (avoid.length ? ` AVOID these patterns that hurt past videos: ${avoid.join("; ")}.` : "");
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,
@@ -205,7 +206,7 @@ export async function directShots(opts: {
     `BEATS:\n${beatLines}\n\nCall deliver_shot_plan with exactly ${usable.length} shots, one per beat.`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,

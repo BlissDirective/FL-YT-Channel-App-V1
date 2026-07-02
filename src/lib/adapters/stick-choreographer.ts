@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type { ScriptBeat } from "@/lib/db/types";
 import {
   STICK_ACTIONS,
@@ -111,7 +112,7 @@ ${script}
 
 Call deliver_scenes with exactly ${prompted.length} scenes, one per beat, in order.`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await anthropicFetch({
     method: "POST",
     headers: {
       "x-api-key": process.env.ANTHROPIC_API_KEY!,

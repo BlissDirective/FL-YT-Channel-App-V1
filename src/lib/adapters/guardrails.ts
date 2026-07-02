@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type { Project } from "@/lib/db/types";
 import { findNearDuplicate } from "@/lib/pipeline/dedup";
 import { anthropicPriceOf } from "./pricing";
@@ -61,7 +62,7 @@ async function callTool<T>(
   user: string,
   tool: { name: string; description: string; input_schema: object },
 ): Promise<{ input: T; costUsd: number } | null> {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await anthropicFetch({
     method: "POST",
     headers: {
       "x-api-key": process.env.ANTHROPIC_API_KEY!,

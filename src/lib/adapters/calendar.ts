@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type { CalendarSlot, Project } from "@/lib/db/types";
 import { planCostFor, type AutoTier } from "@/lib/adapters/auto-tiers";
 
@@ -148,7 +149,7 @@ export async function planMonthlyCalendar(opts: {
     `For each day return: day, subtopic (the bucket), a specific non-clickbait title, a one-line angle, and a priority 0–1 (tentpole potential — reserve high scores for genuine standouts; ~25% of the slate will get premium production). Be accurate and on-niche. Call deliver_calendar with exactly ${days} slots.`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,

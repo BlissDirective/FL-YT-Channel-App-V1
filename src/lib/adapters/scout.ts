@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import { searchNiche } from "./youtube";
 
 /**
@@ -60,7 +61,7 @@ title and a one-line angle so it can be saved as an idea card. Keep replies tigh
   let totalOut = 0;
 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,

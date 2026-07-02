@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 
 /**
  * Narrator pronunciation pass. TTS engines mangle technical copy: acronyms get
@@ -230,7 +231,7 @@ export async function researchPronunciations(opts: {
     `SCRIPT:\n"""${opts.scriptText.slice(0, 6000)}"""\n\n` +
     `Call deliver_pronunciations with only the terms that genuinely need guidance.`;
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,

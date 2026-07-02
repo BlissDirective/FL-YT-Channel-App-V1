@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 
 /**
  * Tier 4 #1 — seed-still vision gate. AI video clips (Kling/Veo/Seedance) are
@@ -47,7 +48,7 @@ export async function critiqueSeedStill(opts: {
 }): Promise<SeedCritique | null> {
   if (!isSeedVisionLive()) return null;
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await anthropicFetch({
       method: "POST",
       headers: {
         "x-api-key": process.env.ANTHROPIC_API_KEY!,

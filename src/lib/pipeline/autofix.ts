@@ -528,6 +528,20 @@ export async function processAutofixForVideo(
   const state: AutofixState = { ...(video.autofix_state ?? {}) };
   if (state.status === "done" || state.status === "held") return { acted: false, reason: state.status };
 
+  // ATOMIC claim (Phase 3): both the auto-fix cron and the build-runner cron
+  // sweep this video. CAS on updated_at (the DB trigger bumps it on every
+  // write) — whoever lands the claim write proceeds; the other pass sees zero
+  // rows and skips instead of double-critiquing/double-rendering.
+  const { data: claimed } = await db
+    .from("videos")
+    .update({ autofix_state: { ...state, claimedAt: new Date().toISOString() } })
+    .eq("id", video.id)
+    .eq("updated_at", video.updated_at)
+    .select("id");
+  if (!claimed || claimed.length === 0) {
+    return { acted: false, reason: "claimed-elsewhere" };
+  }
+
   const critique = await getCritique(db, video, project, loop);
   if (!critique) return { acted: false, reason: "awaiting-critique" };
 

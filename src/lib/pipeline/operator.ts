@@ -307,8 +307,25 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
     ageDays,
     subs: cfg.strategy?.channel?.subs ?? 0,
   });
-  if ((await seededTodayCount(db, run, cfg.postingTz)) >= dailyCap) {
+  const seededToday = await seededTodayCount(db, run, cfg.postingTz);
+  if (seededToday >= dailyCap) {
     return { acted: false, reason: "already-seeded-today", spentUsd: spent };
+  }
+
+  // ATOMIC slot claim (Phase 3): the cron sweep and the "Run now" button can
+  // tick the same run concurrently — both read the same seeded count and both
+  // used to pass the cap check. The tick that writes today's seed key owns
+  // the slot; the loser matches zero rows and skips.
+  const t = ymdInTz(new Date(), cfg.postingTz);
+  const seedKey = `${t.y}-${String(t.m).padStart(2, "0")}-${String(t.day).padStart(2, "0")}#${seededToday}`;
+  const { data: lock } = await db
+    .from("operator_runs")
+    .update({ last_seed_key: seedKey })
+    .eq("id", run.id)
+    .or(`last_seed_key.is.null,last_seed_key.neq.${seedKey}`)
+    .select("id");
+  if (!lock || lock.length === 0) {
+    return { acted: false, reason: "slot-claimed-elsewhere", spentUsd: spent };
   }
 
   // Seed the day's video. The idea gate can reject a weak idea (after one

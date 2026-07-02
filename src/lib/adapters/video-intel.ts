@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type { Blueprint, IntelCompetitor } from "@/lib/db/types";
 
 /**
@@ -110,7 +111,7 @@ ${compLines || "(no competitor list provided — infer from the niche)"}
 ${opts.perceptionNotes ? `\nDeep frame-by-frame perception of a top reference video (timestamped — what's on screen, pacing, structure):\n"""\n${opts.perceptionNotes.slice(0, 14000)}\n"""\n` : ""}${opts.transcript ? `\nReference transcript:\n"""\n${opts.transcript.slice(0, 12000)}\n"""\n` : ""}
 Analyze what works vs. what doesn't in this market, then design a blueprint for OUR ORIGINAL video — never copy their wording or footage; extract the patterns, structure, and gaps. Call deliver_blueprint with the full analysis.`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await anthropicFetch({
     method: "POST",
     headers: {
       "x-api-key": process.env.ANTHROPIC_API_KEY!,

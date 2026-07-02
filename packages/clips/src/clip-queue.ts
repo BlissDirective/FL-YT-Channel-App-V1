@@ -344,7 +344,33 @@ async function maybeFinish(videoId: string) {
   console.log(`▶️  ${videoId}: all clips done → ASSEMBLING (render → Final review)`);
 }
 
+/** Send crashed 'running' rows back to 'queued' (bounded by attempts) — a
+    worker killed mid-job used to strand the row at 'running' forever, which
+    also blocked maybeFinish from ever advancing the video. */
+async function reapStaleRunning() {
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const { data: stale } = await db
+    .from("clip_jobs")
+    .select("id, attempts")
+    .eq("status", "running")
+    .lt("claimed_at", cutoff);
+  for (const j of stale ?? []) {
+    const dead = Number(j.attempts ?? 0) >= MAX_ATTEMPTS;
+    await db
+      .from("clip_jobs")
+      .update(
+        dead
+          ? { status: "error", error: `stale after ${MAX_ATTEMPTS} attempts (worker died mid-job)` }
+          : { status: "queued" },
+      )
+      .eq("id", j.id)
+      .eq("status", "running");
+    console.log(`🩹 ${j.id}: stale running → ${dead ? "error" : "requeued"}`);
+  }
+}
+
 async function main() {
+  await reapStaleRunning();
   for (let i = 0; i < 4; i++) {
     const { data: job } = await db
       .from("clip_jobs")
@@ -358,7 +384,14 @@ async function main() {
       return;
     }
     const attempts = Number(job.attempts ?? 0) + 1;
-    await db.from("clip_jobs").update({ status: "running", attempts }).eq("id", job.id);
+    // Atomic claim: only the worker that flips queued→running owns the job.
+    const { data: claimed } = await db
+      .from("clip_jobs")
+      .update({ status: "running", attempts, claimed_at: new Date().toISOString() })
+      .eq("id", job.id)
+      .eq("status", "queued")
+      .select("id");
+    if (!claimed || claimed.length === 0) continue;
     try {
       await processJob({ ...(job as Job), attempts });
     } catch (err) {

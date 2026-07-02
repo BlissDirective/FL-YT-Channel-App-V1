@@ -1,4 +1,5 @@
 import "server-only";
+import { anthropicFetch } from "./anthropic";
 import type { ScriptBeat } from "@/lib/db/types";
 
 /**
@@ -115,7 +116,7 @@ ${script}
 
 Call deliver_shorts with exactly ${count} non-overlapping segments, strongest first.`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await anthropicFetch({
     method: "POST",
     headers: {
       "x-api-key": process.env.ANTHROPIC_API_KEY!,
