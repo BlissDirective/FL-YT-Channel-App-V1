@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { reviewGate } from "@/lib/adapters/qc";
+import { isAutofixEnabled } from "@/lib/pipeline/quality-gates";
 import { isTwelveLabsLive, wantsTemporalPass } from "@/lib/adapters/twelvelabs";
 import { makeBeatClip } from "@/lib/pipeline/engine";
 import {
@@ -52,7 +53,7 @@ export function resolveAutofix(
   const rawLoop = (project.autofix_loop ?? "off") as AutofixLoop;
   const loop: Loop =
     rawLoop !== "off" ? (rawLoop as Loop) : project.visual_style === "stick" ? "animation" : "aiclip";
-  const on = video.autofix_enabled ?? project.autofix_enabled ?? true;
+  const on = isAutofixEnabled(project, video);
   return { on, loop, config: configOf(project) };
 }
 

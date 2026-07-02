@@ -398,15 +398,17 @@ function CopyRow({
   value: string;
   multiline?: boolean;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"ok" | "failed" | null>(null);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(value);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      setCopied("ok");
     } catch {
-      /* clipboard blocked — the field stays selectable */
+      // Clipboard blocked (permissions / non-HTTPS) — say so; the field
+      // below stays selectable for a manual copy.
+      setCopied("failed");
     }
+    setTimeout(() => setCopied(null), 1500);
   };
   return (
     <div>
@@ -419,8 +421,8 @@ function CopyRow({
           onClick={copy}
           className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold text-ink hover:bg-accent-soft"
         >
-          {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
-          {copied ? "Copied" : "Copy"}
+          {copied === "ok" ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
+          {copied === "ok" ? "Copied" : copied === "failed" ? "Copy failed — select manually" : "Copy"}
         </button>
       </div>
       {multiline ? (

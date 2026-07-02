@@ -49,9 +49,10 @@ export function parseYoutubeId(input: string): string | null {
 }
 
 /**
- * Fetch public statistics for up to 50 video ids in one call. Falls back to
- * deterministic mock stats (no key, or a transient API error) so a missing
- * credential never blanks the dashboard.
+ * Fetch public statistics for up to 50 video ids in one call. With no key,
+ * returns deterministic mock stats so the dashboards work end-to-end. With
+ * a live key, a transient API error SKIPS the batch (no snapshot row) —
+ * fabricated numbers must never masquerade as real analytics.
  */
 export async function fetchVideoStats(ids: string[]): Promise<VideoStats[]> {
   const unique = [...new Set(ids.filter(Boolean))];
@@ -71,7 +72,7 @@ export async function fetchVideoStats(ids: string[]): Promise<VideoStats[]> {
       url.searchParams.set("key", key);
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) {
-        out.push(...batch.map(mockStats));
+        console.error(`youtube stats batch failed (${res.status}) — skipping ${batch.length} ids`);
         continue;
       }
       const data = (await res.json()) as {
@@ -98,8 +99,8 @@ export async function fetchVideoStats(ids: string[]): Promise<VideoStats[]> {
       for (const id of batch) {
         if (!found.has(id)) out.push({ videoId: id, views: 0, likes: 0, comments: 0 });
       }
-    } catch {
-      out.push(...batch.map(mockStats));
+    } catch (err) {
+      console.error("youtube stats batch failed — skipping:", err);
     }
   }
   return out;
@@ -168,7 +169,10 @@ export async function searchNiche(
     search.searchParams.set("relevanceLanguage", "en");
     search.searchParams.set("key", key);
     const sres = await fetch(search, { cache: "no-store" });
-    if (!sres.ok) return mockNiche(query, max);
+    if (!sres.ok) {
+      console.error(`youtube niche search failed (${sres.status}) — returning no results`);
+      return [];
+    }
     const sdata = (await sres.json()) as {
       items?: { id?: { videoId?: string } }[];
     };
@@ -192,8 +196,9 @@ export async function searchNiche(
         };
       })
       .sort((a, b) => b.views - a.views);
-  } catch {
-    return mockNiche(query, max);
+  } catch (err) {
+    console.error("youtube niche search failed — returning no results:", err);
+    return [];
   }
 }
 

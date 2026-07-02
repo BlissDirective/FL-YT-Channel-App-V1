@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, LogOut, Settings, Sparkles } from "lucide-react";
+import { LogOut, Settings, Sparkles } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { cn } from "@/lib/cn";
 import { BackButton } from "./back-button";
@@ -59,13 +59,6 @@ export function TopNav() {
       </nav>
 
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="grid size-10 place-items-center rounded-full bg-card text-ink shadow-card transition-colors hover:bg-accent-soft"
-        >
-          <Bell className="size-4" />
-        </button>
         <Link
           href="/settings"
           aria-label="Settings"

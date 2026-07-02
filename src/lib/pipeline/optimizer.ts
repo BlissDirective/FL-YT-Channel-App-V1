@@ -73,11 +73,12 @@ export async function runOptimizer(projectId: string): Promise<{ created: number
     scriptTemplate: tmpl?.body ?? DEFAULT_SCRIPT_TEMPLATE,
   });
 
+  // Dedup against every prior insight regardless of status — a dismissed or
+  // applied insight must not be regenerated verbatim the following week.
   const { data: existing } = await db
     .from("insights")
     .select("title")
-    .eq("project_id", projectId)
-    .eq("status", "new");
+    .eq("project_id", projectId);
   const seen = new Set((existing ?? []).map((e) => norm(e.title)));
 
   let created = 0;

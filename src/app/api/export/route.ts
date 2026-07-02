@@ -51,6 +51,10 @@ export async function GET(request: NextRequest) {
 }
 
 function csvCell(value: string | number): string {
-  const s = String(value);
+  let s = String(value);
+  // Neutralize spreadsheet formula injection: a cell starting with = + - @
+  // executes when the export is opened in Excel/Sheets. Titles are
+  // model/user-authored, so prefix a quote per OWASP CSV-injection guidance.
+  if (/^[=+\-@]/.test(s)) s = `'${s}`;
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }

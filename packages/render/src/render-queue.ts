@@ -33,6 +33,7 @@ import { critiqueFootageFrames, type FootageFrame } from "./footage/frame-critic
 import { pickThumbnail, type ThumbPlacement } from "./thumbnail-pick";
 import { verifyRenderedChart } from "./dataviz/chart-verify";
 import { uploadVideo, youtubeUploadConfigured } from "./youtube";
+import { shortDurationSec } from "./VideoComp";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -499,7 +500,7 @@ async function renderOne(
         ? Math.round(longFormDurationSec(props))
         : compId === "VerticalShort"
           ? Math.round(verticalShortDurationSec(props))
-          : Math.round(props.beats[0]?.durationSec ?? 0) + 2;
+          : Math.round(shortDurationSec(props));
     const baseMeta = {
       variant,
       resolution: variant === "long" ? "1080p" : "1080x1920",
@@ -894,15 +895,36 @@ async function runFootageCritic(
   console.log(`👁️  ${title}: footage critique ${critique.score}/10 (${critique.provider}, ${critique.issues.length} issues)`);
 }
 
+// A video whose render throws stays at ASSEMBLING (so a transient failure —
+// farm timeout, provider blip — retries on the next pass), but a poisoned
+// video must not re-render (and re-bill vision QC) every 10 minutes forever.
+// The attempt count is encoded in paused_reason; at the cap the farm skips
+// the video and leaves it surfaced for the operator via needs-attention.
+const MAX_RENDER_ATTEMPTS = 3;
+
+function renderAttempts(reason: string | null | undefined): number {
+  const m = /^Render failed \(attempt (\d+)\/\d+\)/.exec(reason ?? "");
+  if (m) return Number(m[1]);
+  return reason?.startsWith("Render failed") ? 1 : 0;
+}
+
 async function main() {
-  const { data: queue } = await db
+  const { data: rows } = await db
     .from("videos")
-    .select("id, title")
+    .select("id, title, paused_reason")
     .eq("status", "ASSEMBLING")
     .order("updated_at", { ascending: true })
-    .limit(5);
+    .limit(10);
 
-  if (queue && queue.length > 0) {
+  const skipped = (rows ?? []).filter((v) => renderAttempts(v.paused_reason) >= MAX_RENDER_ATTEMPTS);
+  for (const v of skipped) {
+    console.log(`⏭️  ${v.title}: skipped — ${MAX_RENDER_ATTEMPTS} failed render attempts (needs operator attention)`);
+  }
+  const queue = (rows ?? [])
+    .filter((v) => renderAttempts(v.paused_reason) < MAX_RENDER_ATTEMPTS)
+    .slice(0, 5);
+
+  if (queue.length > 0) {
     console.log(`Queue: ${queue.length} video(s)`);
     await ensureBrowser();
     const entry = fileURLToPath(new URL("./index.ts", import.meta.url));
@@ -913,9 +935,12 @@ async function main() {
         await renderOne(serveUrl, v.id);
       } catch (err) {
         console.error(`❌ ${v.title}:`, err);
+        const attempt = renderAttempts(v.paused_reason) + 1;
         await db
           .from("videos")
-          .update({ paused_reason: `Render failed: ${String(err).slice(0, 140)}` })
+          .update({
+            paused_reason: `Render failed (attempt ${attempt}/${MAX_RENDER_ATTEMPTS}): ${String(err).slice(0, 140)}`,
+          })
           .eq("id", v.id);
       }
     }
@@ -937,6 +962,30 @@ async function main() {
  */
 async function publishStagedVideos() {
   if (!youtubeUploadConfigured()) return;
+
+  // Heal rows stranded by a partial update: the upload succeeded
+  // (youtube_video_id persisted) but the follow-up status write failed.
+  // Without this they never reach TRACKING — the select below excludes
+  // rows that already have a youtube_video_id.
+  const { data: stranded } = await db
+    .from("videos")
+    .select("id, title")
+    .eq("publish_requested", true)
+    .in("status", ["FINAL_REVIEW", "APPROVED"])
+    .not("youtube_video_id", "is", null)
+    .limit(5);
+  for (const v of stranded ?? []) {
+    await db
+      .from("videos")
+      .update({
+        status: "TRACKING",
+        published_at: new Date().toISOString(),
+        publish_requested: false,
+      })
+      .eq("id", v.id);
+    console.log(`🩹 ${v.title}: healed stranded publish → TRACKING`);
+  }
+
   const { data: pending } = await db
     .from("videos")
     .select("id, title, kind, project_id, source_segment, publish_privacy")

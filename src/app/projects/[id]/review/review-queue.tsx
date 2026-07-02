@@ -351,6 +351,7 @@ function AssetsBody({
   projectId: string;
   onError: (e?: string) => void;
 }) {
+  const router = useRouter();
   const [rerolling, setRerolling] = useState<number | null>(null);
   const [libraryBeat, setLibraryBeat] = useState<number | null>(null);
   const [note, setNote] = useState("");
@@ -473,6 +474,7 @@ function AssetsBody({
                   );
                   setBusyBeat(null);
                   if (!r.ok) onError(r.error);
+                  else router.refresh(); // repaint even when Realtime is unavailable
                 });
               }}
               className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white"
@@ -503,6 +505,7 @@ function AssetsBody({
                       t.id,
                     );
                     if (!r.ok) onError(r.error);
+                    else router.refresh(); // repaint even when Realtime is unavailable
                   })
                 }
                 className={cn(

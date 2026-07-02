@@ -26,7 +26,7 @@ import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highligh
 import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
 import { editorialGuard } from "@/lib/adapters/guardrails";
-import { getQualityGateConfig, failClosedBlocksSpend, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
+import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import {
   buildScriptLexicon,
@@ -2662,9 +2662,7 @@ export async function finalizeAutoPilotVideos(
       // video hasn't converged ('done') or been held, let the loop fix it
       // first rather than publishing a pre-fix cut. (The sweep runs before this
       // in the same cron pass; this guards the rare over-the-limit race.)
-      const loopOn =
-        (video.autofix_enabled ?? project.autofix_enabled ?? false) &&
-        (project.autofix_loop ?? "off") !== "off";
+      const loopOn = isAutofixEnabled(project, video);
       const afStatus = (video.autofix_state as { status?: string } | null)?.status;
       if (loopOn && afStatus !== "done" && afStatus !== "held") continue;
       const { floor, pub } = await runThresholds(db, row.build_run_id);

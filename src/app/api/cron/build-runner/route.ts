@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { requireCronAuth } from "@/lib/cron-auth";
 import {
   finalizeAutoPilotVideos,
   processPendingBuildVideos,
@@ -27,15 +28,8 @@ export const maxDuration = 300;
  * when unset (local/mock).
  */
 async function handle(request: NextRequest) {
-  const secret = process.env.CRON_SECRET?.trim();
-  if (secret) {
-    const auth = request.headers.get("authorization");
-    const fromHeader = auth?.replace(/^Bearer\s+/i, "").trim();
-    const fromQuery = request.nextUrl.searchParams.get("key")?.trim();
-    if (fromHeader !== secret && fromQuery !== secret) {
-      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
-    }
-  }
+  const denied = requireCronAuth(request);
+  if (denied) return denied;
   try {
     // Cheap passes first (release due slots, finalize rendered cuts, heal any
     // render-stranded videos), then the heavy generation step under a wall-clock

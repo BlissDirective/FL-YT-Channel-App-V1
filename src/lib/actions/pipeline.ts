@@ -741,13 +741,18 @@ export async function saveTemplateAction(
   });
 }
 
-export async function setKillSwitchAction(enabled: boolean): Promise<void> {
+export async function setKillSwitchAction(
+  enabled: boolean,
+): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("app_settings")
     .upsert({ key: "kill_switch", value: { enabled } });
   revalidatePath("/settings");
   revalidatePath("/");
+  // A safety control must never fail silently — the client reverts and
+  // surfaces this instead of showing a flipped switch that didn't stick.
+  return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 export async function savePushSubscriptionAction(subscription: {

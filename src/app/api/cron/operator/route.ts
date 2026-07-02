@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { requireCronAuth } from "@/lib/cron-auth";
 import { sweepOperator } from "@/lib/pipeline/operator";
 
 export const dynamic = "force-dynamic";
@@ -12,15 +13,8 @@ export const maxDuration = 300;
  * Gated by CRON_SECRET when set.
  */
 async function handle(request: NextRequest) {
-  const secret = process.env.CRON_SECRET?.trim();
-  if (secret) {
-    const auth = request.headers.get("authorization");
-    const fromHeader = auth?.replace(/^Bearer\s+/i, "").trim();
-    const fromQuery = request.nextUrl.searchParams.get("key")?.trim();
-    if (fromHeader !== secret && fromQuery !== secret) {
-      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
-    }
-  }
+  const denied = requireCronAuth(request);
+  if (denied) return denied;
   try {
     const r = await sweepOperator();
     return NextResponse.json({ ok: true, ...r });

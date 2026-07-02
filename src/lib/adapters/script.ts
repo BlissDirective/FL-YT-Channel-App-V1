@@ -306,7 +306,7 @@ export async function generateScript(opts: {
       beats: draft.beats,
       runtimeSec: draft.runtimeSec,
       metadata: draft.metadata as ScriptDraft["metadata"],
-      costUsd: 0.18,
+      costUsd: 0, // mock spends nothing — never inflate the ledger
       provider: "mock",
     };
   }

@@ -79,11 +79,6 @@ export async function getVoices(): Promise<Voice[]> {
   return voices.length > 0 ? voices : MOCK_VOICES;
 }
 
-/** Kept for compatibility with earlier call sites. */
-export async function getMockVoices(): Promise<Voice[]> {
-  return getVoices();
-}
-
 async function elevenLabsVoices(): Promise<Voice[]> {
   const res = await fetch("https://api.elevenlabs.io/v1/voices", {
     headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY! },

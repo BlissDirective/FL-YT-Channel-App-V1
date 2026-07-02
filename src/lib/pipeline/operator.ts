@@ -5,7 +5,7 @@ import { reviewGate, isQcLive } from "@/lib/adapters/qc";
 import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest, sendTelegram } from "@/lib/adapters/telegram";
 import { editorialGuard, gateIdea, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
 import { planMonthlyCalendar } from "@/lib/adapters/calendar";
-import { getQualityGateConfig, failClosedBlocksSpend } from "@/lib/pipeline/quality-gates";
+import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled } from "@/lib/pipeline/quality-gates";
 import {
   analyticsConfigured,
   getChannelSummary,
@@ -728,9 +728,7 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
     if (rev.decided || rev.hold) continue; // decided, or already held for review
     // Wait for the auto-fix loop to FULLY converge (done/held) before deciding —
     // otherwise the operator holds/approves a video the loop is still improving.
-    const loopOn =
-      (video.autofix_enabled ?? project.autofix_enabled ?? false) &&
-      (project.autofix_loop ?? "off") !== "off";
+    const loopOn = isAutofixEnabled(project, video);
     const afStatus = (video.autofix_state as { status?: string } | null)?.status;
     if (loopOn && afStatus !== "done" && afStatus !== "held") continue;
     const qc = await finalQc(db, video, project);

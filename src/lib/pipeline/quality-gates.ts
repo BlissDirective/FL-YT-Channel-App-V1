@@ -52,3 +52,18 @@ export async function getQualityGateConfig(db?: Db): Promise<QualityGateConfig> 
 export function failClosedBlocksSpend(_cfg: QualityGateConfig): boolean {
   return isFalLive() && !isQcLive();
 }
+
+/**
+ * Single source of truth for whether the auto-fix loop runs for a video
+ * (Tier 9.1 semantics: ON by default, an explicit `false` opts out; the
+ * per-video flag overrides the project default). The sweep, the build-runner
+ * finalizer, and the operator approval pass must all agree on this — a
+ * finalizer that thinks the loop is off will publish a cut the sweep is
+ * still fixing.
+ */
+export function isAutofixEnabled(
+  project: { autofix_enabled?: boolean | null },
+  video: { autofix_enabled?: boolean | null },
+): boolean {
+  return video.autofix_enabled ?? project.autofix_enabled ?? true;
+}
