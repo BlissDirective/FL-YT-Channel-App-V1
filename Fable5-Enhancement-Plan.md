@@ -3,6 +3,14 @@
 **Audit date:** 2026-07-02 · **Scope:** full repo (`main` @ `f569adf`), live deployment
 (faceless-studio-app.vercel.app), Vercel runtime logs, CI workflows.
 
+> **Build status (2026-07-02):** Phases 1–8 below are now IMPLEMENTED on main
+> (see the `phase N:` commits). Migrations 0032–0034 apply on this push via
+> the DB Migrate workflow. Remaining deliberate deferrals: authenticated CI
+> e2e (needs a test Supabase project + secrets), and the full
+> finalizer/operator settle merge (the shared pieces — autofix enablement,
+> privacy mapping, thresholds — are extracted; the two owners intentionally
+> keep their distinct approval flows).
+
 This document is the complete findings + phase-by-phase build plan from the Fable 5
 audit. Small, safe fixes were applied directly on this branch (§0); everything
 else is planned below, ordered so each phase protects the phases after it.
