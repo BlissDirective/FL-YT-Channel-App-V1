@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { TOOLS, callTool } from "@/lib/mcp/tools";
+import { TOOLS, callTool, toolMutates, type McpScope } from "@/lib/mcp/tools";
+import { secureEquals } from "@/lib/secure-compare";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -26,7 +27,7 @@ function rpcError(id: RpcRequest["id"], code: number, message: string) {
   return { jsonrpc: "2.0", id, error: { code, message } };
 }
 
-async function dispatch(msg: RpcRequest): Promise<object | null> {
+async function dispatch(msg: RpcRequest, scope: McpScope): Promise<object | null> {
   switch (msg.method) {
     case "initialize":
       return result(msg.id, {
@@ -42,7 +43,8 @@ async function dispatch(msg: RpcRequest): Promise<object | null> {
       return result(msg.id, {});
     case "tools/list":
       return result(msg.id, {
-        tools: TOOLS.map((t) => ({
+        // Read-scope clients only see (and can only call) inspection tools.
+        tools: TOOLS.filter((t) => scope === "control" || !toolMutates(t.name)).map((t) => ({
           name: t.name,
           description: t.description,
           inputSchema: t.inputSchema,
@@ -52,7 +54,7 @@ async function dispatch(msg: RpcRequest): Promise<object | null> {
       const name = String(msg.params?.name ?? "");
       const args = (msg.params?.arguments ?? {}) as Record<string, unknown>;
       try {
-        const out = await callTool(name, args);
+        const out = await callTool(name, args, scope);
         return result(msg.id, {
           content: [{ type: "text", text: JSON.stringify(out, null, 2) }],
         });
@@ -68,11 +70,16 @@ async function dispatch(msg: RpcRequest): Promise<object | null> {
   }
 }
 
-function authorized(request: NextRequest): boolean {
-  const token = process.env.STUDIO_MCP_TOKEN?.trim();
-  if (!token) return false; // closed unless explicitly configured
+/** Resolve the caller's scope from the bearer token (constant-time compares).
+    STUDIO_MCP_TOKEN → full control; STUDIO_MCP_READ_TOKEN → read-only. */
+function authorized(request: NextRequest): McpScope | null {
+  const control = process.env.STUDIO_MCP_TOKEN?.trim();
+  if (!control) return null; // closed unless explicitly configured
   const header = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
-  return header === token;
+  if (secureEquals(header, control)) return "control";
+  const read = process.env.STUDIO_MCP_READ_TOKEN?.trim();
+  if (read && secureEquals(header, read)) return "read";
+  return null;
 }
 
 export async function POST(request: NextRequest) {
@@ -82,7 +89,8 @@ export async function POST(request: NextRequest) {
       { status: 503 },
     );
   }
-  if (!authorized(request)) {
+  const scope = authorized(request);
+  if (!scope) {
     return NextResponse.json(rpcError(null, -32001, "Unauthorized"), { status: 401 });
   }
 
@@ -95,10 +103,10 @@ export async function POST(request: NextRequest) {
 
   // Single message or JSON-RPC batch.
   if (Array.isArray(body)) {
-    const responses = (await Promise.all(body.map((m) => dispatch(m as RpcRequest)))).filter(Boolean);
+    const responses = (await Promise.all(body.map((m) => dispatch(m as RpcRequest, scope)))).filter(Boolean);
     return responses.length > 0 ? NextResponse.json(responses) : new NextResponse(null, { status: 202 });
   }
-  const res = await dispatch(body as RpcRequest);
+  const res = await dispatch(body as RpcRequest, scope);
   return res ? NextResponse.json(res) : new NextResponse(null, { status: 202 });
 }
 

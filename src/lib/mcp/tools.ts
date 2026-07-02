@@ -346,9 +346,50 @@ export const TOOLS: Tool[] = [
   },
 ];
 
-export async function callTool(name: string, args: Record<string, unknown>): Promise<unknown> {
+/** Token scope: `control` (STUDIO_MCP_TOKEN) may call everything; `read`
+    (STUDIO_MCP_READ_TOKEN) is limited to inspection tools. One leaked
+    read token must not equal silent control of publishing and spend. */
+export type McpScope = "read" | "control";
+
+const MUTATING_TOOLS = new Set([
+  "approve_gate",
+  "request_revision",
+  "queue_idea",
+  "update_project",
+  "run_intelligence_now",
+  "propose_template_update",
+  "full_auto_generate",
+  "retry_clips",
+]);
+
+export function toolMutates(name: string): boolean {
+  return MUTATING_TOOLS.has(name);
+}
+
+export async function callTool(
+  name: string,
+  args: Record<string, unknown>,
+  scope: McpScope = "control",
+): Promise<unknown> {
   const tool = TOOLS.find((t) => t.name === name);
   if (!tool) throw new Error(`Unknown tool: ${name}`);
+  if (scope === "read" && toolMutates(name)) {
+    throw new Error(`Tool ${name} requires the control token (read-only scope).`);
+  }
   const db = createAdminClient();
-  return tool.handler(args ?? {}, db);
+  const out = await tool.handler(args ?? {}, db);
+  if (toolMutates(name)) {
+    // Best-effort audit trail of every remote mutation — who (token scope),
+    // what, and with which arguments. Never fails the call itself.
+    try {
+      await db.from("audit_log").insert({
+        actor: `mcp:${scope}`,
+        action: name,
+        payload: args ?? {},
+      });
+    } catch (err) {
+      console.error("mcp audit log failed:", err);
+    }
+  }
+  return out;
 }

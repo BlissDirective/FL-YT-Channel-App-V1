@@ -6,6 +6,7 @@ import {
   sendTelegram,
   telegramWebhookSecret,
 } from "@/lib/adapters/telegram";
+import { secureEquals } from "@/lib/secure-compare";
 import {
   approveOperatorVideo,
   skipOperatorVideo,
@@ -31,7 +32,7 @@ export const maxDuration = 60;
 function authorized(request: NextRequest): boolean {
   const secret = telegramWebhookSecret();
   if (!secret) return false;
-  return request.headers.get("x-telegram-bot-api-secret-token") === secret;
+  return secureEquals(request.headers.get("x-telegram-bot-api-secret-token"), secret);
 }
 
 const ownChat = (id: unknown) => String(id) === (process.env.TELEGRAM_CHAT_ID?.trim() || "");

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { telegramWebhookSecret } from "@/lib/adapters/telegram";
+import { secureEquals } from "@/lib/secure-compare";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -9,13 +10,13 @@ export const runtime = "nodejs";
  * app's /api/telegram/webhook with the secret token, so inline Approve/Skip and
  * the /status, /pause, /resume commands reach us. Gated by CRON_SECRET. Hit it
  * once after deploy:
- *   curl -X POST "https://<app>/api/telegram/register?key=$CRON_SECRET"
+ *   curl -X POST "https://<app>/api/telegram/register" \
+ *     -H "Authorization: Bearer $CRON_SECRET"
  */
 async function handle(request: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();
   const fromHeader = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
-  const fromQuery = request.nextUrl.searchParams.get("key")?.trim();
-  if (!secret || (fromHeader !== secret && fromQuery !== secret)) {
+  if (!secret || !secureEquals(fromHeader, secret)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();

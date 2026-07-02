@@ -16,10 +16,16 @@ export function isTelegramLive(): boolean {
   return Boolean(TOKEN() && CHAT_ID());
 }
 
-/** The webhook secret Telegram echoes back in a header — reuse CRON_SECRET so we
-    don't add another secret. */
+/** The webhook secret Telegram echoes back in a header. Prefers its own
+    TELEGRAM_WEBHOOK_SECRET so rotating CRON_SECRET doesn't silently break the
+    webhook; falls back to CRON_SECRET for existing deployments (re-run
+    /api/telegram/register after switching to the dedicated secret). */
 export function telegramWebhookSecret(): string {
-  return process.env.CRON_SECRET?.trim() || "";
+  return (
+    process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ||
+    process.env.CRON_SECRET?.trim() ||
+    ""
+  );
 }
 
 type InlineButton = { text: string; callback_data?: string; url?: string };

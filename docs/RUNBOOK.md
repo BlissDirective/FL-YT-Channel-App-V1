@@ -39,7 +39,10 @@ and/or directly in Vercel → Settings → Environment Variables. See
 | `PEXELS_API_KEY` | 5 | Stock footage |
 | `YOUTUBE_API_KEY` (or `YOUTUBE_DATA_API_V3`) | 7 | Stats + niche research |
 | `CRON_SECRET` | 7 | Bearer auth for `/api/cron/*` |
-| `STUDIO_MCP_TOKEN` | 9 | Bearer auth for `/api/mcp` |
+| `STUDIO_MCP_TOKEN` | 9 | Bearer auth for `/api/mcp` (full control) |
+| `STUDIO_MCP_READ_TOKEN` | 9 | Optional read-only `/api/mcp` token (inspection tools only) |
+| `TELEGRAM_WEBHOOK_SECRET` | 8 | Dedicated Telegram webhook secret (falls back to `CRON_SECRET`; re-run `/api/telegram/register` after setting) |
+| `SENTRY_DSN` | 9 | Enables production error reporting (SDK-less; no-op when unset) |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | 3 | Web-push gate notifications |
 
 Generate shared secrets with `openssl rand -hex 32`. After adding a secret,
