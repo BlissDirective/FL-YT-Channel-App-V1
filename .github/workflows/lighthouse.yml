@@ -1,12 +1,14 @@
 name: Lighthouse
 
 # Lighthouse quality audit (performance, a11y, best-practices, SEO) of the
-# public dashboard surface. Runs on merges to main (heavy development) plus a
-# weekly check and on demand. Self-contained: builds and starts the app, so
-# it never races a deploy. Assertions are "warn" — it reports, doesn't block.
+# public dashboard surface. Runs on PRs and merges to main plus a weekly
+# check and on demand. Self-contained: builds and starts the app, so it
+# never races a deploy. Accessibility/best-practices assert as hard errors
+# on the stable pages; performance/SEO stay warn until scores stabilize.
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: "0 10 * * 1" # Mondays 10:00 UTC

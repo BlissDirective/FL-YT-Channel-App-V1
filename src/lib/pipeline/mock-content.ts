@@ -77,16 +77,14 @@ export const DEMO_TOPICS = [
   { title: "What $100 Invested Monthly Becomes", topic: "long-horizon index investing", format: "case_study" },
 ];
 
-/** Mock provider price book (USD) — realistic Phase 4–6 unit costs so the
-    cost ledger and budget caps behave like production. */
+/** Mock provider price book. All $0 (Phase 7): mock mode spends nothing, so
+    nothing may hit the cost ledger — recordCost skips zero-amounts, keeping
+    demo installs' spend meters honest. (Unused entries removed.) */
 export const MOCK_COSTS = {
-  scriptGeneration: { provider: "anthropic", usd: 0.14, description: "Script draft (Claude)" },
-  metadataPackage: { provider: "anthropic", usd: 0.04, description: "Titles, description, tags" },
-  voiceover: { provider: "elevenlabs", usd: 0.3, description: "Voiceover synthesis + timestamps" },
-  clip: { provider: "fal.ai", usd: 0.35, description: "Generated clip" },
+  voiceover: { provider: "mock", usd: 0, description: "Voiceover synthesis (mock)" },
+  clip: { provider: "mock", usd: 0, description: "Generated clip (mock)" },
   stockClip: { provider: "pexels", usd: 0, description: "Licensed stock clip" },
-  thumbnail: { provider: "fal.ai", usd: 0.08, description: "Thumbnail candidate" },
-  render: { provider: "trigger.dev", usd: 0.12, description: "Remotion render compute" },
+  render: { provider: "mock", usd: 0, description: "Render compute (mock)" },
 } as const;
 
 function hashCode(s: string): number {

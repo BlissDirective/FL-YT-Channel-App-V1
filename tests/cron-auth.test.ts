@@ -1,13 +1,12 @@
 /**
- * requireCronAuth — bearer/key auth for /api/cron/*.
- *
- * Note: the plan mentions a `src/lib/secure-compare.ts` (secureEquals), but that
- * module does not exist in this branch; requireCronAuth uses plain trimmed
- * string equality. These tests pin the actual fail-open/fail-closed matrix.
+ * requireCronAuth — bearer auth for /api/cron/* (header only since Phase 1;
+ * query params land in access logs), constant-time via secureEquals.
+ * These tests pin the fail-open/fail-closed matrix.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { NextRequest } from "next/server";
 import { requireCronAuth } from "@/lib/cron-auth";
+import { secureEquals } from "@/lib/secure-compare";
 
 function fakeRequest(opts: { authorization?: string; url?: string } = {}): NextRequest {
   const headers = new Headers();
@@ -52,11 +51,9 @@ describe("requireCronAuth with CRON_SECRET set", () => {
     expect(requireCronAuth(fakeRequest())?.status).toBe(401);
   });
 
-  it("accepts the secret via ?key= for manual pings", () => {
+  it("rejects the secret via ?key= — bearer header only (Phase 1)", () => {
     const req = fakeRequest({ url: "https://app.test/api/cron/build-runner?key=s3cret" });
-    expect(requireCronAuth(req)).toBeNull();
-    const wrong = fakeRequest({ url: "https://app.test/api/cron/build-runner?key=bad" });
-    expect(requireCronAuth(wrong)?.status).toBe(401);
+    expect(requireCronAuth(req)?.status).toBe(401);
   });
 
   it("trims both sides (secrets pasted with trailing newlines still match)", () => {
@@ -88,5 +85,20 @@ describe("requireCronAuth with CRON_SECRET unset", () => {
 
   it("runs freely locally (no VERCEL env) so the mock stack needs zero config", () => {
     expect(requireCronAuth(fakeRequest())).toBeNull();
+  });
+});
+
+describe("secureEquals", () => {
+  it("matches equal strings and rejects different ones", () => {
+    expect(secureEquals("abc", "abc")).toBe(true);
+    expect(secureEquals("abc", "abd")).toBe(false);
+    expect(secureEquals("abc", "abcd")).toBe(false); // length differences too
+  });
+
+  it("never matches null/undefined/empty inputs", () => {
+    expect(secureEquals(null, "x")).toBe(false);
+    expect(secureEquals("x", undefined)).toBe(false);
+    expect(secureEquals("", "")).toBe(false);
+    expect(secureEquals(null, null)).toBe(false);
   });
 });

@@ -93,7 +93,12 @@ export const RemotionRoot: React.FC = () => (
         } satisfies ThumbnailProps
       }
     />
-    {/* Dev-only: eyeball all 8 highlight presets at once. */}
+    {/* Dev-only compositions (Phase 7): registered only when
+        RENDER_DEV_COMPS=1 — the farm never selects them, and skipping
+        registration keeps the production bundle/registry lean. Run
+        `RENDER_DEV_COMPS=1 pnpm studio` to eyeball them. */}
+    {process.env.RENDER_DEV_COMPS === "1" && (
+      <>
     <Composition
       id="HighlightPreview"
       component={HighlightPreview}
@@ -156,5 +161,7 @@ export const RemotionRoot: React.FC = () => (
       durationInFrames={Math.round(verticalShortDurationSec(STICK_SAMPLE) * FPS)}
       defaultProps={{}}
     />
+      </>
+    )}
   </>
 );

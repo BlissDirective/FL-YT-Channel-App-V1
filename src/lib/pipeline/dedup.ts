@@ -17,16 +17,20 @@ export const DEDUP_THRESHOLD = 0.6;
 const STOPWORDS = new Set([
   "the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "with", "your",
   "you", "is", "are", "this", "that", "how", "why", "what", "best", "top",
+  "be", "it", "as", "at", "from", "about", "into", "these", "those", "my", "we", "i",
 ]);
 
+/** Shared keyword tokenizer (one stopword list for dedup + playbook ranking). */
+export function keywords(text: string, minLen = 2): string[] {
+  return (text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]+/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= minLen && !STOPWORDS.has(w));
+}
+
 function tokenSet(s: string): Set<string> {
-  return new Set(
-    s
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]+/g, " ")
-      .split(/\s+/)
-      .filter((t) => t.length > 1 && !STOPWORDS.has(t)),
-  );
+  return new Set(keywords(s));
 }
 
 function trigramSet(s: string): Set<string> {

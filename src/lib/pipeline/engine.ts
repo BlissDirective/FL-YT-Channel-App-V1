@@ -29,6 +29,7 @@ import { editorialGuard } from "@/lib/adapters/guardrails";
 import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
 import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
+import { keywords } from "@/lib/pipeline/dedup";
 import { providerOutage } from "@/lib/pipeline/provider-health";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import {
@@ -567,13 +568,7 @@ async function mapLimit<T, R>(
 }
 
 async function runAssetGeneration(db: Db, video: Video, project: Project) {
-  const { data: script } = await db
-    .from("scripts")
-    .select("beats, metadata")
-    .eq("video_id", video.id)
-    .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const script = await loadLatestScript(db, video.id);
   const beats = (script?.beats ?? []) as ScriptBeat[];
   const scriptMeta = (script?.metadata ?? {}) as { thumbPhrase?: string };
   const stick = project.visual_style === "stick";
@@ -1453,13 +1448,7 @@ export async function rerollBeatVisual(opts: {
   const project = await getProject(db, video.project_id);
   if (!project) return { ok: false, error: "Project not found" };
 
-  const { data: script } = await db
-    .from("scripts")
-    .select("beats")
-    .eq("video_id", video.id)
-    .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const script = await loadLatestScript(db, video.id);
   const beat = ((script?.beats ?? []) as ScriptBeat[]).find(
     (b) => b.idx === opts.beatIdx,
   );
@@ -2207,19 +2196,8 @@ export type ChannelPlaybook = {
   note: string;
 };
 
-const STOPWORDS = new Set(
-  "the a an and or of to in for on with how why what your you i my we is are be this that these those it as at from your about into".split(
-    " ",
-  ),
-);
-
-function keywordsOf(text: string): string[] {
-  return (text || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((w) => w.length > 3 && !STOPWORDS.has(w));
-}
+// One tokenizer for playbook ranking + dedup (Phase 7): dedup.ts's keywords().
+const keywordsOf = (text: string): string[] => keywords(text, 4);
 
 /** Build a small per-project "playbook" from published performance. Below the
     cold-start threshold it returns coldStart=true so callers fall back to
@@ -3149,13 +3127,7 @@ export async function generateBeatVideo(opts: {
   const projGuard = await checkBudget(db, project, video, est);
   if (!projGuard.ok) return { ok: false, error: projGuard.reason };
 
-  const { data: script } = await db
-    .from("scripts")
-    .select("beats")
-    .eq("video_id", video.id)
-    .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const script = await loadLatestScript(db, video.id);
   const beat = ((script?.beats ?? []) as ScriptBeat[]).find((b) => b.idx === opts.beatIdx);
   if (!beat) return { ok: false, error: "Beat not found" };
 
@@ -3392,13 +3364,7 @@ export async function editScriptBeat(opts: {
   const project = await getProject(db, video.project_id);
   if (!project) return { ok: false, error: "Project not found" };
 
-  const { data: script } = await db
-    .from("scripts")
-    .select("*")
-    .eq("video_id", video.id)
-    .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const script = await loadLatestScript(db, video.id);
   if (!script) return { ok: false, error: "No script to edit" };
 
   const beats = (script.beats as ScriptBeat[]).map((b) =>
@@ -3624,13 +3590,7 @@ export async function editVideoMetadata(opts: {
   const video = await getVideo(db, opts.videoId);
   if (!video) return { ok: false, error: "Video not found" };
 
-  const { data: script } = await db
-    .from("scripts")
-    .select("*")
-    .eq("video_id", video.id)
-    .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const script = await loadLatestScript(db, video.id);
   if (!script) return { ok: false, error: "No script yet" };
 
   const metadata = {
@@ -3699,13 +3659,7 @@ export async function curateHighlightsForVideo(opts: {
   const project = await getProject(db, video.project_id);
   if (!project) return { ok: false, error: "Project not found" };
 
-  const { data: script } = await db
-    .from("scripts")
-    .select("beats")
-    .eq("video_id", video.id)
-    .order("version", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const script = await loadLatestScript(db, video.id);
   const beats = (script?.beats as ScriptBeat[] | undefined) ?? [];
   if (beats.length === 0) return { ok: false, error: "No script to curate yet" };
 

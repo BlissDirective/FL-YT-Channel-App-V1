@@ -1,7 +1,7 @@
 /**
  * Credential health — reports which provider env vars are present so the
  * Settings page can show 🟢/🔴 per service without exposing values.
- * Phase 4+ will add live "test" pings; presence is the Phase 1 signal.
+ * Live "test" pings live in credential-test.ts; presence is the cheap signal here.
  */
 
 export type ServiceHealth = {
