@@ -31,7 +31,13 @@ export type SynthesisResult = {
 };
 
 const TTS_MODEL = "eleven_turbo_v2_5"; // 0.5 credits/char — half the default rate
-const ELEVENLABS_USD_PER_1K_CHARS = 0.167;
+// Ledger estimate per 1k characters. Plan-dependent (and turbo bills half
+// credits/char), so it's env-tunable: set ELEVENLABS_USD_PER_1K_CHARS to your
+// effective rate (Creator plan turbo ≈ 0.09; default keeps the conservative
+// full-rate estimate so budgets err on the safe side).
+const ELEVENLABS_USD_PER_1K_CHARS = Number(process.env.ELEVENLABS_USD_PER_1K_CHARS) > 0
+  ? Number(process.env.ELEVENLABS_USD_PER_1K_CHARS)
+  : 0.167;
 
 const MOCK_VOICES: Voice[] = [
   { id: "mock-aria", name: "Aria", description: "Warm, conversational female — explainer-friendly", provider: "mock" },

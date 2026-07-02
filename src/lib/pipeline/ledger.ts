@@ -1,0 +1,107 @@
+import "server-only";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { Project, Video } from "@/lib/db/types";
+
+/**
+ * The one spend module (Enhancement Plan Phase 2). Every paid provider call
+ * routes its ledger write through `recordCost`, and every spender checks
+ * `checkBudget` (ideally with the amount it is about to spend) BEFORE the
+ * call. Previously three near-identical recordCost implementations and three
+ * unreconciled budget meters lived in engine/operator/autofix.
+ */
+
+type Db = ReturnType<typeof createAdminClient>;
+
+export type SpendCheck = { ok: true } | { ok: false; reason: string };
+
+export type LedgerEntry = {
+  provider: string;
+  usd: number;
+  description: string;
+};
+
+/**
+ * Insert a ledger row and bump the video's running total (kept in the passed
+ * object too, so mid-stage budget checks see intra-stage spend without a
+ * re-fetch). No-op for zero/negative amounts.
+ */
+export async function recordCost(
+  db: Db,
+  video: Pick<Video, "id" | "project_id" | "total_cost_usd"> & { total_cost_usd: number | string },
+  cost: LedgerEntry,
+  detail?: string,
+): Promise<void> {
+  if (cost.usd <= 0) return;
+  await db.from("cost_ledger").insert({
+    project_id: video.project_id,
+    video_id: video.id,
+    provider: cost.provider,
+    description: detail ? `${cost.description} — ${detail}` : cost.description,
+    usd: cost.usd,
+  });
+  const next = Number(video.total_cost_usd) + cost.usd;
+  await db.from("videos").update({ total_cost_usd: next }).eq("id", video.id);
+  video.total_cost_usd = next;
+}
+
+/** Month-to-date ledger spend for a project. */
+export async function monthSpend(db: Db, projectId: string): Promise<number> {
+  const monthStart = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1,
+  ).toISOString();
+  const { data } = await db
+    .from("cost_ledger")
+    .select("usd")
+    .eq("project_id", projectId)
+    .gte("at", monthStart);
+  return (data ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
+}
+
+/**
+ * The budget gate. `aboutToSpendUsd` lets call sites reserve the estimated
+ * cost of the upcoming call instead of only noticing an overrun after the
+ * money is gone. Checks the per-video cap (using the in-memory running total
+ * `recordCost` maintains) and the project's monthly cap.
+ */
+export async function checkBudget(
+  db: Db,
+  project: Pick<Project, "id" | "budget">,
+  video: Pick<Video, "total_cost_usd">,
+  aboutToSpendUsd = 0,
+): Promise<SpendCheck> {
+  const perVideo = Number(project.budget?.perVideoUsd ?? Infinity);
+  if (Number(video.total_cost_usd) + aboutToSpendUsd > perVideo) {
+    return { ok: false, reason: `Per-video budget reached ($${perVideo})` };
+  }
+  const monthly = Number(project.budget?.monthlyUsd ?? Infinity);
+  if ((await monthSpend(db, project.id)) + aboutToSpendUsd > monthly) {
+    return { ok: false, reason: `Monthly budget reached ($${monthly})` };
+  }
+  return { ok: true };
+}
+
+/**
+ * Nightly reconciliation: `videos.total_cost_usd` is a running counter bumped
+ * on every recordCost; drift (crashed processes, manual edits) makes budget
+ * guards lie. Recomputes each active video's total from the ledger and
+ * repairs rows that differ by more than a cent. Returns repaired count.
+ */
+export async function reconcileLedger(db: Db, limit = 200): Promise<{ repaired: number }> {
+  const { data: videos } = await db
+    .from("videos")
+    .select("id, total_cost_usd")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  let repaired = 0;
+  for (const v of videos ?? []) {
+    const { data: rows } = await db.from("cost_ledger").select("usd").eq("video_id", v.id);
+    const truth = (rows ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
+    if (Math.abs(truth - Number(v.total_cost_usd)) > 0.01) {
+      await db.from("videos").update({ total_cost_usd: truth }).eq("id", v.id);
+      repaired += 1;
+    }
+  }
+  return { repaired };
+}

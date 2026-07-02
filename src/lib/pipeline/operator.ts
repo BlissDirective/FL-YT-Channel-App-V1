@@ -6,6 +6,7 @@ import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest, sendTel
 import { editorialGuard, gateIdea, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
 import { planMonthlyCalendar } from "@/lib/adapters/calendar";
 import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled } from "@/lib/pipeline/quality-gates";
+import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import {
   analyticsConfigured,
   getChannelSummary,
@@ -615,15 +616,7 @@ async function logEvent(
 }
 
 async function recordCost(db: Db, video: Video, usd: number, description: string) {
-  if (usd <= 0) return;
-  await db.from("cost_ledger").insert({
-    project_id: video.project_id,
-    video_id: video.id,
-    provider: "anthropic",
-    description,
-    usd,
-  });
-  await db.from("videos").update({ total_cost_usd: Number(video.total_cost_usd) + usd }).eq("id", video.id);
+  await ledgerRecordCost(db, video, { provider: "anthropic", usd, description });
 }
 
 /** FINAL quality for the approval bar: prefer the auto-fix loop's vision score;
@@ -943,7 +936,7 @@ async function computeChannelStrategy(
       views90: summary?.views ?? 0,
       subsGained90: summary?.subscribersGained ?? 0,
       retentionPct: summary?.retentionPct ?? 0,
-      ctr: summary?.ctr ?? 0,
+      ctr: summary?.ctr ?? null,
       shortsViews90: fmt.short.views,
     },
     updatedAt: new Date().toISOString(),

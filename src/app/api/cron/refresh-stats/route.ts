@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireCronAuth } from "@/lib/cron-auth";
 import { refreshTrackedStats } from "@/lib/stats";
+import { reconcileLedger } from "@/lib/pipeline/ledger";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -18,7 +20,15 @@ async function handle(request: NextRequest) {
 
   try {
     const { refreshed } = await refreshTrackedStats();
-    return NextResponse.json({ ok: true, refreshed });
+    // Nightly ledger reconciliation (Phase 2): repair videos whose running
+    // total drifted from the cost_ledger truth so budget guards don't lie.
+    let repaired = 0;
+    try {
+      ({ repaired } = await reconcileLedger(createAdminClient()));
+    } catch (err) {
+      console.error("ledger reconciliation failed:", err);
+    }
+    return NextResponse.json({ ok: true, refreshed, ledgerRepaired: repaired });
   } catch (err) {
     console.error("cron refresh-stats failed:", err);
     return NextResponse.json(

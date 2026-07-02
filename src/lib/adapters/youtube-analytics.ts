@@ -78,7 +78,7 @@ export type ChannelSummary = {
   subscribersGained: number;
   subscribersLost: number;
   /** Click-through rate on impressions, 0–100 (0 if unavailable). */
-  ctr: number;
+  ctr: number | null;
 };
 
 /** Channel-level performance over the last `days` (default 90). */
@@ -93,10 +93,10 @@ export async function getChannelSummary(refreshToken: string | null, days = 90):
     }),
   );
   if (Object.keys(core).length === 0) return null;
-  // CTR (impression click-through) isn't reliably exposed by the public Analytics
-  // API; attempt the legacy metric, default 0 when unavailable.
-  const ctrR = rowMap(await report(token, { ...base, metrics: "annotationClickThroughRate" }));
-  const ctr = Number(ctrR.annotationClickThroughRate ?? 0);
+  // CTR (impression click-through) isn't exposed by the public Analytics API,
+  // and the legacy annotation metric is rejected — report null (unknown)
+  // rather than a fake 0 that downstream heuristics would trust.
+  const ctr = null;
   return {
     views: core.views ?? 0,
     watchMinutes: core.estimatedMinutesWatched ?? 0,

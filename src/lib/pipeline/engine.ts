@@ -27,6 +27,8 @@ import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
 import { editorialGuard } from "@/lib/adapters/guardrails";
 import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
+import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
+import { providerOutage } from "@/lib/pipeline/provider-health";
 import { canSynthesize, synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import {
   buildScriptLexicon,
@@ -34,7 +36,7 @@ import {
   toSpokenText,
   type Lexicon,
 } from "@/lib/adapters/pronunciation";
-import { generateImage, generateVideo, isFalLive } from "@/lib/adapters/fal";
+import { generateImage, generateVideo, isFalLive, FalVideoTimeoutError } from "@/lib/adapters/fal";
 import {
   clampDuration,
   estimateClipCost,
@@ -106,55 +108,20 @@ async function setStatus(db: Db, videoId: string, status: VideoStatus) {
   await db.from("videos").update({ status }).eq("id", videoId);
 }
 
-async function recordCost(
-  db: Db,
-  video: Video,
-  cost: { provider: string; usd: number; description: string },
-  detail?: string,
-) {
-  await db.from("cost_ledger").insert({
-    project_id: video.project_id,
-    video_id: video.id,
-    provider: cost.provider,
-    description: detail ? `${cost.description} — ${detail}` : cost.description,
-    usd: cost.usd,
-  });
-  await db
-    .from("videos")
-    .update({ total_cost_usd: Number(video.total_cost_usd) + cost.usd })
-    .eq("id", video.id);
-  video.total_cost_usd = Number(video.total_cost_usd) + cost.usd;
-}
-
-/** Month-to-date spend for a project. */
-async function monthSpend(db: Db, projectId: string): Promise<number> {
-  const monthStart = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    1,
-  ).toISOString();
-  const { data } = await db
-    .from("cost_ledger")
-    .select("usd")
-    .eq("project_id", projectId)
-    .gte("at", monthStart);
-  return (data ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
-}
-
 /** Budget guard — runs before every paid stage (standing rule 6). Returns
-    a pause reason when a cap would be exceeded, null when clear. */
+    a pause reason when a cap would be exceeded, null when clear. Thin wrapper
+    over the shared ledger checkBudget (Phase 2: one budget system). */
 async function budgetPause(
   db: Db,
   video: Video,
   project: Project,
 ): Promise<string | null> {
-  if (Number(video.total_cost_usd) >= project.budget.perVideoUsd) {
-    return `Per-video budget reached ($${project.budget.perVideoUsd})`;
+  const outage = await providerOutage(db, "fal");
+  if (outage.down && isFalLive()) {
+    return `fal is paused (${outage.reason.slice(0, 120)}) — fix the account, then Test in Settings`;
   }
-  if ((await monthSpend(db, project.id)) >= project.budget.monthlyUsd) {
-    return `Monthly budget reached ($${project.budget.monthlyUsd})`;
-  }
-  return null;
+  const check = await checkBudget(db, project, video);
+  return check.ok ? null : check.reason;
 }
 
 /** Gather what the QC agent needs to judge a gate arrival. */
@@ -672,6 +639,18 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   const clipBeats = stick
     ? beats
     : beats.filter((b) => !keepClipIdx.has(b.idx) && !chartByIdx.has(b.idx));
+
+  // Mid-stage budget reservation (Phase 2): estimate the batch about to fire
+  // (VO chars + per-beat stills) and block BEFORE spending — budgetPause only
+  // runs once per hop, and a long script can blow far past the cap within a
+  // single stage otherwise. Throwing pauses the video via the hop's catch.
+  const voChars = liveVoice ? beats.reduce((n, b) => n + b.text.length, 0) : 0;
+  const stageEstimate = (voChars / 1000) * 0.17 + (stick ? 0 : clipBeats.length * 0.03) + 0.05;
+  const stageBudget = await checkBudget(db, project, video, stageEstimate);
+  if (!stageBudget.ok) {
+    throw new Error(`${stageBudget.reason} — asset stage needs ~$${stageEstimate.toFixed(2)}`);
+  }
+
   const [voResults, clipResults] = await Promise.all([
     // VO is the only unguarded provider call here — cap concurrency so a long
     // script can't 429 ElevenLabs and reject the whole stage.
@@ -1431,6 +1410,9 @@ export async function rerollBeatVisual(opts: {
     (b) => b.idx === opts.beatIdx,
   );
   if (!beat) return { ok: false, error: "Beat not found" };
+
+  const guard = await checkBudget(db, project, video, 0.05);
+  if (!guard.ok) return { ok: false, error: guard.reason };
 
   const steered = opts.note?.trim()
     ? { ...beat, visualPrompt: `${beat.visualPrompt}. ${opts.note.trim()}` }
@@ -2995,6 +2977,10 @@ export async function retryClips(
     // Keep finished video clips and real (non-mock) stills/stock as-is.
     if ((cur?.meta as { isVideo?: boolean } | undefined)?.isVideo) continue;
     if (cur && !String(cur.provider).startsWith("mock")) continue;
+    // Per-beat budget re-check: recordCost keeps the running total current,
+    // so a long retry sweep stops the moment a cap is hit.
+    const guard = await checkBudget(db, project, video, 0.05);
+    if (!guard.ok) return { ok: false, error: guard.reason };
     const draft = await makeBeatClip(video, project, beat);
     await db
       .from("assets")
@@ -3082,6 +3068,9 @@ export async function generateBeatVideo(opts: {
       error: `Monthly video budget reached ($${VIDEO_MONTHLY_CAP_USD}). $${spent.toFixed(2)} used this month; this clip needs ~$${est.toFixed(2)}.`,
     };
   }
+  // Per-project caps too — the portfolio cap alone lets one channel eat the month.
+  const projGuard = await checkBudget(db, project, video, est);
+  if (!projGuard.ok) return { ok: false, error: projGuard.reason };
 
   const { data: script } = await db
     .from("scripts")
@@ -3111,7 +3100,22 @@ export async function generateBeatVideo(opts: {
   const imageUrl = isStill ? (await getSignedMediaUrl(still!.storage_path)) ?? undefined : undefined;
 
   const prompt = buildVisualPrompt(beat.visualPrompt, project.brand_kit.thumbnailStyle);
-  const out = await generateVideo({ model, prompt, imageUrl, durationSec: dur });
+  let out: Awaited<ReturnType<typeof generateVideo>>;
+  try {
+    out = await generateVideo({ model, prompt, imageUrl, durationSec: dur });
+  } catch (err) {
+    // A queue timeout still bills — the job keeps running server-side. Ledger
+    // the estimate so spend guards see it (Phase 2: no untracked spend).
+    if (err instanceof FalVideoTimeoutError) {
+      await recordCost(
+        db,
+        video,
+        { provider: VIDEO_PROVIDER, usd: err.estCostUsd, description: `AI video clip (${model.label}) — timed out; spend estimated, unverified` },
+        `beat ${opts.beatIdx + 1}`,
+      );
+    }
+    throw err;
+  }
 
   const path = `videos/${video.id}/beat-${opts.beatIdx}-video.mp4`;
   await uploadMedia(path, out.video, "video/mp4");

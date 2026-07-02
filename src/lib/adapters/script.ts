@@ -1,6 +1,7 @@
 import "server-only";
 import type { ScriptBeat } from "@/lib/db/types";
 import { mockScript } from "@/lib/pipeline/mock-content";
+import { anthropicPriceOf } from "./pricing";
 
 /**
  * Script provider adapter (Anthropic Claude). Live when ANTHROPIC_API_KEY
@@ -13,13 +14,7 @@ import { mockScript } from "@/lib/pipeline/mock-content";
  */
 
 const MODEL = process.env.SCRIPT_MODEL?.trim() || "claude-sonnet-4-6";
-// USD per million tokens (input, output) per model — for the cost ledger.
-const PRICING: Record<string, { in: number; out: number }> = {
-  "claude-opus-4-8": { in: 15, out: 75 },
-  "claude-sonnet-4-6": { in: 3, out: 15 },
-  "claude-haiku-4-5": { in: 1, out: 5 },
-};
-const PRICE = PRICING[MODEL] ?? { in: 3, out: 15 };
+const PRICE = anthropicPriceOf(MODEL);
 
 // Spoken narration rate (words/min) and the fixed intro+outro overhead the
 // render adds on top of the beats — both used to turn a target runtime into a
@@ -224,7 +219,7 @@ async function generateOutline(opts: {
   floor: number;
 }): Promise<{ hook: string; beats: string[]; costUsd: number } | null> {
   if (!isScriptLive()) return null;
-  const price = PRICING[OUTLINE_MODEL] ?? { in: 1, out: 5 };
+  const price = anthropicPriceOf(OUTLINE_MODEL);
   let costUsd = 0;
   const system =
     `You are a YouTube content strategist. Plan a tight ${opts.beatCount}-beat outline for ONE video in a ${opts.tone} tone. ` +

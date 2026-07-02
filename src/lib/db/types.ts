@@ -344,7 +344,7 @@ export type OperatorStrategy = {
     views90: number;
     subsGained90: number;
     retentionPct: number;
-    ctr: number;
+    ctr: number | null;
     /** Operator Shorts' views in the recent window (toward the 10M Shorts path). */
     shortsViews90?: number;
   };

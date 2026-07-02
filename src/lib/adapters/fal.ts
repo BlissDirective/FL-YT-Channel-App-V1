@@ -1,5 +1,10 @@
 import "server-only";
 import { encodeDuration, estimateClipCost, type VideoModel } from "./video-models";
+import {
+  isTerminalProviderError,
+  markProviderDown,
+  markProviderUp,
+} from "@/lib/pipeline/provider-health";
 
 /**
  * fal.ai adapter — Kokoro TTS (the low-cost "volume voice"), FLUX image
@@ -35,8 +40,17 @@ async function falRun<T>(model: string, input: Record<string, unknown>): Promise
       },
       body: JSON.stringify(input),
     });
-    if (res.ok) return (await res.json()) as T;
+    if (res.ok) {
+      await markProviderUp("fal");
+      return (await res.json()) as T;
+    }
     lastErr = `fal ${model} error ${res.status}: ${(await res.text()).slice(0, 200)}`;
+    // Terminal account conditions (exhausted balance, locked) — retrying every
+    // cron pass burns money and noise; trip the circuit breaker instead.
+    if (isTerminalProviderError(lastErr)) {
+      await markProviderDown("fal", lastErr);
+      throw new Error(lastErr);
+    }
     const transient = res.status === 429 || res.status >= 500;
     if (!transient || attempt === MAX_ATTEMPTS) throw new Error(lastErr);
     // 0.6s, 1.8s … with jitter so concurrent callers don't retry in lockstep.
@@ -145,14 +159,22 @@ export async function generateVideo(opts: {
     "content-type": "application/json",
   };
 
-  // Submit to the queue.
-  const submit = await fetch(`https://queue.fal.run/${endpoint}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(input),
-  });
-  if (!submit.ok) {
-    throw new Error(`fal ${endpoint} submit ${submit.status}: ${(await submit.text()).slice(0, 200)}`);
+  // Submit to the queue (with the same transient-retry policy as falRun —
+  // a 429/5xx on submit used to fail the whole clip immediately).
+  let submit: Response | null = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    submit = await fetch(`https://queue.fal.run/${endpoint}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(input),
+    });
+    if (submit.ok || (submit.status !== 429 && submit.status < 500) || attempt === 3) break;
+    await sleep(600 * Math.pow(3, attempt - 1) + Math.floor(Math.random() * 400));
+  }
+  if (!submit || !submit.ok) {
+    const msg = `fal ${endpoint} submit ${submit?.status}: ${((await submit?.text()) ?? "").slice(0, 200)}`;
+    if (isTerminalProviderError(msg)) await markProviderDown("fal", msg);
+    throw new Error(msg);
   }
   const queued = (await submit.json()) as {
     status_url?: string;
@@ -166,7 +188,9 @@ export async function generateVideo(opts: {
   const deadline = Date.now() + (opts.timeoutMs ?? 230_000);
   for (;;) {
     if (Date.now() > deadline) {
-      throw new Error("Video generation timed out — try a shorter clip or run it via the render worker.");
+      // The job was accepted and will bill regardless of our polling giving
+      // up — carry the estimate so callers can still ledger the spend.
+      throw new FalVideoTimeoutError(opts.model, estimateClipCost(opts.model, opts.durationSec));
     }
     await sleep(5000);
     const st = await fetch(queued.status_url, { headers, cache: "no-store" });
@@ -186,9 +210,22 @@ export async function generateVideo(opts: {
   const url = result.video?.url;
   if (!url) throw new Error("fal returned no video URL");
 
+  await markProviderUp("fal");
   return {
     video: await download(url),
     costUsd: estimateClipCost(opts.model, opts.durationSec),
     durationSec: opts.durationSec,
   };
+}
+
+/** Thrown when queue polling exceeds the deadline. The fal job itself keeps
+    running and bills — `estCostUsd` lets the caller ledger the spend. */
+export class FalVideoTimeoutError extends Error {
+  constructor(
+    public model: VideoModel,
+    public estCostUsd: number,
+  ) {
+    super("Video generation timed out — try a shorter clip or run it via the render worker.");
+    this.name = "FalVideoTimeoutError";
+  }
 }

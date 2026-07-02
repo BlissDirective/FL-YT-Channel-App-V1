@@ -1,6 +1,7 @@
 import "server-only";
 import type { Project } from "@/lib/db/types";
 import { findNearDuplicate } from "@/lib/pipeline/dedup";
+import { anthropicPriceOf } from "./pricing";
 
 /**
  * Auto Pilot Operator guardrails (Phase C). Two Claude-backed detectors that
@@ -24,12 +25,7 @@ import { findNearDuplicate } from "@/lib/pipeline/dedup";
 
 const PLAN_MODEL = process.env.SCRIPT_MODEL?.trim() || "claude-sonnet-4-6";
 const GUARD_MODEL = "claude-haiku-4-5"; // cheap, frequent
-const PRICING: Record<string, { in: number; out: number }> = {
-  "claude-opus-4-8": { in: 15, out: 75 },
-  "claude-sonnet-4-6": { in: 3, out: 15 },
-  "claude-haiku-4-5": { in: 1, out: 5 },
-};
-const priceOf = (m: string) => PRICING[m] ?? { in: 3, out: 15 };
+const priceOf = anthropicPriceOf;
 
 function isLive(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
@@ -226,7 +222,7 @@ export type IdeaPerformance = {
   topSubtopics?: string[];
   /** Recent channel retention % and CTR % (for context). */
   retentionPct?: number;
-  ctr?: number;
+  ctr?: number | null;
 };
 
 async function scoreIdea(opts: {

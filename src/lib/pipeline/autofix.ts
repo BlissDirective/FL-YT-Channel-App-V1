@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { reviewGate } from "@/lib/adapters/qc";
 import { isAutofixEnabled } from "@/lib/pipeline/quality-gates";
+import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import { isTwelveLabsLive, wantsTemporalPass } from "@/lib/adapters/twelvelabs";
 import { makeBeatClip } from "@/lib/pipeline/engine";
 import {
@@ -66,19 +67,7 @@ async function recordCost(
   usd: number,
   description: string,
 ) {
-  if (usd <= 0) return;
-  await db.from("cost_ledger").insert({
-    project_id: video.project_id,
-    video_id: video.id,
-    provider,
-    description,
-    usd,
-  });
-  await db
-    .from("videos")
-    .update({ total_cost_usd: Number(video.total_cost_usd) + usd })
-    .eq("id", video.id);
-  video.total_cost_usd = Number(video.total_cost_usd) + usd;
+  await ledgerRecordCost(db, video, { provider, usd, description });
 }
 
 async function loadBeats(db: Db, videoId: string): Promise<ScriptBeat[]> {
