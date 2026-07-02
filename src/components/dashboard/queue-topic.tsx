@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Clapperboard, Loader2, Smartphone, Wand2 } from "lucide-react";
 import { queueTopicAction } from "@/lib/actions/pipeline";
 import { SHORT_LENGTHS } from "@/lib/db/types";
+import { Button } from "@/components/ui/button";
+import { PillTabs } from "@/components/ui/pill-tabs";
 
 type Format = "long" | "short";
 
@@ -38,35 +40,41 @@ export function QueueTopic({ projectId }: { projectId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="inline-flex rounded-full border border-line bg-card p-0.5 shadow-card">
-          <FormatTab
-            active={format === "long"}
-            onClick={() => setFormat("long")}
-            icon={<Clapperboard className="size-3.5" />}
-            label="Long-form"
-          />
-          <FormatTab
-            active={format === "short"}
-            onClick={() => setFormat("short")}
-            icon={<Smartphone className="size-3.5" />}
-            label="Short"
-          />
-        </div>
+        <PillTabs
+          size="sm"
+          ariaLabel="Video format"
+          options={[
+            {
+              label: (
+                <>
+                  <Clapperboard className="mr-1 inline size-3.5" /> Long-form
+                </>
+              ),
+              value: "long",
+            },
+            {
+              label: (
+                <>
+                  <Smartphone className="mr-1 inline size-3.5" /> Short
+                </>
+              ),
+              value: "short",
+            },
+          ]}
+          value={format}
+          onChange={(v) => setFormat(v as Format)}
+        />
         {format === "short" && (
-          <div className="inline-flex rounded-full border border-line bg-card p-0.5 shadow-card">
-            {SHORT_LENGTHS.map((sec) => (
-              <button
-                key={sec}
-                type="button"
-                onClick={() => setLengthSec(sec)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  lengthSec === sec ? "bg-accent text-ink" : "text-muted hover:text-ink"
-                }`}
-              >
-                {LENGTH_LABEL[sec]}
-              </button>
-            ))}
-          </div>
+          <PillTabs
+            size="sm"
+            ariaLabel="Short length"
+            options={SHORT_LENGTHS.map((sec) => ({
+              label: LENGTH_LABEL[sec],
+              value: String(sec),
+            }))}
+            value={String(lengthSec)}
+            onChange={(v) => setLengthSec(Number(v))}
+          />
         )}
       </div>
 
@@ -80,13 +88,13 @@ export function QueueTopic({ projectId }: { projectId: string }) {
               ? "Type a Short topic… e.g. the 1 money mistake that keeps you broke"
               : "Type a video topic… e.g. 7 money habits that quietly make you rich"
           }
-          className="min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2.5 text-sm shadow-card outline-none placeholder:text-muted/70 focus:border-accent"
+          className="min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2.5 text-sm shadow-card outline-none placeholder:text-muted focus:border-accent"
         />
-        <button
-          type="button"
+        <Button
+          variant="secondary"
           disabled={isPending || !topic.trim()}
           onClick={submit}
-          className="flex shrink-0 items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
+          className="shrink-0"
         >
           {isPending ? (
             <Loader2 className="size-4 animate-spin" />
@@ -94,35 +102,9 @@ export function QueueTopic({ projectId }: { projectId: string }) {
             <Wand2 className="size-4" />
           )}
           {format === "short" ? "Queue Short" : "Queue topic"}
-        </button>
+        </Button>
       </div>
       {error && <p className="text-xs font-medium text-coral">{error}</p>}
     </div>
-  );
-}
-
-function FormatTab({
-  active,
-  onClick,
-  icon,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-        active ? "bg-accent text-ink" : "text-muted hover:text-ink"
-      }`}
-      aria-pressed={active}
-    >
-      {icon}
-      {label}
-    </button>
   );
 }

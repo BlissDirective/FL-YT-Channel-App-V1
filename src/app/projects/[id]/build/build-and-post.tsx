@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { startBuildRunAction } from "@/lib/actions/pipeline";
 import { estimateBuildRunAction, getBuildDefaultsAction } from "@/lib/actions/build";
+import { Button } from "@/components/ui/button";
+import { PillTabs } from "@/components/ui/pill-tabs";
 import type { BuildCostEstimate, ChannelPlaybook } from "@/lib/pipeline/engine";
 
 type IdeaOption = { id: string; title: string; angle: string };
@@ -47,13 +49,9 @@ export function BuildAndPost({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-transform hover:scale-[1.02]"
-      >
+      <Button onClick={() => setOpen(true)}>
         <Rocket className="size-4" /> Build &amp; Post
-      </button>
+      </Button>
       {open && <BuildModal projectId={projectId} ideas={ideas} onClose={() => setOpen(false)} />}
     </>
   );
@@ -199,25 +197,27 @@ function BuildModal({
         <div className="space-y-5">
           {/* How many */}
           <Field label="How many videos">
-            <div className="inline-flex rounded-full border border-line bg-card p-0.5">
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <Pill key={n} active={count === n} onClick={() => setCount(n)}>
-                  {n}
-                </Pill>
-              ))}
-            </div>
+            <PillTabs
+              size="sm"
+              ariaLabel="How many videos"
+              options={[1, 2, 3, 4, 5, 6].map((n) => ({ label: String(n), value: String(n) }))}
+              value={String(count)}
+              onChange={(v) => setCount(Number(v))}
+            />
           </Field>
 
           {/* Ideas */}
           <Field label="Ideas">
-            <div className="inline-flex rounded-full border border-line bg-card p-0.5">
-              <Pill active={ideaSource === "existing"} onClick={() => setIdeaSource("existing")}>
-                Use my ideas
-              </Pill>
-              <Pill active={ideaSource === "research"} onClick={() => setIdeaSource("research")}>
-                Research new
-              </Pill>
-            </div>
+            <PillTabs
+              size="sm"
+              ariaLabel="Idea source"
+              options={[
+                { label: "Use my ideas", value: "existing" },
+                { label: "Research new", value: "research" },
+              ]}
+              value={ideaSource}
+              onChange={(v) => setIdeaSource(v as "research" | "existing")}
+            />
             {ideaSource === "existing" &&
               (ideas.length === 0 ? (
                 <p className="mt-2 text-xs text-coral">
@@ -259,14 +259,30 @@ function BuildModal({
           {/* Type + length */}
           <Field label="Type & length">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-full border border-line bg-card p-0.5">
-                <Pill active={kind === "long"} onClick={() => setKind("long")}>
-                  <Clapperboard className="mr-1 inline size-3.5" /> Long
-                </Pill>
-                <Pill active={kind === "short"} onClick={() => setKind("short")}>
-                  <Smartphone className="mr-1 inline size-3.5" /> Short
-                </Pill>
-              </div>
+              <PillTabs
+                size="sm"
+                ariaLabel="Video type"
+                options={[
+                  {
+                    label: (
+                      <>
+                        <Clapperboard className="mr-1 inline size-3.5" /> Long
+                      </>
+                    ),
+                    value: "long",
+                  },
+                  {
+                    label: (
+                      <>
+                        <Smartphone className="mr-1 inline size-3.5" /> Short
+                      </>
+                    ),
+                    value: "short",
+                  },
+                ]}
+                value={kind}
+                onChange={(v) => setKind(v as Kind)}
+              />
               {kind === "long" ? (
                 <div className="flex items-center gap-1 text-sm">
                   <MinNum value={longMinMin} set={(n) => setLongMinMin(Math.min(n, longMaxMin))} />
@@ -286,13 +302,13 @@ function BuildModal({
 
           {/* Thumbnail style */}
           <Field label="Thumbnail style">
-            <div className="inline-flex flex-wrap gap-1">
-              {THUMB_STYLES.map((s) => (
-                <Pill key={s.id} active={thumbStyle === s.id} onClick={() => setThumbStyle(s.id)}>
-                  {s.label}
-                </Pill>
-              ))}
-            </div>
+            <PillTabs
+              size="sm"
+              ariaLabel="Thumbnail style"
+              options={THUMB_STYLES.map((s) => ({ label: s.label, value: s.id }))}
+              value={thumbStyle}
+              onChange={setThumbStyle}
+            />
           </Field>
 
           {/* Tier */}
@@ -316,27 +332,27 @@ function BuildModal({
 
           {/* Schedule */}
           <Field label="Publishing schedule">
-            <div className="inline-flex flex-wrap rounded-full border border-line bg-card p-0.5">
-              <Pill active={scheduleMode === "all_at_once"} onClick={() => setScheduleMode("all_at_once")}>
-                All at once
-              </Pill>
-              <Pill active={scheduleMode === "multi_day"} onClick={() => setScheduleMode("multi_day")}>
-                One a day
-              </Pill>
-              <Pill active={scheduleMode === "staggered"} onClick={() => setScheduleMode("staggered")}>
-                Staggered
-              </Pill>
-            </div>
+            <PillTabs
+              size="sm"
+              ariaLabel="Publishing schedule"
+              options={[
+                { label: "All at once", value: "all_at_once" },
+                { label: "One a day", value: "multi_day" },
+                { label: "Staggered", value: "staggered" },
+              ]}
+              value={scheduleMode}
+              onChange={(v) => setScheduleMode(v as ScheduleMode)}
+            />
             {scheduleMode === "staggered" && (
               <div className="mt-2 flex items-center gap-2">
                 <span className="text-xs text-muted">Per day:</span>
-                <div className="inline-flex rounded-full border border-line bg-card p-0.5">
-                  {[1, 2, 3].map((n) => (
-                    <Pill key={n} active={perDay === n} onClick={() => setPerDay(n)}>
-                      {n}
-                    </Pill>
-                  ))}
-                </div>
+                <PillTabs
+                  size="sm"
+                  ariaLabel="Videos per day"
+                  options={[1, 2, 3].map((n) => ({ label: String(n), value: String(n) }))}
+                  value={String(perDay)}
+                  onChange={(v) => setPerDay(Number(v))}
+                />
                 <span className="text-xs text-muted">
                   {perDay === 1 ? "2 PM CT" : perDay === 2 ? "10 AM + 2 PM CT" : "9 AM + 1 PM + 6 PM CT"}
                 </span>
@@ -372,15 +388,10 @@ function BuildModal({
               <span className="text-muted">—</span>
             )}
           </div>
-          <button
-            type="button"
-            disabled={!canLaunch}
-            onClick={launch}
-            className="flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
-          >
+          <Button disabled={!canLaunch} onClick={launch} className="px-5">
             {launching ? <Loader2 className="size-4 animate-spin" /> : <Rocket className="size-4" />}
             Launch run
-          </button>
+          </Button>
         </div>
         {error && <p className="mt-2 text-right text-xs font-medium text-coral">{error}</p>}
       </div>
@@ -394,29 +405,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">{label}</div>
       {children}
     </div>
-  );
-}
-
-function Pill({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-        active ? "bg-accent text-ink" : "text-muted hover:text-ink"
-      }`}
-      aria-pressed={active}
-    >
-      {children}
-    </button>
   );
 }
 

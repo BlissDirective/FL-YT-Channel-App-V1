@@ -12,7 +12,6 @@ const NAV_ITEMS = [
   { label: "Insights", href: "/insights" },
   { label: "Market Intel", href: "/intel" },
   { label: "Spend", href: "/costs" },
-  { label: "Styleguide", href: "/styleguide" },
 ];
 
 export function TopNav() {

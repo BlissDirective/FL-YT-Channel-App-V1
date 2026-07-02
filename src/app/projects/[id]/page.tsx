@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import {
   Clapperboard,
   DollarSign,
-  Download,
   Eye,
   FileText,
   Film,
@@ -29,6 +28,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { FlowDiagram } from "@/components/ui/flow-diagram";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusChip } from "@/components/ui/status-chip";
+import { OverflowMenu } from "@/components/ui/overflow-menu";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { RunDemoButton } from "@/components/dashboard/run-demo-button";
 import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-button";
@@ -129,8 +129,6 @@ export default async function ProjectHome({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <BuildAndPost projectId={id} ideas={ideaOptions} />
-          <RunIntelligenceButton projectId={id} />
-          <RunDemoButton projectId={id} />
           <Link
             href={`/projects/${id}/review`}
             className="relative flex items-center gap-2 rounded-full bg-card px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"
@@ -143,17 +141,17 @@ export default async function ProjectHome({
             )}
           </Link>
           <Link
-            href={`/projects/${id}/downloads`}
-            className="flex items-center gap-2 rounded-full bg-card px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"
-          >
-            <Download className="size-4" /> Downloads
-          </Link>
-          <Link
             href={`/projects/${id}/settings`}
             className="flex items-center gap-2 rounded-full bg-card px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"
           >
             <Settings className="size-4" /> Settings
           </Link>
+          <OverflowMenu label="More project actions">
+            <div className="space-y-1">
+              <RunIntelligenceButton projectId={id} />
+              <RunDemoButton projectId={id} />
+            </div>
+          </OverflowMenu>
         </div>
       </div>
 

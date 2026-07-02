@@ -12,6 +12,7 @@ import {
 import { runVideoIntelAction } from "@/lib/actions/intel";
 import type { VideoIntel } from "@/lib/db/types";
 import { Card, CardTitle } from "@/components/ui/card";
+import { PillTabs } from "@/components/ui/pill-tabs";
 import { cn } from "@/lib/cn";
 import { BlueprintView } from "./blueprint-view";
 
@@ -89,23 +90,17 @@ export function IntelWorkspace({
                 ))}
               </select>
             </label>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col items-start gap-1">
               <span className="text-xs font-medium text-muted">Depth</span>
-              <div className="flex gap-1 rounded-full bg-card-warm p-1">
-                {(["quick", "deep"] as const).map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => setDepth(d)}
-                    className={cn(
-                      "flex-1 rounded-full px-3 py-1.5 text-center text-sm font-semibold capitalize transition-colors",
-                      depth === d ? "bg-card text-ink shadow-card" : "text-muted",
-                    )}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
+              <PillTabs
+                ariaLabel="Scan depth"
+                options={[
+                  { label: "Quick", value: "quick" },
+                  { label: "Deep", value: "deep" },
+                ]}
+                value={depth}
+                onChange={(v) => setDepth(v as "quick" | "deep")}
+              />
             </div>
           </div>
 
@@ -161,7 +156,7 @@ export function IntelWorkspace({
 
           <div className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted">
-              Competitor URLs <span className="text-muted/70">(optional)</span>
+              Competitor URLs <span className="text-muted">(optional)</span>
             </span>
             <div className="flex gap-2">
               <input

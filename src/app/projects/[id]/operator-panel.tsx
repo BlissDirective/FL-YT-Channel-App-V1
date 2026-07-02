@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { AlertTriangle, Check, Minus, Pause, Play, Rocket, Square } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
+import { PillTabs } from "@/components/ui/pill-tabs";
 import { StatusChip } from "@/components/ui/status-chip";
 import {
   pauseOperatorAction,
@@ -165,21 +166,18 @@ export function OperatorPanel({
                 : "Co-pilot — auto-publishes only high-QC videos; holds the rest for your tap."}
             </p>
           </div>
-          <div className="inline-flex shrink-0 overflow-hidden rounded-full border border-line bg-card p-0.5">
-            {(["copilot", "autopilot"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                disabled={pending}
-                onClick={() => setMode(m)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
-                  autonomy === m ? "bg-ink text-card" : "text-muted hover:text-ink"
-                }`}
-              >
-                {m === "copilot" ? "Co-pilot" : "Auto-Pilot"}
-              </button>
-            ))}
-          </div>
+          <PillTabs
+            size="sm"
+            ariaLabel="Autonomy"
+            className="shrink-0"
+            disabled={pending}
+            options={[
+              { label: "Co-pilot", value: "copilot" },
+              { label: "Auto-Pilot", value: "autopilot" },
+            ]}
+            value={autonomy}
+            onChange={(v) => setMode(v as "copilot" | "autopilot")}
+          />
         </div>
       )}
 

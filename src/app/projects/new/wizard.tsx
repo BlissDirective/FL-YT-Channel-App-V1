@@ -232,6 +232,7 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
               ? "Pick a channel voice from your ElevenLabs library — tap ▶ to hear a preview."
               : "Pick a channel voice. These are sample voices — your real ElevenLabs library appears here once the voice API key is connected."}
           </p>
+          <div role="radiogroup" aria-label="Channel voice" className="space-y-3">
           {voices.map((v) => (
             <div
               key={v.id}
@@ -249,6 +250,8 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
               )}
               <button
                 type="button"
+                role="radio"
+                aria-checked={voiceId === v.id}
                 onClick={() => setVoiceId(v.id)}
                 className="flex flex-1 items-center gap-3 text-left"
               >
@@ -274,6 +277,7 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
               </button>
             </div>
           ))}
+          </div>
         </div>
 
         {/* Step 4 — Autonomy & budget */}

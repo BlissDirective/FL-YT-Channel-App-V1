@@ -42,6 +42,7 @@ import {
   STITCH_BASE_MODEL_ID,
   VIDEO_MODELS,
 } from "@/lib/adapters/video-models";
+import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { cn } from "@/lib/cn";
@@ -374,11 +375,10 @@ export function VideoGen({
                   ? "Review the per-section settings above, then approve to generate the voiceover & visuals and move this video into production."
                   : "Settings look good? Generate the voiceover & visuals and continue this video through production."}
               </p>
-              <button
-                type="button"
+              <Button
                 disabled={approving}
                 onClick={approveVideoSettings}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-bold text-white disabled:opacity-50"
+                className="w-full px-6 py-3 font-bold"
               >
                 {approving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
                 {approving
@@ -386,7 +386,7 @@ export function VideoGen({
                   : atScriptGate
                     ? "Approve video settings → generate"
                     : "Generate assets & continue"}
-              </button>
+              </Button>
               {approveError && <p className="mt-2 text-xs font-medium text-coral">{approveError}</p>}
             </div>
           )}
@@ -499,7 +499,7 @@ function BeatRow({
         <span className="text-[11px] text-muted">
           script ≈ {Math.round(beat.scriptSec)}s
           {Math.round(beat.scriptSec) > model.maxDurationSec && (
-            <span className="text-muted/80"> · clips cap at {model.maxDurationSec}s</span>
+            <span className="text-muted"> · clips cap at {model.maxDurationSec}s</span>
           )}
         </span>
       </div>

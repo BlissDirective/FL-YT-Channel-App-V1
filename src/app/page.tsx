@@ -28,6 +28,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { ActivityFeed } from "@/components/ui/activity-feed";
 import { ProjectCard } from "@/components/dashboard/project-card";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
+import { SystemPulse } from "@/components/dashboard/system-pulse";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,13 @@ export default async function Home() {
     videosByProject.set(v.project_id, list);
   }
 
+  // Same "stalled video" definition as the project page's needs-attention.
+  const needsAttention = allVideos.filter(
+    (v) =>
+      v.paused_reason &&
+      !["KILLED", "APPROVED", "TRACKING", "FINAL_REVIEW", "ASSETS_READY"].includes(v.status),
+  ).length;
+
   return (
     <div className="space-y-6 pt-2">
       <RealtimeRefresher />
@@ -89,6 +97,12 @@ export default async function Home() {
           </Link>
         </div>
       </div>
+
+      <SystemPulse
+        spendUsd={stats.monthlyCostUsd}
+        budgetUsd={monthlyBudget}
+        needsAttention={needsAttention}
+      />
 
       <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard icon={Rocket} label="Projects" value={String(stats.projectCount)} />

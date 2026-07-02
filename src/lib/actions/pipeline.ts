@@ -113,6 +113,25 @@ export async function resumeVideoAction(
   });
 }
 
+/** Phase 6 UI — one-tap "Retry render" for videos held after the render farm
+    exhausted its attempts. Clears paused_reason (status stays ASSEMBLING) so
+    the farm re-picks the video on its next sweep. */
+export async function resetRenderAttemptsAction(
+  projectId: string,
+  videoId: string,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("videos")
+      .update({ paused_reason: null })
+      .eq("id", videoId);
+    if (error) return { ok: false, error: error.message };
+    refresh(projectId);
+    return { ok: true };
+  });
+}
+
 /** Launch a Full-Auto Build & Post run (Phase 0): create the run + N seed
     videos; the build-runner cron drives them through to Final review. */
 export async function startBuildRunAction(
@@ -739,6 +758,55 @@ export async function saveTemplateAction(
     revalidatePath(`/projects/${projectId}/settings`);
     return { ok: true };
   });
+}
+
+// ── Quality gates (Phase 6 UI) ────────────────────────────────────────
+
+export type QualityGates = {
+  ideaFloor?: number;
+  revisionHardCap?: number;
+  qcLessonBelow?: number;
+  seedVisionFloor?: number;
+  varietyMinDistance?: number;
+  autofixThreshold?: number;
+  runFloor?: number;
+  runPublic?: number;
+  factRiskMax?: number;
+};
+
+const clamp = (n: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, n));
+
+/** Persist operator-tuned quality-gate thresholds to app_settings. Values are
+    clamped to sane ranges so a typo can't wedge the pipeline. */
+export async function saveQualityGatesAction(
+  gates: QualityGates,
+): Promise<PipelineResult> {
+  const score = (n: number | undefined) =>
+    typeof n === "number" && Number.isFinite(n) ? clamp(n, 0, 10) : undefined;
+  const value: QualityGates = {
+    ideaFloor: score(gates.ideaFloor),
+    revisionHardCap:
+      typeof gates.revisionHardCap === "number" && Number.isFinite(gates.revisionHardCap)
+        ? clamp(Math.round(gates.revisionHardCap), 1, 10)
+        : undefined,
+    qcLessonBelow: score(gates.qcLessonBelow),
+    seedVisionFloor: score(gates.seedVisionFloor),
+    varietyMinDistance:
+      typeof gates.varietyMinDistance === "number" && Number.isFinite(gates.varietyMinDistance)
+        ? clamp(Math.round(gates.varietyMinDistance), 0, 32)
+        : undefined,
+    autofixThreshold: score(gates.autofixThreshold),
+    runFloor: score(gates.runFloor),
+    runPublic: score(gates.runPublic),
+    factRiskMax: score(gates.factRiskMax),
+  };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("app_settings")
+    .upsert({ key: "quality_gates", value });
+  revalidatePath("/settings");
+  return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 export async function setKillSwitchAction(

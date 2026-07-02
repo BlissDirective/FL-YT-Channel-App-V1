@@ -1,20 +1,33 @@
 import { getServiceHealth, TESTABLE_SERVICES } from "@/lib/adapters/health";
 import { getCostLedger, getKillSwitch, getQcAgreement } from "@/lib/db/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createClient } from "@/lib/supabase/server";
+import type { QualityGates } from "@/lib/actions/pipeline";
 import { Card, CardTitle } from "@/components/ui/card";
 import { KillSwitch } from "./kill-switch";
 import { NotificationsCard } from "./notifications-card";
 import { CredentialHealthList } from "./credential-health";
+import { QualityGatesCard } from "./quality-gates-card";
 import { PurgeDemoData } from "./danger-zone";
+
+async function getQualityGates(): Promise<QualityGates> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", "quality_gates")
+    .maybeSingle();
+  return (data?.value as QualityGates) ?? {};
+}
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const services = getServiceHealth();
   const configured = isSupabaseConfigured();
-  const [killSwitch, ledger, qc] = configured
-    ? await Promise.all([getKillSwitch(), getCostLedger(12), getQcAgreement()])
-    : [false, [], { total: 0, agree: 0, rate: 0 }];
+  const [killSwitch, ledger, qc, qualityGates] = configured
+    ? await Promise.all([getKillSwitch(), getCostLedger(12), getQcAgreement(), getQualityGates()])
+    : [false, [], { total: 0, agree: 0, rate: 0 }, {}];
   const shownTotal = ledger.reduce((s, e) => s + Number(e.usd), 0);
 
   return (
@@ -36,6 +49,8 @@ export default async function SettingsPage() {
       <NotificationsCard
         vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY}
       />
+
+      {configured && <QualityGatesCard initial={qualityGates} />}
 
       {configured && (
         <Card>
