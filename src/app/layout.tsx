@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { TopNav } from "@/components/shell/top-nav";
+import { MobileNav } from "@/components/shell/mobile-nav";
 import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
 
@@ -29,9 +30,11 @@ export default function RootLayout({
         <div className="mx-auto min-h-screen max-w-[1440px] p-3 sm:p-5">
           <div className="min-h-[calc(100vh-2.5rem)] rounded-panel bg-surface shadow-card">
             <TopNav />
-            <main className="px-4 pb-8 sm:px-8">{children}</main>
+            {/* Bottom padding below `sm` keeps content clear of the tab bar. */}
+            <main className="px-4 pb-24 sm:px-8 sm:pb-8">{children}</main>
           </div>
         </div>
+        <MobileNav />
       </body>
     </html>
   );

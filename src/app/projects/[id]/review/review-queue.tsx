@@ -28,6 +28,7 @@ import {
   selectThumbnailAction,
 } from "@/lib/actions/pipeline";
 import { Card } from "@/components/ui/card";
+import { PillTabs } from "@/components/ui/pill-tabs";
 import { StatusChip } from "@/components/ui/status-chip";
 import { attributionsFromAssets } from "@/lib/attribution";
 import { cn } from "@/lib/cn";
@@ -662,13 +663,16 @@ function FinalBody({ item }: { item: ReviewItem }) {
           {fmtDuration(meta.durationSec)} · {meta.resolution ?? "1080p"}
         </StatusChip>
         {short?.url && (
-          <button
-            type="button"
-            onClick={() => setShowShort((s) => !s)}
-            className="rounded-full bg-card-warm px-3 py-1.5 text-xs font-semibold text-ink shadow-card hover:bg-accent-soft"
-          >
-            {showShort ? "▶ Watch long-form" : "▶ Watch the Short"}
-          </button>
+          <PillTabs
+            size="sm"
+            ariaLabel="Render variant"
+            options={[
+              { label: "Long-form", value: "long" },
+              { label: "Short", value: "short" },
+            ]}
+            value={showShort ? "short" : "long"}
+            onChange={(v) => setShowShort(v === "short")}
+          />
         )}
       </div>
       {!showShort && chapters.length > 0 && (

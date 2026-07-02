@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, Loader2, RotateCcw } from "lucide-react";
-import { resumeVideoAction } from "@/lib/actions/pipeline";
+import { resetRenderAttemptsAction, resumeVideoAction } from "@/lib/actions/pipeline";
 import { Card, CardTitle } from "@/components/ui/card";
 
 export type PausedVideo = {
@@ -54,10 +54,19 @@ function PausedRow({ projectId, video }: { projectId: string; video: PausedVideo
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
 
+  // The render farm caps attempts and writes e.g. "Render failed (attempt
+  // 3/3): …" — once exhausted, the fix is to reset attempts, not re-run the
+  // in-process pipeline.
+  const renderFail = video.reason.match(/^Render failed \(attempt (\d+)\/(\d+)\)/);
+  const renderExhausted =
+    renderFail !== null && Number(renderFail[1]) >= Number(renderFail[2]);
+
   const retry = () =>
     startTransition(async () => {
       setError(undefined);
-      const r = await resumeVideoAction(projectId, video.id);
+      const r = renderExhausted
+        ? await resetRenderAttemptsAction(projectId, video.id)
+        : await resumeVideoAction(projectId, video.id);
       if (r.ok) router.refresh();
       else setError(r.error ?? "Retry failed.");
     });
@@ -79,7 +88,7 @@ function PausedRow({ projectId, video }: { projectId: string; video: PausedVideo
             className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
           >
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : <RotateCcw className="size-3.5" />}
-            Retry
+            {renderExhausted ? "Retry render" : "Retry"}
           </button>
           <Link
             href={`/projects/${projectId}/videos/${video.id}`}

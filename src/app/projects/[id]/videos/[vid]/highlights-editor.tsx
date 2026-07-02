@@ -198,7 +198,7 @@ export function HighlightsEditor({
                 onBlur={() => pushOptions(enabled, count)}
                 className="w-16 rounded-full border border-line bg-card px-2 py-0.5 text-[11px] font-semibold text-ink outline-none focus:border-accent"
               />
-              <span className="text-[11px] text-muted/80">(0 = auto)</span>
+              <span className="text-[11px] text-muted">(0 = auto)</span>
             </label>
             <button
               onClick={generate}

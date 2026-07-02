@@ -18,6 +18,7 @@ import {
   editScriptBeatAction,
   editVideoMetadataAction,
 } from "@/lib/actions/pipeline";
+import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import type { BeatAudio } from "./page";
@@ -363,8 +364,7 @@ function ApproveBar({
   const [isPending, startTransition] = useTransition();
   return (
     <div className="sticky bottom-4 flex flex-col items-center gap-1">
-      <button
-        type="button"
+      <Button
         disabled={isPending}
         onClick={() =>
           startTransition(async () => {
@@ -380,11 +380,11 @@ function ApproveBar({
             router.push(`/projects/${projectId}/videos/${videoId}?setup=1#videogen`);
           })
         }
-        className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
+        className="px-6 py-3 font-bold"
       >
         {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
         {isPending ? "Setting up video…" : "Approve script & set up video"}
-      </button>
+      </Button>
       <p className="text-xs text-muted">Next: review video settings, then approve to generate</p>
     </div>
   );
