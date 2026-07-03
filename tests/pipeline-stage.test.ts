@@ -71,6 +71,16 @@ describe("stageCounts matches the classification", () => {
     const counts = stageCounts([v({ status: "KILLED" }), v({ status: "NEEDS_REVISION" })]);
     expect(Object.values(counts).every((n) => n === 0)).toBe(true);
   });
+
+  it("a killed video never inflates a stage count (classification guard)", () => {
+    // Even a killed video whose status still reads a stage value must not count.
+    expect(effectiveStageKey(v({ status: "KILLED" }))).toBeNull();
+    const counts = stageCounts([
+      v({ id: "a", status: "APPROVED" }),
+      v({ id: "b", status: "KILLED" }),
+    ]);
+    expect(counts.ready).toBe(1); // only the live one
+  });
 });
 
 describe("publishDiagnosis", () => {

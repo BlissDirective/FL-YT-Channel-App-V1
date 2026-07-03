@@ -213,6 +213,15 @@ export default async function ProjectHome({
             ? `${pending} video${pending === 1 ? "" : "s"} waiting at a review gate — open the review queue to decide.`
             : "Run the demo pipeline to send a mock video through every stage and gate. Live providers arrive in Phases 4–6."}
         </p>
+        {counts.ready > 0 && (
+          <Link
+            href={`/projects/${id}/review?stage=ready`}
+            className="mt-3 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-card shadow-card transition-transform hover:scale-[1.02]"
+          >
+            <Upload className="size-4" />
+            Publish stage — {counts.ready} ready to publish →
+          </Link>
+        )}
       </Card>
 
       <Card>

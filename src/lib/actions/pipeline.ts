@@ -11,6 +11,7 @@ import {
   type BuildRunConfig,
   autoClassifyShotTypes,
   decideGate,
+  killVideo,
   deleteBeat,
   editScriptBeat,
   editVideoMetadata,
@@ -94,7 +95,9 @@ export async function killVideoAction(
   videoId: string,
 ): Promise<PipelineResult> {
   return guarded(async () => {
-    const result = await decideGate({ videoId, decision: "killed" });
+    // killVideo (not decideGate) so a video can be killed from ANY status —
+    // including the publish stage (APPROVED), which has no open gate.
+    const result = await killVideo(videoId);
     refresh(projectId);
     return { ok: result.ok, error: result.error };
   });

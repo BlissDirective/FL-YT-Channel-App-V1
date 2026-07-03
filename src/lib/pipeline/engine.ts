@@ -3921,6 +3921,35 @@ export async function saveHighlights(opts: {
 }
 
 /** Resolve a gate decision, then let the engine continue. */
+/**
+ * Kill a video from ANY status (not just an open gate). decideGate requires an
+ * open gate, so it couldn't kill APPROVED / TRACKING / drivable / paused
+ * videos — the publish-stage "Kill" silently failed. This works everywhere:
+ * it marks the video KILLED (a soft delete that getVideos then excludes, so it
+ * drops out of every count and list) and records the kill for audit when the
+ * video is at a gate. Idempotent.
+ */
+export async function killVideo(videoId: string, dbArg?: Db): Promise<EngineResult> {
+  const db = dbArg ?? (await createClient());
+  const video = await getVideo(db, videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  if (video.status === "KILLED") return { ok: true };
+  const gate = GATE_FOR_STATUS[video.status];
+  // approvals.gate is NOT NULL, so only record an approval when at a gate;
+  // otherwise the status change to KILLED is the record.
+  if (gate) {
+    await db.from("approvals").insert({
+      video_id: videoId,
+      gate,
+      decision: "killed",
+      decided_by: "human",
+      decided_at: new Date().toISOString(),
+    });
+  }
+  await setStatus(db, videoId, "KILLED");
+  return { ok: true };
+}
+
 export async function decideGate(
   opts: {
     videoId: string;

@@ -255,7 +255,15 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
           <button
             type="button"
             disabled={isPending}
-            onClick={() => act(() => killVideoAction(projectId, video.id))}
+            onClick={() =>
+              startTransition(async () => {
+                setError(undefined);
+                const r = await killVideoAction(projectId, video.id);
+                if (!r.ok && r.error) setError(r.error);
+                // Drop the killed card immediately, even if Realtime is down.
+                else router.refresh();
+              })
+            }
             className="ml-auto flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-coral/10 hover:text-coral disabled:opacity-50"
           >
             <Trash2 className="size-4" /> Kill

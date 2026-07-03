@@ -191,7 +191,10 @@ export async function getVideos(
     .order("created_at", { ascending: false });
   if (projectId) query = query.eq("project_id", projectId);
   if ((opts?.include ?? "pipeline") === "pipeline") {
-    query = query.is("parent_video_id", null);
+    // Killed videos are removed from the operator's view everywhere — excluding
+    // them here drops them from every count, stage badge, and list that reads
+    // getVideos (dashboard, project page, review). Pass include:"all" to see them.
+    query = query.is("parent_video_id", null).neq("status", "KILLED");
   }
   const { data } = await query;
   return (data as Video[]) ?? [];
@@ -459,6 +462,7 @@ export async function getProjectDownloads(projectId: string): Promise<DownloadRo
     .from("videos")
     .select("id, title, status, updated_at")
     .eq("project_id", projectId)
+    .neq("status", "KILLED") // a killed video is removed — not downloadable
     .order("updated_at", { ascending: false });
   const list = (videos as { id: string; title: string; status: string }[]) ?? [];
   if (list.length === 0) return [];
