@@ -5,15 +5,15 @@ web research (July 2026) on LLM-as-judge practice, orchestration patterns,
 agent memory, bandits, cost routing, and YouTube ranking/monetization levers.
 Citations inline; this doc is the build plan for the next tier of the studio.
 
-> **Build status (2026-07-03):** Harnesses **C1, C2, C3, C4, and C6 are
-> IMPLEMENTED** on `main` (see the `harness CN:` commits; migrations 0035–0037
-> apply via the DB Migrate workflow). Part B's script-stage criteria shipped
-> as C1 rubric content + lints. **Remaining: C5 (format-level Thompson
-> sampling)** — deferred as planned until a channel has ≥10–20 published
-> videos, since the bandit is exploration-only below that. Also open from
-> Part B: the FLUX relevance-to-narration criterion (B3) and the
-> engaged-views / traffic-source-CTR stats columns (B4), both small
-> follow-ups. See "Next steps" at the end.
+> **Build status (2026-07-03):** Harnesses **C1–C6 are all IMPLEMENTED** on
+> `main` (see the `harness CN:` commits; migrations 0035–0038 apply via the DB
+> Migrate workflow). Part B criteria shipped: the script-stage checks as C1
+> rubric content + lints, the **FLUX relevance-to-narration check (B3)** in the
+> pre-pay visual gate, and the **engaged-views / retention analytics columns
+> (B4)** in the nightly snapshot (impression CTR stays null — the Analytics
+> API doesn't expose it). C5 (format-level Thompson sampling) is live but
+> stays exploration-only until a channel clears ~8 published videos. Remaining
+> open items are the small polish follow-ups in "Next steps".
 
 ---
 
@@ -269,26 +269,33 @@ credentials needed.
 
 ---
 
-## Next steps (after C1–C4, C6)
+## Next steps (all harnesses now built)
 
-1. **Feed the calibration data back into the rubric.** The loops are built
-   but need signal: label ~50 QC verdicts in the review queue (the 👍/👎), let
-   the nightly outcome audit accumulate, then rewrite the criteria the
-   calibration card flags as most-disputed or non-predictive. This is the
-   payoff of C1+C3 and needs no new code — just operating the loop.
-2. **C5 — format-level Thompson sampling** once a channel clears ~10–20
-   published videos. Arms = format × length-band × hook-style × tier; the
-   operator's calendar planner samples the posterior instead of the fixed
-   75/25 mix. Below the data floor it's exploration-only, which is why it's
-   deferred, not skipped.
-3. **Small Part B follow-ups:** add the FLUX relevance-to-narration criterion
-   (B3) to the visual pre-check, and the engaged-views + traffic-source-CTR
-   columns (B4) to stats ingestion — both feed C3's outcome audit with a
-   sharper reward signal than raw views.
-4. **Optional cost switch:** flip `ANTHROPIC_USE_BATCH=1` once the overnight
+1. **Feed the calibration data back into the rubric** — the single highest-
+   value action, and it needs no code, just operating the loop: label ~50 QC
+   verdicts in the review queue (the 👍/👎), let the nightly outcome audit
+   accumulate, then rewrite the criteria the calibration card flags as
+   most-disputed or non-predictive. This is the payoff of C1+C3.
+2. **Let C5 accumulate.** The format bandit is live but exploration-only below
+   ~8 published videos; it starts steering the format mix automatically once a
+   channel clears that. A `hook-style` arm dimension can be added later once
+   hook styles are tagged on videos (arms are `format × length-band × tier`
+   today, from the data that's actually recorded).
+3. **Optional cost switch:** flip `ANTHROPIC_USE_BATCH=1` once the overnight
    fan-outs (idea scoring, C2 variant generation) dominate spend — the batch
    path is built and falls back to parallel, so it's a one-env-var change.
-5. **Wire the governed playbook's visual lessons into the art-director prompt**
-   (C4 currently writes them from autofix deltas and reads script-stage
-   lessons at the script gate; the visual read-side can replace the flat
+   See the setup note below.
+4. **Wire the governed playbook's visual lessons into the art-director prompt**
+   (C4 writes them from autofix deltas and reads script-stage lessons at the
+   script gate today; the visual read-side can replace the flat
    `autofix_memory` hint for a fully-governed loop).
+
+### Setting `ANTHROPIC_USE_BATCH`
+It's an environment variable, set the same way as every other secret in this
+project (per `docs/RUNBOOK.md`): add `ANTHROPIC_USE_BATCH=1` as a **GitHub
+repository secret** (Settings → Secrets and variables → Actions), then run the
+**Sync Vercel Env** workflow so Vercel picks it up and redeploys — or set it
+directly in Vercel → Settings → Environment Variables and redeploy. Unset (or
+any value other than `1`) keeps the default real-time parallel path. It only
+affects latency-tolerant fan-outs; nothing in the interactive path blocks on
+it.

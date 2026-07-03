@@ -14,6 +14,7 @@ import {
   getYppSnapshot,
 } from "@/lib/adapters/youtube-analytics";
 import { desiredMixShortsPct, effectiveDailyCap } from "@/lib/pipeline/monetization";
+import { sampleFormatDecision } from "@/lib/pipeline/format-bandit";
 import { planCostFor, type AutoTier } from "@/lib/adapters/auto-tiers";
 import type { FrameCritique } from "@/lib/stick-types";
 import type {
@@ -367,11 +368,22 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
   let lastReason = "no-slot";
   for (let attempt = 0; attempt < MAX_SEED_ATTEMPTS; attempt++) {
     // Pull the next planned calendar slot (it sets the format + subtopic). If the
-    // calendar is exhausted/absent, fall back to the monetization-aware mix.
+    // calendar is exhausted/absent, choose the format via the C5 Thompson bandit
+    // (learned from which formats beat the channel's median views) once there's
+    // enough data; below the floor, fall back to the monetization-aware mix.
     const slot = nextPlannedSlot(run);
-    let kind: "short" | "long" = slot
-      ? (slot.format as "short" | "long")
-      : pickFormat((await cycleFormatCounts(db, run)).total, desiredMixShortsPct(cfg.mixShortsPct, cfg.strategy));
+    let kind: "short" | "long";
+    if (slot) {
+      kind = slot.format as "short" | "long";
+    } else {
+      const learned = await sampleFormatDecision(db, run.project_id);
+      if (learned) {
+        kind = learned.format;
+        await logEvent(db, run.project_id, run.id, "plan", `Format bandit → ${learned.format} (arm ${learned.arm}${learned.exploring ? ", exploring" : ""})`, {});
+      } else {
+        kind = pickFormat((await cycleFormatCounts(db, run)).total, desiredMixShortsPct(cfg.mixShortsPct, cfg.strategy));
+      }
+    }
     let cap = kind === "short" ? cfg.shortsCapUsd : cfg.longCapUsd;
 
     // Budget: never start a slot we can't afford. Near-exhaustion → downgrade a

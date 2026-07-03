@@ -151,6 +151,39 @@ export async function getVideoMetrics(
   return out;
 }
 
+/**
+ * Engaged views per video (B4). Since March 2025 a raw "view" counts any
+ * swipe-past on Shorts, so the algorithm and the YPP track run on ENGAGED
+ * views — the metric that actually reflects whether the video held anyone.
+ * Best-effort: returns an empty map (not fake zeros) when the metric is
+ * unavailable or the account has no Analytics access.
+ */
+export async function getEngagedViews(
+  refreshToken: string | null,
+  videoIds: string[],
+  days = 90,
+): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  const ids = videoIds.filter(Boolean).slice(0, 200);
+  if (ids.length === 0) return out;
+  const token = await accessToken(refreshToken);
+  if (!token) return out;
+  const r = await report(token, {
+    startDate: ymd(daysAgo(days)),
+    endDate: ymd(new Date()),
+    dimensions: "video",
+    filters: `video==${ids.join(",")}`,
+    metrics: "engagedViews",
+    maxResults: "200",
+  });
+  if (!r?.rows) return out; // metric rejected / no access → leave empty
+  const iId = r.columnHeaders.findIndex((h) => h.name === "video");
+  const iE = r.columnHeaders.findIndex((h) => h.name === "engagedViews");
+  if (iE < 0) return out;
+  for (const row of r.rows) out.set(String(row[iId]), Number(row[iE] ?? 0));
+  return out;
+}
+
 export type RetentionPoint = {
   /** Elapsed position as a 0..1 ratio of video length. */
   ratio: number;

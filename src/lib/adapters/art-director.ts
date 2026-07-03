@@ -51,6 +51,45 @@ export function assessVisualPrompt(prompt: string): { ok: boolean; reasons: stri
   return { ok: reasons.length === 0, reasons };
 }
 
+const REL_STOP = new Set(
+  "the a an and or of to in for on with how why what your you is are be this that these those it as at from about into over under scene shot view image visual close wide angle background foreground camera cinematic photo".split(
+    " ",
+  ),
+);
+function contentWords(s: string): Set<string> {
+  return new Set(
+    (s ?? "")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]+/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 3 && !REL_STOP.has(w)),
+  );
+}
+
+/**
+ * Relevance-to-narration check (Plan B3): a visual prompt that shares no
+ * content words with what the narrator is saying is likely generic
+ * "wallpaper" — a repeatedly-cited failure mode of dead faceless channels.
+ * Pure and cheap; skipped (ok) when the narration is too short to judge.
+ * Overlap is share of narration content words the visual prompt also names.
+ */
+export function assessPromptRelevance(
+  prompt: string,
+  narration: string,
+  minOverlap = 0.12,
+): { ok: boolean; overlap: number; reason?: string } {
+  const nWords = contentWords(narration);
+  if (nWords.size < 4) return { ok: true, overlap: 1 }; // nothing solid to match
+  const pWords = contentWords(prompt);
+  if (pWords.size === 0) return { ok: false, overlap: 0, reason: "empty visual prompt" };
+  let inter = 0;
+  for (const w of nWords) if (pWords.has(w)) inter++;
+  const overlap = inter / nWords.size;
+  return overlap >= minOverlap
+    ? { ok: true, overlap }
+    : { ok: false, overlap, reason: `visual doesn't reflect the narration (overlap ${(overlap * 100).toFixed(0)}%)` };
+}
+
 const REFINE_MODEL = "claude-haiku-4-5"; // cheap one-shot fix
 const REFINE_TOOL = {
   name: "deliver_prompt",
@@ -74,6 +113,8 @@ export async function refineOneShot(opts: {
   prompt: string;
   niche: string;
   title: string;
+  /** The beat's narration — the refined visual must actually depict it (B3). */
+  narration?: string;
   /** Learned art-direction anti-patterns to steer away from (autofix_memory). */
   antiPatterns?: string[];
 }): Promise<{ prompt: string; costUsd: number } | null> {
@@ -81,7 +122,8 @@ export async function refineOneShot(opts: {
   const avoid = (opts.antiPatterns ?? []).slice(0, 6);
   const system =
     `You are an art director for a ${opts.niche} YouTube video. Rewrite ONE draft visual prompt into a stronger, ` +
-    `concrete, purely-visual scene that an image model will render cleanly.` +
+    `concrete, purely-visual scene that an image model will render cleanly` +
+    (opts.narration ? `, and that VISUALLY REFLECTS what the narrator is saying (no generic wallpaper).` : `.`) +
     (avoid.length ? ` AVOID these patterns that hurt past videos: ${avoid.join("; ")}.` : "");
   try {
     const res = await anthropicFetch({
@@ -97,7 +139,7 @@ export async function refineOneShot(opts: {
         tools: [REFINE_TOOL],
         tool_choice: { type: "tool", name: "deliver_prompt" },
         messages: [
-          { role: "user", content: `${system}\n\nVIDEO: ${opts.title}\nDRAFT VISUAL PROMPT: ${opts.prompt}\n\nCall deliver_prompt.` },
+          { role: "user", content: `${system}\n\nVIDEO: ${opts.title}\n${opts.narration ? `NARRATION FOR THIS SHOT: ${opts.narration}\n` : ""}DRAFT VISUAL PROMPT: ${opts.prompt}\n\nCall deliver_prompt.` },
         ],
       }),
     });

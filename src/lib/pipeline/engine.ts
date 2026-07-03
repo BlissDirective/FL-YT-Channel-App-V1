@@ -50,7 +50,7 @@ import {
 } from "@/lib/adapters/video-models";
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
-import { directShots, assessVisualPrompt, refineOneShot, isArtDirectorLive } from "@/lib/adapters/art-director";
+import { directShots, assessVisualPrompt, assessPromptRelevance, refineOneShot, isArtDirectorLive } from "@/lib/adapters/art-director";
 import { inspectStill, perceptualHash, hammingDistance } from "@/lib/adapters/image-check";
 import { critiqueSeedStill, isSeedVisionLive } from "@/lib/adapters/seed-vision";
 import type { StickScene } from "@/lib/stick-types";
@@ -1044,12 +1044,18 @@ export async function makeBeatClip(
       // if we can't refine (art-director unavailable), skip the paid render and
       // fall through to free stock/mock (fail-closed).
       let canPay = true;
-      if (gateOn && !assessVisualPrompt(scene).ok) {
+      // Pre-pay gate: structural check + relevance-to-narration (B3). A prompt
+      // that's fine structurally but doesn't reflect the beat's narration is
+      // generic "wallpaper" — refine it (narration-aware) before paying FLUX.
+      const structuralBad = !assessVisualPrompt(scene).ok;
+      const relevanceBad = !assessPromptRelevance(scene, beat.text).ok;
+      if (gateOn && (structuralBad || relevanceBad)) {
         if (isArtDirectorLive()) {
           const refined = await refineOneShot({
             prompt: scene,
             niche: project.niche,
             title: video.title,
+            narration: relevanceBad ? beat.text : undefined,
             antiPatterns: project.autofix_memory?.antiPatterns,
           });
           if (refined?.prompt) {
