@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { requireCronAuth } from "@/lib/cron-auth";
 import { refreshTrackedStats } from "@/lib/stats";
 import { reconcileLedger } from "@/lib/pipeline/ledger";
+import { runOutcomeAuditAllProjects } from "@/lib/pipeline/outcome-audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,15 @@ async function handle(request: NextRequest) {
     } catch (err) {
       console.error("ledger reconciliation failed:", err);
     }
-    return NextResponse.json({ ok: true, refreshed, ledgerRepaired: repaired });
+    // Outcome-audit (Harness C3): correlate FINAL-QC scores with actual
+    // views/retention so a judge that stops predicting outcomes is caught.
+    let audits = { projects: 0, wrote: 0 };
+    try {
+      audits = await runOutcomeAuditAllProjects();
+    } catch (err) {
+      console.error("outcome audit failed:", err);
+    }
+    return NextResponse.json({ ok: true, refreshed, ledgerRepaired: repaired, outcomeAudits: audits.wrote });
   } catch (err) {
     console.error("cron refresh-stats failed:", err);
     return NextResponse.json(

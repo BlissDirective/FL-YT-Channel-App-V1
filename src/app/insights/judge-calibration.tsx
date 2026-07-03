@@ -36,6 +36,18 @@ export async function JudgeCalibration() {
   }
   const worst = [...disputes.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
 
+  // Outcome audit (C3): latest correlation per metric — does the judge's score
+  // actually predict what the audience does? The anti-reward-hacking readout.
+  const { data: auditRows } = await supabase
+    .from("outcome_audits")
+    .select("metric, correlation, n, note, created_at")
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const latestByMetric = new Map<string, { correlation: number; n: number; note: string }>();
+  for (const a of (auditRows ?? []) as { metric: string; correlation: number; n: number; note: string }[]) {
+    if (!latestByMetric.has(a.metric)) latestByMetric.set(a.metric, a);
+  }
+
   return (
     <Card>
       <div className="flex items-center gap-2">
@@ -74,6 +86,29 @@ export async function JudgeCalibration() {
           {worst.map(([id, n]) => `${id} (×${n})`).join(", ")} — candidates for a
           rubric rewrite in <span className="font-medium text-ink">src/lib/pipeline/rubrics.ts</span>.
         </p>
+      )}
+      {latestByMetric.size > 0 && (
+        <div className="mt-3 border-t border-line pt-3">
+          <p className="text-xs font-semibold text-muted">Does QC predict outcomes? (Spearman ρ)</p>
+          <div className="mt-1 flex flex-wrap gap-4">
+            {[...latestByMetric.entries()].map(([metric, a]) => (
+              <div key={metric} title={a.note}>
+                <p
+                  className={cn(
+                    "text-lg font-bold tabular-nums",
+                    a.correlation >= 0.3 ? "text-success" : a.correlation <= 0.05 ? "text-coral" : "text-ink",
+                  )}
+                >
+                  {a.correlation >= 0 ? "+" : ""}
+                  {a.correlation.toFixed(2)}
+                </p>
+                <p className="text-xs text-muted">
+                  vs {metric} (n={a.n})
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </Card>
   );
