@@ -32,6 +32,7 @@ import { critiqueStickFrames, type CritiqueFrame } from "./stick/frame-critic";
 import { critiqueFootageFrames, type FootageFrame } from "./footage/frame-critic";
 import { pickThumbnail, type ThumbPlacement } from "./thumbnail-pick";
 import { verifyRenderedChart } from "./dataviz/chart-verify";
+import { runMediaQc } from "./media-qc";
 import { uploadVideo, youtubeUploadConfigured } from "./youtube";
 import { shortDurationSec } from "./VideoComp";
 
@@ -469,6 +470,11 @@ async function renderOne(
           { variant: "short", compId: "Short", storageName: "short-0" },
         ];
 
+  // Local path of the deliverable cut (LongForm for longs, VerticalShort for
+  // native shorts) — kept for the free ffmpeg media-QC pass after the loop.
+  let primaryRenderPath: string | null = null;
+  let primaryRenderVariant: "long" | "short" = video.kind === "short" ? "short" : "long";
+
   for (const { variant, compId, storageName } of plans) {
    try {
     const out = join(outDir, `${compId}.mp4`);
@@ -525,6 +531,10 @@ async function renderOne(
       meta: baseMeta,
       cost_usd: 0,
     });
+    if (compId === "LongForm" || compId === "VerticalShort") {
+      primaryRenderPath = out;
+      primaryRenderVariant = variant;
+    }
    } catch (err) {
     // The beat-0 freebie Short is non-critical: a failure must not strand the
     // long-form (already rendered + stored) at ASSEMBLING. The LongForm and the
@@ -693,12 +703,66 @@ async function renderOne(
       : "Final render + Short (GitHub Actions) — free",
     usd: 0,
   });
+
+  // ── Harness C6, layer one: free ffmpeg structural QC on every render.
+  //    Black/frozen frames, silence gaps, and loudness — defects a vision
+  //    model can't reliably see. A hard structural defect (black frames, a
+  //    long silence gap) HOLDS the video for a human rather than
+  //    auto-publishing a broken cut; the verdict is stored on the render
+  //    asset and gates whether the paid vision critic needs to run.
+  let mediaQcHardFail = false;
+  if (primaryRenderPath) {
+    try {
+      const qc = await runMediaQc(primaryRenderPath);
+      if (qc.ran) {
+        // Merge onto the stored render meta (keep durationSec/beats/resolution).
+        const { data: renderAsset } = await db
+          .from("assets")
+          .select("id, meta")
+          .eq("video_id", videoId)
+          .eq("kind", "render")
+          .filter("meta->>variant", "eq", primaryRenderVariant)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (renderAsset) {
+          await db
+            .from("assets")
+            .update({ meta: { ...(renderAsset.meta as Record<string, unknown>), mediaQc: qc } })
+            .eq("id", renderAsset.id);
+        }
+        const failed = qc.checks.filter((c) => !c.pass);
+        console.log(
+          `🔎 ${video.title}: media QC ${qc.hardFail ? "HARD-FAIL" : failed.length ? "warn" : "clean"}` +
+            (failed.length ? ` — ${failed.map((c) => c.id).join(", ")}` : "") +
+            (qc.lufs != null ? ` · ${qc.lufs.toFixed(1)} LUFS` : ""),
+        );
+        mediaQcHardFail = qc.hardFail;
+      }
+    } catch (err) {
+      console.error(`⚠️  media QC skipped (non-fatal): ${String(err).slice(0, 140)}`);
+    }
+  }
+
   // Clear any prior paused_reason (e.g. an earlier storage failure) so the
-  // project "needs attention" banner clears once this render succeeds.
-  await db.from("videos").update({ status: "FINAL_REVIEW", paused_reason: null }).eq("id", videoId);
-  console.log(
-    `✅ ${video.title}: rendered ${isShort ? "vertical short" : "long + short"} → FINAL_REVIEW`,
-  );
+  // project "needs attention" banner clears once this render succeeds — unless
+  // media QC found a hard structural defect, which holds for manual review.
+  if (mediaQcHardFail) {
+    await db
+      .from("videos")
+      .update({
+        status: "FINAL_REVIEW",
+        auto_publish: false,
+        paused_reason: "Held — media QC found a structural defect (black frames or a long silence gap). Check the render.",
+      })
+      .eq("id", videoId);
+    console.log(`⛔ ${video.title}: rendered but HELD by media QC → FINAL_REVIEW`);
+  } else {
+    await db.from("videos").update({ status: "FINAL_REVIEW", paused_reason: null }).eq("id", videoId);
+    console.log(
+      `✅ ${video.title}: rendered ${isShort ? "vertical short" : "long + short"} → FINAL_REVIEW`,
+    );
+  }
 
   // Tier-1 vision critique: only for stick shorts (programmatic, so issues map
   // to tunable params). Best-effort — never fails the render.
