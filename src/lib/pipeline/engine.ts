@@ -1243,19 +1243,38 @@ async function vetSeedStillForBeat(db: Db, video: Video, project: Project, beat:
     const url = await getSignedMediaUrl(still.storage_path);
     if (!url) return;
 
-    const critique = await critiqueSeedStill({ imageUrl: url, visualPrompt: beat.visualPrompt, beatText: beat.text });
-    if (!critique) return;
+    const qg = await getQualityGateConfig(db);
     let fresh = (await getVideo(db, video.id)) ?? video;
-    if (critique.costUsd > 0) {
+
+    // Two independent bars before we pay to ANIMATE this seed (AI video beats):
+    //  1. quality/artifacts (critiqueSeedStill), and
+    //  2. narration RELEVANCE — the same strict "does this depict the subject"
+    //     check stills/stock get, applied here so an off-topic seed is caught
+    //     while it's still a cheap still, not an expensive animated clip.
+    const critique = await critiqueSeedStill({ imageUrl: url, visualPrompt: beat.visualPrompt, beatText: beat.text });
+    if (critique?.costUsd) {
       await recordCost(db, fresh, { provider: "anthropic", usd: critique.costUsd, description: "Seed-still vision gate" }, `beat ${beat.idx + 1}`);
     }
-    if (critique.score >= (await getQualityGateConfig(db)).seedVisionFloor) return;
+    const relevance = isBeatRelevanceLive()
+      ? await verifyBeatVisual({ imageUrl: url, narration: beat.text, visualPrompt: beat.visualPrompt, niche: project.niche })
+      : null;
+    if (relevance?.costUsd) {
+      fresh = (await getVideo(db, video.id)) ?? fresh;
+      await recordCost(db, fresh, { provider: "anthropic", usd: relevance.costUsd, description: "Seed-still relevance gate" }, `beat ${beat.idx + 1}`);
+    }
 
-    // Weak seed → re-roll a fresh still (forceRegen bypasses + overwrites the
-    // cache so the rejected image is never re-served) and replace the asset.
-    const qg = await getQualityGateConfig(db);
+    const qualityWeak = critique != null && critique.score < qg.seedVisionFloor;
+    const relevanceWeak = relevance != null && relevance.relevance < qg.beatRelevanceFloor;
+    if (!qualityWeak && !relevanceWeak) return; // seed passes both → animate it
+
+    // Re-roll a fresh still (forceRegen overwrites the cache so the rejected
+    // image is never re-served). When RELEVANCE is the problem, steer the new
+    // still toward the subject the model named; replace the asset.
     fresh = (await getVideo(db, video.id)) ?? fresh;
-    const draft = await makeBeatClip(fresh, project, beat, { db, qualityGate: qg, forceRegen: true });
+    const steeredBeat = relevanceWeak && relevance?.betterQuery
+      ? { ...beat, visualPrompt: `${beat.visualPrompt}. It MUST clearly depict: ${relevance.betterQuery}.` }
+      : beat;
+    const draft = await makeBeatClip(fresh, project, steeredBeat, { db, qualityGate: qg, forceRegen: true });
     if (String(draft.row.provider).startsWith("mock:")) return; // re-roll failed → keep the original
     draft.row.meta = { ...draft.row.meta, beatHash: beatContentHash(beat), seedRerolled: true };
     await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", beat.idx);
@@ -1347,7 +1366,7 @@ async function verifyBeatRelevance(
       const asset = byBeat.get(beat.idx);
       if (!asset) continue;
       const meta = (asset.meta ?? {}) as { isVideo?: boolean; posterUrl?: string; url?: string };
-      if (meta.isVideo) continue; // AI video — the seed-vision gate covers it; re-roll is $$
+      if (meta.isVideo) continue; // AI video — relevance-checked at its SEED still (pre-animation, cheap to fix); re-rolling a finished paid clip is not
       if (String(asset.provider).startsWith("mock:")) continue; // no key → nothing real to judge
       const imageUrl = asset.storage_path
         ? await getSignedMediaUrl(asset.storage_path)
