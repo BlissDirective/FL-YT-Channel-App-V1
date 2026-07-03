@@ -5,6 +5,16 @@ web research (July 2026) on LLM-as-judge practice, orchestration patterns,
 agent memory, bandits, cost routing, and YouTube ranking/monetization levers.
 Citations inline; this doc is the build plan for the next tier of the studio.
 
+> **Build status (2026-07-03):** Harnesses **C1, C2, C3, C4, and C6 are
+> IMPLEMENTED** on `main` (see the `harness CN:` commits; migrations 0035–0037
+> apply via the DB Migrate workflow). Part B's script-stage criteria shipped
+> as C1 rubric content + lints. **Remaining: C5 (format-level Thompson
+> sampling)** — deferred as planned until a channel has ≥10–20 published
+> videos, since the bandit is exploration-only below that. Also open from
+> Part B: the FLUX relevance-to-narration criterion (B3) and the
+> engaged-views / traffic-source-CTR stats columns (B4), both small
+> follow-ups. See "Next steps" at the end.
+
 ---
 
 ## Part A — What the quality system is today (honest inventory)
@@ -244,15 +254,41 @@ Not per-video A/B (you don't have the traffic); per-*format* arms.
 
 ## Part D — Sequenced build plan
 
-| Order | Harness | Effort | Why this order |
-|---|---|---|---|
-| 1 | C1 judge calibration (binary rubrics + labels table + agreement report) | M | every other loop trusts the judge |
-| 2 | C6 routing + batch + ffmpeg prefilters | S–M | pure cost reduction, funds the rest |
-| 3 | C2 best-of-N for titles/hooks/thumb phrases | M | biggest quality-per-dollar lever |
-| 4 | C3 outcome audit | S | keeps 1–3 honest as volume grows |
-| 5 | C4 playbook governance | M | compounds only after outcomes flow |
-| 6 | C5 format bandit + Test & Compare ingest | M–L | needs ≥10–20 published videos to matter |
+| Order | Harness | Effort | Why this order | Status |
+|---|---|---|---|---|
+| 1 | C1 judge calibration (binary rubrics + labels table + agreement report) | M | every other loop trusts the judge | ✅ shipped |
+| 2 | C6 routing + batch + ffmpeg prefilters | S–M | pure cost reduction, funds the rest | ✅ shipped |
+| 3 | C2 best-of-N for titles/hooks/thumb phrases | M | biggest quality-per-dollar lever | ✅ shipped |
+| 4 | C3 outcome audit | S | keeps 1–3 honest as volume grows | ✅ shipped |
+| 5 | C4 playbook governance | M | compounds only after outcomes flow | ✅ shipped |
+| 6 | C5 format bandit + Test & Compare ingest | M–L | needs ≥10–20 published videos to matter | ⏳ deferred |
 
 Prereq note: C5's Test & Compare ingestion and C3's day-7/28 joins want the
 per-video Analytics OAuth already used by the retention overlay — no new
 credentials needed.
+
+---
+
+## Next steps (after C1–C4, C6)
+
+1. **Feed the calibration data back into the rubric.** The loops are built
+   but need signal: label ~50 QC verdicts in the review queue (the 👍/👎), let
+   the nightly outcome audit accumulate, then rewrite the criteria the
+   calibration card flags as most-disputed or non-predictive. This is the
+   payoff of C1+C3 and needs no new code — just operating the loop.
+2. **C5 — format-level Thompson sampling** once a channel clears ~10–20
+   published videos. Arms = format × length-band × hook-style × tier; the
+   operator's calendar planner samples the posterior instead of the fixed
+   75/25 mix. Below the data floor it's exploration-only, which is why it's
+   deferred, not skipped.
+3. **Small Part B follow-ups:** add the FLUX relevance-to-narration criterion
+   (B3) to the visual pre-check, and the engaged-views + traffic-source-CTR
+   columns (B4) to stats ingestion — both feed C3's outcome audit with a
+   sharper reward signal than raw views.
+4. **Optional cost switch:** flip `ANTHROPIC_USE_BATCH=1` once the overnight
+   fan-outs (idea scoring, C2 variant generation) dominate spend — the batch
+   path is built and falls back to parallel, so it's a one-env-var change.
+5. **Wire the governed playbook's visual lessons into the art-director prompt**
+   (C4 currently writes them from autofix deltas and reads script-stage
+   lessons at the script gate; the visual read-side can replace the flat
+   `autofix_memory` hint for a fully-governed loop).
