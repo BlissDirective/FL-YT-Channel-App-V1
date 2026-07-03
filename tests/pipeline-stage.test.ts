@@ -5,7 +5,7 @@
  * effectiveStageKey, so this pins that they can't drift.
  */
 import { describe, expect, it } from "vitest";
-import { effectiveStageKey, isLive, stageCounts } from "@/lib/db/pipeline";
+import { effectiveStageKey, isLive, publishDiagnosis, stageCounts } from "@/lib/db/pipeline";
 import type { Video } from "@/lib/db/types";
 
 const v = (over: Partial<Video>): Video =>
@@ -70,5 +70,43 @@ describe("stageCounts matches the classification", () => {
   it("counts nothing for an all-killed set", () => {
     const counts = stageCounts([v({ status: "KILLED" }), v({ status: "NEEDS_REVISION" })]);
     expect(Object.values(counts).every((n) => n === 0)).toBe(true);
+  });
+});
+
+describe("publishDiagnosis", () => {
+  const base = {
+    status: "APPROVED" as const,
+    youtube_video_id: null,
+    published_at: null,
+    publish_requested: false,
+    auto_publish: false,
+    scheduled_publish_at: null,
+    updated_at: new Date().toISOString(),
+  };
+
+  it("reports live when the video reached YouTube", () => {
+    expect(publishDiagnosis({ ...base, youtube_video_id: "yt" }).state).toBe("live");
+  });
+
+  it("flags a manually-approved video that was never queued for auto-publish", () => {
+    const d = publishDiagnosis(base);
+    expect(d.state).toBe("manual");
+    expect(d.message).toMatch(/Publish Kit/);
+  });
+
+  it("reports scheduled when the slot is in the future", () => {
+    const future = new Date(Date.now() + 3600_000).toISOString();
+    expect(publishDiagnosis({ ...base, auto_publish: true, scheduled_publish_at: future }).state).toBe("scheduled");
+  });
+
+  it("reports queued right after publish was requested", () => {
+    expect(publishDiagnosis({ ...base, publish_requested: true }).state).toBe("queued");
+  });
+
+  it("flags a stall when queued but unpublished for >45 min (farm can't upload)", () => {
+    const old = new Date(Date.now() - 60 * 60_000).toISOString();
+    const d = publishDiagnosis({ ...base, publish_requested: true, updated_at: old });
+    expect(d.state).toBe("stalled");
+    expect(d.message).toMatch(/YOUTUBE_OAUTH/);
   });
 });

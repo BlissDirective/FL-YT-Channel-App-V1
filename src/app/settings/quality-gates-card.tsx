@@ -16,6 +16,7 @@ export const QUALITY_GATE_DEFAULTS: Required<QualityGates> = {
   runFloor: 7,
   runPublic: 8,
   factRiskMax: 7,
+  beatRelevanceFloor: 6,
 };
 
 type GateKey = keyof QualityGates;
@@ -30,6 +31,7 @@ const FIELDS: { key: GateKey; label: string; hint: string; min: number; max: num
   { key: "runFloor", label: "Run QC floor", hint: "Build-run videos under this are held", min: 0, max: 10, step: 0.5 },
   { key: "runPublic", label: "Run public bar", hint: "QC needed to auto-publish as Public", min: 0, max: 10, step: 0.5 },
   { key: "factRiskMax", label: "Fact-risk max", hint: "Scripts above this risk score are held", min: 0, max: 10, step: 0.5 },
+  { key: "beatRelevanceFloor", label: "Beat visual relevance floor", hint: "Beat visuals below this (vision) are re-rolled to match the narration", min: 0, max: 10, step: 0.5 },
 ];
 
 export function QualityGatesCard({ initial }: { initial: QualityGates }) {

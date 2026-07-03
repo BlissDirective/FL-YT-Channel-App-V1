@@ -36,6 +36,43 @@ export function stageCounts(videos: Video[]): Record<string, number> {
   return counts;
 }
 
+/**
+ * Why an approved video has/hasn't published yet — derived purely from its
+ * DB state so the operator isn't left guessing. The common full-auto stall is
+ * an approved video that either was never queued for auto-publish (manual
+ * approval doesn't request publish) or is queued but the render farm can't
+ * upload it (YouTube OAuth not configured on the farm).
+ */
+export function publishDiagnosis(
+  v: Pick<Video, "status" | "youtube_video_id" | "published_at" | "publish_requested" | "auto_publish" | "scheduled_publish_at" | "updated_at">,
+): { state: "live" | "queued" | "scheduled" | "manual" | "stalled"; message: string } {
+  if (isLive(v)) return { state: "live", message: "Published to YouTube." };
+  if (v.status !== "APPROVED") return { state: "manual", message: "" };
+
+  if (v.scheduled_publish_at && new Date(v.scheduled_publish_at).getTime() > Date.now()) {
+    return { state: "scheduled", message: `Scheduled to publish ${new Date(v.scheduled_publish_at).toLocaleString()}.` };
+  }
+  if (v.publish_requested) {
+    // Queued for the render farm's upload pass. If it's been a while, the farm
+    // likely can't upload — almost always missing YouTube OAuth on the farm.
+    const ageMin = (Date.now() - new Date(v.updated_at).getTime()) / 60000;
+    return ageMin > 45
+      ? {
+          state: "stalled",
+          message:
+            "Queued for upload but not published after 45+ min — the render farm can't upload. Check the render workflow's YOUTUBE_OAUTH_CLIENT_ID / _SECRET / _REFRESH_TOKEN secrets, or publish manually.",
+        }
+      : { state: "queued", message: "Queued — the render farm uploads on its next pass (usually within ~30 min)." };
+  }
+  if (v.auto_publish) {
+    return { state: "queued", message: "Approved for auto-publish — waiting for its scheduled slot to be released." };
+  }
+  return {
+    state: "manual",
+    message: "Approved but not queued for auto-publish. Open the Publish Kit to upload to YouTube (or mark it uploaded).",
+  };
+}
+
 const ACTIVE_STAGE_ORDER = ["ready", "render", "assets", "script", "ideas"];
 
 /** The stage to emphasize (dark node): the furthest-along stage that has

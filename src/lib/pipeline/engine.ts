@@ -28,6 +28,7 @@ import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters
 import { editorialGuard } from "@/lib/adapters/guardrails";
 import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
 import { pickBestVariant } from "@/lib/adapters/variant-judge";
+import { verifyBeatVisual, isBeatRelevanceLive, type BeatRelevance } from "@/lib/adapters/beat-relevance";
 import { playbookForStage } from "@/lib/pipeline/playbook";
 import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
@@ -874,6 +875,13 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     await diversifyBeatVisuals(db, video, project, beats, clipResults);
   }
 
+  // Beat-visual RELEVANCE sweep: vision-check every still/stock against its
+  // narration and re-roll/re-search the off-topic ones so the visuals actually
+  // match what's being said (worst offender: keyword-searched stock).
+  if (!stick && clipResults.length > 0) {
+    await verifyBeatRelevance(db, video, project, beats);
+  }
+
   // Captions: aggregate the per-beat word timings into one track.
   if (voResults) {
     const { data: voAssets } = await db
@@ -1302,6 +1310,119 @@ async function diversifyBeatVisuals(
     for (const ec of draft.extraCosts ?? []) await recordCost(db, v2, ec, `beat ${worst.idx + 1}`);
   } catch (err) {
     console.error("variety diversify failed:", err);
+  }
+}
+
+/** Max off-topic beats to re-roll per video (bounds cost; worst-first). */
+const MAX_RELEVANCE_REROLLS = 5;
+
+/**
+ * Beat-visual RELEVANCE sweep (vision). For every non-video beat, look at the
+ * ACTUAL chosen still/stock and score whether it depicts the narration's
+ * subject. Store the verdict on the asset (surfaced in review), and re-roll the
+ * worst off-topic beats — steering a stock re-search or a still regen toward
+ * the subject the model named. Best-effort; skipped when vision isn't live.
+ */
+async function verifyBeatRelevance(
+  db: Db,
+  video: Video,
+  project: Project,
+  beats: ScriptBeat[],
+): Promise<void> {
+  if (!isBeatRelevanceLive()) return;
+  try {
+    const floor = (await getQualityGateConfig(db)).beatRelevanceFloor;
+    const { data: clips } = await db
+      .from("assets")
+      .select("id, beat_index, provider, storage_path, meta")
+      .eq("video_id", video.id)
+      .eq("kind", "clip");
+    const byBeat = new Map<number, { id: string; provider: string; storage_path: string | null; meta: Record<string, unknown> }>();
+    for (const c of (clips ?? []) as { id: string; beat_index: number | null; provider: string; storage_path: string | null; meta: Record<string, unknown> }[]) {
+      if (c.beat_index != null) byBeat.set(c.beat_index, c);
+    }
+
+    const offTopic: { beat: ScriptBeat; assetId: string; isStock: boolean; verdict: BeatRelevance }[] = [];
+    for (const beat of beats) {
+      const asset = byBeat.get(beat.idx);
+      if (!asset) continue;
+      const meta = (asset.meta ?? {}) as { isVideo?: boolean; posterUrl?: string; url?: string };
+      if (meta.isVideo) continue; // AI video — the seed-vision gate covers it; re-roll is $$
+      if (String(asset.provider).startsWith("mock:")) continue; // no key → nothing real to judge
+      const imageUrl = asset.storage_path
+        ? await getSignedMediaUrl(asset.storage_path)
+        : meta.posterUrl || meta.url || undefined;
+      if (!imageUrl) continue;
+
+      const verdict = await verifyBeatVisual({
+        imageUrl,
+        narration: beat.text,
+        visualPrompt: beat.visualPrompt,
+        niche: project.niche,
+      });
+      if (!verdict) continue;
+      const fresh = (await getVideo(db, video.id)) ?? video;
+      if (verdict.costUsd > 0) {
+        await recordCost(db, fresh, { provider: "anthropic", usd: verdict.costUsd, description: "Beat visual relevance check" }, `beat ${beat.idx + 1}`);
+      }
+      await db
+        .from("assets")
+        .update({ meta: { ...asset.meta, relevance: { score: verdict.relevance, depicts: verdict.depicts, reason: verdict.reason } } })
+        .eq("id", asset.id);
+      if (verdict.relevance < floor) {
+        offTopic.push({ beat, assetId: asset.id, isStock: !asset.storage_path, verdict });
+      }
+    }
+
+    // Re-roll the worst offenders (bounded), steering toward the named subject.
+    offTopic.sort((a, b) => a.verdict.relevance - b.verdict.relevance);
+    let rerolls = 0;
+    for (const off of offTopic) {
+      if (rerolls >= MAX_RELEVANCE_REROLLS) break;
+      // A stock beat re-searches Pexels with the model's subject keywords; a
+      // still regenerates FLUX with the subject appended to its scene.
+      const steered: ScriptBeat = off.isStock
+        ? { ...off.beat, visualPrompt: off.verdict.betterQuery || off.beat.visualPrompt }
+        : { ...off.beat, visualPrompt: `${off.beat.visualPrompt}. It MUST clearly depict: ${off.verdict.betterQuery}.` };
+      const qg = await getQualityGateConfig(db);
+      const fresh = (await getVideo(db, video.id)) ?? video;
+      const draft = await makeBeatClip(fresh, project, steered, { db, qualityGate: qg, forceRegen: true });
+      if (String(draft.row.provider).startsWith("mock:")) continue; // re-roll unavailable → keep original
+
+      // Verify the replacement actually improved; keep whichever is more on-topic.
+      const newMeta = (draft.row.meta ?? {}) as { posterUrl?: string; url?: string };
+      const newUrl = draft.row.storage_path
+        ? await getSignedMediaUrl(draft.row.storage_path)
+        : newMeta.posterUrl || newMeta.url || undefined;
+      let keep = true;
+      let newRelevance = off.verdict.relevance;
+      if (newUrl) {
+        const recheck = await verifyBeatVisual({ imageUrl: newUrl, narration: off.beat.text, visualPrompt: steered.visualPrompt, niche: project.niche });
+        if (recheck) {
+          const v2 = (await getVideo(db, video.id)) ?? fresh;
+          if (recheck.costUsd > 0) await recordCost(db, v2, { provider: "anthropic", usd: recheck.costUsd, description: "Beat visual relevance recheck" }, `beat ${off.beat.idx + 1}`);
+          keep = recheck.relevance > off.verdict.relevance;
+          newRelevance = recheck.relevance;
+        }
+      }
+      if (!keep) continue; // the replacement was no better — leave the original in place
+
+      draft.row.meta = {
+        ...draft.row.meta,
+        beatHash: beatContentHash(off.beat),
+        relevanceReroll: true,
+        relevance: { score: newRelevance, depicts: off.verdict.depicts, reason: "re-rolled for narration relevance" },
+      };
+      await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", off.beat.idx);
+      await db.from("assets").insert(draft.row);
+      const v3 = (await getVideo(db, video.id)) ?? fresh;
+      await recordCost(db, v3, draft.cost, `beat ${off.beat.idx + 1} (relevance re-roll)`);
+      for (const ec of draft.extraCosts ?? []) await recordCost(db, v3, ec, `beat ${off.beat.idx + 1}`);
+      rerolls++;
+      console.log(`🎯 beat ${off.beat.idx + 1}: relevance ${off.verdict.relevance}→${newRelevance} (${off.isStock ? "re-searched stock" : "regenerated still"})`);
+    }
+  } catch (err) {
+    console.error("beat relevance sweep failed:", err);
   }
 }
 

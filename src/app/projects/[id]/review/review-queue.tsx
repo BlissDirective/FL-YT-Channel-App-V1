@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { GATE_FOR_STATUS, GATE_LABELS, type ApprovalGate } from "@studio/core";
 import type { ReviewItem } from "@/lib/db/queries";
+import { publishDiagnosis } from "@/lib/db/pipeline";
 import {
   approveGateAction,
   killVideoAction,
@@ -147,7 +148,7 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
           {video.status === "NEEDS_REVISION"
             ? "Looping the previous stage with your notes…"
             : video.status === "APPROVED"
-              ? "Approved — ready to publish. Open the Publish Kit to upload to YouTube (or mark it uploaded)."
+              ? publishDiagnosis(video).message
               : "Waiting to resume."}
         </p>
       )}
@@ -474,6 +475,21 @@ function AssetsBody({
               <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white drop-shadow">
                 {(c.meta as { shotType?: string }).shotType ?? "clip"}
               </span>
+              {(() => {
+                // Per-beat visual-relevance verdict (vision gate): does this
+                // still/clip actually depict the narration? Red = off-topic.
+                const rel = (c.meta as { relevance?: { score?: number; depicts?: string; reason?: string } }).relevance;
+                if (!rel || typeof rel.score !== "number") return null;
+                const tone = rel.score >= 6 ? "bg-success/90" : rel.score >= 4 ? "bg-accent/90 text-ink" : "bg-coral/90";
+                return (
+                  <span
+                    title={`Depicts: ${rel.depicts ?? "?"} — ${rel.reason ?? ""}`}
+                    className={cn("absolute left-1 top-1 rounded px-1 py-0.5 text-[9px] font-bold text-white", tone)}
+                  >
+                    ◎ {rel.score.toFixed(0)}
+                  </span>
+                );
+              })()}
               {(c.meta as { fromLibrary?: boolean }).fromLibrary && (
                 <span className="absolute bottom-1 right-1 rounded bg-success/90 px-1 py-0.5 text-[9px] font-bold text-white">
                   licensed

@@ -41,6 +41,9 @@ export type QualityGateConfig = {
   runPublic: number;
   /** Script fact-check risk at/above this holds the video (Phase 4.2). */
   factRiskMax: number;
+  /** Beat visuals scoring below this on narration-relevance are re-rolled/
+      re-searched before render (vision gate). */
+  beatRelevanceFloor: number;
 };
 
 export const DEFAULT_QUALITY_GATES: QualityGateConfig = {
@@ -56,6 +59,7 @@ export const DEFAULT_QUALITY_GATES: QualityGateConfig = {
   runFloor: 7.0,
   runPublic: 8.0,
   factRiskMax: 7,
+  beatRelevanceFloor: 6,
 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
@@ -89,6 +93,7 @@ export async function getQualityGateConfig(db?: Db): Promise<QualityGateConfig> 
     cfg.runFloor = clamp(num(v.runFloor) ?? cfg.runFloor, 0, 10);
     cfg.runPublic = clamp(num(v.runPublic) ?? cfg.runPublic, 0, 10);
     cfg.factRiskMax = clamp(num(v.factRiskMax) ?? cfg.factRiskMax, 0, 10);
+    cfg.beatRelevanceFloor = clamp(num(v.beatRelevanceFloor) ?? cfg.beatRelevanceFloor, 0, 10);
   } catch {
     /* missing row / table → defaults */
   }
