@@ -27,6 +27,7 @@ import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
 import { editorialGuard } from "@/lib/adapters/guardrails";
 import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
+import { pickBestVariant } from "@/lib/adapters/variant-judge";
 import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
 import { keywords } from "@/lib/pipeline/dedup";
@@ -2546,6 +2547,13 @@ export async function processPendingBuildVideos(
         }
       }
 
+      // Best-of-N packaging (Harness C2): the title is the biggest CTR lever,
+      // but the autonomous path used to publish the idea title untouched.
+      // Judge-select the strongest title + thumbnail phrase from the generated
+      // candidates BEFORE assets (the thumb phrase feeds the render). Cheap
+      // (~$0.01, Haiku pairwise); skipped when QC isn't live.
+      await optimizePackaging(db, video, project);
+
       const tier = (run?.tier as AutoTier) ?? "economy";
       const custom = (run?.custom_spec as CustomSpec | null) ?? undefined;
       await fullAutoGenerate({ videoId: row.id, tier, custom }, db); // → assets → render → FINAL_REVIEW
@@ -2613,6 +2621,59 @@ async function scoreAndRecordGate(
     injected via the existing feedback loop) and re-score. ok=false means it is
     still below the floor after the single revision → hold for a human. When QC
     isn't live there is no judge, so it passes through (dry run). */
+/**
+ * Best-of-N packaging (Harness C2): expand + judge-select the strongest title
+ * and thumbnail phrase from the script's generated candidates, and apply the
+ * winners (title on the video, thumb phrase on the latest script metadata).
+ * Best-effort and cheap; a no-key/passthrough or any failure leaves the
+ * existing packaging untouched. Runs on auto-pilot/build videos only (the
+ * operator picks titles manually on the interactive path).
+ */
+async function optimizePackaging(db: Db, video: Video, project: Project): Promise<void> {
+  if (!isQcLive()) return;
+  try {
+    const script = await loadLatestScript(db, video.id);
+    if (!script) return;
+    const meta = (script.metadata ?? {}) as { titles?: string[]; thumbPhrase?: string };
+    const ctx = { title: video.title, niche: project.niche, topic: video.topic };
+
+    const titleCandidates = [video.title, ...(meta.titles ?? [])];
+    const title = await pickBestVariant({ kind: "title", candidates: titleCandidates, context: ctx, poolSize: 5 });
+
+    const thumbCandidates = [meta.thumbPhrase ?? "", ...(meta.titles ?? [])].filter(Boolean);
+    const thumb = await pickBestVariant({ kind: "thumb_phrase", candidates: thumbCandidates, context: { ...ctx, hook: (script.beats as ScriptBeat[] | null)?.[0]?.text }, poolSize: 4 });
+
+    const totalCost = title.costUsd + thumb.costUsd;
+    if (totalCost > 0) {
+      await recordCost(db, video, { provider: "anthropic", usd: totalCost, description: "Best-of-N packaging (title + thumb)" }, `“${video.title}”`);
+    }
+
+    const newTitle = title.judged && title.winner ? title.winner : video.title;
+    const newThumb = thumb.judged && thumb.winner ? thumb.winner : meta.thumbPhrase;
+    if (newTitle !== video.title || newThumb !== meta.thumbPhrase) {
+      await db
+        .from("scripts")
+        .update({
+          metadata: {
+            ...(script.metadata as Record<string, unknown>),
+            thumbPhrase: newThumb,
+            // Winner first so any downstream titles[0] use stays consistent.
+            titles: [newTitle, ...(meta.titles ?? []).filter((t) => t !== newTitle)].slice(0, 5),
+            packagingSelected: { titleJudged: title.judged, thumbJudged: thumb.judged },
+          },
+        })
+        .eq("id", script.id);
+      if (newTitle !== video.title) {
+        await db.from("videos").update({ title: newTitle }).eq("id", video.id);
+        video.title = newTitle;
+        console.log(`🏷️  best-of-N title → "${newTitle}"`);
+      }
+    }
+  } catch (err) {
+    console.error("packaging optimization failed (non-fatal):", err);
+  }
+}
+
 async function gateScriptForAutoPilot(
   db: Db,
   video: Video,
