@@ -196,7 +196,11 @@ export default async function VideoDetailPage({
         <ArrowUpRight className="size-4 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </Link>
 
-      {publishKit && <PublishKit {...publishKit} />}
+      {publishKit && (
+        <div id="publish" className="scroll-mt-20">
+          <PublishKit {...publishKit} />
+        </div>
+      )}
 
       {canDeriveShorts && (
         <DeriveShorts

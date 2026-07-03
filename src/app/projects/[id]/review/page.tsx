@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, X } from "lucide-react";
-import { PIPELINE_STAGES, type VideoStatus } from "@studio/core";
+import { PIPELINE_STAGES } from "@studio/core";
 import {
   getKillSwitch,
   getProject,
@@ -11,6 +11,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
+import { effectiveStageKey, isLive } from "@/lib/db/pipeline";
 import { ReviewQueue } from "./review-queue";
 
 export const dynamic = "force-dynamic";
@@ -39,22 +40,17 @@ export default async function ReviewPage({
   if (!project) notFound();
 
   const stageDef = stage ? PIPELINE_STAGES.find((s) => s.key === stage) : undefined;
-  const statuses = stageDef ? (stageDef.statuses as readonly VideoStatus[]) : null;
 
-  // When filtered to a stage: show that stage's review-gate cards, plus the
-  // videos sitting at that stage that aren't at a gate yet (in progress).
-  const shownItems = statuses
-    ? items.filter((i) => statuses.includes(i.video.status))
+  // Classify with the SAME rule the flow-diagram badge uses (effectiveStageKey)
+  // so "Ready = 6" shows exactly 6 when clicked: review-gate cards for this
+  // stage, plus the other videos that belong to it (in-progress, or — for the
+  // terminal Ready stage — the live/published ones the census counts).
+  const shownItems = stageDef
+    ? items.filter((i) => effectiveStageKey(i.video) === stageDef.key)
     : items;
   const reviewIds = new Set(items.map((i) => i.video.id));
-  // "In progress at this stage" = videos genuinely mid-stage. Exclude anything
-  // already finished (published to YouTube, tracking, or stamped published_at)
-  // so a video that was published but whose status lagged at ASSEMBLING doesn't
-  // linger in the Render stage forever.
-  const isDone = (v: (typeof videos)[number]) =>
-    Boolean(v.youtube_video_id) || Boolean(v.published_at) || v.status === "TRACKING";
-  const atStage = statuses
-    ? videos.filter((v) => statuses.includes(v.status) && !reviewIds.has(v.id) && !isDone(v))
+  const atStage = stageDef
+    ? videos.filter((v) => effectiveStageKey(v) === stageDef.key && !reviewIds.has(v.id))
     : [];
 
   return (
@@ -99,11 +95,13 @@ export default async function ReviewPage({
 
       {shownItems.length > 0 && <ReviewQueue projectId={id} items={shownItems} />}
 
-      {/* Videos at this stage that aren't at a review gate yet (in progress). */}
+      {/* Other videos that belong to this stage but aren't at a review gate:
+          in-progress ones, or — for the terminal Ready stage — the live/
+          published videos the flow-diagram count includes. */}
       {atStage.length > 0 && (
         <Card>
           <p className="mb-3 text-sm font-semibold">
-            In progress at the {stageDef?.label} stage
+            {stageDef?.key === "ready" ? "Live & published" : `In progress at the ${stageDef?.label} stage`}
           </p>
           <ul className="divide-y divide-line">
             {atStage.map((v) => (
@@ -113,7 +111,9 @@ export default async function ReviewPage({
                   className="-mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-canvas"
                 >
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">{v.title}</span>
-                  <StatusChip tone="neutral">{statusLabel(v.status)}</StatusChip>
+                  <StatusChip tone={isLive(v) ? "success" : "neutral"}>
+                    {isLive(v) ? "live" : statusLabel(v.status)}
+                  </StatusChip>
                 </Link>
               </li>
             ))}

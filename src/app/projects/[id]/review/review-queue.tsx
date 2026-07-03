@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Sparkles,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { GATE_FOR_STATUS, GATE_LABELS, type ApprovalGate } from "@studio/core";
 import type { ReviewItem } from "@/lib/db/queries";
@@ -145,7 +146,9 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
         <p className="text-sm text-muted">
           {video.status === "NEEDS_REVISION"
             ? "Looping the previous stage with your notes…"
-            : "Waiting to resume."}
+            : video.status === "APPROVED"
+              ? "Approved — ready to publish. Open the Publish Kit to upload to YouTube (or mark it uploaded)."
+              : "Waiting to resume."}
         </p>
       )}
 
@@ -223,8 +226,20 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
                 </button>
               )}
             </>
+          ) : video.status === "APPROVED" ? (
+            // APPROVED is terminal in the pipeline — there's nothing to "resume".
+            // The forward action is publishing, which lives in the Publish Kit.
+            <a
+              href={`/projects/${projectId}/videos/${video.id}#publish`}
+              className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02]"
+            >
+              <Upload className="size-4" /> Publish kit
+            </a>
           ) : (
-            (video.paused_reason || DRIVABLE_STATES.has(video.status)) && (
+            // Resume only genuinely drivable/paused stages — runPipeline re-drives
+            // them; it can't advance a terminal status, so we never show a
+            // dead Resume button.
+            (DRIVABLE_STATES.has(video.status) || Boolean(video.paused_reason)) && (
               <button
                 type="button"
                 disabled={isPending}
