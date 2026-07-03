@@ -75,6 +75,8 @@ export type Project = {
   autofix_config: AutofixConfig;
   /** Per-project learned memory (compounds across videos). */
   autofix_memory: AutofixMemory;
+  /** Governed, evidence-gated learnings (Harness C4). See pipeline/playbook.ts. */
+  playbook: import("@/lib/pipeline/playbook").PlaybookEntry[];
   is_demo: boolean;
   created_at: string;
   updated_at: string;

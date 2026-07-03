@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generateInsights } from "@/lib/adapters/optimizer";
 import { analyticsConfigured, getRetentionCurve } from "@/lib/adapters/youtube-analytics";
 import { DEFAULT_SCRIPT_TEMPLATE } from "@/lib/pipeline/templates";
+import { curateScriptLessons } from "@/lib/pipeline/playbook";
 
 /**
  * Weekly Optimizer run (Phase 8). Correlates a project's tracked stats with
@@ -25,6 +26,14 @@ export async function runOptimizer(projectId: string): Promise<{ created: number
     await evaluateCanaries(db, projectId);
   } catch (err) {
     console.error("canary evaluation failed:", err);
+  }
+
+  // Harness C4 — promote recurring script QC issues to governed playbook
+  // lessons (evidence = recurrence count).
+  try {
+    await curateScriptLessons(db, projectId);
+  } catch (err) {
+    console.error("playbook curation failed:", err);
   }
 
   // Tracked videos + their latest snapshot.

@@ -28,6 +28,7 @@ import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters
 import { editorialGuard } from "@/lib/adapters/guardrails";
 import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
 import { pickBestVariant } from "@/lib/adapters/variant-judge";
+import { playbookForStage } from "@/lib/pipeline/playbook";
 import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
 import { keywords } from "@/lib/pipeline/dedup";
@@ -345,6 +346,17 @@ async function qcLessons(db: Db, projectId: string): Promise<string[]> {
       }
       if (out.length >= 8) return out;
     }
+  }
+  // Merge the governed playbook's confident script-stage lessons (Harness C4):
+  // evidence-backed, expiry-governed guidance, on top of the raw recent QC
+  // issues. Deduped against what's already collected.
+  for (const lesson of await playbookForStage(db, projectId, "script", 4)) {
+    const key = lesson.slice(0, 60).toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(lesson);
+    }
+    if (out.length >= 10) break;
   }
   return out;
 }

@@ -4,6 +4,7 @@ import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { reviewGate } from "@/lib/adapters/qc";
 import { isAutofixEnabled, getQualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
+import { recordLesson } from "@/lib/pipeline/playbook";
 import { isTwelveLabsLive, wantsTemporalPass } from "@/lib/adapters/twelvelabs";
 import { makeBeatClip } from "@/lib/pipeline/engine";
 import {
@@ -565,6 +566,20 @@ export async function processAutofixForVideo(
     open.toScore = score;
     mem = foldMemory(mem, open.changes, delta);
     await saveMemory(db, project.id, mem);
+    // Governed playbook (Harness C4): a fix that moved the QC score is a
+    // lesson backed by a quantitative delta — the evidence the write policy
+    // requires. Only confirmed movements (|delta|>=0.3) persist.
+    if (Math.abs(delta) >= 0.3 && open.changes.length > 0) {
+      const worked = delta >= 0.3;
+      await recordLesson(db, project.id, {
+        stage: "visual",
+        text: worked
+          ? `Do: ${open.changes.slice(0, 2).join("; ")}`
+          : `Avoid: ${open.changes.slice(0, 2).join("; ")}`,
+        evidence: `autofix ${delta >= 0 ? "+" : ""}${delta.toFixed(1)} QC`,
+        confidence: Math.min(0.6, Math.abs(delta) / 5 + 0.3),
+      });
+    }
     await db
       .from("autofix_runs")
       .update({ to_score: score, status: delta >= 0.3 ? "improved" : delta <= -0.3 ? "regressed" : "applied" })
