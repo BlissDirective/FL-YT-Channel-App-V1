@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { Card } from "@/components/ui/card";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { GenerateInsightsButton, InsightCard } from "./insights-list";
+import { JudgeCalibration } from "./judge-calibration";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,8 @@ export default async function InsightsPage() {
         </div>
         <GenerateInsightsButton />
       </div>
+
+      <JudgeCalibration />
 
       {insights.length === 0 ? (
         <Card className="flex flex-col items-center gap-3 py-12 text-center">

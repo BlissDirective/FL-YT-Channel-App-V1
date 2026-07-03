@@ -844,3 +844,28 @@ export async function removePushSubscriptionAction(endpoint: string): Promise<vo
   const supabase = await createClient();
   await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
 }
+
+/**
+ * Harness C1 — the operator's agree/disagree on a QC verdict (the judge
+ * calibration signal). One tap per review they were reading anyway; ~50
+ * labels make the per-criterion agreement report meaningful.
+ */
+export async function labelQcReviewAction(opts: {
+  qcReviewId: string;
+  videoId: string;
+  gate: string;
+  agree: boolean;
+  criterionId?: string;
+  note?: string;
+}): Promise<PipelineResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("judge_labels").insert({
+    qc_review_id: opts.qcReviewId,
+    video_id: opts.videoId,
+    gate: opts.gate,
+    agree: opts.agree,
+    criterion_id: opts.criterionId ?? null,
+    note: opts.note?.slice(0, 300) ?? null,
+  });
+  return { ok: !error, error: error?.message };
+}

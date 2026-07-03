@@ -677,7 +677,7 @@ async function recordCost(db: Db, video: Video, usd: number, description: string
 
 /** FINAL quality for the approval bar: prefer the auto-fix loop's vision score;
     otherwise score the final cut with the QC agent. */
-async function finalQc(db: Db, video: Video, project: Project): Promise<number> {
+async function finalQc(db: Db, video: Video, project: Project, escalateNear?: number): Promise<number> {
   const vr = video.vision_review as FrameCritique | null;
   if (vr && typeof vr.score === "number") return Number(vr.score);
   if (!isQcLive()) return 7;
@@ -689,6 +689,7 @@ async function finalQc(db: Db, video: Video, project: Project): Promise<number> 
     .limit(1)
     .maybeSingle();
   const review = await reviewGate({
+    escalateNear,
     gate: "FINAL",
     context: {
       title: video.title,
@@ -783,7 +784,7 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
     const loopOn = isAutofixEnabled(project, video);
     const afStatus = (video.autofix_state as { status?: string } | null)?.status;
     if (loopOn && afStatus !== "done" && afStatus !== "held") continue;
-    const qc = await finalQc(db, video, project);
+    const qc = await finalQc(db, video, project, cfg.publishFloorQc);
     // Pre-publish editorial review (metadata-only when the full check already
     // ran at the script stage; full otherwise).
     const { data: script } = await db

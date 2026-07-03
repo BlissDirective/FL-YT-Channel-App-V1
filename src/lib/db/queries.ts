@@ -302,6 +302,10 @@ export type QcReview = {
   verdict: string;
   issues: string[];
   strengths: string[];
+  /** Per-criterion binary verdicts (Harness C1) — null on pre-C1 rows. */
+  criteria: { id: string; label: string; pass: boolean; note: string; weight: number; source: string }[] | null;
+  judge_model: string | null;
+  escalated: boolean;
   auto_approved: boolean;
   created_at: string;
 };

@@ -183,8 +183,12 @@ async function arriveAtGate(
     const review = await reviewGate({
       gate,
       context: await qcContext(db, video, project, gate),
+      // Borderline results near the auto-approve bar re-judge on the strong
+      // model when this review can gate an automatic advance (C1 cascade).
+      escalateNear: mode === "assist" ? undefined : COPILOT_AUTO_APPROVE_SCORE,
     });
     qcScore = review.score;
+    if (review.degraded) qcErrored = true; // live-but-failed → hold below, never a fake 6/10
     const autoApprove =
       mode === "copilot" && review.score >= COPILOT_AUTO_APPROVE_SCORE;
     await db.from("qc_reviews").insert({
@@ -194,6 +198,9 @@ async function arriveAtGate(
       verdict: review.verdict,
       issues: review.issues,
       strengths: review.strengths,
+      criteria: review.criteria,
+      judge_model: review.judgeModel,
+      escalated: review.escalated,
       auto_approved: autoApprove,
     });
     if (review.costUsd > 0) {
@@ -2572,8 +2579,13 @@ async function scoreAndRecordGate(
   video: Video,
   project: Project,
   gate: ApprovalGate,
+  escalateNear?: number,
 ): Promise<{ score: number; issues: string[] }> {
-  const review = await reviewGate({ gate, context: await qcContext(db, video, project, gate) });
+  const review = await reviewGate({
+    gate,
+    context: await qcContext(db, video, project, gate),
+    escalateNear,
+  });
   await db.from("qc_reviews").insert({
     video_id: video.id,
     gate,
@@ -2581,6 +2593,9 @@ async function scoreAndRecordGate(
     verdict: review.verdict,
     issues: review.issues,
     strengths: review.strengths,
+    criteria: review.criteria,
+    judge_model: review.judgeModel,
+    escalated: review.escalated,
     auto_approved: false,
   });
   if (review.costUsd > 0) {
@@ -2606,7 +2621,7 @@ async function gateScriptForAutoPilot(
 ): Promise<{ ok: boolean; score: number | null }> {
   if (!isQcLive()) return { ok: true, score: null };
 
-  const first = await scoreAndRecordGate(db, video, project, "SCRIPT");
+  const first = await scoreAndRecordGate(db, video, project, "SCRIPT", floor);
   if (first.score >= floor) {
     const held = await factCheckAtScriptGate(db, video, project);
     return { ok: !held, score: first.score };
@@ -2627,7 +2642,7 @@ async function gateScriptForAutoPilot(
   });
   await runScripting(db, video, project); // reads latestNotes → SCRIPT_READY
 
-  const second = await scoreAndRecordGate(db, video, project, "SCRIPT");
+  const second = await scoreAndRecordGate(db, video, project, "SCRIPT", floor);
   if (second.score >= floor) {
     const held = await factCheckAtScriptGate(db, video, project);
     return { ok: !held, score: second.score };
@@ -2703,7 +2718,7 @@ export async function finalizeAutoPilotVideos(
       const afStatus = (video.autofix_state as { status?: string } | null)?.status;
       if (loopOn && afStatus !== "done" && afStatus !== "held") continue;
       const { floor, pub } = await runThresholds(db, row.build_run_id);
-      const { score } = await scoreAndRecordGate(db, video, project, "FINAL");
+      const { score } = await scoreAndRecordGate(db, video, project, "FINAL", floor);
 
       if (score >= floor) {
         const privacy = privacyForScore(score, pub);

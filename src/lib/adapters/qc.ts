@@ -1,61 +1,92 @@
 import "server-only";
 import { anthropicFetch } from "./anthropic";
+import { anthropicCostUsd } from "./pricing";
 import type { ApprovalGate } from "@studio/core";
+import {
+  GATE_RUBRICS,
+  computeLints,
+  scoreFromCriteria,
+  type CriterionResult,
+} from "@/lib/pipeline/rubrics";
 
 /**
- * QC agent — Claude reviews every gate arrival and returns a scored
- * verdict. Powers the QC card next to Approve and, in Co-pilot mode,
- * auto-approval above the confidence threshold. Uses Haiku: a review
- * costs ~$0.001. Heuristic fallback when no key (standing rule 4).
+ * QC judge (Harness C1) — binary rubric criteria instead of one scalar.
+ *
+ * Design, per the research in Fable5-Agentic-Harness-Plan.md:
+ *  - Each gate has 3–6 atomic pass/fail criteria (rubrics.ts); the score is
+ *    the weighted pass-fraction × 10, so every existing threshold works.
+ *  - Evidence-before-verdict: the tool schema forces a `note` before each
+ *    `pass` — Multiple-Evidence-Calibration ordering reduces snap verdicts.
+ *  - Judge cascade: a Haiku screen judges every arrival (~$0.001); when the
+ *    result lands NEAR a decision threshold (`escalateNear`) the review
+ *    re-runs on the strong judge model — a different tier than the script
+ *    generator, which also counters same-model self-preference bias.
+ *  - Degraded reviews are flagged (`degraded: true`) so autonomy modes can
+ *    hold instead of trusting a neutral placeholder.
  */
 
-const MODEL = "claude-haiku-4-5";
-const PRICE_IN = 1; // USD per 1M tokens
-const PRICE_OUT = 5;
+const SCREEN_MODEL = process.env.QC_SCREEN_MODEL?.trim() || "claude-haiku-4-5";
+/** Strong judge for borderline publish-gating verdicts. Deliberately a
+    different tier than SCRIPT_MODEL (generator) — self-preference bias. */
+const JUDGE_MODEL = process.env.QC_JUDGE_MODEL?.trim() || "claude-opus-4-8";
+/** Screen results within this band of `escalateNear` re-judge on JUDGE_MODEL. */
+const ESCALATE_BAND = 1.5;
 
 export const COPILOT_AUTO_APPROVE_SCORE = 7.5;
 
 export type QcResult = {
-  score: number; // 0–10
+  score: number; // 0–10 (weighted pass-fraction)
   verdict: string;
   issues: string[];
   strengths: string[];
+  /** Per-criterion binary verdicts (judge + lint), the calibration unit. */
+  criteria: CriterionResult[];
+  /** Model that produced the final verdict. */
+  judgeModel: string;
+  /** True when the screen was borderline and the strong judge re-reviewed. */
+  escalated: boolean;
+  /** True when no real review happened (no key / API failure) — autonomy
+      modes must treat this as "hold for a human", never as a real 6/10. */
+  degraded: boolean;
   costUsd: number;
 };
 
-const REVIEW_TOOL = {
-  name: "deliver_review",
-  description: "Deliver the QC review.",
-  input_schema: {
-    type: "object",
-    properties: {
-      score: {
-        type: "number",
-        description:
-          "0–10 quality/confidence score. 8+ = publish-grade, 6–8 = solid with nits, <6 = needs human attention.",
-      },
-      verdict: { type: "string", description: "One-sentence overall verdict." },
-      issues: {
-        type: "array",
-        items: { type: "string" },
-        description: "Specific problems, most important first (max 4). Empty if none.",
-      },
-      strengths: {
-        type: "array",
-        items: { type: "string" },
-        description: "What works (max 2).",
-      },
-    },
-    required: ["score", "verdict", "issues", "strengths"],
-  },
-} as const;
-
 const GATE_BRIEFS: Record<ApprovalGate, string> = {
-  IDEA: `Review this video idea for a faceless YouTube channel. Judge: topic appeal to the stated audience, angle originality (would it survive YouTube's inauthentic-content bar?), and title promise strength.`,
-  SCRIPT: `Review this video script. Judge: hook strength (first 2 sentences must create tension), pacing (no filler, every sentence earns runtime), original editorial voice (not templated), factual red flags, and policy risk (violence/medical/financial claims).`,
-  ASSETS: `Review this asset package summary for a video. Judge: voiceover coverage vs script, visual variety across beats (not all the same shot type), thumbnail prompt/title coherence, and anything missing.`,
-  FINAL: `Review this final render summary. Judge: completeness (duration vs target, captions present), and readiness to publish.`,
+  IDEA: "You are reviewing a video idea for a faceless YouTube channel.",
+  SCRIPT: "You are reviewing a video script for a faceless YouTube channel.",
+  ASSETS: "You are reviewing an asset package summary for a video.",
+  FINAL: "You are reviewing a final render summary before publish.",
 };
+
+function reviewTool(gate: ApprovalGate) {
+  const rubric = GATE_RUBRICS[gate];
+  const properties: Record<string, unknown> = {};
+  for (const c of rubric) {
+    properties[c.id] = {
+      type: "object",
+      description: c.test,
+      // `note` first: the judge must state evidence before the verdict.
+      properties: {
+        note: { type: "string", description: "One line of concrete evidence for your verdict, citing the material." },
+        pass: { type: "boolean", description: `PASS only if strictly true: ${c.test}` },
+      },
+      required: ["note", "pass"],
+    };
+  }
+  return {
+    name: "deliver_review",
+    description: "Deliver the QC review: per-criterion evidence + verdicts, then the overall summary.",
+    input_schema: {
+      type: "object",
+      properties: {
+        ...properties,
+        verdict: { type: "string", description: "One-sentence overall verdict." },
+        strengths: { type: "array", items: { type: "string" }, description: "What works (max 2)." },
+      },
+      required: [...rubric.map((c) => c.id), "verdict", "strengths"],
+    },
+  } as const;
+}
 
 export function isQcLive(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
@@ -64,9 +95,43 @@ export function isQcLive(): boolean {
 export async function reviewGate(opts: {
   gate: ApprovalGate;
   context: Record<string, unknown>;
+  /**
+   * The decision threshold this review will be compared against (copilot
+   * auto-approve bar, run floor…). When the cheap screen lands within
+   * ±1.5 of it, the strong judge re-reviews. Omit for advisory-only reviews.
+   */
+  escalateNear?: number;
 }): Promise<QcResult> {
   if (!isQcLive()) return heuristicReview();
 
+  const lints = computeLints(opts.gate, opts.context);
+  try {
+    const screen = await judgeOnce(SCREEN_MODEL, opts.gate, opts.context, lints);
+    const borderline =
+      opts.escalateNear != null && Math.abs(screen.score - opts.escalateNear) <= ESCALATE_BAND;
+    if (!borderline) return screen;
+
+    // Borderline publish-gating decision → strong judge, different tier
+    // than the generator. Cost lands only where it changes an outcome.
+    const strong = await judgeOnce(JUDGE_MODEL, opts.gate, opts.context, lints);
+    return {
+      ...strong,
+      escalated: true,
+      costUsd: Math.round((screen.costUsd + strong.costUsd) * 10000) / 10000,
+    };
+  } catch (err) {
+    console.error(`QC review failed (${opts.gate}):`, err);
+    return heuristicReview();
+  }
+}
+
+async function judgeOnce(
+  model: string,
+  gate: ApprovalGate,
+  context: Record<string, unknown>,
+  lints: CriterionResult[],
+): Promise<QcResult> {
+  const rubric = GATE_RUBRICS[gate];
   const res = await anthropicFetch({
     method: "POST",
     headers: {
@@ -75,40 +140,58 @@ export async function reviewGate(opts: {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1024,
-      tools: [REVIEW_TOOL],
+      model,
+      max_tokens: 1500,
+      tools: [reviewTool(gate)],
       tool_choice: { type: "tool", name: "deliver_review" },
       messages: [
         {
           role: "user",
-          content: `${GATE_BRIEFS[opts.gate]}\n\nBe critical and concrete — vague praise helps nobody.\n\n${JSON.stringify(opts.context, null, 2)}`,
+          content:
+            `${GATE_BRIEFS[gate]} Judge each criterion independently and strictly: ` +
+            `state your evidence first, then pass/fail. A criterion you cannot verify from the material FAILS. ` +
+            `Be concrete — vague praise helps nobody.\n\n${JSON.stringify(context, null, 2)}`,
         },
       ],
     }),
   });
-  if (!res.ok) return heuristicReview(); // QC must never block the pipeline
-
+  if (!res.ok) {
+    throw new Error(`QC judge ${model} ${res.status}: ${(await res.text()).slice(0, 160)}`);
+  }
   const data = (await res.json()) as {
     content: { type: string; input?: Record<string, unknown> }[];
     usage: { input_tokens: number; output_tokens: number };
   };
   const input = data.content.find((c) => c.type === "tool_use")?.input as
-    | { score: number; verdict: string; issues: string[]; strengths: string[] }
+    | Record<string, { note?: string; pass?: boolean } | unknown>
     | undefined;
-  if (!input) return heuristicReview();
+  if (!input) throw new Error("QC judge returned no review payload");
 
+  const judged: CriterionResult[] = rubric.map((c) => {
+    const raw = input[c.id] as { note?: string; pass?: boolean } | undefined;
+    return {
+      id: c.id,
+      label: c.label,
+      // Missing/malformed criterion = FAIL (a judge that skips a check
+      // must not be credited with a pass).
+      pass: raw?.pass === true,
+      note: String(raw?.note ?? "").slice(0, 240),
+      weight: c.weight,
+      source: "judge",
+    };
+  });
+  const criteria = [...judged, ...lints];
+  const failed = criteria.filter((c) => !c.pass);
   return {
-    score: Math.max(0, Math.min(10, Number(input.score))),
-    verdict: input.verdict,
-    issues: (input.issues ?? []).slice(0, 4),
-    strengths: (input.strengths ?? []).slice(0, 2),
-    costUsd:
-      Math.round(
-        ((data.usage.input_tokens / 1e6) * PRICE_IN +
-          (data.usage.output_tokens / 1e6) * PRICE_OUT) *
-          10000,
-      ) / 10000,
+    score: scoreFromCriteria(criteria),
+    verdict: String((input.verdict as string) ?? "").slice(0, 300) || "Review delivered.",
+    issues: failed.slice(0, 4).map((c) => `${c.label}: ${c.note || "failed"}`),
+    strengths: ((input.strengths as string[]) ?? []).filter((s) => s?.trim()).slice(0, 2),
+    criteria,
+    judgeModel: model,
+    escalated: false,
+    degraded: false,
+    costUsd: anthropicCostUsd(model, data.usage.input_tokens, data.usage.output_tokens),
   };
 }
 
@@ -118,6 +201,10 @@ function heuristicReview(): QcResult {
     verdict: "Automatic review unavailable — human judgment required.",
     issues: [],
     strengths: [],
+    criteria: [],
+    judgeModel: "mock",
+    escalated: false,
+    degraded: true,
     costUsd: 0,
   };
 }
