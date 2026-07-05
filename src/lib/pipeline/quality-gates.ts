@@ -53,6 +53,10 @@ export type QualityGateConfig = {
   watchBlockPublishBelow: number;
   /** Self-Watch competitive-fit dimension (#4) must clear this to pass. */
   competitiveFloor: number;
+  /** Self-Watch transitions dimension (#1) must clear this to pass. */
+  transitionFloor: number;
+  /** Shot boundaries at/above this count escalate to the temporal (Tier-2) pass. */
+  watchTemporalEscalateAt: number;
   /** Shadow `quality`-namespace lessons graduate to gating once they recur at
       least this many times (C8 shadow→graduate lifecycle). */
   playbookShadowMinEvidence: number;
@@ -77,6 +81,8 @@ export const DEFAULT_QUALITY_GATES: QualityGateConfig = {
   timingFloor: 7,
   watchBlockPublishBelow: 5,
   competitiveFloor: 6,
+  transitionFloor: 6,
+  watchTemporalEscalateAt: 2,
   playbookShadowMinEvidence: 5,
   playbookAutoGraduateConfidence: 0.8,
 };
@@ -116,6 +122,8 @@ export async function getQualityGateConfig(db?: Db): Promise<QualityGateConfig> 
     cfg.timingFloor = clamp(num(v.timingFloor) ?? cfg.timingFloor, 0, 10);
     cfg.watchBlockPublishBelow = clamp(num(v.watchBlockPublishBelow) ?? cfg.watchBlockPublishBelow, 0, 10);
     cfg.competitiveFloor = clamp(num(v.competitiveFloor) ?? cfg.competitiveFloor, 0, 10);
+    cfg.transitionFloor = clamp(num(v.transitionFloor) ?? cfg.transitionFloor, 0, 10);
+    cfg.watchTemporalEscalateAt = clamp(num(v.watchTemporalEscalateAt) ?? cfg.watchTemporalEscalateAt, 1, 20);
     cfg.playbookShadowMinEvidence = clamp(num(v.playbookShadowMinEvidence) ?? cfg.playbookShadowMinEvidence, 1, 50);
     cfg.playbookAutoGraduateConfidence = clamp(num(v.playbookAutoGraduateConfidence) ?? cfg.playbookAutoGraduateConfidence, 0, 1);
   } catch {

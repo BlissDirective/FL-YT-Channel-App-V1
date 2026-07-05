@@ -779,6 +779,8 @@ export type QualityGates = {
   timingFloor?: number;
   watchBlockPublishBelow?: number;
   competitiveFloor?: number;
+  transitionFloor?: number;
+  watchTemporalEscalateAt?: number;
   playbookShadowMinEvidence?: number;
   playbookAutoGraduateConfidence?: number;
 };
@@ -813,6 +815,11 @@ export async function saveQualityGatesAction(
     timingFloor: score(gates.timingFloor),
     watchBlockPublishBelow: score(gates.watchBlockPublishBelow),
     competitiveFloor: score(gates.competitiveFloor),
+    transitionFloor: score(gates.transitionFloor),
+    watchTemporalEscalateAt:
+      typeof gates.watchTemporalEscalateAt === "number" && Number.isFinite(gates.watchTemporalEscalateAt)
+        ? clamp(Math.round(gates.watchTemporalEscalateAt), 1, 20)
+        : undefined,
     playbookShadowMinEvidence:
       typeof gates.playbookShadowMinEvidence === "number" && Number.isFinite(gates.playbookShadowMinEvidence)
         ? clamp(Math.round(gates.playbookShadowMinEvidence), 1, 50)

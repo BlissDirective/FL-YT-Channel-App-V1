@@ -5,8 +5,12 @@ import { keywords } from "@/lib/pipeline/dedup";
 import {
   decayedConfidence,
   isSameLesson,
+  planGlobalPromotion,
   planGraduation,
+  RETIRE_FLOOR,
+  TECHNIQUE_NAMESPACES,
   topByConfidence,
+  type ChannelLesson,
   type MemoryEntry,
   type MemoryNamespace,
   type MemoryStatus,
@@ -243,6 +247,38 @@ export async function writeMemory(
 }
 
 /**
+ * Uniform channel-scoped read/write for ANY namespace (C8 "equal depth") — the
+ * one-line API every agent uses. `idea`/`script`/`visual`/`packaging` also have
+ * the playbook shim; `audio`/`editing`/`competitive`/`outcome`/`quality` use
+ * these directly. Reads include the shared global-craft tier automatically.
+ */
+export async function recordNamespaceLesson(
+  db: Db,
+  projectId: string,
+  namespace: MemoryNamespace,
+  lesson: { text: string; evidence: string; confidence?: number; status?: MemoryStatus },
+): Promise<void> {
+  await writeMemory(db, {
+    namespace,
+    text: lesson.text,
+    evidence: lesson.evidence,
+    confidence: lesson.confidence,
+    status: lesson.status,
+    scope: { tier: "channel", projectId },
+  });
+}
+
+export async function namespaceLessons(
+  db: Db,
+  projectId: string,
+  namespace: MemoryNamespace,
+  opts?: { query?: string; k?: number },
+): Promise<string[]> {
+  const hits = await queryMemory(db, { namespace, projectId, query: opts?.query, k: opts?.k ?? 6 });
+  return hits.map((h) => h.text);
+}
+
+/**
  * Run the shadow→graduate lifecycle for one channel's `quality` lessons (C8).
  * Called nightly from the outcome-audit pass: shadow lessons that keep recurring
  * graduate to gating ("active"); ones that faded retire. Best-effort.
@@ -271,5 +307,76 @@ export async function runQualityGraduation(
   } catch (err) {
     console.error("quality graduation failed (non-fatal):", err);
     return { promoted: 0, retired: 0 };
+  }
+}
+
+/**
+ * The C8 librarian — a nightly cross-channel curation pass (Fable5-Self-Watch-
+ * Loop-Plan.md / Harness §C8). Deterministic and best-effort:
+ *  1. Global-craft promotion: technique lessons confirmed on ≥ `minChannels`
+ *     distinct channels graduate to the shared `global:craft` tier.
+ *  2. Retire sweep: active channel lessons whose confidence decayed below the
+ *     floor (and aren't pinned) retire, keeping the store fresh.
+ * Runs once per night (not per project). LLM cross-cutting synthesis is a
+ * documented future increment; the promotion + hygiene are pure and testable.
+ */
+export async function runLibrarian(
+  db: Db,
+  opts?: { minChannels?: number },
+): Promise<{ promotedGlobal: number; retired: number }> {
+  const minChannels = opts?.minChannels ?? 3;
+  try {
+    // Load active channel-scoped lessons in the technique namespaces (promotable).
+    const { data: techRows } = await db
+      .from("memory_entries")
+      .select("id, namespace, text, project_id, pinned, confidence, last_confirmed_at")
+      .in("namespace", TECHNIQUE_NAMESPACES)
+      .eq("tier", "channel")
+      .eq("status", "active")
+      .limit(5000);
+    const rows = (techRows ?? []) as {
+      id: string;
+      namespace: string;
+      text: string;
+      project_id: string;
+      pinned: boolean;
+      confidence: number;
+      last_confirmed_at: string;
+    }[];
+
+    // 1) Global-craft promotion.
+    const lessons: ChannelLesson[] = rows.map((r) => ({ namespace: r.namespace as MemoryNamespace, text: r.text, projectId: r.project_id }));
+    const { data: globalRows } = await db
+      .from("memory_entries")
+      .select("namespace, text")
+      .eq("tier", "global")
+      .neq("status", "retired")
+      .limit(5000);
+    const existingGlobal = ((globalRows ?? []) as { namespace: string; text: string }[]).map((g) => ({
+      namespace: g.namespace as MemoryNamespace,
+      text: g.text,
+    }));
+    const promotions = planGlobalPromotion(lessons, existingGlobal, minChannels);
+    for (const p of promotions) {
+      await writeMemory(db, {
+        namespace: p.namespace,
+        text: p.text,
+        evidence: p.evidence,
+        scope: { tier: "global" },
+        confidence: 0.6,
+      });
+    }
+
+    // 2) Retire sweep across active channel lessons that decayed out.
+    const now = new Date().toISOString();
+    const retire = rows
+      .filter((r) => !r.pinned && decayedConfidence({ confidence: Number(r.confidence), lastConfirmedAt: r.last_confirmed_at, pinned: false }, now) < RETIRE_FLOOR)
+      .map((r) => r.id);
+    if (retire.length > 0) await db.from("memory_entries").update({ status: "retired" }).in("id", retire);
+
+    return { promotedGlobal: promotions.length, retired: retire.length };
+  } catch (err) {
+    console.error("librarian pass failed (non-fatal):", err);
+    return { promotedGlobal: 0, retired: 0 };
   }
 }

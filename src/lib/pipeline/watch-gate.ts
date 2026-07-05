@@ -25,9 +25,13 @@ export type WatchCriterionKey =
   | "structure_retention_aligned"
   | "angle_differentiated"
   | "packaging_vs_winners"
-  | "faceless_policy_transformative";
+  | "faceless_policy_transformative"
+  // Transitions (#1) — structural Tier-1 + temporal Tier-2 (watch-runner).
+  | "boundary_not_jarring"
+  | "intro_outro_framing"
+  | "motion_continuity";
 
-export type WatchDimension = "timing" | "scriptMatch" | "competitive";
+export type WatchDimension = "timing" | "scriptMatch" | "competitive" | "transitions";
 
 export type WatchCriterion = {
   key: WatchCriterionKey;
@@ -49,6 +53,9 @@ export const WATCH_RUBRIC: WatchCriterion[] = [
   { key: "angle_differentiated", label: "Angle fills a gap vs. saturated coverage", dimension: "competitive", baseline: false },
   { key: "packaging_vs_winners", label: "Title/packaging is competitive vs. our winners", dimension: "competitive", baseline: false },
   { key: "faceless_policy_transformative", label: "Transformative value, not low-effort mass repetition", dimension: "competitive", baseline: true },
+  { key: "boundary_not_jarring", label: "No jarring cut / flicker at shot boundaries", dimension: "transitions", baseline: true },
+  { key: "intro_outro_framing", label: "Clean open (and loop-friendly end for Shorts)", dimension: "transitions", baseline: false },
+  { key: "motion_continuity", label: "Coherent motion across cuts (temporal pass)", dimension: "transitions", baseline: false },
 ];
 
 /** The competitive criteria judged by the LLM (watch-runner), in weight order. */
@@ -93,6 +100,9 @@ export type WatchVerdict = {
   /** Competitive fit (#4) — LLM-judged in watch-runner; not evaluated when the
       judge is unavailable. */
   competitive: WatchDimensionResult;
+  /** Transitions (#1) — structural Tier-1, refined by the temporal Tier-2 pass
+      (watch-runner) when it escalates. */
+  transitions: WatchDimensionResult;
   /** The compliance criterion (faceless/repetitive-content) failed → the video
       must hold for a human regardless of score. */
   policyRisk: boolean;
@@ -106,8 +116,9 @@ export type WatchVerdict = {
   at: string;
 };
 
-export type WatchBeat = { idx: number; start: number; end: number; narrated: boolean };
+export type WatchBeat = { idx: number; start: number; end: number; narrated: boolean; shotType?: string };
 export type WatchClip = { beatIdx: number; relevance: number | null };
+export type Boundary = { afterBeat: number; atSec: number };
 
 export type WatchInputs = {
   targetLengthSec: number;
@@ -119,12 +130,14 @@ export type WatchInputs = {
   silencePass: boolean | null;
 };
 
-export type WatchThresholds = { timingFloor: number; scriptMatchFloor: number };
+export type WatchThresholds = { timingFloor: number; scriptMatchFloor: number; transitionFloor: number };
 
 export const CRITERIA_VERSION = "watch-v1";
 const HOOK_WINDOW_SEC = 30;
 const MAX_STATIC_SEC = 45;
 const LENGTH_TOLERANCE = 0.25;
+const MIN_BEAT_SEC = 1.2; // a shot shorter than this flashes by — a flicker cut
+const CLEAN_OPEN_SEC = 0.5; // the first beat should start at ~0
 
 /** passed/total as a 0–10 score. */
 function score10(passed: number, total: number): number {
@@ -219,6 +232,56 @@ export function checkScriptMatch(inputs: WatchInputs, t: WatchThresholds): Watch
   return { score, pass: dimensionPasses(score, t.scriptMatchFloor, issues), evaluated: true, issues };
 }
 
+/** Shot-change boundaries — the candidate cut points the temporal pass inspects. */
+export function transitionBoundaries(beats: WatchBeat[]): Boundary[] {
+  const out: Boundary[] = [];
+  for (let i = 0; i + 1 < beats.length; i++) {
+    const a = beats[i];
+    const n = beats[i + 1];
+    // A boundary of interest = a shot-type change (or every cut when shot types
+    // aren't tagged) — where a jarring jump is most likely.
+    if (!a.shotType || !n.shotType || a.shotType !== n.shotType) out.push({ afterBeat: a.idx, atSec: n.start });
+  }
+  return out;
+}
+
+/** Structural (Tier-1) transitions check — flicker cuts + a clean open. No pixels. */
+export function checkTransitions(inputs: WatchInputs, t: WatchThresholds): WatchDimensionResult {
+  const issues: WatchIssue[] = [];
+  let passed = 0;
+  let total = 0;
+
+  // boundary_not_jarring — no shot flashes by (a flicker cut).
+  total++;
+  const flicker = inputs.beats.filter((b) => b.end - b.start > 0 && b.end - b.start < MIN_BEAT_SEC);
+  if (flicker.length === 0) passed++;
+  else
+    for (const b of flicker)
+      issues.push({ criterion: "boundary_not_jarring", beatIdx: b.idx, detail: `Beat ${b.idx + 1} flashes by in ${(b.end - b.start).toFixed(1)}s.` });
+
+  // intro_outro_framing — the video opens cleanly (first beat at ~0).
+  total++;
+  const first = [...inputs.beats].sort((a, b) => a.start - b.start)[0];
+  if (!first || first.start <= CLEAN_OPEN_SEC) passed++;
+  else issues.push({ criterion: "intro_outro_framing", beatIdx: first.idx, detail: `The first beat doesn't start until ${first.start.toFixed(1)}s — abrupt open.` });
+
+  const score = score10(passed, total);
+  return { score, pass: dimensionPasses(score, t.transitionFloor, issues), evaluated: total > 0, issues };
+}
+
+/** A temporal (Tier-2) verdict supplied by the runner (Gemini over our MP4). */
+export type TemporalTransition = { score: number; evaluated: boolean; issues: WatchIssue[] };
+
+/** Merge the structural Tier-1 dimension with the temporal Tier-2 verdict. The
+    temporal pass actually watched the motion, so it's authoritative — transitions
+    are a worst-link property, so we take the lower of the two scores. */
+export function foldTemporal(structural: WatchDimensionResult, temporal: TemporalTransition, floor: number): WatchDimensionResult {
+  if (!temporal.evaluated) return structural;
+  const issues = [...structural.issues, ...temporal.issues];
+  const score = Math.min(structural.score, temporal.score);
+  return { score, pass: dimensionPasses(score, floor, issues), evaluated: true, issues };
+}
+
 /** The re-rollable fixes (off-topic beats) — the autofix loop consumes these. */
 export function rerollActions(verdict: WatchVerdict): { beatIdx: number; reason: string }[] {
   return verdict.fixPlan.filter((f): f is Extract<FixAction, { kind: "reroll" }> => f.kind === "reroll").map((f) => ({ beatIdx: f.beatIdx, reason: f.reason }));
@@ -228,6 +291,7 @@ export function deriveFixPlan(
   timing: WatchDimensionResult,
   scriptMatch: WatchDimensionResult,
   competitive?: WatchDimensionResult,
+  transitions?: WatchDimensionResult,
 ): FixAction[] {
   const plan: FixAction[] = [];
   // Script-match: an off-topic beat is re-rollable → feed the existing autofix fixer.
@@ -243,6 +307,10 @@ export function deriveFixPlan(
   // Competitive: packaging/structure feedback → flag at the script/idea altitude.
   for (const i of competitive?.issues ?? []) {
     plan.push({ kind: "flag", scope: "script", reason: `${i.criterion}: ${i.detail}` });
+  }
+  // Transitions: render-layer concerns (crossfade/reroll/transition template).
+  for (const i of transitions?.issues ?? []) {
+    plan.push({ kind: "flag", scope: "render", reason: `${i.criterion}: ${i.detail}` });
   }
   return plan;
 }
@@ -262,12 +330,14 @@ export function assembleVerdict(
   now: string,
   appliedLessons: string[] = [],
   competitive?: CompetitiveInput | null,
+  transitions?: WatchDimensionResult | null,
 ): WatchVerdict {
   const timing = checkTiming(inputs, t);
   const scriptMatch = checkScriptMatch(inputs, t);
   const comp = competitive?.result ?? NEUTRAL_DIMENSION;
-  const fixPlan = deriveFixPlan(timing, scriptMatch, comp);
-  const parts = [timing, scriptMatch, comp].filter((d) => d.evaluated);
+  const trans = transitions ?? NEUTRAL_DIMENSION;
+  const fixPlan = deriveFixPlan(timing, scriptMatch, comp, trans);
+  const parts = [timing, scriptMatch, comp, trans].filter((d) => d.evaluated);
   const overall = parts.length
     ? Math.round((parts.reduce((s, d) => s + d.score, 0) / parts.length) * 100) / 100
     : 0;
@@ -277,6 +347,7 @@ export function assembleVerdict(
     timing,
     scriptMatch,
     competitive: comp,
+    transitions: trans,
     policyRisk: competitive?.policyRisk ?? false,
     competitiveSuggestions: competitive?.suggestions ?? [],
     fixPlan,

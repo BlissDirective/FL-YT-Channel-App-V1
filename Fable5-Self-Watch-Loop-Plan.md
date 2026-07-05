@@ -386,7 +386,17 @@ under the budget guard; runbook + docs.
     watch re-rolls clearing, bounded by `maxRenders`). **Full graduate lifecycle**
     — shadow `quality` lessons promote to gating (or retire) nightly via
     `runQualityGraduation`, hooked into the C3 outcome-audit pass.
-  - Pending: Phase 3 (temporal transitions #1), Phase 4 (calibration/hardening).
+  - *Phase 3:* **temporal transitions (#1)** — structural Tier-1 (`checkTransitions`:
+    flicker cuts + clean open) escalates to a **Gemini native temporal Tier-2 pass**
+    over our render's signed URL (`transition-critic.ts`; TwelveLabs is the
+    documented alternative) when ≥`watchTemporalEscalateAt` shot boundaries warrant
+    it. Temporal is authoritative (worst-link fold). Runs at the settle point only.
+  - Plus the **C8 librarian** (nightly ≥3-channel global-craft promotion + retire
+    sweep, in the refresh-stats cron) and the **remaining namespaces** (uniform
+    `recordNamespaceLesson`/`namespaceLessons` API + an `outcome` writer feeding
+    the competitive judge).
+  - Pending: Phase 4 (calibration/hardening — 👍/👎 on watch verdicts + watch-
+    criterion Spearman).
 - **[Harness plan](./Fable5-Agentic-Harness-Plan.md):** C1–C6 **shipped**; C5
   live but exploration-only until ~8 published videos; **C8 Studio Memory Service
   — core shipped** (`memory_entries` + `match_memory` RPC + `queryMemory`/

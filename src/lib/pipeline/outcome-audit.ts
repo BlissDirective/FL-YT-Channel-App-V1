@@ -1,7 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { analyticsConfigured, getVideoMetrics } from "@/lib/adapters/youtube-analytics";
-import { runQualityGraduation } from "@/lib/pipeline/memory-service";
+import { recordNamespaceLesson, runQualityGraduation } from "@/lib/pipeline/memory-service";
 import { getQualityGateConfig } from "@/lib/pipeline/quality-gates";
 
 /**
@@ -71,10 +71,10 @@ export async function runOutcomeAudit(db: Db, projectId: string): Promise<{ wrot
   // Tracked videos with a FINAL QC score.
   const { data: vids } = await db
     .from("videos")
-    .select("id, youtube_video_id")
+    .select("id, youtube_video_id, topic")
     .eq("project_id", projectId)
     .not("youtube_video_id", "is", null);
-  const tracked = (vids ?? []) as { id: string; youtube_video_id: string | null }[];
+  const tracked = (vids ?? []) as { id: string; youtube_video_id: string | null; topic?: string }[];
   if (tracked.length < MIN_N) return { wrote: 0 };
   const ids = tracked.map((v) => v.id);
 
@@ -150,6 +150,25 @@ export async function runOutcomeAudit(db: Db, projectId: string): Promise<{ wrot
       n: a.n,
       note: a.note,
     });
+  }
+
+  // Outcome namespace (C8): record the channel's proven winner so the Self-Watch
+  // competitive judge (#4) reads real, metric-linked context. Evidence = views.
+  try {
+    let best: { topic?: string; views: number } | null = null;
+    for (const v of tracked) {
+      const views = viewsByVideo.get(v.id) ?? 0;
+      if (v.topic && views > 0 && (!best || views > best.views)) best = { topic: v.topic, views };
+    }
+    if (best?.topic) {
+      await recordNamespaceLesson(db, projectId, "outcome", {
+        text: `Proven winner in this niche: "${best.topic}" (${best.views} views)`,
+        evidence: `${best.views} views`,
+        confidence: 0.4,
+      });
+    }
+  } catch (err) {
+    console.error("outcome-lesson write failed (non-fatal):", err);
   }
 
   // Shadow→graduate lifecycle (C8): promote recurring `quality` shadow lessons

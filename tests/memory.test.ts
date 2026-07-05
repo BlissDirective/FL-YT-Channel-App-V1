@@ -10,11 +10,13 @@ import {
   DECAY_HALFLIFE_DAYS,
   decayedConfidence,
   enforceSafetyCap,
+  planGlobalPromotion,
   planGraduation,
   recurringIssues,
   retireStale,
   topByConfidence,
   upsertEntry,
+  type ChannelLesson,
   type MemoryEntry,
   type MemoryNamespace,
 } from "@/lib/pipeline/memory";
@@ -197,6 +199,61 @@ describe("planGraduation — shadow→graduate lifecycle", () => {
     const { promote, retire } = planGraduation([active, pinned], CFG, NOW);
     expect(promote).toHaveLength(0);
     expect(retire).toHaveLength(0);
+  });
+});
+
+describe("planGlobalPromotion — the librarian's ≥N-channel global-craft promotion", () => {
+  const lesson = (namespace: MemoryNamespace, text: string, projectId: string): ChannelLesson => ({ namespace, text, projectId });
+
+  it("promotes a technique lesson confirmed on ≥3 distinct channels", () => {
+    const lessons = [
+      lesson("visual", "Kinetic captions in two to three word windows lift retention", "c1"),
+      lesson("visual", "Kinetic captions with 2-3 word windows improve retention", "c2"),
+      lesson("visual", "Two or three word kinetic caption windows raise retention", "c3"),
+    ];
+    const out = planGlobalPromotion(lessons, [], 3);
+    expect(out).toHaveLength(1);
+    expect(out[0].namespace).toBe("visual");
+    expect(out[0].channels).toBe(3);
+  });
+
+  it("does not promote a lesson seen on too few channels", () => {
+    const lessons = [
+      lesson("visual", "Cold open under three seconds", "c1"),
+      lesson("visual", "Cold open under three seconds", "c2"),
+    ];
+    expect(planGlobalPromotion(lessons, [], 3)).toHaveLength(0);
+  });
+
+  it("counts distinct channels only (three lessons from one channel is not three channels)", () => {
+    const lessons = [
+      lesson("editing", "Cut on motion for smoother pacing", "c1"),
+      lesson("editing", "Cut on motion for smoother pacing", "c1"),
+      lesson("editing", "Cut on motion for smoother pacing", "c1"),
+    ];
+    expect(planGlobalPromotion(lessons, [], 3)).toHaveLength(0);
+  });
+
+  it("never promotes channel-only namespaces (ideas / competitor intel / winners)", () => {
+    const lessons = [
+      lesson("idea", "Do a video about X", "c1"),
+      lesson("idea", "Do a video about X", "c2"),
+      lesson("idea", "Do a video about X", "c3"),
+      lesson("outcome", "Winner: X", "c1"),
+      lesson("outcome", "Winner: X", "c2"),
+      lesson("outcome", "Winner: X", "c3"),
+    ];
+    expect(planGlobalPromotion(lessons, [], 3)).toHaveLength(0);
+  });
+
+  it("skips a lesson that already exists in the global tier", () => {
+    const lessons = [
+      lesson("quality", "Ensure every beat has a visual", "c1"),
+      lesson("quality", "Ensure every beat has a visual", "c2"),
+      lesson("quality", "Ensure every beat has a visual", "c3"),
+    ];
+    const existingGlobal = [{ namespace: "quality" as MemoryNamespace, text: "Ensure every beat has a visual" }];
+    expect(planGlobalPromotion(lessons, existingGlobal, 3)).toHaveLength(0);
   });
 });
 

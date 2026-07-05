@@ -724,6 +724,7 @@ function WatchPanel({ watch }: { watch: WatchVerdict | null }) {
     { label: "Timing", d: watch.timing },
     { label: "Script-match", d: watch.scriptMatch },
     { label: "Competitive", d: watch.competitive },
+    { label: "Transitions", d: watch.transitions },
   ].filter((x) => x.d.evaluated);
   return (
     <div className="space-y-1.5 rounded-xl bg-canvas p-3">

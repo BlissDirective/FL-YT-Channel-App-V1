@@ -10,13 +10,16 @@ import {
   assembleVerdict,
   checkScriptMatch,
   checkTiming,
+  checkTransitions,
   deriveFixPlan,
+  foldTemporal,
   rerollActions,
+  transitionBoundaries,
   type CompetitiveInput,
   type WatchInputs,
 } from "@/lib/pipeline/watch-gate";
 
-const T = { timingFloor: 7, scriptMatchFloor: 6 };
+const T = { timingFloor: 7, scriptMatchFloor: 6, transitionFloor: 6 };
 
 const inputs = (over: Partial<WatchInputs> = {}): WatchInputs => ({
   targetLengthSec: over.targetLengthSec ?? 60,
@@ -156,6 +159,64 @@ describe("assembleVerdict", () => {
     const v = assembleVerdict(inputs(), T, NOW);
     expect(v.competitive.evaluated).toBe(false);
     expect(v.policyRisk).toBe(false);
+  });
+});
+
+describe("checkTransitions (structural Tier-1)", () => {
+  it("passes a clean cut sequence with a clean open", () => {
+    const r = checkTransitions(inputs(), T);
+    expect(r.pass).toBe(true);
+    expect(r.issues).toHaveLength(0);
+  });
+
+  it("flags a flicker cut (a shot that flashes by)", () => {
+    const r = checkTransitions(
+      inputs({ beats: [{ idx: 0, start: 0, end: 0.6, narrated: true }, { idx: 1, start: 0.6, end: 30, narrated: true }] }),
+      T,
+    );
+    expect(r.issues.some((i) => i.criterion === "boundary_not_jarring" && i.beatIdx === 0)).toBe(true);
+    expect(r.pass).toBe(false); // baseline criterion
+  });
+
+  it("flags an abrupt open (first beat starts late)", () => {
+    const r = checkTransitions(
+      inputs({ beats: [{ idx: 0, start: 3, end: 30, narrated: true }, { idx: 1, start: 30, end: 60, narrated: true }] }),
+      T,
+    );
+    expect(r.issues.some((i) => i.criterion === "intro_outro_framing")).toBe(true);
+  });
+});
+
+describe("transitionBoundaries", () => {
+  it("returns a boundary at each shot-type change", () => {
+    const b = transitionBoundaries([
+      { idx: 0, start: 0, end: 10, narrated: true, shotType: "wide" },
+      { idx: 1, start: 10, end: 20, narrated: true, shotType: "wide" },
+      { idx: 2, start: 20, end: 30, narrated: true, shotType: "close" },
+    ]);
+    expect(b).toEqual([{ afterBeat: 1, atSec: 20 }]);
+  });
+
+  it("treats every cut as a boundary when shot types aren't tagged", () => {
+    const b = transitionBoundaries([
+      { idx: 0, start: 0, end: 10, narrated: true },
+      { idx: 1, start: 10, end: 20, narrated: true },
+    ]);
+    expect(b).toHaveLength(1);
+  });
+});
+
+describe("foldTemporal", () => {
+  const structural = { score: 10, pass: true, evaluated: true, issues: [] };
+  it("returns the structural verdict unchanged when the temporal pass didn't run", () => {
+    expect(foldTemporal(structural, { score: 0, evaluated: false, issues: [] }, 6)).toBe(structural);
+  });
+
+  it("takes the (authoritative, lower) temporal score and merges issues when the pass ran", () => {
+    const folded = foldTemporal(structural, { score: 4, evaluated: true, issues: [{ criterion: "motion_continuity", beatIdx: null, detail: "stutter at 12s" }] }, 6);
+    expect(folded.score).toBe(4); // temporal is authoritative (worst-link)
+    expect(folded.issues).toHaveLength(1);
+    expect(folded.pass).toBe(false); // 4 < floor 6
   });
 });
 

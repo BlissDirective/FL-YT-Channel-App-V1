@@ -3,14 +3,21 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { queryMemory, writeMemory } from "@/lib/pipeline/memory-service";
 import { getQualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
+import { getSignedMediaUrl } from "@/lib/storage";
 import { judgeCompetitiveFit, type CompetitiveContext } from "@/lib/adapters/competitive-judge";
+import { assessTransitions, isTemporalLive } from "@/lib/adapters/transition-critic";
 import {
   assembleVerdict,
+  checkTransitions,
+  foldTemporal,
+  transitionBoundaries,
   WATCH_RUBRIC,
   type CompetitiveInput,
   type WatchBeat,
   type WatchClip,
+  type WatchDimensionResult,
   type WatchInputs,
+  type WatchThresholds,
   type WatchVerdict,
 } from "@/lib/pipeline/watch-gate";
 import type { OperatorStrategy, Project, Video } from "@/lib/db/types";
@@ -30,7 +37,7 @@ import type { OperatorStrategy, Project, Video } from "@/lib/db/types";
 type Db = ReturnType<typeof createAdminClient>;
 
 type BeatTimeline = { idx: number; start: number; end: number };
-type ScriptBeat = { idx: number; text?: string };
+type ScriptBeat = { idx: number; text?: string; shotType?: string };
 
 async function loadScriptBeats(db: Db, videoId: string): Promise<ScriptBeat[]> {
   const { data } = await db
@@ -59,12 +66,13 @@ async function gatherInputs(db: Db, video: Video, scriptBeats: ScriptBeat[]): Pr
   const timeline = Array.isArray(rmeta.beats) ? rmeta.beats : [];
   if (timeline.length === 0) return null; // not rendered / no timeline → nothing to watch yet
 
-  const narrated = new Map(scriptBeats.map((b) => [b.idx, Boolean((b.text ?? "").trim())]));
+  const byIdx = new Map(scriptBeats.map((b) => [b.idx, b]));
   const beats: WatchBeat[] = timeline.map((b) => ({
     idx: b.idx,
     start: Number(b.start ?? 0),
     end: Number(b.end ?? 0),
-    narrated: narrated.get(b.idx) ?? true,
+    narrated: Boolean((byIdx.get(b.idx)?.text ?? "").trim()) || !byIdx.has(b.idx),
+    shotType: byIdx.get(b.idx)?.shotType,
   }));
 
   const { data: clipRows } = await db
@@ -90,6 +98,21 @@ async function gatherInputs(db: Db, video: Video, scriptBeats: ScriptBeat[]): Pr
     clips,
     silencePass,
   };
+}
+
+/** A signed URL for the latest rendered MP4 (for the temporal pass); null when
+    the render is a mock or unavailable. */
+async function renderSignedUrl(db: Db, videoId: string): Promise<string | null> {
+  const { data } = await db
+    .from("assets")
+    .select("storage_path")
+    .eq("video_id", videoId)
+    .eq("kind", "render")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const path = (data as { storage_path?: string } | null)?.storage_path;
+  return path ? getSignedMediaUrl(path, 1800) : null;
 }
 
 /** Our channel's winning subtopics from the operator's learned strategy. */
@@ -177,7 +200,18 @@ export async function runWatchGate(
       /* memory read is best-effort */
     }
 
-    // Competitive fit (#4) — LLM-judged, only when asked (the settle point).
+    const thresholds: WatchThresholds = {
+      timingFloor: cfg.timingFloor,
+      scriptMatchFloor: cfg.beatRelevanceFloor,
+      transitionFloor: cfg.transitionFloor,
+    };
+
+    // Transitions (#1) — structural Tier-1 is pure/free and always runs.
+    let transitions: WatchDimensionResult = checkTransitions(inputs, thresholds);
+
+    // Competitive (#4) + temporal transitions (Tier-2) are paid/LLM passes, so
+    // they run only at the settle point (`competitive: true`), not on every cheap
+    // autofix pass.
     let competitive: CompetitiveInput | null = null;
     if (opts?.competitive) {
       try {
@@ -185,14 +219,34 @@ export async function runWatchGate(
       } catch {
         /* competitive judge is best-effort */
       }
+      try {
+        const boundaries = transitionBoundaries(inputs.beats);
+        if (boundaries.length >= cfg.watchTemporalEscalateAt && isTemporalLive()) {
+          const url = await renderSignedUrl(db, video.id);
+          if (url) {
+            const temporal = await assessTransitions({ videoUrl: url, boundaries });
+            if (temporal.costUsd > 0) {
+              try {
+                await ledgerRecordCost(db, video, { provider: "gemini", usd: temporal.costUsd, description: "Self-Watch temporal transitions" });
+              } catch {
+                /* ledger best-effort */
+              }
+            }
+            transitions = foldTemporal(transitions, temporal, cfg.transitionFloor);
+          }
+        }
+      } catch {
+        /* temporal pass is best-effort */
+      }
     }
 
     const verdict = assembleVerdict(
       inputs,
-      { timingFloor: cfg.timingFloor, scriptMatchFloor: cfg.beatRelevanceFloor },
+      thresholds,
       new Date().toISOString(),
       appliedLessons,
       competitive,
+      transitions,
     );
 
     await db.from("videos").update({ watch_review: verdict }).eq("id", video.id);
@@ -201,7 +255,7 @@ export async function runWatchGate(
     // (C8): non-gating until graduation. isSameLesson reinforcement dedups and
     // counts recurrence (the graduation signal), so this is self-limiting.
     try {
-      const failing = [...verdict.timing.issues, ...verdict.scriptMatch.issues, ...verdict.competitive.issues];
+      const failing = [...verdict.timing.issues, ...verdict.scriptMatch.issues, ...verdict.competitive.issues, ...verdict.transitions.issues];
       const seen = new Set<string>();
       for (const iss of failing) {
         if (seen.has(iss.criterion)) continue; // one shadow lesson per criterion per render

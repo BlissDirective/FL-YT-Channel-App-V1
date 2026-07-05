@@ -404,9 +404,10 @@ Two plan docs now describe one system. They interlock through **C8 memory**:
 | 2 | Harness **C8 `quality` namespace** | first namespace, wired into the Self-Watch gate (reads graduated lessons, writes shadow lessons) | gives the Self-Watch gate somewhere to read/write criteria | ✅ shipped |
 | 3 | Self-Watch **Phase 0–1** | watch-gate scaffold + timing (#3) + final-render script-match (#2), verdict on `watch_review`, operator publish-gate hold | the gate is live at FINAL_REVIEW | ✅ shipped |
 | 4 | Self-Watch **Phase 2** | competitive fit (#4) — reads C8 `competitive`/`outcome`; autofix re-roll wiring; the shadow→graduate lifecycle becomes C8's promotion mechanism (nightly via the C3 outcome-audit) | "improves over time" comes online | ✅ shipped |
-| 5 | Harness **C8 librarian** | nightly Batch agent: dedup, promote (incl. ≥3-channel global-craft promotion), decay, synthesize | the memory self-curates across channels | ⏳ pending |
-| 6 | Harness **C8 remaining namespaces** | `idea`/`script`/`visual`/`audio`/`editing`/`packaging`/`competitive`/`outcome` to equal depth | every agent reads/writes memory | ⏳ pending |
-| 7 | Self-Watch **Phase 3–4** | temporal transitions (#1) + calibration/hardening | full four-criteria gate + C1/C3 tie-in | ⏳ pending |
+| 5 | Harness **C8 librarian** | nightly cross-channel curation: ≥3-channel global-craft promotion + decayed-lesson retire sweep (in the refresh-stats cron) | the memory self-curates across channels | ✅ shipped (LLM synthesis is a future add) |
+| 6 | Harness **C8 remaining namespaces** | uniform `recordNamespaceLesson`/`namespaceLessons` across all namespaces + an `outcome` writer feeding the competitive judge | every agent reads/writes memory | ✅ shipped (audio/editing writers land with their agents) |
+| 7 | Self-Watch **Phase 3** | temporal transitions (#1): structural Tier-1 + Gemini temporal Tier-2 escalation | full four-criteria gate | ✅ shipped |
+| 8 | Self-Watch **Phase 4** | calibration/hardening — 👍/👎 on watch verdicts (C1) + watch-criterion Spearman (C3) | measurable, self-tuning gate | ⏳ pending |
 
 Build C8's core first (step 1) — everything downstream in both plans reads or
 writes it, so it's the true critical path.

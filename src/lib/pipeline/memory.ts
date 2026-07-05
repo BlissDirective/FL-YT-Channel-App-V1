@@ -189,6 +189,46 @@ export function planGraduation(
   return { promote, retire };
 }
 
+/**
+ * Namespaces whose lessons are generalizable *technique* and therefore eligible
+ * for the global-craft tier. The channel-specific ones (ideas, competitor intel,
+ * niche what-works, metric winners) are hard-fenced to their channel and never
+ * promote — the two-tier separation rule (C8 §two-tier scope).
+ */
+export const TECHNIQUE_NAMESPACES: MemoryNamespace[] = ["quality", "visual", "editing", "audio", "packaging", "script"];
+
+export type ChannelLesson = { namespace: MemoryNamespace; text: string; projectId: string };
+
+/**
+ * The librarian's global-craft promotion (C8): a technique lesson independently
+ * confirmed on ≥ `minChannels` distinct channels graduates to `global:craft`, so
+ * every channel benefits — while one channel's fluke never becomes studio dogma.
+ * Pure; the caller inserts the returned global entries.
+ */
+export function planGlobalPromotion(
+  lessons: ChannelLesson[],
+  existingGlobal: { namespace: MemoryNamespace; text: string }[],
+  minChannels: number,
+): { namespace: MemoryNamespace; text: string; evidence: string; channels: number }[] {
+  const clusters: { namespace: MemoryNamespace; text: string; projects: Set<string> }[] = [];
+  for (const l of lessons) {
+    if (!TECHNIQUE_NAMESPACES.includes(l.namespace)) continue; // channel-only namespaces never promote
+    let c = clusters.find((x) => x.namespace === l.namespace && isSameLesson(x.text, l.text));
+    if (!c) {
+      c = { namespace: l.namespace, text: l.text, projects: new Set() };
+      clusters.push(c);
+    }
+    c.projects.add(l.projectId);
+  }
+  const out: { namespace: MemoryNamespace; text: string; evidence: string; channels: number }[] = [];
+  for (const c of clusters) {
+    if (c.projects.size < minChannels) continue;
+    if (existingGlobal.some((g) => g.namespace === c.namespace && isSameLesson(g.text, c.text))) continue; // already global
+    out.push({ namespace: c.namespace, text: c.text, evidence: `confirmed on ${c.projects.size} channels`, channels: c.projects.size });
+  }
+  return out;
+}
+
 /** Group issues into recurring buckets by their leading text (loose key). */
 export function recurringIssues(issues: string[], minCount = 2): { text: string; count: number }[] {
   const buckets = new Map<string, { text: string; count: number }>();

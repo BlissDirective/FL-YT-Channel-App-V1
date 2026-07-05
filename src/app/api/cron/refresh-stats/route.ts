@@ -3,6 +3,7 @@ import { requireCronAuth } from "@/lib/cron-auth";
 import { refreshTrackedStats } from "@/lib/stats";
 import { reconcileLedger } from "@/lib/pipeline/ledger";
 import { runOutcomeAuditAllProjects } from "@/lib/pipeline/outcome-audit";
+import { runLibrarian } from "@/lib/pipeline/memory-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,15 @@ async function handle(request: NextRequest) {
     } catch (err) {
       console.error("outcome audit failed:", err);
     }
-    return NextResponse.json({ ok: true, refreshed, ledgerRepaired: repaired, outcomeAudits: audits.wrote });
+    // C8 librarian: nightly cross-channel curation — global-craft promotion
+    // (≥3-channel technique lessons) + a decayed-lesson retire sweep.
+    let librarian = { promotedGlobal: 0, retired: 0 };
+    try {
+      librarian = await runLibrarian(createAdminClient());
+    } catch (err) {
+      console.error("librarian pass failed:", err);
+    }
+    return NextResponse.json({ ok: true, refreshed, ledgerRepaired: repaired, outcomeAudits: audits.wrote, librarian });
   } catch (err) {
     console.error("cron refresh-stats failed:", err);
     return NextResponse.json(
