@@ -19,6 +19,9 @@ export const QUALITY_GATE_DEFAULTS: Required<QualityGates> = {
   beatRelevanceFloor: 6,
   timingFloor: 7,
   watchBlockPublishBelow: 5,
+  competitiveFloor: 6,
+  playbookShadowMinEvidence: 5,
+  playbookAutoGraduateConfidence: 0.8,
 };
 
 type GateKey = keyof QualityGates;
@@ -36,6 +39,9 @@ const FIELDS: { key: GateKey; label: string; hint: string; min: number; max: num
   { key: "beatRelevanceFloor", label: "Beat visual relevance floor", hint: "Beat visuals below this (vision) are re-rolled to match the narration", min: 0, max: 10, step: 0.5 },
   { key: "timingFloor", label: "Self-Watch timing floor", hint: "Pre-publish timing dimension (coverage, pacing, length) must clear this", min: 0, max: 10, step: 0.5 },
   { key: "watchBlockPublishBelow", label: "Self-Watch publish floor", hint: "Overall Self-Watch score below this holds the video for a human", min: 0, max: 10, step: 0.5 },
+  { key: "competitiveFloor", label: "Competitive-fit floor", hint: "Self-Watch competitive-fit (#4) must clear this to pass", min: 0, max: 10, step: 0.5 },
+  { key: "playbookShadowMinEvidence", label: "Lesson graduation: min evidence", hint: "Shadow quality lessons graduate to gating after recurring this many times", min: 1, max: 50 },
+  { key: "playbookAutoGraduateConfidence", label: "Lesson graduation: min confidence", hint: "…and once confidence reaches this (0–1)", min: 0, max: 1, step: 0.05 },
 ];
 
 export function QualityGatesCard({ initial }: { initial: QualityGates }) {

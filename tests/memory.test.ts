@@ -10,6 +10,7 @@ import {
   DECAY_HALFLIFE_DAYS,
   decayedConfidence,
   enforceSafetyCap,
+  planGraduation,
   recurringIssues,
   retireStale,
   topByConfidence,
@@ -164,6 +165,38 @@ describe("enforceSafetyCap — pathological-growth backstop only", () => {
   it("is a no-op below the cap", () => {
     const few = [entry({ id: "a" }), entry({ id: "b" })];
     expect(enforceSafetyCap(few, NOW, 100)).toHaveLength(2);
+  });
+});
+
+describe("planGraduation — shadow→graduate lifecycle", () => {
+  const CFG = { shadowMinEvidence: 5, autoGraduateConfidence: 0.8 };
+  it("promotes a shadow lesson that recurred enough and built confidence", () => {
+    const e = entry({ id: "grad", status: "shadow", evidenceCount: 6, confidence: 0.85 });
+    const { promote, retire } = planGraduation([e], CFG, NOW);
+    expect(promote).toEqual(["grad"]);
+    expect(retire).toHaveLength(0);
+  });
+
+  it("retires a shadow lesson that faded (decayed below floor, never recurred)", () => {
+    const e = entry({ id: "fade", status: "shadow", evidenceCount: 1, confidence: 0.3, lastConfirmedAt: daysAgo(10 * DECAY_HALFLIFE_DAYS) });
+    const { promote, retire } = planGraduation([e], CFG, NOW);
+    expect(retire).toEqual(["fade"]);
+    expect(promote).toHaveLength(0);
+  });
+
+  it("leaves a still-maturing shadow lesson alone (enough recurrence, not enough confidence)", () => {
+    const e = entry({ id: "wait", status: "shadow", evidenceCount: 6, confidence: 0.5 });
+    const { promote, retire } = planGraduation([e], CFG, NOW);
+    expect(promote).toHaveLength(0);
+    expect(retire).toHaveLength(0);
+  });
+
+  it("never promotes or retires active or pinned lessons", () => {
+    const active = entry({ id: "act", status: "active", evidenceCount: 9, confidence: 0.95 });
+    const pinned = entry({ id: "pin", status: "shadow", pinned: true, evidenceCount: 9, confidence: 0.95 });
+    const { promote, retire } = planGraduation([active, pinned], CFG, NOW);
+    expect(promote).toHaveLength(0);
+    expect(retire).toHaveLength(0);
   });
 });
 

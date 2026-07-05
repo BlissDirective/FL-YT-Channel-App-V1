@@ -723,6 +723,7 @@ function WatchPanel({ watch }: { watch: WatchVerdict | null }) {
   const dims = [
     { label: "Timing", d: watch.timing },
     { label: "Script-match", d: watch.scriptMatch },
+    { label: "Competitive", d: watch.competitive },
   ].filter((x) => x.d.evaluated);
   return (
     <div className="space-y-1.5 rounded-xl bg-canvas p-3">
@@ -733,6 +734,11 @@ function WatchPanel({ watch }: { watch: WatchVerdict | null }) {
           {watch.overall.toFixed(1)}/10
         </span>
       </div>
+      {watch.policyRisk && (
+        <p className="rounded-lg bg-coral/10 px-2 py-1 text-[11px] font-semibold text-coral">
+          ⚠ Content-policy risk — transformative value / repetitious content. Human review required.
+        </p>
+      )}
       <div className="flex flex-wrap gap-1">
         {dims.map((x) => (
           <span

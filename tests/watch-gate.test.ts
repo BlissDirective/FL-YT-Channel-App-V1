@@ -11,6 +11,8 @@ import {
   checkScriptMatch,
   checkTiming,
   deriveFixPlan,
+  rerollActions,
+  type CompetitiveInput,
   type WatchInputs,
 } from "@/lib/pipeline/watch-gate";
 
@@ -132,5 +134,42 @@ describe("assembleVerdict", () => {
     const clean = assembleVerdict(inputs(), T, NOW).overall;
     const dirty = assembleVerdict(inputs({ clips: [{ beatIdx: 0, relevance: 2 }, { beatIdx: 1, relevance: 2 }, { beatIdx: 2, relevance: 2 }] }), T, NOW).overall;
     expect(dirty).toBeLessThan(clean);
+  });
+
+  it("folds a competitive dimension into the roll-up and propagates policyRisk", () => {
+    const competitive: CompetitiveInput = {
+      result: { score: 4, pass: false, evaluated: true, issues: [{ criterion: "angle_differentiated", beatIdx: null, detail: "saturated topic" }] },
+      policyRisk: true,
+      suggestions: ["Sharpen the angle"],
+    };
+    const v = assembleVerdict(inputs(), T, NOW, [], competitive);
+    expect(v.competitive.evaluated).toBe(true);
+    expect(v.policyRisk).toBe(true);
+    expect(v.competitiveSuggestions).toContain("Sharpen the angle");
+    // A competitive failure surfaces as a script-altitude flag.
+    expect(v.fixPlan.some((f) => f.kind === "flag" && f.scope === "script")).toBe(true);
+    // Overall now averages three evaluated dimensions, so a weak competitive drags it.
+    expect(v.overall).toBeLessThan(assembleVerdict(inputs(), T, NOW).overall);
+  });
+
+  it("leaves competitive un-evaluated (and out of the roll-up) when no judge ran", () => {
+    const v = assembleVerdict(inputs(), T, NOW);
+    expect(v.competitive.evaluated).toBe(false);
+    expect(v.policyRisk).toBe(false);
+  });
+});
+
+describe("rerollActions", () => {
+  const NOW = "2026-07-05T00:00:00.000Z";
+  it("extracts only the re-rollable (off-topic beat) fixes for the autofix loop", () => {
+    const v = assembleVerdict(
+      inputs({ clips: [{ beatIdx: 1, relevance: 3 }, { beatIdx: 2, relevance: 2 }], durationSec: 200 }),
+      T,
+      NOW,
+    );
+    const rerolls = rerollActions(v);
+    expect(rerolls.map((r) => r.beatIdx).sort()).toEqual([1, 2]);
+    // The out-of-band length flag is NOT a re-roll.
+    expect(rerolls.every((r) => typeof r.beatIdx === "number")).toBe(true);
   });
 });

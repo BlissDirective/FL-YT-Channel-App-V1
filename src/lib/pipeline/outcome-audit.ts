@@ -1,6 +1,8 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { analyticsConfigured, getVideoMetrics } from "@/lib/adapters/youtube-analytics";
+import { runQualityGraduation } from "@/lib/pipeline/memory-service";
+import { getQualityGateConfig } from "@/lib/pipeline/quality-gates";
 
 /**
  * Outcome-audit loop (Harness C3, Fable5-Agentic-Harness-Plan.md).
@@ -149,6 +151,19 @@ export async function runOutcomeAudit(db: Db, projectId: string): Promise<{ wrot
       note: a.note,
     });
   }
+
+  // Shadow→graduate lifecycle (C8): promote recurring `quality` shadow lessons
+  // to gating, retire the ones that faded. Best-effort — never blocks the audit.
+  try {
+    const qg = await getQualityGateConfig(db);
+    await runQualityGraduation(db, projectId, {
+      shadowMinEvidence: qg.playbookShadowMinEvidence,
+      autoGraduateConfidence: qg.playbookAutoGraduateConfidence,
+    });
+  } catch (err) {
+    console.error("quality graduation (outcome-audit) failed (non-fatal):", err);
+  }
+
   return { wrote: audits.length };
 }
 

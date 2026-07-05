@@ -51,6 +51,13 @@ export type QualityGateConfig = {
   /** Overall Self-Watch score below this holds the video for a human even on
       autopilot (the pre-publish gate's hard floor). */
   watchBlockPublishBelow: number;
+  /** Self-Watch competitive-fit dimension (#4) must clear this to pass. */
+  competitiveFloor: number;
+  /** Shadow `quality`-namespace lessons graduate to gating once they recur at
+      least this many times (C8 shadow→graduate lifecycle). */
+  playbookShadowMinEvidence: number;
+  /** …and once their confidence reaches this (0–1). */
+  playbookAutoGraduateConfidence: number;
 };
 
 export const DEFAULT_QUALITY_GATES: QualityGateConfig = {
@@ -69,6 +76,9 @@ export const DEFAULT_QUALITY_GATES: QualityGateConfig = {
   beatRelevanceFloor: 6,
   timingFloor: 7,
   watchBlockPublishBelow: 5,
+  competitiveFloor: 6,
+  playbookShadowMinEvidence: 5,
+  playbookAutoGraduateConfidence: 0.8,
 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
@@ -105,6 +115,9 @@ export async function getQualityGateConfig(db?: Db): Promise<QualityGateConfig> 
     cfg.beatRelevanceFloor = clamp(num(v.beatRelevanceFloor) ?? cfg.beatRelevanceFloor, 0, 10);
     cfg.timingFloor = clamp(num(v.timingFloor) ?? cfg.timingFloor, 0, 10);
     cfg.watchBlockPublishBelow = clamp(num(v.watchBlockPublishBelow) ?? cfg.watchBlockPublishBelow, 0, 10);
+    cfg.competitiveFloor = clamp(num(v.competitiveFloor) ?? cfg.competitiveFloor, 0, 10);
+    cfg.playbookShadowMinEvidence = clamp(num(v.playbookShadowMinEvidence) ?? cfg.playbookShadowMinEvidence, 1, 50);
+    cfg.playbookAutoGraduateConfidence = clamp(num(v.playbookAutoGraduateConfidence) ?? cfg.playbookAutoGraduateConfidence, 0, 1);
   } catch {
     /* missing row / table → defaults */
   }

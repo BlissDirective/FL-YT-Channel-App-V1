@@ -5,6 +5,7 @@ import { keywords } from "@/lib/pipeline/dedup";
 import {
   decayedConfidence,
   isSameLesson,
+  planGraduation,
   topByConfidence,
   type MemoryEntry,
   type MemoryNamespace,
@@ -238,5 +239,37 @@ export async function writeMemory(
     });
   } catch (err) {
     console.error("memory write failed (non-fatal):", err);
+  }
+}
+
+/**
+ * Run the shadow→graduate lifecycle for one channel's `quality` lessons (C8).
+ * Called nightly from the outcome-audit pass: shadow lessons that keep recurring
+ * graduate to gating ("active"); ones that faded retire. Best-effort.
+ */
+export async function runQualityGraduation(
+  db: Db,
+  projectId: string,
+  cfg: { shadowMinEvidence: number; autoGraduateConfidence: number },
+): Promise<{ promoted: number; retired: number }> {
+  try {
+    const { data } = await db
+      .from("memory_entries")
+      .select("id, namespace, text, confidence, evidence, evidence_count, pinned, status, tier, created_at, last_confirmed_at")
+      .eq("namespace", "quality")
+      .eq("tier", "channel")
+      .eq("project_id", projectId)
+      .eq("status", "shadow")
+      .limit(2000);
+    const entries = ((data ?? []) as Row[]).map(rowToEntry);
+    if (entries.length === 0) return { promoted: 0, retired: 0 };
+
+    const { promote, retire } = planGraduation(entries, cfg, new Date().toISOString());
+    if (promote.length > 0) await db.from("memory_entries").update({ status: "active" }).in("id", promote);
+    if (retire.length > 0) await db.from("memory_entries").update({ status: "retired" }).in("id", retire);
+    return { promoted: promote.length, retired: retire.length };
+  } catch (err) {
+    console.error("quality graduation failed (non-fatal):", err);
+    return { promoted: 0, retired: 0 };
   }
 }

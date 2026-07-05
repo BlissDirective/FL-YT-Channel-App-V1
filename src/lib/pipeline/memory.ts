@@ -163,6 +163,32 @@ export function topByConfidence(
     .slice(0, k);
 }
 
+/**
+ * Shadow→graduate lifecycle (C8): decide which shadow lessons become gating
+ * ("active") and which fade out ("retire"). A shadow lesson graduates once it
+ * has recurred enough (`shadowMinEvidence`) AND built enough confidence
+ * (`autoGraduateConfidence`) — a criterion the render keeps tripping, not a
+ * one-off. One that never recurs decays and retires. Pinned lessons are exempt.
+ * Pure; the caller applies the status changes.
+ */
+export function planGraduation(
+  entries: MemoryEntry[],
+  cfg: { shadowMinEvidence: number; autoGraduateConfidence: number },
+  now: string,
+): { promote: string[]; retire: string[] } {
+  const promote: string[] = [];
+  const retire: string[] = [];
+  for (const e of entries) {
+    if (e.status !== "shadow" || e.pinned) continue;
+    if (e.evidenceCount >= cfg.shadowMinEvidence && e.confidence >= cfg.autoGraduateConfidence) {
+      promote.push(e.id);
+    } else if (decayedConfidence(e, now) < RETIRE_FLOOR) {
+      retire.push(e.id);
+    }
+  }
+  return { promote, retire };
+}
+
 /** Group issues into recurring buckets by their leading text (loose key). */
 export function recurringIssues(issues: string[], minCount = 2): { text: string; count: number }[] {
   const buckets = new Map<string, { text: string; count: number }>();

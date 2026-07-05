@@ -7,6 +7,8 @@ import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import { recordLesson } from "@/lib/pipeline/playbook";
 import { isTwelveLabsLive, wantsTemporalPass } from "@/lib/adapters/twelvelabs";
 import { makeBeatClip } from "@/lib/pipeline/engine";
+import { runWatchGate } from "@/lib/pipeline/watch-runner";
+import { rerollActions } from "@/lib/pipeline/watch-gate";
 import {
   DEFAULT_STICK_CAST,
   type FrameCritique,
@@ -555,6 +557,23 @@ export async function processAutofixForVideo(
     return { acted: false, reason: "awaiting-rerender" };
   }
 
+  // Self-Watch (Phase 2): pull the cheap structural verdict (no LLM) and feed
+  // its off-topic-beat re-rolls into THIS loop — one integrated fixer. The
+  // visual critic scores composition/readability; the watch gate catches beats
+  // whose visual doesn't match the narration, which the critic can miss.
+  const watch = await runWatchGate(db, video, project);
+  const watchRerolls = watch ? rerollActions(watch) : [];
+  if (watchRerolls.length > 0) {
+    const known = new Set((critique.issues ?? []).map((i) => i.beatIdx));
+    for (const r of watchRerolls) {
+      if (known.has(r.beatIdx)) continue; // don't double-target a beat the critic already flagged
+      critique.issues = [
+        ...(critique.issues ?? []),
+        { beatIdx: r.beatIdx, category: "other", severity: "high", note: r.reason, fix: `Re-roll beat ${r.beatIdx + 1} to match its narration` },
+      ];
+    }
+  }
+
   const score = Number(critique.score ?? 0);
   const attempts = Number(state.attempts ?? 0);
   let mem = (project.autofix_memory ?? {}) as AutofixMemory;
@@ -591,8 +610,10 @@ export async function processAutofixForVideo(
   state.bestScore = Math.max(Number(state.bestScore ?? 0), score);
   state.loop = loop;
 
-  // Converged — leave the video at Final Review for normal flow.
-  if (score >= config.threshold) {
+  // Converged — leave the video at Final Review for normal flow. A visually
+  // strong render that still has off-topic beats (watch re-rolls pending) is NOT
+  // done: fall through to fix them, bounded by the same maxRenders cap below.
+  if (score >= config.threshold && watchRerolls.length === 0) {
     state.status = "done";
     await setState(db, video.id, state);
     return { acted: true, kind: "done", score };

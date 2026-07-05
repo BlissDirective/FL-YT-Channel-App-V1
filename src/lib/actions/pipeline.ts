@@ -778,6 +778,9 @@ export type QualityGates = {
   beatRelevanceFloor?: number;
   timingFloor?: number;
   watchBlockPublishBelow?: number;
+  competitiveFloor?: number;
+  playbookShadowMinEvidence?: number;
+  playbookAutoGraduateConfidence?: number;
 };
 
 const clamp = (n: number, min: number, max: number) =>
@@ -809,6 +812,15 @@ export async function saveQualityGatesAction(
     beatRelevanceFloor: score(gates.beatRelevanceFloor),
     timingFloor: score(gates.timingFloor),
     watchBlockPublishBelow: score(gates.watchBlockPublishBelow),
+    competitiveFloor: score(gates.competitiveFloor),
+    playbookShadowMinEvidence:
+      typeof gates.playbookShadowMinEvidence === "number" && Number.isFinite(gates.playbookShadowMinEvidence)
+        ? clamp(Math.round(gates.playbookShadowMinEvidence), 1, 50)
+        : undefined,
+    playbookAutoGraduateConfidence:
+      typeof gates.playbookAutoGraduateConfidence === "number" && Number.isFinite(gates.playbookAutoGraduateConfidence)
+        ? clamp(gates.playbookAutoGraduateConfidence, 0, 1)
+        : undefined,
   };
   const supabase = await createClient();
   const { error } = await supabase
