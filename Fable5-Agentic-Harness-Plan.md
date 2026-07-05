@@ -398,15 +398,15 @@ Two plan docs now describe one system. They interlock through **C8 memory**:
 
 **Recommended combined sequence (build top-down, each step usable on its own):**
 
-| Step | From | What | Unlocks |
-|---|---|---|---|
-| 1 | Harness **C8 core** | `memory_entries` table, `match_memory` RPC, `queryMemory`/`writeMemory`, two-tier scope + RLS | the shared substrate; migrate the C4 playbook onto it (uncapped + top-k + decay/pin) |
-| 2 | Harness **C8 `quality` namespace** | first namespace, built to full depth | gives the Self-Watch gate somewhere to read/write criteria |
-| 3 | Self-Watch **Phase 0–1** | watch-gate scaffold + timing (#3) + final-render script-match (#2), writing verdicts to C8 `quality` | the gate is live; fixes flow through `autofix.ts` |
-| 4 | Self-Watch **Phase 2** | competitive fit (#4) — reads C8 `competitive`/`outcome`; the shadow→graduate lifecycle becomes C8's promotion mechanism | "improves over time" comes online |
-| 5 | Harness **C8 librarian** | nightly Batch agent: dedup, promote (incl. ≥3-channel global-craft promotion), decay, synthesize | the memory self-curates across channels |
-| 6 | Harness **C8 remaining namespaces** | `idea`/`script`/`visual`/`audio`/`editing`/`packaging`/`competitive`/`outcome` to equal depth | every agent reads/writes memory |
-| 7 | Self-Watch **Phase 3–4** | temporal transitions (#1) + calibration/hardening | full four-criteria gate + C1/C3 tie-in |
+| Step | From | What | Unlocks | Status |
+|---|---|---|---|---|
+| 1 | Harness **C8 core** | `memory_entries` table, `match_memory` RPC, `queryMemory`/`writeMemory`, two-tier scope + RLS | the shared substrate; migrate the C4 playbook onto it (uncapped + top-k + decay/pin) | ✅ shipped |
+| 2 | Harness **C8 `quality` namespace** | first namespace, wired into the Self-Watch gate (reads graduated lessons, writes shadow lessons) | gives the Self-Watch gate somewhere to read/write criteria | ✅ shipped |
+| 3 | Self-Watch **Phase 0–1** | watch-gate scaffold + timing (#3) + final-render script-match (#2), verdict on `watch_review`, operator publish-gate hold | the gate is live at FINAL_REVIEW | ✅ shipped |
+| 4 | Self-Watch **Phase 2** | competitive fit (#4) — reads C8 `competitive`/`outcome`; autofix re-roll wiring; the shadow→graduate lifecycle becomes C8's promotion mechanism | "improves over time" comes online | 🔜 next |
+| 5 | Harness **C8 librarian** | nightly Batch agent: dedup, promote (incl. ≥3-channel global-craft promotion), decay, synthesize | the memory self-curates across channels | ⏳ pending |
+| 6 | Harness **C8 remaining namespaces** | `idea`/`script`/`visual`/`audio`/`editing`/`packaging`/`competitive`/`outcome` to equal depth | every agent reads/writes memory | ⏳ pending |
+| 7 | Self-Watch **Phase 3–4** | temporal transitions (#1) + calibration/hardening | full four-criteria gate + C1/C3 tie-in | ⏳ pending |
 
 Build C8's core first (step 1) — everything downstream in both plans reads or
 writes it, so it's the true critical path.

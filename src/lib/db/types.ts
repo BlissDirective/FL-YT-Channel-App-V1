@@ -202,6 +202,9 @@ export type Video = {
   /** Stick Studio Tier-1 vision critique of the rendered keyframes (null until
       the farm runs the frame-critic). */
   vision_review: FrameCritique | null;
+  /** Self-Watch gate verdict on the assembled render (null until settled at
+      FINAL_REVIEW). Timing + final-render script-match (Phase 0–1). */
+  watch_review: import("@/lib/pipeline/watch-gate").WatchVerdict | null;
   total_cost_usd: number;
   paused_reason: string | null;
   /** Full Auto: worker advances to render when the last clip lands. */

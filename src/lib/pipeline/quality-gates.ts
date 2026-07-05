@@ -42,8 +42,15 @@ export type QualityGateConfig = {
   /** Script fact-check risk at/above this holds the video (Phase 4.2). */
   factRiskMax: number;
   /** Beat visuals scoring below this on narration-relevance are re-rolled/
-      re-searched before render (vision gate). */
+      re-searched before render (vision gate). Reused by the Self-Watch gate's
+      final-render script-match dimension (#2). */
   beatRelevanceFloor: number;
+  /** Self-Watch gate (Fable5-Self-Watch-Loop-Plan.md). Timing dimension (#3)
+      must clear this to pass. */
+  timingFloor: number;
+  /** Overall Self-Watch score below this holds the video for a human even on
+      autopilot (the pre-publish gate's hard floor). */
+  watchBlockPublishBelow: number;
 };
 
 export const DEFAULT_QUALITY_GATES: QualityGateConfig = {
@@ -60,6 +67,8 @@ export const DEFAULT_QUALITY_GATES: QualityGateConfig = {
   runPublic: 8.0,
   factRiskMax: 7,
   beatRelevanceFloor: 6,
+  timingFloor: 7,
+  watchBlockPublishBelow: 5,
 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
@@ -94,6 +103,8 @@ export async function getQualityGateConfig(db?: Db): Promise<QualityGateConfig> 
     cfg.runPublic = clamp(num(v.runPublic) ?? cfg.runPublic, 0, 10);
     cfg.factRiskMax = clamp(num(v.factRiskMax) ?? cfg.factRiskMax, 0, 10);
     cfg.beatRelevanceFloor = clamp(num(v.beatRelevanceFloor) ?? cfg.beatRelevanceFloor, 0, 10);
+    cfg.timingFloor = clamp(num(v.timingFloor) ?? cfg.timingFloor, 0, 10);
+    cfg.watchBlockPublishBelow = clamp(num(v.watchBlockPublishBelow) ?? cfg.watchBlockPublishBelow, 0, 10);
   } catch {
     /* missing row / table → defaults */
   }

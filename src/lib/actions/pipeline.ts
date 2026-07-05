@@ -776,6 +776,8 @@ export type QualityGates = {
   runPublic?: number;
   factRiskMax?: number;
   beatRelevanceFloor?: number;
+  timingFloor?: number;
+  watchBlockPublishBelow?: number;
 };
 
 const clamp = (n: number, min: number, max: number) =>
@@ -805,6 +807,8 @@ export async function saveQualityGatesAction(
     runPublic: score(gates.runPublic),
     factRiskMax: score(gates.factRiskMax),
     beatRelevanceFloor: score(gates.beatRelevanceFloor),
+    timingFloor: score(gates.timingFloor),
+    watchBlockPublishBelow: score(gates.watchBlockPublishBelow),
   };
   const supabase = await createClient();
   const { error } = await supabase

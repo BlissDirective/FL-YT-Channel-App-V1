@@ -6,6 +6,7 @@ import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest, sendTel
 import { editorialGuard, gateIdea, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
 import { planMonthlyCalendar } from "@/lib/adapters/calendar";
 import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, privacyForScore } from "@/lib/pipeline/quality-gates";
+import { runWatchGate } from "@/lib/pipeline/watch-runner";
 import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import {
   analyticsConfigured,
@@ -817,13 +818,22 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
     if (guard.costUsd > 0) await recordCost(db, video, guard.costUsd, "Operator editorial guard");
     const flags = [...guard.legalFlags, ...guard.factIssues, ...guard.metadataIssues];
 
-    // Hard gate: below the publish floor or an editorial FAIL → hold for the one
-    // human touch (never auto-published, in either mode).
-    if (qc < cfg.publishFloorQc || guard.verdict === "fail") {
+    // Self-Watch gate (Fable5-Self-Watch-Loop-Plan.md): watch the assembled
+    // render for timing (#3) + final-render script-match (#2). Stores the
+    // verdict on watch_review for the review card; a low overall holds the video
+    // for a human even on autopilot.
+    const watch = await runWatchGate(db, video, project);
+    const watchBlocks = Boolean(watch && !watch.degraded && watch.overall < qg.watchBlockPublishBelow);
+
+    // Hard gate: below the publish floor, an editorial FAIL, or a failing
+    // Self-Watch verdict → hold for the one human touch (never auto-published).
+    if (qc < cfg.publishFloorQc || guard.verdict === "fail" || watchBlocks) {
       const reason =
         guard.verdict === "fail"
           ? `editorial review: ${guard.note || flags[0] || "flagged"}`
-          : `QC ${qc.toFixed(1)} below the ${cfg.publishFloorQc.toFixed(1)} floor`;
+          : watchBlocks
+            ? `Self-Watch ${watch!.overall.toFixed(1)} below the ${qg.watchBlockPublishBelow.toFixed(1)} floor — ${watch!.fixPlan.slice(0, 2).map((f) => f.reason).join("; ") || "quality issues"}`
+            : `QC ${qc.toFixed(1)} below the ${cfg.publishFloorQc.toFixed(1)} floor`;
       await db
         .from("videos")
         .update({

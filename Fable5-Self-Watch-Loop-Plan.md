@@ -374,8 +374,15 @@ under the budget guard; runbook + docs.
 
 ## Build status (2026-07-05)
 
-- **This plan (Self-Watch Loop):** 📄 **speced, not yet built.** All phases
-  pending. Prerequisite: C8 memory core + `quality` namespace (below).
+- **This plan (Self-Watch Loop):** **Phase 0–1 shipped** ✅ — the gate scaffold
+  (`watch-gate.ts` pure core + `watch-runner.ts`), the `WATCH` baseline rubric,
+  timing (#3) + final-render script-match (#2), the `WatchVerdict` stored on
+  `videos.watch_review` (migration `0040`), the operator publish-gate hold
+  (`watchBlockPublishBelow`), the Settings floors, and the review-card panel.
+  Wired to the **C8 `quality` namespace** (reads graduated lessons, writes
+  recurring failures as shadow lessons). Pending: Phase 2 (competitive fit +
+  autofix re-roll wiring + full graduate lifecycle), Phase 3 (temporal
+  transitions), Phase 4 (calibration).
 - **[Harness plan](./Fable5-Agentic-Harness-Plan.md):** C1–C6 **shipped**; C5
   live but exploration-only until ~8 published videos; **C8 Studio Memory Service
   — core shipped** (`memory_entries` + `match_memory` RPC + `queryMemory`/
