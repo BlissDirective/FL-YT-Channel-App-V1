@@ -378,7 +378,9 @@ under the budget guard; runbook + docs.
   pending. Prerequisite: C8 memory core + `quality` namespace (below).
 - **[Harness plan](./Fable5-Agentic-Harness-Plan.md):** C1–C6 **shipped**; C5
   live but exploration-only until ~8 published videos; **C8 Studio Memory Service
-  🔜 next** (the substrate this gate sits on).
+  — core shipped** (`memory_entries` + `match_memory` RPC + `queryMemory`/
+  `writeMemory`; C4 playbook migrated onto it). Remaining: the `quality` namespace
+  (built as this gate needs it), the nightly librarian, and the other namespaces.
 - **Critical path (from the Harness plan's "Cross-plan build order"):** C8 core →
   C8 `quality` namespace → this gate's Phase 0–1 → Phase 2 (learning loop online)
   → C8 librarian → remaining namespaces → this gate's Phase 3–4. Build C8's core

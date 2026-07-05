@@ -17,8 +17,12 @@ Citations inline; this doc is the build plan for the next tier of the studio.
 >
 > **Update (2026-07-05):** Two new tracks added. **C8 — Studio Memory Service**
 > (§C8) generalizes the C4 playbook into a queryable, two-tier, cross-agent
-> memory — the substrate every agent and *both* plan docs share — 🔜 **next to
-> build**. And the **[Self-Watch Loop](./Fable5-Self-Watch-Loop-Plan.md)** (a
+> memory — the substrate every agent and *both* plan docs share. **Core now
+> built** (migration `0039_studio_memory.sql` — `memory_entries` + `match_memory`
+> RPC + RLS; `memory.ts` governance; `memory-service.ts` `queryMemory`/
+> `writeMemory`; the C4 playbook migrated onto it with the uncapped + top-k +
+> decay/pin model). Next: the nightly librarian agent + the remaining namespaces.
+> And the **[Self-Watch Loop](./Fable5-Self-Watch-Loop-Plan.md)** (a
 > pre-publish "watch the render" QC gate) is speced and sequenced; it reads and
 > writes C8 memory via `queryMemory`/`writeMemory`. The two build interlock —
 > see **"Cross-plan build order"** at the end of Part D.
@@ -371,7 +375,7 @@ playbook governance are already shipped.
 | 4 | C3 outcome audit | S | keeps 1–3 honest as volume grows | ✅ shipped |
 | 5 | C4 playbook governance | M | compounds only after outcomes flow | ✅ shipped |
 | 6 | C5 format bandit + Test & Compare ingest | M–L | needs ≥10–20 published videos to matter | ⏳ live, exploration-only |
-| 7 | **C8 Studio Memory Service** (`queryMemory` + librarian + two-tier scope, `quality` namespace first) | L | the substrate C4 seeded; unifies memory across every agent + both plans | 🔜 **next** |
+| 7 | **C8 Studio Memory Service** (`queryMemory` + librarian + two-tier scope, `quality` namespace first) | L | the substrate C4 seeded; unifies memory across every agent + both plans | 🟢 **core shipped** (table/RPC/service + playbook migrated); librarian + namespaces next |
 
 Prereq note: C5's Test & Compare ingestion and C3's day-7/28 joins want the
 per-video Analytics OAuth already used by the retention overlay — no new
