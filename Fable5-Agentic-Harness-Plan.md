@@ -14,6 +14,14 @@ Citations inline; this doc is the build plan for the next tier of the studio.
 > API doesn't expose it). C5 (format-level Thompson sampling) is live but
 > stays exploration-only until a channel clears ~8 published videos. Remaining
 > open items are the small polish follow-ups in "Next steps".
+>
+> **Update (2026-07-05):** Two new tracks added. **C8 — Studio Memory Service**
+> (§C8) generalizes the C4 playbook into a queryable, two-tier, cross-agent
+> memory — the substrate every agent and *both* plan docs share — 🔜 **next to
+> build**. And the **[Self-Watch Loop](./Fable5-Self-Watch-Loop-Plan.md)** (a
+> pre-publish "watch the render" QC gate) is speced and sequenced; it reads and
+> writes C8 memory via `queryMemory`/`writeMemory`. The two build interlock —
+> see **"Cross-plan build order"** at the end of Part D.
 
 ---
 
@@ -252,6 +260,107 @@ Not per-video A/B (you don't have the traffic); per-*format* arms.
 
 ---
 
+### C8. Studio Memory Service — persistent cross-agent memory
+*The substrate C4 was a first slice of.* Generalize the playbook from
+"script/visual lessons injected as a prompt prefix" into a **queryable memory
+service** every agent (idea, script, visual, editing, QC, the Self-Watch gate,
+the operator) reads from and writes to. Decisions locked with the operator
+(2026-07-05): hybrid retrieval · two-tier scope · semantic backbone · unified
+access layer · QC/quality namespace first (all namespaces built to equal depth).
+
+**Two things called "memory," kept architecturally separate:**
+- **Corpus (immutable facts):** every idea generated + its outcome, competitor
+  blueprints, metric winners. Stays in structured tables (`ideas`, `video_intel`,
+  `analytics_snapshots`), exposed through a query layer + semantic index; **never
+  mutated by an agent** (you never "expire" the fact that an idea was generated —
+  dedup needs the full history).
+- **Knowledge (governed lessons):** evidence-gated bullets — the C4 playbook,
+  generalized to every stage. Confidence-scored, decaying, promotable.
+
+The service unifies **access** over both; it is **not** one table everything
+dumps into.
+
+**Retrieval model — hybrid (decided).** A cheap, deterministic **`queryMemory`
+tool in the hot path** (embed query → pgvector match → rank by relevance ×
+confidence × freshness × outcome-weight → scope-filter; **no LLM**), plus an
+offline **"librarian" agent (nightly, Batch API)** that dedups, promotes
+confirmed lessons, retires stale ones, and writes cross-cutting syntheses. Hot
+path stays fast/cheap; expensive reasoning runs out of band. This *is* C7 in
+practice — a service, not a broker-agent in every request.
+
+**Two-tier scope (decided) + hard separation rules.** Every entry carries
+`scope` = `global:craft` or `channel:{projectId}`:
+- **Read isolation (hard, RLS-enforced):** channel X retrieves
+  `global:craft ∪ channel:X` — **never** `channel:Y`. Enforced at the query layer
+  *and* Postgres RLS, so an app-code bug can't leak it.
+- **Global-craft eligibility:** only generalizable **technique** lessons
+  (caption/pacing/hook-structure/editing/QC-criteria methods) — channel-agnostic
+  by nature.
+- **Permanently channel-scoped (never promotable):** ideas, competitor
+  blueprints, niche what-works, this channel's winners/angle-gaps. This is the
+  leakage risk, so it is hard-fenced.
+- **Promotion gate (librarian-driven, evidence-gated):** a per-channel *technique*
+  lesson promotes to `global:craft` only when it is technique-shaped **and**
+  independently confirmed on **≥3 distinct channels**. One channel's fluke can't
+  become studio dogma.
+- **Write default:** hot-path writes are always `channel:X`; global writes happen
+  **only** through the librarian's promotion path.
+
+Net: every channel benefits from the shared craft tier; no channel ever sees
+another's ideas or competitive intel.
+
+**Namespaces** (QC/quality first, per the operator; all built to equal depth):
+`quality` (QC criteria + lessons — first), `idea`, `script`, `visual`, `audio`,
+`editing`, `packaging`, `competitive` (blueprints/intel), `outcome`
+(metric-linked winners). The existing playbook stages (`idea|script|visual|
+packaging`) fold in as namespaces.
+
+**Retrieval backbone — semantic (decided), lexical fallback.** OpenAI
+`text-embedding-3-small` (1536-dim, already wired in `embeddings.ts`) over
+**pgvector** — already enabled: migration `0034_learning_loop.sql` ships
+`ideas.embedding` + a per-project `match_ideas` cosine RPC. Generalize that to one
+`match_memory(namespace, embedding, scope)` RPC. The **lexical/tag path**
+(`dedup.ts`) stays as the automatic degrade when `OPENAI_API_KEY` is absent —
+already the shipped behavior, so the fallback is free.
+
+**Playbook governance changes (these supersede C4's hygiene):**
+- **Uncapped storage** (high per-namespace safety ceiling). The old 40-item cap
+  existed *only* because lessons were injected as a full prompt prefix; with
+  semantic top-k retrieval you **store thousands and inject the top 6–8 relevant**
+  per call. The limit moves from "storage" to "per-query k," where it belongs.
+- **Decay + outcome-gated retirement instead of the hard 90-day expiry.**
+  Confidence decays slowly, **revives on re-confirmation**, and a lesson retires
+  only when it drops below a floor *and* hasn't reconfirmed. **Operator-pinned**
+  lessons never expire. Effectively removes the 90-day cliff while keeping the
+  anti-degradation guarantee.
+
+**APIs.** *Internal (build):* `queryMemory({namespace, query, scope, k, filters})`,
+`writeMemory({namespace, kind, payload, evidence?, scope})`, governance helpers
+(generalized from `playbook.ts`), the `match_memory` RPC, and `runLibrarian(scope)`
+(nightly Batch entry). *External/paid:* OpenAI embeddings + Anthropic (librarian)
+— **both already wired; no new vendor** (pgvector replaces a paid vector DB at $0).
+
+**Cost at studio scale:** embeddings ≈ **$0.02–0.05/mo** ($0.02/1M tokens,
+$0.01/1M batch); **pgvector = $0 incremental** (ships with Supabase; a larger
+compute instance is only needed at *millions* of vectors — each is ~6 KB, so
+100k rows ≈ 600 MB, trivial search — years away); librarian LLM ≈ **$1–5/mo**
+(nightly Batch). **Total ≈ $2–7/mo**, dominated by the librarian, not the
+vectors. Every call is ledgered under the budget guard.
+
+**Anti-degradation guarantees:** evidence-gated writes for lessons (no write
+without a quantitative QC/retention delta — anti-confabulation); corpus
+namespaces log everything (facts, not claims); raw outcomes stay immutable; and
+the Self-Watch **shadow→graduate lifecycle is the promotion mechanism** — a
+lesson only *steers* generation after outcomes confirm it.
+
+**Build footprint (modest — most primitives exist):** ~2 tables (a governed
+`memory_entries` for lessons + reuse of the existing corpus tables), one
+generalized `match_memory` RPC, the `queryMemory`/`writeMemory` wrappers, and the
+nightly librarian job. Embeddings, pgvector, the match-RPC pattern, and the
+playbook governance are already shipped.
+
+---
+
 ## Part D — Sequenced build plan
 
 | Order | Harness | Effort | Why this order | Status |
@@ -261,16 +370,50 @@ Not per-video A/B (you don't have the traffic); per-*format* arms.
 | 3 | C2 best-of-N for titles/hooks/thumb phrases | M | biggest quality-per-dollar lever | ✅ shipped |
 | 4 | C3 outcome audit | S | keeps 1–3 honest as volume grows | ✅ shipped |
 | 5 | C4 playbook governance | M | compounds only after outcomes flow | ✅ shipped |
-| 6 | C5 format bandit + Test & Compare ingest | M–L | needs ≥10–20 published videos to matter | ⏳ deferred |
+| 6 | C5 format bandit + Test & Compare ingest | M–L | needs ≥10–20 published videos to matter | ⏳ live, exploration-only |
+| 7 | **C8 Studio Memory Service** (`queryMemory` + librarian + two-tier scope, `quality` namespace first) | L | the substrate C4 seeded; unifies memory across every agent + both plans | 🔜 **next** |
 
 Prereq note: C5's Test & Compare ingestion and C3's day-7/28 joins want the
 per-video Analytics OAuth already used by the retention overlay — no new
-credentials needed.
+credentials needed. C8 needs `OPENAI_API_KEY` for live embeddings (else the
+lexical fallback runs) — no other new credentials.
 
 ---
 
-## Next steps (all harnesses now built)
+## Cross-plan build order (Harness ↔ Self-Watch Loop)
 
+Two plan docs now describe one system. They interlock through **C8 memory**:
+
+- **[Self-Watch Loop](./Fable5-Self-Watch-Loop-Plan.md)** — the pre-publish gate
+  that watches the assembled render and scores it across four criteria (timing,
+  script-match, competitive fit, transitions). Its evolving-criteria layer *is*
+  the `quality` namespace of C8; its competitive judge *reads* the `competitive`
+  and `outcome` namespaces via `queryMemory`.
+- This Harness plan (C1–C8) — the judges, selection, audit, bandit, routing, and
+  now the memory substrate underneath all of them.
+
+**Recommended combined sequence (build top-down, each step usable on its own):**
+
+| Step | From | What | Unlocks |
+|---|---|---|---|
+| 1 | Harness **C8 core** | `memory_entries` table, `match_memory` RPC, `queryMemory`/`writeMemory`, two-tier scope + RLS | the shared substrate; migrate the C4 playbook onto it (uncapped + top-k + decay/pin) |
+| 2 | Harness **C8 `quality` namespace** | first namespace, built to full depth | gives the Self-Watch gate somewhere to read/write criteria |
+| 3 | Self-Watch **Phase 0–1** | watch-gate scaffold + timing (#3) + final-render script-match (#2), writing verdicts to C8 `quality` | the gate is live; fixes flow through `autofix.ts` |
+| 4 | Self-Watch **Phase 2** | competitive fit (#4) — reads C8 `competitive`/`outcome`; the shadow→graduate lifecycle becomes C8's promotion mechanism | "improves over time" comes online |
+| 5 | Harness **C8 librarian** | nightly Batch agent: dedup, promote (incl. ≥3-channel global-craft promotion), decay, synthesize | the memory self-curates across channels |
+| 6 | Harness **C8 remaining namespaces** | `idea`/`script`/`visual`/`audio`/`editing`/`packaging`/`competitive`/`outcome` to equal depth | every agent reads/writes memory |
+| 7 | Self-Watch **Phase 3–4** | temporal transitions (#1) + calibration/hardening | full four-criteria gate + C1/C3 tie-in |
+
+Build C8's core first (step 1) — everything downstream in both plans reads or
+writes it, so it's the true critical path.
+
+---
+
+## Next steps (C1–C6 built; C8 + Self-Watch Loop next)
+
+0. **Build C8 Studio Memory Service, `quality` namespace first**, then the
+   Self-Watch Loop on top of it — see "Cross-plan build order" above. This is the
+   current critical path; the items below remain the operating-the-loop follow-ups.
 1. **Feed the calibration data back into the rubric** — the single highest-
    value action, and it needs no code, just operating the loop: label ~50 QC
    verdicts in the review queue (the 👍/👎), let the nightly outcome audit

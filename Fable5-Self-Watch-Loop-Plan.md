@@ -22,6 +22,15 @@ Decisions locked with the operator (2026-07-05):
 5. **Sequencing** — scaffold → structural timing (#3) + final-render
    script-match (#2) → competitive fit (#4) → temporal transitions (#1) last.
 
+> **Sits on top of [`Fable5-Agentic-Harness-Plan.md`](./Fable5-Agentic-Harness-Plan.md).**
+> This gate is not standalone: its evolving-criteria layer is the **`quality`
+> namespace of the C8 Studio Memory Service** (§C8 there), and its competitive
+> judge reads the `competitive`/`outcome` namespaces via `queryMemory`. Build
+> **C8's core + `quality` namespace first**, then this gate on top — see
+> "Cross-plan build order" in the Harness plan's Part D. C8 also **supersedes the
+> `playbook.ts` 40-item cap / 90-day expiry** referenced below with uncapped
+> storage + top-k retrieval + confidence-decay/pin.
+
 ---
 
 ## Verdict up front
@@ -234,11 +243,16 @@ binary criteria, hand-authored, **immutable**. Always runs. The safety net.
 Includes the compliance floor (`faceless_policy_transformative`), which the agent
 can never weaken.
 
-**Layer 2 — Agent-maintained evolving playbook** (extend `playbook.ts`). Today the
-playbook stores evidence-gated "Do/Avoid" lessons and injects them into generation
-prompts (ACE Generator→Reflector→Curator, 40-cap, 90-day expiry, embedding-dedup,
-no write without quantitative evidence). We add the capability you actually want:
-**the playbook proposes and reweights *watch criteria*, not just generation hints.**
+**Layer 2 — Agent-maintained evolving playbook** = the **`quality` namespace of
+the C8 Studio Memory Service** ([Harness plan §C8](./Fable5-Agentic-Harness-Plan.md)).
+Today `playbook.ts` stores evidence-gated "Do/Avoid" lessons and injects them into
+generation prompts (ACE Generator→Reflector→Curator, embedding-dedup, no write
+without quantitative evidence). C8 upgrades it: **uncapped storage + semantic
+top-k retrieval** (replacing the 40-item prompt-prefix cap) and **confidence-decay
++ outcome-gated retirement with operator-pin** (replacing the hard 90-day expiry).
+On that substrate we add the capability you actually want: **the playbook proposes
+and reweights *watch criteria*, not just generation hints** — written through
+`writeMemory`, read through `queryMemory`, curated nightly by the C8 librarian.
 
 - New bullet type `criterion`: e.g. *"[true-crime] cold-open before any branding —
   the 5 videos that did retained +8% (evidence links)."*
@@ -355,6 +369,20 @@ escalation gate. Shorts loop-friendliness as an evolvable criterion + C5 arm.
 **Phase 4 — Calibration & hardening.** Extend C1 (👍/👎 on watch verdicts) and C3
 (watch-criterion Spearman) into the insights surface; cost-ledger every watch call
 under the budget guard; runbook + docs.
+
+---
+
+## Build status (2026-07-05)
+
+- **This plan (Self-Watch Loop):** 📄 **speced, not yet built.** All phases
+  pending. Prerequisite: C8 memory core + `quality` namespace (below).
+- **[Harness plan](./Fable5-Agentic-Harness-Plan.md):** C1–C6 **shipped**; C5
+  live but exploration-only until ~8 published videos; **C8 Studio Memory Service
+  🔜 next** (the substrate this gate sits on).
+- **Critical path (from the Harness plan's "Cross-plan build order"):** C8 core →
+  C8 `quality` namespace → this gate's Phase 0–1 → Phase 2 (learning loop online)
+  → C8 librarian → remaining namespaces → this gate's Phase 3–4. Build C8's core
+  first; every step in both plans reads or writes it.
 
 ---
 
