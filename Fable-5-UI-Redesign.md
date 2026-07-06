@@ -1,7 +1,7 @@
 # Fable 5 — UI/UX Redesign: Running Log & Build Plan
 
 **Started:** 2026-07-06 · **Branch:** `claude/app-ui-ux-redesign-9j0267` ·
-**Status:** planning — decisions being logged, build plan drafting
+**Status:** plan locked (D-1..D-19, no open questions) — awaiting Phase 0 green-light
 
 This is the living document for the full UI/UX redesign. It records every
 operator decision as it is made (§2), the target design those decisions imply
@@ -72,16 +72,15 @@ through, never deleted.
 | D-12 | 2026-07-06 | **Insights + Intel fold into a per-project notification-style feed.** They leave global nav as destinations. |
 | D-13 | 2026-07-06 | **Styleguide stays in nav.** |
 | D-14 | 2026-07-06 | **Running log required:** this document; all answers/decisions logged as the plan develops. **Every build phase must include extensive testing.** |
+| D-15 | 2026-07-06 | *(resolves Q-A)* **Home carries a cross-project "awaiting you" row** — per-project pending counts deep-linking into each project's library — alongside project cards + SystemPulse. |
+| D-16 | 2026-07-06 | *(resolves Q-B)* **Feed is a full per-project activity feed with filters:** publishes, holds, autofix outcomes, operator events, with agent outputs (optimizer insights, intel scans) as its actionable card subset. Replaces the dashboard Activity card. |
+| D-17 | 2026-07-06 | *(resolves Q-C)* **Published/TRACKING assets live in a collapsible "Published" section at the bottom of the library grid**, tiles showing view counts. No separate archive tab. |
+| D-18 | 2026-07-06 | *(resolves Q-D)* **Ideas section presentational merge confirmed:** intelligence-scored `ideas` rows + videos at the IDEA gate render as one visual section with a subtle origin badge; quick-approve on an intelligence idea promotes it via the existing action. Frontend-only, no schema change. |
+| D-19 | 2026-07-06 | *(resolves Q-E)* **Boost runs confirmed:** the one-off batch inside Autopilot keeps using the existing `build_runs` machinery unchanged in v1, labeled **"boost runs"** in the activity timeline. |
 
 ### Open questions (answers get promoted to the log above)
 
-| # | Question | Status |
-|---|---|---|
-| Q-A | Home page: besides project cards + system pulse, should it carry a small cross-project **"awaiting you"** strip (aggregated pending count per project, deep-linking into each project's library)? Recommended: yes — it's the 5-second morning check without violating D-2. | open |
-| Q-B | **Feed scope:** only agent outputs (optimizer insights + intel scan results as actionable cards), or a full per-project activity feed (publishes, holds, autofix outcomes, operator events) with agent outputs as its actionable subset? Recommended: full feed with filters — it also replaces the dashboard Activity card. | open |
-| Q-C | **Published/TRACKING assets:** final "Published" section at the bottom of the library grid (tiles show view counts), or a separate archive tab? Recommended: grid section, collapsible like Ideas. | open |
-| Q-D | The Ideas section merges two backend sources (intelligence-scored `ideas` rows + videos already at the IDEA gate). Presented as **one section** with a subtle origin badge; quick-approve on an intelligence idea promotes it via the existing action. Confirm this presentational merge (frontend-only, no schema change). | open |
-| Q-E | Inside Autopilot, the one-off batch action keeps using the `build_runs` machinery unchanged under the hood (v1), surfaced in Autopilot's activity as "boost runs". Confirm. | open |
+*None currently — Q-A…Q-E resolved 2026-07-06 → D-15…D-19.*
 
 ---
 
@@ -139,7 +138,8 @@ the *capability* survives in exactly one home; only duplicate surfaces die.
 ## 5. Target information architecture
 
 ```
-Home (portfolio)                    ← project cards, SystemPulse, [Q-A strip]
+Home (portfolio)                    ← project cards, SystemPulse,
+ │                                    "awaiting you" row (D-15)
  └─ Project
      ├─ Library (project home)      ← stage-sectioned asset grid, "New asset",
      │    │                           header signal strip, quick actions
@@ -159,8 +159,9 @@ touch targets and sticky action bars).
 
 ## 6. Library spec (per project — D-2..D-5)
 
-- **Sections in order:** Ideas (collapsible) → Script → Production (assets +
-  render, real thumbnails/video tiles) → Ready/Publish → Published (Q-C).
+- **Sections in order:** Ideas (collapsible, merged sources per D-18) →
+  Script → Production (assets + render, real thumbnails/video tiles) →
+  Ready/Publish → Published (collapsible, tiles show view counts — D-17).
   Sections map to existing `PIPELINE_STAGES` / `effectiveStageKey`
   (`src/lib/db/pipeline.ts`) — no new stage taxonomy.
 - **Tile anatomy:** thumbnail or stage placeholder · title · stage-progress
@@ -209,17 +210,21 @@ visible/editable per the state machine's step-back rules.
 One per-project surface: go-live checklist + mode (copilot/autopilot) +
 cadence & cycle budget + the 30-day calendar (operator today) · **Boost**
 button = the old Build & Post modal, reframed as a one-off batch inside
-Autopilot · one activity timeline interleaving `operator_events` and
-`build_runs` rows (chips: held/publishing/scheduled) · held items deep-link
-to their library tiles/canvas.
+Autopilot, shown as **"boost runs"** in the timeline (D-19) · one activity
+timeline interleaving `operator_events` and `build_runs` rows (chips:
+held/publishing/scheduled) · held items deep-link to their library
+tiles/canvas.
 
-## 9. Feed spec (D-12, pending Q-B scope)
+## 9. Feed spec (D-12, D-16)
 
-Per-project stream of cards: optimizer insights (Apply/Dismiss + template
-diff — the existing `InsightCard` capabilities), intel scan results
-(`BlueprintView` summary → full view, "send to remix" preserved), and (if
-Q-B=yes) system events. "Generate insights" and "Run scan" live here and in
-the summonable tools. `/insights` and `/intel` pages retire in Phase 7 with
+Per-project **full activity feed with filters** (D-16): system events
+(publishes, holds, autofix outcomes, operator events) interleaved with the
+actionable agent cards — optimizer insights (Apply/Dismiss + template diff,
+the existing `InsightCard` capabilities) and intel scan results
+(`BlueprintView` summary → full view, "send to remix" preserved). Filters:
+all · needs-action · insights · intel · system. "Generate insights" and
+"Run scan" live here and in the summonable tools. Replaces the dashboard
+Activity card; `/insights` and `/intel` pages retire in Phase 7 with
 redirects.
 
 ---
@@ -274,10 +279,10 @@ The redesign's insurance policy; also closes Enhancement P5.5.
   renders new primitives.
 
 ### Phase 2 — The Library (per-project)
-1. Stage-sectioned grid (D-3): Ideas (collapsible, merged sources per Q-D) →
-   Script → Production → Ready → Published (Q-C); realtime moves; header
-   strip; "New asset" (QueueTopic essentials); Scout + Intel summonable from
-   header (D-8).
+1. Stage-sectioned grid (D-3): Ideas (collapsible, merged sources per D-18) →
+   Script → Production → Ready → Published (collapsible, view counts — D-17);
+   realtime moves; header strip; "New asset" (QueueTopic essentials); Scout +
+   Intel summonable from header (D-8).
 2. Quick actions wired to the existing actions (D-5), with confirm on kill,
    remaining-revisions display, and error surfacing (no silent failures —
    kill-switch lesson).
@@ -327,8 +332,9 @@ The redesign's insurance policy; also closes Enhancement P5.5.
   Canvas pre-fills topic; remix handoff. Old pages still functional.
 
 ### Phase 6 — Home, nav unification, PWA polish
-1. Slim Home: project cards + SystemPulse (+ Q-A strip if approved); remove
-   duplicated spend/activity cards (Feed/Costs own them).
+1. Slim Home: project cards + SystemPulse + the cross-project "awaiting you"
+   row (per-project pending counts deep-linking into each library — D-15);
+   remove duplicated spend/activity cards (Feed/Costs own them).
 2. Nav final form (§5) on both breakpoints; Styleguide kept; back-button
    behavior verified against the real hierarchy.
 3. PWA pass: installability, offline shell, safe-area, tab bar context
@@ -354,9 +360,9 @@ The redesign's insurance policy; also closes Enhancement P5.5.
 
 ### v2 backlog (explicitly out of scope for v1 — D-10)
 Unify `operator_runs`/`build_runs` engine-side · consolidate the two
-autonomy code paths' settle functions further · any schema changes · Q-B
-full-activity ingestion if deferred · multi-tenancy interplay
-(live-app Stage 3 happens after this redesign ships).
+autonomy code paths' settle functions further · any schema changes ·
+multi-tenancy interplay (live-app Stage 3 happens after this redesign
+ships).
 
 ---
 
@@ -365,3 +371,4 @@ full-activity ingestion if deferred · multi-tenancy interplay
 | Date | Entry |
 |---|---|
 | 2026-07-06 | Repo review completed (UI surface + backend map). Concept discussed; operator answered clarifying round 1 (→ D-1..D-14). This document created with consolidation strategy + draft phased build plan. Open: Q-A..Q-E. |
+| 2026-07-06 | Operator answered clarifying round 2: Q-A..Q-E all resolved (→ D-15..D-19). Specs updated (Home awaiting-you row, full-feed scope + filters, Published grid section, Ideas merge, boost runs). **No open questions — plan is ready for Phase 0 green-light.** Doc merged to `main` at operator's request. |
