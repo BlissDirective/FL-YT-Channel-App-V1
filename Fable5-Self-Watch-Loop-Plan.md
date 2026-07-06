@@ -400,11 +400,16 @@ under the budget guard; runbook + docs.
     shows WATCH agreement % + the most-disputed dimension; the C3 outcome-audit
     now correlates the Self-Watch overall score with views/retention (Spearman),
     the same anti-reward-hacking readout applied to the gate itself.
-  - **All four criteria + the learning loop are live and audited.** An adversarial
-    review fixed two cost/correctness bugs (shadow-lesson inflation across autofix
-    passes; the competitive judge re-running every operator tick) — both gated to
-    the once-per-video settle point. Optional refinements remain: competitive-judge
-    escalation, the TwelveLabs temporal path, librarian LLM synthesis.
+  - **All four criteria + the learning loop are live and audited.** Two adversarial
+    review rounds fixed: shadow-lesson inflation across autofix passes; the
+    competitive judge re-running every operator tick; the Gemini own-render path
+    (inline base64, not a signed `fileUri`); and cron-budget/hang risk on the
+    temporal pass (all requests AbortSignal-bounded).
+  - **Follow-up refinements shipped:** TwelveLabs Pegasus temporal engine
+    (`TRANSITION_ENGINE`-selectable), librarian LLM cross-cutting synthesis,
+    dedicated `audio`/`editing` namespace writers, and **manual-path parity** — the
+    build-run finalizer (`finalizeAutoPilotVideos`) now applies the same Self-Watch
+    hold as the operator. Only optional item left: competitive-judge escalation.
 - **[Harness plan](./Fable5-Agentic-Harness-Plan.md):** C1–C6 **shipped**; C5
   live but exploration-only until ~8 published videos; **C8 Studio Memory Service
   — core shipped** (`memory_entries` + `match_memory` RPC + `queryMemory`/

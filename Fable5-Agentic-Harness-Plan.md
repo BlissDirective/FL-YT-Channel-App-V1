@@ -413,10 +413,17 @@ Two plan docs now describe one system. They interlock through **C8 memory**:
 the whole Self-Watch + C8 subsystem (2026-07-06) fixed two real bugs — shadow-
 lesson `evidenceCount` inflation across autofix passes, and the competitive judge
 re-running every operator tick for un-tapped copilot videos — both now gated to
-the once-per-video settle point. Remaining watch increments are optional
-refinements (competitive-judge Haiku→Opus escalation, the TwelveLabs temporal
-path, LLM cross-cutting synthesis in the librarian, dedicated audio/editing
-namespace writers).
+the once-per-video settle point.
+
+**Follow-up refinements shipped (2026-07-06):** the TwelveLabs Pegasus temporal
+engine (alongside Gemini, `TRANSITION_ENGINE`-selectable, all requests
+AbortSignal-bounded), the librarian's LLM cross-cutting synthesis (gated to
+fresh promotions), dedicated `audio`/`editing` namespace writers (autofix lessons
+routed by `craftNamespaceForChange`), and manual-path parity (the build-run
+finalizer now applies the same Self-Watch hold as the operator). A second
+adversarial review fixed the Gemini own-render path (inline base64, not a signed
+`fileUri`) and the cron-budget/hang risk. **Only optional item left: the
+competitive-judge Haiku→Opus escalation cascade.**
 
 Build C8's core first (step 1) — everything downstream in both plans reads or
 writes it, so it's the true critical path.
