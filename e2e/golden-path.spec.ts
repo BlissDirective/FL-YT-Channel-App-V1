@@ -16,6 +16,18 @@ test("styleguide renders the component library", async ({ page }) => {
   await expect(page.locator("body")).toContainText(/Faceless Studio/i);
 });
 
+test("styleguide renders the UI v2 library primitives", async ({ page }) => {
+  await page.goto("/styleguide");
+  await expect(page.getByText("Library primitives (UI v2)")).toBeVisible();
+  // Three sample AssetTiles with progress bars + badges render.
+  await expect(page.getByTestId("asset-tile")).toHaveCount(3);
+  await expect(page.getByText("your turn").first()).toBeVisible();
+  await expect(page.getByText("failed", { exact: true })).toBeVisible();
+  // The collapsible section actually collapses (and hides its tiles).
+  await page.getByRole("button", { name: /Sample section/ }).click();
+  await expect(page.getByTestId("asset-tile")).toHaveCount(0);
+});
+
 test("login screen shows the email + password form", async ({ page }) => {
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: /Faceless Studio/i })).toBeVisible();

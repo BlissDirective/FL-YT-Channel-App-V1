@@ -24,6 +24,11 @@ import { Sparkline } from "@/components/ui/sparkline";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { ToggleRow } from "@/components/ui/toggle-row";
+import { AssetTile } from "@/components/ui/asset-tile";
+import { ProgressRail } from "@/components/ui/progress-rail";
+import { CollapsibleSection } from "@/components/ui/section-header";
+import { ProjectSignalStrip } from "@/components/ui/signal-strip";
+import { RAIL_STEPS } from "@/lib/db/library";
 
 const CHART_DATA = [
   { label: "Mon", a: 8.2, b: 4.1, line: 6.3 },
@@ -76,6 +81,75 @@ export default function StyleguidePage() {
           checkpoint.
         </p>
       </div>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+          Library primitives (UI v2)
+        </h2>
+        <Card className="space-y-4">
+          <ProgressRail steps={RAIL_STEPS} current={3} />
+          <ProjectSignalStrip
+            spendUsd={42.18}
+            budgetUsd={150}
+            attentionCount={2}
+            autopilot="autopilot"
+          />
+        </Card>
+        <CollapsibleSection title="Sample section" count={3} storageKey="styleguide-demo">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <AssetTile
+              href="#"
+              title="7 money habits that quietly make you rich"
+              subtitle="Long-form · Script"
+              railIndex={1}
+              railTotal={RAIL_STEPS.length}
+              stageLabel="Script gate"
+              qcScore={7.9}
+              awaitingYou
+              spendUsd={0.42}
+              actions={
+                <>
+                  <button
+                    type="button"
+                    className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-ink shadow-card"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-full bg-card-warm px-3 py-1.5 text-xs font-semibold text-ink"
+                  >
+                    Changes
+                  </button>
+                </>
+              }
+            />
+            <AssetTile
+              href="#"
+              title="The compound interest illusion"
+              subtitle="Long-form · Rendering"
+              railIndex={3}
+              railTotal={RAIL_STEPS.length}
+              stageLabel="Rendering"
+              qcScore={8.4}
+              autopilot
+              spendUsd={1.87}
+            />
+            <AssetTile
+              href="#"
+              title="Why budgets fail in week 2"
+              subtitle="Short · Render failed"
+              railIndex={3}
+              railTotal={RAIL_STEPS.length}
+              stageLabel="Render"
+              failed
+              awaitingYou
+              awaitingLabel="Render failed ×3 — reset attempts to retry"
+              spendUsd={0.95}
+            />
+          </div>
+        </CollapsibleSection>
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
