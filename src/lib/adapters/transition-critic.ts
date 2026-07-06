@@ -7,31 +7,39 @@ import type { Boundary, TemporalTransition, WatchIssue } from "@/lib/pipeline/wa
  * Tier-2 temporal transition pass (Self-Watch #1, Fable5-Self-Watch-Loop-Plan.md
  * Phase 3, TwelveLabs added Phase 3+). Escalated from the cheap structural Tier-1
  * check only when enough shot boundaries warrant it. Two engines over OUR
- * rendered MP4's signed URL:
+ * rendered MP4:
  *
- *  - **Gemini native** (default): Google fetches the URL server-side; synchronous,
- *    no local ffmpeg. Fast enough for the settle-point call.
+ *  - **Gemini native** (default): the short render is inlined as base64
+ *    (`inlineData`) — Gemini's `fileData.fileUri` only accepts YouTube/Files-API
+ *    URIs, not arbitrary signed URLs, so a signed URL would silently no-op. Bytes
+ *    are size-capped; a large render degrades to the structural verdict.
+ *    Synchronous — a single generateContent call.
  *  - **TwelveLabs Pegasus**: index the remote URL → poll → analyze. True temporal
- *    understanding, but indexing is async (minutes), so it's bounded by a poll
- *    timeout and degrades to "not evaluated" if it isn't ready in time. Best as a
- *    supplement / for pre-indexed footage.
+ *    understanding, but indexing is async (minutes), so it's bounded by a short
+ *    poll timeout and degrades to "not evaluated" if not ready. Latency-heavy —
+ *    best as a supplement / for latency-tolerant setups; every request is
+ *    AbortSignal-bounded so it cannot hang the cron.
  *
  * Engine chosen by `TRANSITION_ENGINE` (gemini | twelvelabs | auto). `auto`
- * prefers Gemini (synchronous) and falls back to TwelveLabs. Analysis only, over
- * our own asset; degradable — no key / failure / timeout → not evaluated, and the
+ * prefers the synchronous Gemini engine. Analysis only, over our own asset;
+ * degradable everywhere — no key / failure / timeout → not evaluated, and the
  * structural Tier-1 verdict stands.
  */
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
 const GEMINI_USD_PER_1M = 0.5;
+const INLINE_MAX_BYTES = 18 * 1024 * 1024; // Gemini inlineData ceiling (~20MB request)
 
 const TL_BASE = "https://api.twelvelabs.io/v1.3";
 const TL_MODEL = process.env.TWELVELABS_MODEL?.trim() || "pegasus1.2";
 const TL_INDEX_NAME = "faceless-self-watch";
-const TL_POLL_MS = 8000;
-const TL_POLL_TIMEOUT_MS = 120_000; // don't block the settle call longer than this
-// Rough per-video estimate for the ledger (indexing + one analyze call).
+const TL_POLL_MS = 6000;
+const TL_POLL_TIMEOUT_MS = 45_000; // hard cap — must stay well below the cron's 300s
 const TL_USD_PER_VIDEO = 0.05;
+
+// Per-request wall-clock guards so a single hung request can't overrun the cron.
+const REQ_TIMEOUT_MS = 25_000;
+const MEDIA_FETCH_TIMEOUT_MS = 20_000;
 
 export type TransitionEngine = "gemini" | "twelvelabs" | "auto";
 
@@ -39,9 +47,9 @@ export function isTemporalLive(): boolean {
   return isGeminiLive() || isTwelveLabsLive();
 }
 
-export type TransitionAssessment = TemporalTransition & { costUsd: number };
+export type TransitionAssessment = TemporalTransition & { costUsd: number; provider: "gemini" | "twelvelabs" | null };
 
-const NOT_EVALUATED: TransitionAssessment = { score: 0, evaluated: false, issues: [], costUsd: 0 };
+const NOT_EVALUATED: TransitionAssessment = { score: 0, evaluated: false, issues: [], costUsd: 0, provider: null };
 
 function tlKey(): string | undefined {
   return process.env.TWELVELABS_API_KEY || process.env.TWELVE_LABS_API_KEY || process.env.TL_API_KEY || undefined;
@@ -65,9 +73,8 @@ Only list genuine problems (max 5). A clean video has an empty issues array and 
 }
 
 /** Parse the shared {score, issues} JSON both engines are asked to return. */
-function parseVerdict(text: string, costUsd: number): TransitionAssessment {
-  // Pegasus/Gemini sometimes wrap JSON in prose or fences — extract the object.
-  const match = text.match(/\{[\s\S]*\}/);
+function parseVerdict(text: string, costUsd: number, provider: "gemini" | "twelvelabs"): TransitionAssessment {
+  const match = text.match(/\{[\s\S]*\}/); // engines sometimes wrap JSON in prose/fences
   if (!match) return NOT_EVALUATED;
   let parsed: { score?: number; issues?: { t?: number; detail?: string }[] };
   try {
@@ -81,19 +88,30 @@ function parseVerdict(text: string, costUsd: number): TransitionAssessment {
     beatIdx: null,
     detail: `${typeof i.t === "number" ? `${i.t.toFixed(1)}s — ` : ""}${String(i.detail ?? "jarring transition").slice(0, 200)}`,
   }));
-  return { score, evaluated: true, issues, costUsd };
+  return { score, evaluated: true, issues, costUsd, provider };
 }
 
-// ── Gemini native ─────────────────────────────────────────────────────
+// ── Gemini native (inline the short render as base64) ─────────────────
 async function assessGemini(opts: { videoUrl: string; boundaries: Boundary[] }): Promise<TransitionAssessment> {
   if (!isGeminiLive()) return NOT_EVALUATED;
+  let b64: string;
+  try {
+    const media = await fetch(opts.videoUrl, { signal: AbortSignal.timeout(MEDIA_FETCH_TIMEOUT_MS) });
+    if (!media.ok) return NOT_EVALUATED;
+    const buf = Buffer.from(await media.arrayBuffer());
+    if (buf.byteLength === 0 || buf.byteLength > INLINE_MAX_BYTES) return NOT_EVALUATED; // too large to inline → structural stands
+    b64 = buf.toString("base64");
+  } catch {
+    return NOT_EVALUATED;
+  }
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "content-type": "application/json" },
+      signal: AbortSignal.timeout(REQ_TIMEOUT_MS * 2),
       body: JSON.stringify({
-        contents: [{ parts: [{ fileData: { fileUri: opts.videoUrl } }, { text: prompt(opts.boundaries) }] }],
+        contents: [{ parts: [{ inlineData: { mimeType: "video/mp4", data: b64 } }, { text: prompt(opts.boundaries) }] }],
         generationConfig: { responseMimeType: "application/json", temperature: 0.3, maxOutputTokens: 2048 },
       }),
     },
@@ -106,13 +124,14 @@ async function assessGemini(opts: { videoUrl: string; boundaries: Boundary[] }):
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) return NOT_EVALUATED;
   const tokens = data.usageMetadata?.totalTokenCount ?? 0;
-  return parseVerdict(text, Math.round((tokens / 1e6) * GEMINI_USD_PER_1M * 100) / 100);
+  return parseVerdict(text, Math.round((tokens / 1e6) * GEMINI_USD_PER_1M * 100) / 100, "gemini");
 }
 
 // ── TwelveLabs Pegasus ────────────────────────────────────────────────
 async function tlFetch(path: string, key: string, init?: RequestInit): Promise<Response> {
   return fetch(`${TL_BASE}${path}`, {
     ...init,
+    signal: AbortSignal.timeout(REQ_TIMEOUT_MS),
     headers: { "x-api-key": key, "content-type": "application/json", ...(init?.headers ?? {}) },
   });
 }
@@ -130,8 +149,7 @@ async function tlIndexId(key: string): Promise<string | null> {
     body: JSON.stringify({ index_name: TL_INDEX_NAME, models: [{ model_name: TL_MODEL, model_options: ["visual", "audio"] }] }),
   });
   if (!created.ok) return null;
-  const data = (await created.json()) as { _id?: string };
-  return data._id ?? null;
+  return ((await created.json()) as { _id?: string })._id ?? null;
 }
 
 async function assessTwelveLabs(opts: { videoUrl: string; boundaries: Boundary[] }): Promise<TransitionAssessment> {
@@ -140,29 +158,31 @@ async function assessTwelveLabs(opts: { videoUrl: string; boundaries: Boundary[]
   const indexId = await tlIndexId(key);
   if (!indexId) return NOT_EVALUATED;
 
-  // Submit the remote render URL for indexing.
   const task = await tlFetch(`/tasks`, key, { method: "POST", body: JSON.stringify({ index_id: indexId, video_url: opts.videoUrl }) });
   if (!task.ok) return NOT_EVALUATED;
   const taskId = ((await task.json()) as { _id?: string })._id;
   if (!taskId) return NOT_EVALUATED;
 
-  // Bounded poll — indexing is async (minutes); we won't block the settle call
-  // beyond the timeout, degrading to "not evaluated" if it isn't ready.
+  // Bounded poll — indexing is async (minutes). Each request is AbortSignal-
+  // bounded and the whole loop is capped, so it degrades rather than hanging.
   const deadline = Date.now() + TL_POLL_TIMEOUT_MS;
   let videoId: string | null = null;
-  // Date.now() is available in adapters (only workflow scripts forbid it).
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, TL_POLL_MS));
-    const st = await tlFetch(`/tasks/${taskId}`, key);
-    if (!st.ok) continue;
-    const s = (await st.json()) as { status?: string; video_id?: string };
-    if (s.status === "ready" && s.video_id) {
-      videoId = s.video_id;
-      break;
+    try {
+      const st = await tlFetch(`/tasks/${taskId}`, key);
+      if (!st.ok) continue;
+      const s = (await st.json()) as { status?: string; video_id?: string };
+      if (s.status === "ready" && s.video_id) {
+        videoId = s.video_id;
+        break;
+      }
+      if (s.status === "failed") return NOT_EVALUATED;
+    } catch {
+      /* transient poll error — keep trying until the deadline */
     }
-    if (s.status === "failed") return NOT_EVALUATED;
   }
-  if (!videoId) return NOT_EVALUATED; // timed out — Gemini or structural stands
+  if (!videoId) return NOT_EVALUATED; // timed out — Gemini/structural stands
 
   const analyze = await tlFetch(`/analyze`, key, {
     method: "POST",
@@ -171,7 +191,7 @@ async function assessTwelveLabs(opts: { videoUrl: string; boundaries: Boundary[]
   if (!analyze.ok) return NOT_EVALUATED;
   const out = (await analyze.json()) as { data?: string };
   if (!out.data) return NOT_EVALUATED;
-  return parseVerdict(out.data, TL_USD_PER_VIDEO);
+  return parseVerdict(out.data, TL_USD_PER_VIDEO, "twelvelabs");
 }
 
 export async function assessTransitions(opts: { videoUrl: string; boundaries: Boundary[] }): Promise<TransitionAssessment> {

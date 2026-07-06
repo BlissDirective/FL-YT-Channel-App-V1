@@ -231,7 +231,7 @@ export async function runWatchGate(
             const temporal = await assessTransitions({ videoUrl: url, boundaries });
             if (temporal.costUsd > 0) {
               try {
-                await ledgerRecordCost(db, video, { provider: "gemini", usd: temporal.costUsd, description: "Self-Watch temporal transitions" });
+                await ledgerRecordCost(db, video, { provider: temporal.provider ?? "gemini", usd: temporal.costUsd, description: "Self-Watch temporal transitions" });
               } catch {
                 /* ledger best-effort */
               }

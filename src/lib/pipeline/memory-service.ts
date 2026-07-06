@@ -368,21 +368,19 @@ export async function runLibrarian(
       });
     }
 
-    // 1b) Cross-cutting synthesis — only when fresh lessons were promoted this
-    // run (bounds cost + avoids re-synthesizing the same material nightly). The
-    // higher-order principles land in the global `quality` craft tier; writeMemory
-    // dedups against prior syntheses.
+    // 1b) Cross-cutting synthesis — only over THIS run's fresh promotions (never
+    // the existing global tier, or the LLM's own paraphrases would feed back and
+    // accumulate near-duplicates that isSameLesson can't always catch). Bounded
+    // to nights where ≥3 new technique lessons were promoted; lands in the global
+    // `quality` craft tier (writeMemory reinforces an exact-enough match).
     let synthesized = 0;
-    if (promotions.length > 0) {
-      const { syntheses } = await synthesizeCraftLessons([
-        ...promotions.map((p) => p.text),
-        ...existingGlobal.map((g) => g.text),
-      ]);
+    if (promotions.length >= 3) {
+      const { syntheses } = await synthesizeCraftLessons(promotions.map((p) => p.text));
       for (const text of syntheses) {
         await writeMemory(db, {
           namespace: "quality",
           text,
-          evidence: `librarian synthesis of ${promotions.length + existingGlobal.length} cross-channel lessons`,
+          evidence: `librarian synthesis of ${promotions.length} newly-promoted cross-channel lessons`,
           scope: { tier: "global" },
           confidence: 0.5,
         });
