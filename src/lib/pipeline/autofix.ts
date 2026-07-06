@@ -11,7 +11,7 @@ import { makeBeatClip } from "@/lib/pipeline/engine";
 import { runWatchGate } from "@/lib/pipeline/watch-runner";
 import { rerollActions } from "@/lib/pipeline/watch-gate";
 import { fixerModelForScore, REJUDGE_MODEL, SONNET_MODEL } from "@/lib/pipeline/fix-router";
-import { refineFixDirection } from "@/lib/adapters/fix-planner";
+import { refineFixDirection, composeRevisionBrief } from "@/lib/adapters/fix-planner";
 import {
   DEFAULT_STICK_CAST,
   type FrameCritique,
@@ -225,6 +225,10 @@ async function getCritique(
     },
   });
   if (review.costUsd > 0) await recordCost(db, video, "autofix:critique", review.costUsd, "Auto-fix QC critique");
+  // A degraded review is a placeholder 6.0 (no real judgment) — with the forced
+  // single strong judge there's no cheaper screen to fall back to, so never let
+  // the band router act on a fake score: wait for a real re-judge next pass.
+  if (review.degraded) return null;
   const issues: FrameIssue[] = (review.issues ?? []).map((note) => ({
     beatIdx: null,
     category: "other",
@@ -722,11 +726,29 @@ export async function processAutofixForVideo(
     : await planFootage(db, video, project, critique, mem, budgetLeft, fixModel, qcNotes);
 
   if (plan.changes.length === 0) {
+    // Layer 2 — scope-expanded remediation: no VISUAL fix is actionable, so the
+    // failure is structural/script (a starved beat, weak hook, pacing) that the
+    // loop can't safely re-render away. Rather than a generic hold, compose a
+    // SPECIFIC, notes-driven brief with the banded model so the human review is
+    // one-tap-actionable — what to change, not just "it failed".
+    // (Autonomous re-script/re-generate from FINAL isn't a safe primitive today —
+    // a FINAL revision only re-renders; step-back strands the video — so this
+    // holds with precise guidance instead of blindly re-generating.)
+    const structural = (critique.issues ?? []).some(isStructuralIssue);
+    let reason = `no actionable fix at ${score.toFixed(1)}/10`;
+    if (structural && qcNotes) {
+      const issues = (critique.issues ?? []).map((i) => i.note ?? "").filter(Boolean);
+      const brief = await composeRevisionBrief({ model: fixModel, qcNotes, issues });
+      if (brief) {
+        if (brief.costUsd > 0) await recordCost(db, video, "autofix:brief", brief.costUsd, "Auto-fix revision brief");
+        reason = `${score.toFixed(1)}/10 — the script/structure needs work: ${brief.brief.slice(0, 400)}`;
+      }
+    }
     state.status = "held";
     await setState(db, video.id, state);
     await db
       .from("videos")
-      .update({ paused_reason: `Auto-fix held — no actionable fix at ${score.toFixed(1)}/10. Manual review.` })
+      .update({ paused_reason: `Auto-fix held — ${reason}. Manual review.` })
       .eq("id", video.id);
     return { acted: true, kind: "held", score };
   }
