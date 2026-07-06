@@ -137,6 +137,57 @@ test("golden path: idea → script → assets → render → publish → trackin
   });
 });
 
+test("library v2: asset born in Ideas, quick-approved through sections, killable", async ({
+  page,
+}) => {
+  await signInOrBootstrap(page);
+
+  // Fresh project for isolation.
+  await page.getByRole("link", { name: /New Project/ }).first().click();
+  await page.waitForURL(/\/projects\/new/);
+  await page.locator('input[name="name"]').fill(`Library v2 ${Date.now()}`);
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Create project" }).click();
+  await page.waitForURL(/\/projects\/[0-9a-f-]+$/, { timeout: 60_000 });
+  const libUrl = `${new URL(page.url()).pathname}/library`;
+
+  await test.step("new asset lands in the Ideas section, awaiting the operator", async () => {
+    await page.goto(libUrl);
+    await page
+      .locator('input[placeholder^="Type a video topic"]')
+      .fill("Library quick-action journey");
+    await page.getByRole("button", { name: "New asset" }).click();
+    await expect(page.getByRole("button", { name: /Ideas/ })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("asset-tile").first()).toBeVisible();
+    await expect(page.getByText("your turn").first()).toBeVisible();
+    await expect(page.getByText("Idea gate").first()).toBeVisible();
+  });
+
+  await test.step("collapse state persists across a reload", async () => {
+    await page.getByRole("button", { name: /Ideas/ }).click();
+    await expect(page.getByTestId("asset-tile")).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole("button", { name: /Ideas/ })).toBeVisible();
+    await expect(page.getByTestId("asset-tile")).toHaveCount(0);
+    await page.getByRole("button", { name: /Ideas/ }).click();
+    await expect(page.getByTestId("asset-tile").first()).toBeVisible();
+  });
+
+  await test.step("quick-approve moves the tile Ideas → Script → Production", async () => {
+    await page.getByRole("button", { name: "Approve", exact: true }).click();
+    await expect(page.getByText("Script gate").first()).toBeVisible({ timeout: 120_000 });
+    await page.getByRole("button", { name: "Approve", exact: true }).click();
+    await expect(page.getByText("Assets gate").first()).toBeVisible({ timeout: 120_000 });
+    await expect(page.getByRole("button", { name: /Production/ })).toBeVisible();
+  });
+
+  await test.step("kill from the tile removes the asset (confirmed + audited)", async () => {
+    page.once("dialog", (d) => d.accept());
+    await page.getByRole("button", { name: "Kill" }).click();
+    await expect(page.getByTestId("asset-tile")).toHaveCount(0, { timeout: 30_000 });
+  });
+});
+
 test("baseline screenshots of the main authenticated routes", async ({ page }, testInfo) => {
   await signInOrBootstrap(page);
   const routes: [string, string][] = [

@@ -28,6 +28,8 @@
     "runAllOptimizerAction()",
     "scoutChatAction(projectId: string, messages: ScoutMessage[],)",
     "saveScoutIdeaAction(projectId: string, title: string, angle: string,)",
+    "queueIdeaCardAction(projectId: string, ideaId: string,)",
+    "dismissIdeaCardAction(projectId: string, ideaId: string,)",
     "applyInsightAction(insightId: string)",
     "dismissInsightAction(insightId: string)"
   ],

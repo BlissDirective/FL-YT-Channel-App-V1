@@ -135,6 +135,68 @@ export async function saveScoutIdeaAction(
 }
 
 /**
+ * Promote an intelligence-scored idea card into an IDEA-stage video (UI v2
+ * Library, D-18) — the same shape the operator/build seeds and studio-mcp's
+ * queue_idea use: one video row at IDEA linked via idea_id, idea marked
+ * approved. Refuses double-promotion.
+ */
+export async function queueIdeaCardAction(
+  projectId: string,
+  ideaId: string,
+): Promise<Result> {
+  try {
+    const supabase = await createClient();
+    const { data: existing } = await supabase
+      .from("videos")
+      .select("id")
+      .eq("idea_id", ideaId)
+      .limit(1);
+    if (existing && existing.length > 0) {
+      return { ok: false, error: "This idea is already in the pipeline." };
+    }
+    const { data: idea, error: ideaErr } = await supabase
+      .from("ideas")
+      .select("id, title")
+      .eq("id", ideaId)
+      .maybeSingle();
+    if (ideaErr || !idea) return { ok: false, error: "Idea not found." };
+    const { error: videoErr } = await supabase.from("videos").insert({
+      project_id: projectId,
+      idea_id: idea.id,
+      title: idea.title,
+      topic: idea.title,
+      status: "IDEA",
+    });
+    if (videoErr) return { ok: false, error: videoErr.message };
+    await supabase.from("ideas").update({ status: "approved" }).eq("id", ideaId);
+    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}/library`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Dismiss an intelligence idea card from the Library's Ideas section. */
+export async function dismissIdeaCardAction(
+  projectId: string,
+  ideaId: string,
+): Promise<Result> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("ideas")
+      .update({ status: "dismissed" })
+      .eq("id", ideaId);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/projects/${projectId}/library`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
  * Apply an Optimizer insight's proposed template diff: save it as a new active
  * template version (revertible via versioning) and mark the insight applied.
  */
