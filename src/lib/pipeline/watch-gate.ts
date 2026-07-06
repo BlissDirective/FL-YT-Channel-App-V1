@@ -282,6 +282,20 @@ export function foldTemporal(structural: WatchDimensionResult, temporal: Tempora
   return { score, pass: dimensionPasses(score, floor, issues), evaluated: true, issues };
 }
 
+/** The weakest evaluated dimension — recorded as the disputed criterion when the
+    operator disagrees with a verdict, so the calibration surface can name it. */
+export function lowestDimension(verdict: WatchVerdict): WatchDimension | null {
+  const dims: [WatchDimension, WatchDimensionResult][] = [
+    ["timing", verdict.timing],
+    ["scriptMatch", verdict.scriptMatch],
+    ["competitive", verdict.competitive],
+    ["transitions", verdict.transitions],
+  ];
+  const evaluated = dims.filter(([, d]) => d.evaluated);
+  if (evaluated.length === 0) return null;
+  return evaluated.sort((a, b) => a[1].score - b[1].score)[0][0];
+}
+
 /** The re-rollable fixes (off-topic beats) — the autofix loop consumes these. */
 export function rerollActions(verdict: WatchVerdict): { beatIdx: number; reason: string }[] {
   return verdict.fixPlan.filter((f): f is Extract<FixAction, { kind: "reroll" }> => f.kind === "reroll").map((f) => ({ beatIdx: f.beatIdx, reason: f.reason }));

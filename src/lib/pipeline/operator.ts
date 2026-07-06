@@ -822,7 +822,14 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
     // render — timing (#3), final-render script-match (#2), and the LLM
     // competitive-fit judge (#4). Stores the verdict on watch_review; a low
     // overall OR a content-policy risk holds the video for a human on autopilot.
-    const watch = await runWatchGate(db, video, project, { competitive: true });
+    // Reuse the stored verdict once its (paid) competitive dimension has been
+    // judged — otherwise a copilot video awaiting a manual tap would re-run the
+    // competitive judge + temporal pass on every ~30-min tick. A re-render resets
+    // watch_review (competitive un-evaluated), so it correctly re-judges then.
+    const existingWatch = video.watch_review;
+    const watch = existingWatch?.competitive?.evaluated
+      ? existingWatch
+      : await runWatchGate(db, video, project, { competitive: true });
     const watchPolicyRisk = Boolean(watch && watch.policyRisk);
     const watchBlocks = Boolean(watch && !watch.degraded && (watch.overall < qg.watchBlockPublishBelow || watchPolicyRisk));
 

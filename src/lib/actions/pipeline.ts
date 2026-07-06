@@ -897,3 +897,25 @@ export async function labelQcReviewAction(opts: {
   });
   return { ok: !error, error: error?.message };
 }
+
+/**
+ * The operator's 👍/👎 on a Self-Watch verdict (Phase 4 calibration). Reuses the
+ * C1 `judge_labels` table with gate 'WATCH' and no qc_review_id, so the existing
+ * judge-calibration surface shows WATCH agreement alongside the QC gates. On a
+ * disagreement, `criterionId` names the weakest dimension for the disputes list.
+ */
+export async function labelWatchVerdictAction(opts: {
+  videoId: string;
+  agree: boolean;
+  criterionId?: string;
+}): Promise<PipelineResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("judge_labels").insert({
+    qc_review_id: null,
+    video_id: opts.videoId,
+    gate: "WATCH",
+    agree: opts.agree,
+    criterion_id: opts.criterionId ?? null,
+  });
+  return { ok: !error, error: error?.message };
+}

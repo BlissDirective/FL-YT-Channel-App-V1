@@ -89,7 +89,7 @@ export async function JudgeCalibration() {
       )}
       {latestByMetric.size > 0 && (
         <div className="mt-3 border-t border-line pt-3">
-          <p className="text-xs font-semibold text-muted">Does QC predict outcomes? (Spearman ρ)</p>
+          <p className="text-xs font-semibold text-muted">Does the gate predict outcomes? (Spearman ρ)</p>
           <div className="mt-1 flex flex-wrap gap-4">
             {[...latestByMetric.entries()].map(([metric, a]) => (
               <div key={metric} title={a.note}>

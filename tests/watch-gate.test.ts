@@ -13,6 +13,7 @@ import {
   checkTransitions,
   deriveFixPlan,
   foldTemporal,
+  lowestDimension,
   rerollActions,
   transitionBoundaries,
   type CompetitiveInput,
@@ -217,6 +218,26 @@ describe("foldTemporal", () => {
     expect(folded.score).toBe(4); // temporal is authoritative (worst-link)
     expect(folded.issues).toHaveLength(1);
     expect(folded.pass).toBe(false); // 4 < floor 6
+  });
+});
+
+describe("lowestDimension", () => {
+  const NOW = "2026-07-05T00:00:00.000Z";
+  it("names the weakest evaluated dimension (for the disputed-criterion label)", () => {
+    const competitive: CompetitiveInput = {
+      result: { score: 3, pass: false, evaluated: true, issues: [] },
+      policyRisk: false,
+      suggestions: [],
+    };
+    const v = assembleVerdict(inputs(), T, NOW, [], competitive);
+    expect(lowestDimension(v)).toBe("competitive");
+  });
+
+  it("returns null when nothing was evaluated (fully degraded)", () => {
+    const v = assembleVerdict(inputs({ clips: [{ beatIdx: 0, relevance: null }] , targetLengthSec: 0, silencePass: null, beats: [] }), T, NOW);
+    // timing still evaluates coverage/hook/cadence, so force a truly-empty case:
+    const degraded = { ...v, timing: { ...v.timing, evaluated: false }, scriptMatch: { ...v.scriptMatch, evaluated: false }, competitive: { ...v.competitive, evaluated: false }, transitions: { ...v.transitions, evaluated: false } };
+    expect(lowestDimension(degraded)).toBeNull();
   });
 });
 

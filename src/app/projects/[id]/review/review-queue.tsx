@@ -31,7 +31,9 @@ import {
   rerollBeatVisualAction,
   selectThumbnailAction,
   labelQcReviewAction,
+  labelWatchVerdictAction,
 } from "@/lib/actions/pipeline";
+import { lowestDimension } from "@/lib/pipeline/watch-gate";
 import { Card } from "@/components/ui/card";
 import { PillTabs } from "@/components/ui/pill-tabs";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -716,7 +718,9 @@ function AttributionLedger({ assets }: { assets: ReviewItem["assets"] }) {
 
 /** Self-Watch verdict summary (Fable5-Self-Watch-Loop-Plan.md) — the pre-publish
     gate's scores + fix list, shown on held/awaiting FINAL cards. */
-function WatchPanel({ watch }: { watch: WatchVerdict | null }) {
+function WatchPanel({ watch, videoId }: { watch: WatchVerdict | null; videoId: string }) {
+  const [labeled, setLabeled] = useState<null | boolean>(null);
+  const [, startTransition] = useTransition();
   if (!watch || watch.degraded) return null;
   const tone =
     watch.overall >= 8 ? "text-success bg-success/10" : watch.overall >= 5 ? "text-ink bg-accent-soft" : "text-coral bg-coral/10";
@@ -726,12 +730,46 @@ function WatchPanel({ watch }: { watch: WatchVerdict | null }) {
     { label: "Competitive", d: watch.competitive },
     { label: "Transitions", d: watch.transitions },
   ].filter((x) => x.d.evaluated);
+  // Phase 4 calibration: agree/disagree feeds the C1 judge-calibration surface.
+  const label = (agree: boolean) =>
+    startTransition(async () => {
+      setLabeled(agree); // optimistic; a lost label is a non-event
+      await labelWatchVerdictAction({
+        videoId,
+        agree,
+        criterionId: agree ? undefined : (lowestDimension(watch) ?? undefined),
+      }).catch(() => undefined);
+    });
   return (
     <div className="space-y-1.5 rounded-xl bg-canvas p-3">
       <div className="flex items-center gap-2">
         <Gauge className="size-4 text-muted" />
         <span className="text-xs font-semibold uppercase tracking-wide text-muted">Self-Watch</span>
-        <span className={cn("ml-auto rounded-full px-2.5 py-0.5 text-xs font-bold", tone)}>
+        <span className="ml-auto flex items-center gap-1">
+          {labeled === null ? (
+            <>
+              <button
+                type="button"
+                aria-label="Agree with the Self-Watch verdict"
+                onClick={() => label(true)}
+                className="rounded-full px-1.5 py-0.5 text-xs text-muted transition-colors hover:bg-success/10 hover:text-success"
+              >
+                👍
+              </button>
+              <button
+                type="button"
+                aria-label="Disagree with the Self-Watch verdict"
+                onClick={() => label(false)}
+                className="rounded-full px-1.5 py-0.5 text-xs text-muted transition-colors hover:bg-coral/10 hover:text-coral"
+              >
+                👎
+              </button>
+            </>
+          ) : (
+            <span className="text-xs text-muted">{labeled ? "agreed" : "disagreed"} ✓</span>
+          )}
+        </span>
+        <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold", tone)}>
           {watch.overall.toFixed(1)}/10
         </span>
       </div>
@@ -790,7 +828,7 @@ function FinalBody({ item }: { item: ReviewItem }) {
 
   return (
     <div className="space-y-3">
-      <WatchPanel watch={item.video.watch_review} />
+      <WatchPanel watch={item.video.watch_review} videoId={item.video.id} />
       {active?.url ? (
         <div
           className={cn(

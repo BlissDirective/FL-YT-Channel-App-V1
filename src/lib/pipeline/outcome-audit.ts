@@ -71,10 +71,15 @@ export async function runOutcomeAudit(db: Db, projectId: string): Promise<{ wrot
   // Tracked videos with a FINAL QC score.
   const { data: vids } = await db
     .from("videos")
-    .select("id, youtube_video_id, topic")
+    .select("id, youtube_video_id, topic, watch_review")
     .eq("project_id", projectId)
     .not("youtube_video_id", "is", null);
-  const tracked = (vids ?? []) as { id: string; youtube_video_id: string | null; topic?: string }[];
+  const tracked = (vids ?? []) as {
+    id: string;
+    youtube_video_id: string | null;
+    topic?: string;
+    watch_review?: { overall?: number; degraded?: boolean } | null;
+  }[];
   if (tracked.length < MIN_N) return { wrote: 0 };
   const ids = tracked.map((v) => v.id);
 
@@ -115,11 +120,19 @@ export async function runOutcomeAudit(db: Db, projectId: string): Promise<{ wrot
     }
   }
 
-  const audits: { metric: string; correlation: number; n: number; note: string }[] = [];
-  const pushAudit = (metric: string, outcome: Map<string, number>) => {
+  // Self-Watch overall score per video (Phase 4): does the pre-publish gate
+  // predict outcomes, the same anti-reward-hacking check applied to QC?
+  const watchByVideo = new Map<string, number>();
+  for (const v of tracked) {
+    const wr = v.watch_review;
+    if (wr && !wr.degraded && typeof wr.overall === "number") watchByVideo.set(v.id, wr.overall);
+  }
+
+  const audits: { gate: string; metric: string; correlation: number; n: number; note: string }[] = [];
+  const pushAudit = (gate: string, label: string, scoreMap: Map<string, number>, outcome: Map<string, number>, metric: string) => {
     const scores: number[] = [];
     const outs: number[] = [];
-    for (const [vid, score] of scoreByVideo) {
+    for (const [vid, score] of scoreMap) {
       const o = outcome.get(vid);
       if (o != null) {
         scores.push(score);
@@ -131,20 +144,22 @@ export async function runOutcomeAudit(db: Db, projectId: string): Promise<{ wrot
     if (r == null) return;
     const note =
       r >= 0.3
-        ? `FINAL QC predicts ${metric} (ρ=${r.toFixed(2)}, n=${scores.length}).`
+        ? `${label} predicts ${metric} (ρ=${r.toFixed(2)}, n=${scores.length}).`
         : r <= 0.05
-          ? `⚠ FINAL QC does NOT predict ${metric} (ρ=${r.toFixed(2)}, n=${scores.length}) — the judge may be drifting or gamed; review the rubric.`
-          : `Weak link between FINAL QC and ${metric} (ρ=${r.toFixed(2)}, n=${scores.length}).`;
-    audits.push({ metric, correlation: r, n: scores.length, note });
+          ? `⚠ ${label} does NOT predict ${metric} (ρ=${r.toFixed(2)}, n=${scores.length}) — drifting or gamed; review the criteria.`
+          : `Weak link between ${label} and ${metric} (ρ=${r.toFixed(2)}, n=${scores.length}).`;
+    audits.push({ gate, metric: `${gate === "WATCH" ? "watch→" : ""}${metric}`, correlation: r, n: scores.length, note });
   };
 
-  pushAudit("views", viewsByVideo);
-  if (retentionByVideo.size >= MIN_N) pushAudit("retention", retentionByVideo);
+  pushAudit("FINAL", "FINAL QC", scoreByVideo, viewsByVideo, "views");
+  if (retentionByVideo.size >= MIN_N) pushAudit("FINAL", "FINAL QC", scoreByVideo, retentionByVideo, "retention");
+  pushAudit("WATCH", "Self-Watch", watchByVideo, viewsByVideo, "views");
+  if (retentionByVideo.size >= MIN_N) pushAudit("WATCH", "Self-Watch", watchByVideo, retentionByVideo, "retention");
 
   for (const a of audits) {
     await db.from("outcome_audits").insert({
       project_id: projectId,
-      gate: "FINAL",
+      gate: a.gate,
       metric: a.metric,
       correlation: a.correlation,
       n: a.n,

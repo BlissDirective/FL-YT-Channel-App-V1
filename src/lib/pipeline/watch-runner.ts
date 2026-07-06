@@ -187,17 +187,21 @@ export async function runWatchGate(
     if (!inputs) return null;
 
     // READ the quality namespace — graduated lessons for this niche/topic (C8).
+    // Only at the settle point (it embeds the query); the autofix loop's cheap
+    // passes don't need it (they consume fixPlan, not appliedLessons).
     let appliedLessons: string[] = [];
-    try {
-      const hits = await queryMemory(db, {
-        namespace: "quality",
-        projectId: project.id,
-        query: `${project.niche ?? ""} ${video.topic ?? ""}`.trim(),
-        k: 6,
-      });
-      appliedLessons = hits.map((h) => h.text);
-    } catch {
-      /* memory read is best-effort */
+    if (opts?.competitive) {
+      try {
+        const hits = await queryMemory(db, {
+          namespace: "quality",
+          projectId: project.id,
+          query: `${project.niche ?? ""} ${video.topic ?? ""}`.trim(),
+          k: 6,
+        });
+        appliedLessons = hits.map((h) => h.text);
+      } catch {
+        /* memory read is best-effort */
+      }
     }
 
     const thresholds: WatchThresholds = {
@@ -252,9 +256,12 @@ export async function runWatchGate(
     await db.from("videos").update({ watch_review: verdict }).eq("id", video.id);
 
     // WRITE recurring failures as SHADOW lessons — the shadow→graduate lifecycle
-    // (C8): non-gating until graduation. isSameLesson reinforcement dedups and
-    // counts recurrence (the graduation signal), so this is self-limiting.
-    try {
+    // (C8): non-gating until graduation. Only at the once-per-video settle point
+    // (`competitive`), NEVER on the autofix loop's repeated passes — otherwise one
+    // video re-rendering N times would inflate evidenceCount N× and graduate a
+    // lesson that only ONE video tripped. Recurrence must mean distinct videos.
+    // isSameLesson reinforcement dedups across videos (the graduation signal).
+    if (opts?.competitive) try {
       const failing = [...verdict.timing.issues, ...verdict.scriptMatch.issues, ...verdict.competitive.issues, ...verdict.transitions.issues];
       const seen = new Set<string>();
       for (const iss of failing) {
