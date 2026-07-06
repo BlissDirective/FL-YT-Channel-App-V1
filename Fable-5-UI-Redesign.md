@@ -241,8 +241,35 @@ proven twice (automated + manual).
 Playwright suite (old smoke + new specs) · the §3.3 safety checklist walked
 manually in mock mode · Lighthouse budgets on touched routes.
 
-### Phase 0 — Test harness first (no UI changes)
+### Phase 0 — Test harness first (no UI changes) — ✅ BUILT 2026-07-06
 The redesign's insurance policy; also closes Enhancement P5.5.
+
+> **Shipped:** `tests/action-contract.test.ts` + `tests/contracts/` (manifest
+> of all 80 server actions across 11 modules, signature-pinned, plus the
+> caller inventory — regenerate deliberately via
+> `node tests/contracts/update-action-manifest.mjs`); `tests/safety-critical.
+> test.ts` + `tests/helpers/fake-db.ts` (14 tests running the REAL
+> `decideGate`/`runPipeline`/`killVideo` against a fake query-builder:
+> revision hard-cap, approvals audit trail, kill switch, budget pause, gate
+> arrival writes qc_reviews + waits in assist, grader-down hold, autopilot
+> settle); `e2e/authed/golden-path-authed.spec.ts` (bootstrap → project →
+> queue topic → all four gates with a beat edit → mock render → publish kit →
+> mark uploaded → TRACKING, + baseline screenshots of the 8 main routes) with
+> the `authed-chromium` Playwright project and the `e2e-authed` CI job
+> (local Supabase via `supabase start` on GitHub runners).
+>
+> **Verified locally:** typecheck (all packages) · lint · vitest 321/321
+> (was 216; +105 new) · build · credential-free e2e smoke 4/4.
+> **Verified in CI only:** the authed golden path needs Docker (local
+> Supabase), which the dev sandbox lacks — its first real run is the
+> `e2e-authed` job on this push. Treat Phase 0 as *exit-complete only when
+> that job is green*; fix-forward anything it surfaces before starting
+> Phase 1.
+>
+> **Audit finding logged:** two actions have no caller surface today —
+> `runOptimizerNowAction` (superseded by `runAllOptimizerAction`) and
+> `runOperatorNowAction` (panel uses start/pause/stop). Encoded in the
+> contract test as `KNOWN_UNREFERENCED`; Phase 7 wires or deletes them.
 1. **Authenticated mock-mode e2e golden path against the CURRENT UI:**
    create project → queue topic → IDEA gate approve → SCRIPT gate (edit a
    beat, approve) → assets → advance to render (mock completes in-app) →
@@ -372,3 +399,4 @@ ships).
 |---|---|
 | 2026-07-06 | Repo review completed (UI surface + backend map). Concept discussed; operator answered clarifying round 1 (→ D-1..D-14). This document created with consolidation strategy + draft phased build plan. Open: Q-A..Q-E. |
 | 2026-07-06 | Operator answered clarifying round 2: Q-A..Q-E all resolved (→ D-15..D-19). Specs updated (Home awaiting-you row, full-feed scope + filters, Published grid section, Ideas merge, boost runs). **No open questions — plan is ready for Phase 0 green-light.** Doc merged to `main` at operator's request. |
+| 2026-07-06 | **Phase 0 green-lit and built** (see Phase 0 box in §10): action-contract manifest (74 actions pinned + caller inventory), 14 safety-critical engine tests on a fake query-builder, authed mock-mode golden-path e2e + baseline screenshots, `e2e-authed` CI job on local Supabase. All local gates green (typecheck/lint/vitest 321/build/smoke e2e). Authed suite awaits its first CI run (needs Docker). Found + pinned two orphaned actions (`runOptimizerNowAction`, `runOperatorNowAction`) for Phase 7. |

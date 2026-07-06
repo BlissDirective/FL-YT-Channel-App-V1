@@ -42,3 +42,55 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+  # UI-Redesign Phase 0 — the authenticated mock-mode golden path against a
+  # local Supabase stack (Docker is preinstalled on ubuntu runners). Drives
+  # one asset idea → script → assets → render → publish → tracking through
+  # the real UI with every provider adapter in mock mode, and captures
+  # baseline screenshots of the main routes as artifacts.
+  e2e-authed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Supabase (applies supabase/migrations)
+        run: |
+          supabase init --force
+          supabase start
+          supabase db reset
+      - name: Export local Supabase env
+        run: |
+          eval "$(supabase status -o env)"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+          } >> "$GITHUB_ENV"
+      - name: Build (env is inlined at build time)
+        run: pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run authenticated golden path
+        run: pnpm exec playwright test --project=authed-chromium
+        env:
+          AUTHED_E2E: "1"
+      - name: Upload report + baseline screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-authed
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

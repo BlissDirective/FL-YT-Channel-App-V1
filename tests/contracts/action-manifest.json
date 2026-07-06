@@ -1,0 +1,104 @@
+{
+  "auth": [
+    "signIn(_prev: AuthResult, formData: FormData,)",
+    "bootstrapAccount(_prev: AuthResult, formData: FormData,)",
+    "signOut()"
+  ],
+  "autofix": [
+    "setVideoAutofixAction(projectId: string, videoId: string, mode: \"inherit\" | \"on\" | \"off\",)",
+    "runAutofixNowAction(projectId: string, videoId: string,)"
+  ],
+  "build": [
+    "estimateBuildRunAction(projectId: string, config: BuildRunConfig,)",
+    "getBuildDefaultsAction(projectId: string,)",
+    "pauseBuildRunAction(projectId: string, runId: string,)",
+    "resumeBuildRunAction(projectId: string, runId: string,)",
+    "cancelBuildRunAction(projectId: string, runId: string,)",
+    "runBuildNowAction(projectId: string,)"
+  ],
+  "diagnostics": [
+    "testCredentialAction(service: string)"
+  ],
+  "intel": [
+    "runVideoIntelAction(input: { projectId: string; videoId?: string | null; topic: string; competitorUrls?: string[]; transcript?: string; depth?: \"quick\" | \"deep\"; sourceUrl?: string; vouched?: boolean; /** Deep + precise frame sampling → enqueue for the Actions worker. */ frames?: boolean; })"
+  ],
+  "intelligence": [
+    "runIntelligenceNowAction(projectId: string, length: \"short\" | \"long\" | \"either\" = \"either\",)",
+    "runOptimizerNowAction(projectId: string)",
+    "runAllOptimizerAction()",
+    "scoutChatAction(projectId: string, messages: ScoutMessage[],)",
+    "saveScoutIdeaAction(projectId: string, title: string, angle: string,)",
+    "applyInsightAction(insightId: string)",
+    "dismissInsightAction(insightId: string)"
+  ],
+  "operator": [
+    "startOperatorAction(projectId: string)",
+    "pauseOperatorAction(projectId: string)",
+    "stopOperatorAction(projectId: string)",
+    "skipCalendarSlotAction(projectId: string, day: number)",
+    "regenerateCalendarAction(projectId: string)",
+    "setOperatorAutonomyAction(projectId: string, mode: \"copilot\" | \"autopilot\",)",
+    "runOperatorNowAction(projectId: string,)"
+  ],
+  "pipeline": [
+    "approveGateAction(projectId: string, videoId: string,)",
+    "requestRevisionAction(projectId: string, videoId: string, notes: string,)",
+    "killVideoAction(projectId: string, videoId: string,)",
+    "resumeVideoAction(projectId: string, videoId: string,)",
+    "resetRenderAttemptsAction(projectId: string, videoId: string,)",
+    "startBuildRunAction(projectId: string, config: BuildRunConfig,)",
+    "stepBackStageAction(projectId: string, videoId: string, deleteAssets: boolean,)",
+    "runDemoPipelineAction(projectId: string)",
+    "queueTopicAction(projectId: string, topic: string, opts?: { kind?: \"long\" | \"short\"; targetLengthSec?: number },)",
+    "editScriptBeatAction(projectId: string, videoId: string, beatIdx: number, text: string,)",
+    "setBeatShotTypeAction(projectId: string, videoId: string, beatIdx: number, shotType: ScriptBeat[\"shotType\"],)",
+    "autoClassifyShotTypesAction(projectId: string, videoId: string,)",
+    "addSectionAction(projectId: string, videoId: string, afterIdx: number, mode: \"visual\" | \"narrated\",)",
+    "deleteSectionAction(projectId: string, videoId: string, beatIdx: number,)",
+    "moveSectionAction(projectId: string, videoId: string, beatIdx: number, dir: \"up\" | \"down\",)",
+    "mergeSectionsAction(projectId: string, videoId: string, startIdx: number, endIdx: number,)",
+    "enqueueLongClipAction(projectId: string, videoId: string, beatIdx: number, method: \"veo-extend\" | \"stitch\" | \"stitch-seamless\", model: string, targetSec: number, estCostUsd: number,)",
+    "fullAutoGenerateAction(projectId: string, videoId: string, tier: AutoTier, custom?: CustomSpec,)",
+    "saveCustomSpecAction(projectId: string, spec: CustomSpec,)",
+    "generateBeatVideoAction(projectId: string, videoId: string, beatIdx: number, modelId: string, durationSec: number,)",
+    "remixScriptAction(_projectId: string, videoId: string, notes: string, settings: RemixSettings,)",
+    "remixBeatAction(_projectId: string, videoId: string, beatIdx: number, notes: string, settings: RemixSettings,)",
+    "applyScriptRemixAction(projectId: string, videoId: string, remix: Pick<ScriptRemix, \"beats\" | \"runtimeSec\" | \"metadata\">,)",
+    "editVideoMetadataAction(projectId: string, videoId: string, title: string, description: string,)",
+    "setHighlightOptionsAction(projectId: string, videoId: string, enabled: boolean, count: number,)",
+    "setCaptionsEnabledAction(projectId: string, videoId: string, enabled: boolean,)",
+    "curateHighlightsAction(projectId: string, videoId: string,)",
+    "saveHighlightsAction(projectId: string, videoId: string, highlights: CuratedHighlight[],)",
+    "findFootageAction(projectId: string, videoId: string, beatIdx: number, queryOverride?: string,)",
+    "applySourceClipAction(projectId: string, videoId: string, beatIdx: number, candidate: SourceCandidate,)",
+    "addPressKitAssetAction(projectId: string, videoId: string, beatIdx: number, asset: { url: string; title: string; author: string; sourceUrl?: string; kind: \"image\" | \"video\" },)",
+    "rerollBeatVisualAction(projectId: string, videoId: string, beatIdx: number, note?: string,)",
+    "regenerateScriptAction(projectId: string, videoId: string,)",
+    "rerollStickSceneAction(projectId: string, videoId: string, beatIdx: number, note?: string,)",
+    "setStickSceneAction(projectId: string, videoId: string, beatIdx: number, patch: { action?: string; setting?: string; mood?: string },)",
+    "selectThumbnailAction(projectId: string, videoId: string, assetId: string,)",
+    "saveTemplateAction(projectId: string, kind: string, body: string,)",
+    "saveQualityGatesAction(gates: QualityGates,)",
+    "setKillSwitchAction(enabled: boolean,)",
+    "savePushSubscriptionAction(subscription: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string; })",
+    "removePushSubscriptionAction(endpoint: string)",
+    "labelQcReviewAction(opts: { qcReviewId: string; videoId: string; gate: string; agree: boolean; criterionId?: string; note?: string; })",
+    "labelWatchVerdictAction(opts: { videoId: string; agree: boolean; criterionId?: string; })"
+  ],
+  "projects": [
+    "createProject(_prev: ProjectResult, formData: FormData,)",
+    "updateProject(_prev: ProjectResult, formData: FormData,)",
+    "createDemoProject()",
+    "purgeDemoDataAction()",
+    "deleteProject(formData: FormData)"
+  ],
+  "publish": [
+    "markUploadedAction(projectId: string, videoId: string, youtubeUrl: string,)",
+    "requestPublishAction(projectId: string, videoId: string,)",
+    "refreshStatsAction(projectId: string, videoId?: string,)"
+  ],
+  "shorts": [
+    "deriveShortsAction(projectId: string, parentVideoId: string, opts: { count: number; smart: boolean },)",
+    "publishShortAction(projectId: string, shortVideoId: string,)"
+  ]
+}
