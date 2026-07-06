@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { embedText } from "@/lib/adapters/embeddings";
+import { synthesizeCraftLessons } from "@/lib/adapters/lesson-synthesizer";
 import { keywords } from "@/lib/pipeline/dedup";
 import {
   decayedConfidence,
@@ -323,7 +324,7 @@ export async function runQualityGraduation(
 export async function runLibrarian(
   db: Db,
   opts?: { minChannels?: number },
-): Promise<{ promotedGlobal: number; retired: number }> {
+): Promise<{ promotedGlobal: number; retired: number; synthesized: number }> {
   const minChannels = opts?.minChannels ?? 3;
   try {
     // Load active channel-scoped lessons in the technique namespaces (promotable).
@@ -367,6 +368,28 @@ export async function runLibrarian(
       });
     }
 
+    // 1b) Cross-cutting synthesis — only when fresh lessons were promoted this
+    // run (bounds cost + avoids re-synthesizing the same material nightly). The
+    // higher-order principles land in the global `quality` craft tier; writeMemory
+    // dedups against prior syntheses.
+    let synthesized = 0;
+    if (promotions.length > 0) {
+      const { syntheses } = await synthesizeCraftLessons([
+        ...promotions.map((p) => p.text),
+        ...existingGlobal.map((g) => g.text),
+      ]);
+      for (const text of syntheses) {
+        await writeMemory(db, {
+          namespace: "quality",
+          text,
+          evidence: `librarian synthesis of ${promotions.length + existingGlobal.length} cross-channel lessons`,
+          scope: { tier: "global" },
+          confidence: 0.5,
+        });
+        synthesized += 1;
+      }
+    }
+
     // 2) Retire sweep across active channel lessons that decayed out.
     const now = new Date().toISOString();
     const retire = rows
@@ -374,9 +397,9 @@ export async function runLibrarian(
       .map((r) => r.id);
     if (retire.length > 0) await db.from("memory_entries").update({ status: "retired" }).in("id", retire);
 
-    return { promotedGlobal: promotions.length, retired: retire.length };
+    return { promotedGlobal: promotions.length, retired: retire.length, synthesized };
   } catch (err) {
     console.error("librarian pass failed (non-fatal):", err);
-    return { promotedGlobal: 0, retired: 0 };
+    return { promotedGlobal: 0, retired: 0, synthesized: 0 };
   }
 }

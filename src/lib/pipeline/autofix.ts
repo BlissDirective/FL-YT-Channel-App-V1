@@ -4,7 +4,8 @@ import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { reviewGate } from "@/lib/adapters/qc";
 import { isAutofixEnabled, getQualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
-import { recordLesson } from "@/lib/pipeline/playbook";
+import { recordNamespaceLesson } from "@/lib/pipeline/memory-service";
+import { craftNamespaceForChange } from "@/lib/pipeline/memory";
 import { isTwelveLabsLive, wantsTemporalPass } from "@/lib/adapters/twelvelabs";
 import { makeBeatClip } from "@/lib/pipeline/engine";
 import { runWatchGate } from "@/lib/pipeline/watch-runner";
@@ -590,11 +591,11 @@ export async function processAutofixForVideo(
     // requires. Only confirmed movements (|delta|>=0.3) persist.
     if (Math.abs(delta) >= 0.3 && open.changes.length > 0) {
       const worked = delta >= 0.3;
-      await recordLesson(db, project.id, {
-        stage: "visual",
-        text: worked
-          ? `Do: ${open.changes.slice(0, 2).join("; ")}`
-          : `Avoid: ${open.changes.slice(0, 2).join("; ")}`,
+      const summary = open.changes.slice(0, 2).join("; ");
+      // Route the lesson into its craft namespace (visual / editing / audio) so
+      // memory has equal depth per C8, instead of everything landing in `visual`.
+      await recordNamespaceLesson(db, project.id, craftNamespaceForChange(summary), {
+        text: worked ? `Do: ${summary}` : `Avoid: ${summary}`,
         evidence: `autofix ${delta >= 0 ? "+" : ""}${delta.toFixed(1)} QC`,
         confidence: Math.min(0.6, Math.abs(delta) / 5 + 0.3),
       });

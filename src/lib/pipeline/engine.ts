@@ -31,6 +31,7 @@ import { pickBestVariant } from "@/lib/adapters/variant-judge";
 import { verifyBeatVisual, isBeatRelevanceLive, type BeatRelevance } from "@/lib/adapters/beat-relevance";
 import { playbookForStage } from "@/lib/pipeline/playbook";
 import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
+import { runWatchGate } from "@/lib/pipeline/watch-runner";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
 import { keywords } from "@/lib/pipeline/dedup";
 import { providerOutage } from "@/lib/pipeline/provider-health";
@@ -2939,7 +2940,19 @@ export async function finalizeAutoPilotVideos(
       const { floor, pub } = await runThresholds(db, row.build_run_id);
       const { score } = await scoreAndRecordGate(db, video, project, "FINAL", floor);
 
-      if (score >= floor) {
+      // Self-Watch parity (Fable5-Self-Watch-Loop-Plan.md): the same pre-publish
+      // gate the operator applies now also gates the manual/build-run finalizer —
+      // a low overall or a content-policy risk holds for a human. Reuse the stored
+      // verdict once its competitive dimension has been judged (held videos drop
+      // out of this scan via the paused_reason filter, so no per-tick re-run).
+      const qg = await getQualityGateConfig(db);
+      const existingWatch = video.watch_review;
+      const watch = existingWatch?.competitive?.evaluated
+        ? existingWatch
+        : await runWatchGate(db, video, project, { competitive: true });
+      const watchBlocks = Boolean(watch && !watch.degraded && (watch.overall < qg.watchBlockPublishBelow || watch.policyRisk));
+
+      if (score >= floor && !watchBlocks) {
         const privacy = privacyForScore(score, pub);
         await db
           .from("videos")
@@ -2957,18 +2970,24 @@ export async function finalizeAutoPilotVideos(
           console.error("web-push delivery failed:", err);
         }
       } else {
+        const reason =
+          score < floor
+            ? `final QC ${score.toFixed(1)}/10 below the ${floor.toFixed(1)} floor`
+            : watch?.policyRisk
+              ? "Self-Watch flagged a content-policy risk"
+              : `Self-Watch ${watch!.overall.toFixed(1)}/10 below the ${qg.watchBlockPublishBelow.toFixed(1)} floor`;
         await db
           .from("videos")
           .update({
             auto_publish: false,
-            paused_reason: `Held — final QC ${score.toFixed(1)}/10 below the ${floor.toFixed(1)} floor. Review and approve manually.`,
+            paused_reason: `Held — ${reason}. Review and approve manually.`,
           })
           .eq("id", row.id);
         held++;
         try {
           await sendPushToAll({
             title: "Held for review",
-            body: `“${row.title}” scored ${score.toFixed(1)}/10 — below the publish floor.`,
+            body: `“${row.title}” held — ${reason}.`,
             url: `/projects/${row.project_id}/review`,
           });
         } catch (err) {

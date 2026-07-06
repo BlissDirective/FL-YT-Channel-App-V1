@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  craftNamespaceForChange,
   DECAY_HALFLIFE_DAYS,
   decayedConfidence,
   enforceSafetyCap,
@@ -254,6 +255,23 @@ describe("planGlobalPromotion — the librarian's ≥N-channel global-craft prom
     ];
     const existingGlobal = [{ namespace: "quality" as MemoryNamespace, text: "Ensure every beat has a visual" }];
     expect(planGlobalPromotion(lessons, existingGlobal, 3)).toHaveLength(0);
+  });
+});
+
+describe("craftNamespaceForChange", () => {
+  it("routes audio-flavored changes to the audio namespace", () => {
+    expect(craftNamespaceForChange("Re-recorded the voiceover to fix dead air")).toBe("audio");
+    expect(craftNamespaceForChange("Raised loudness toward -14 LUFS")).toBe("audio");
+  });
+  it("routes edit-flavored changes to the editing namespace", () => {
+    expect(craftNamespaceForChange("Tightened captions on beat 3")).toBe("editing");
+    expect(craftNamespaceForChange("Reframed beat 2 (zoom out, re-centre)")).toBe("editing");
+    expect(craftNamespaceForChange("Added a crossfade at the cut")).toBe("editing");
+  });
+  it("defaults visual re-rolls to the visual namespace", () => {
+    expect(craftNamespaceForChange("Re-rolled visual for beat 1")).toBe("visual");
+    expect(craftNamespaceForChange("Re-choreographed the scene for clarity")).toBe("editing"); // choreograph → editing
+    expect(craftNamespaceForChange("Replaced the still with a fresh image")).toBe("visual");
   });
 });
 

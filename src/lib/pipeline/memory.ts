@@ -229,6 +229,22 @@ export function planGlobalPromotion(
   return out;
 }
 
+// Leading \b only (no trailing) so stems match inflections — "captions",
+// "tightened", "reframed", "choreographed". `vo` stays fully bounded so it
+// doesn't swallow "voice"/"volume".
+const AUDIO_RE = /\bvo\b|\b(audio|voice|voice-?over|narration|silence|loudness|lufs|mix|sound)/i;
+const EDITING_RE = /\b(caption|subtitle|re-?frame|crop|zoom|transition|cut|choreograph|pacing|tighten|trim|centre|center|framing)/i;
+
+/**
+ * Route an autofix change into its craft namespace so lessons land in `audio` /
+ * `editing` / `visual` (C8 "equal depth") instead of all in `visual`. Pure.
+ */
+export function craftNamespaceForChange(text: string): Extract<MemoryNamespace, "visual" | "editing" | "audio"> {
+  if (AUDIO_RE.test(text)) return "audio";
+  if (EDITING_RE.test(text)) return "editing";
+  return "visual";
+}
+
 /** Group issues into recurring buckets by their leading text (loose key). */
 export function recurringIssues(issues: string[], minCount = 2): { text: string; count: number }[] {
   const buckets = new Map<string, { text: string; count: number }>();

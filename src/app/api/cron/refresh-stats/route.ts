@@ -40,7 +40,7 @@ async function handle(request: NextRequest) {
     }
     // C8 librarian: nightly cross-channel curation — global-craft promotion
     // (≥3-channel technique lessons) + a decayed-lesson retire sweep.
-    let librarian = { promotedGlobal: 0, retired: 0 };
+    let librarian = { promotedGlobal: 0, retired: 0, synthesized: 0 };
     try {
       librarian = await runLibrarian(createAdminClient());
     } catch (err) {
