@@ -407,7 +407,16 @@ Two plan docs now describe one system. They interlock through **C8 memory**:
 | 5 | Harness **C8 librarian** | nightly cross-channel curation: ≥3-channel global-craft promotion + decayed-lesson retire sweep (in the refresh-stats cron) | the memory self-curates across channels | ✅ shipped (LLM synthesis is a future add) |
 | 6 | Harness **C8 remaining namespaces** | uniform `recordNamespaceLesson`/`namespaceLessons` across all namespaces + an `outcome` writer feeding the competitive judge | every agent reads/writes memory | ✅ shipped (audio/editing writers land with their agents) |
 | 7 | Self-Watch **Phase 3** | temporal transitions (#1): structural Tier-1 + Gemini temporal Tier-2 escalation | full four-criteria gate | ✅ shipped |
-| 8 | Self-Watch **Phase 4** | calibration/hardening — 👍/👎 on watch verdicts (C1) + watch-criterion Spearman (C3) | measurable, self-tuning gate | ⏳ pending |
+| 8 | Self-Watch **Phase 4** | calibration/hardening — 👍/👎 on watch verdicts (C1, gate 'WATCH') + watch-score Spearman (C3) | measurable, self-tuning gate | ✅ shipped |
+
+**All cross-plan steps 1–8 are shipped.** An adversarial correctness review of
+the whole Self-Watch + C8 subsystem (2026-07-06) fixed two real bugs — shadow-
+lesson `evidenceCount` inflation across autofix passes, and the competitive judge
+re-running every operator tick for un-tapped copilot videos — both now gated to
+the once-per-video settle point. Remaining watch increments are optional
+refinements (competitive-judge Haiku→Opus escalation, the TwelveLabs temporal
+path, LLM cross-cutting synthesis in the librarian, dedicated audio/editing
+namespace writers).
 
 Build C8's core first (step 1) — everything downstream in both plans reads or
 writes it, so it's the true critical path.

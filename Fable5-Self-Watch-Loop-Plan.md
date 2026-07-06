@@ -395,8 +395,16 @@ under the budget guard; runbook + docs.
     sweep, in the refresh-stats cron) and the **remaining namespaces** (uniform
     `recordNamespaceLesson`/`namespaceLessons` API + an `outcome` writer feeding
     the competitive judge).
-  - Pending: Phase 4 (calibration/hardening — 👍/👎 on watch verdicts + watch-
-    criterion Spearman).
+  - *Phase 4:* **calibration** — the operator's 👍/👎 on a watch verdict writes to
+    the C1 `judge_labels` table (gate `WATCH`), so the judge-calibration surface
+    shows WATCH agreement % + the most-disputed dimension; the C3 outcome-audit
+    now correlates the Self-Watch overall score with views/retention (Spearman),
+    the same anti-reward-hacking readout applied to the gate itself.
+  - **All four criteria + the learning loop are live and audited.** An adversarial
+    review fixed two cost/correctness bugs (shadow-lesson inflation across autofix
+    passes; the competitive judge re-running every operator tick) — both gated to
+    the once-per-video settle point. Optional refinements remain: competitive-judge
+    escalation, the TwelveLabs temporal path, librarian LLM synthesis.
 - **[Harness plan](./Fable5-Agentic-Harness-Plan.md):** C1–C6 **shipped**; C5
   live but exploration-only until ~8 published videos; **C8 Studio Memory Service
   — core shipped** (`memory_entries` + `match_memory` RPC + `queryMemory`/
