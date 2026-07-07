@@ -18,11 +18,15 @@ import type { Asset, CuratedHighlight, Script, Video, ScriptBeat } from "@/lib/d
 import { fontForNiche } from "@/lib/adapters/highlights";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
+import { ProgressRail } from "@/components/ui/progress-rail";
+import { RAIL_STEPS, railIndexFor } from "@/lib/db/library";
+import type { QcReview } from "@/lib/db/queries";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
+import { CheckpointPanel } from "./checkpoint-panel";
+import { CanvasControls } from "./canvas-controls";
 import { ScriptReview } from "./script-review";
 import { HighlightsEditor } from "./highlights-editor";
 import { StepBackStage } from "./step-back";
-import { AdvanceStage } from "./advance-stage";
 import { VideoGen } from "./video-gen";
 import { PublishKit, type PublishRender } from "./publish-kit";
 import { DeriveShorts, type DerivedShortRow } from "./derive-shorts";
@@ -110,12 +114,43 @@ export default async function VideoDetailPage({
   const clipJobs = s && beats.length > 0 ? await getClipJobs(vid) : [];
 
   const gate = GATE_FOR_STATUS[v.status];
+
+  // Checkpoint context (UI v2 Phase 3): the latest QC verdict for the open
+  // gate, the linked idea card at IDEA, and thumbnail candidates at ASSETS.
+  const [{ data: gateQc }, { data: ideaRow }] = await Promise.all([
+    gate
+      ? supabase
+          .from("qc_reviews")
+          .select("*")
+          .eq("video_id", vid)
+          .eq("gate", gate)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    gate === "IDEA" && v.idea_id
+      ? supabase.from("ideas").select("angle, score").eq("id", v.idea_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  const thumbCandidates =
+    gate === "ASSETS"
+      ? await Promise.all(
+          allAssets
+            .filter((a) => a.kind === "thumb")
+            .map(async (a) => ({
+              id: a.id,
+              url: await assetUrl(a),
+              selected: Boolean((a.meta as { selected?: boolean }).selected),
+            })),
+        )
+      : [];
+
   const isPublishStage = v.status === "APPROVED" || v.status === "TRACKING";
   // Asset stage (mid-generation or assets done) → offer a step back to script.
   const canStepBackToScript =
     v.status === "GENERATING_ASSETS" || v.status === "ASSETS_READY";
   // Assets done → offer a forward "approve → render" control on the page.
-  const atAssetsGate = v.status === "ASSETS_READY";
+
   const pendingClips = clipJobs.filter(
     (j) => j.status === "queued" || j.status === "running",
   ).length;
@@ -161,12 +196,20 @@ export default async function VideoDetailPage({
       <RealtimeRefresher tables={["videos", "scripts", "assets", "analytics_snapshots", "clip_jobs"]} />
       <div>
         <Link
-          href={`/projects/${id}/review`}
+          href={`/projects/${id}/library`}
           className="text-sm font-medium text-muted hover:text-ink"
         >
-          {project.name} · Review queue
+          {project.name} · Library
         </Link>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">{v.title}</h1>
+        <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
+          <h1 className="text-2xl font-bold tracking-tight">{v.title}</h1>
+          <CanvasControls
+            projectId={id}
+            videoId={vid}
+            paused={Boolean(v.paused_reason)}
+            killed={v.status === "KILLED"}
+          />
+        </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <StatusChip tone={gate ? "warning" : isPublishStage ? "success" : "neutral"}>
             {v.status.replace(/_/g, " ").toLowerCase()}
@@ -176,7 +219,30 @@ export default async function VideoDetailPage({
             ${Number(v.total_cost_usd).toFixed(2)} spent
           </StatusChip>
         </div>
+        <ProgressRail steps={RAIL_STEPS} current={railIndexFor(v)} className="mt-4" />
       </div>
+
+      {gate && (
+        <CheckpointPanel
+          projectId={id}
+          videoId={vid}
+          gate={gate}
+          pausedReason={v.paused_reason}
+          qc={(gateQc as QcReview) ?? null}
+          watch={v.watch_review ?? null}
+          thumbs={thumbCandidates}
+          idea={
+            gate === "IDEA"
+              ? {
+                  topic: v.topic ?? v.title,
+                  angle: (ideaRow as { angle?: string } | null)?.angle,
+                  score: (ideaRow as { score?: number } | null)?.score,
+                }
+              : null
+          }
+          pendingClips={pendingClips}
+        />
+      )}
 
       <Link
         href={`/intel?project=${id}&video=${vid}&topic=${encodeURIComponent(v.topic || v.title)}`}
@@ -300,10 +366,6 @@ export default async function VideoDetailPage({
             </div>
           </div>
         </Card>
-      )}
-
-      {atAssetsGate && (
-        <AdvanceStage projectId={id} videoId={vid} pendingClips={pendingClips} />
       )}
 
       {canStepBackToScript && (

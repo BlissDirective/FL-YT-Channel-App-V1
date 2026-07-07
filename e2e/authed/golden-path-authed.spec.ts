@@ -188,6 +188,90 @@ test("library v2: asset born in Ideas, quick-approved through sections, killable
   });
 });
 
+test("golden path v2: the same journey entirely on Library + Asset Canvas", async ({
+  page,
+}) => {
+  await signInOrBootstrap(page);
+
+  await page.getByRole("link", { name: /New Project/ }).first().click();
+  await page.waitForURL(/\/projects\/new/);
+  await page.locator('input[name="name"]').fill(`Canvas v2 ${Date.now()}`);
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Create project" }).click();
+  await page.waitForURL(/\/projects\/[0-9a-f-]+$/, { timeout: 60_000 });
+  const libUrl = `${new URL(page.url()).pathname}/library`;
+
+  await test.step("asset born from the Library, opened on the Canvas", async () => {
+    await page.goto(libUrl);
+    await page
+      .locator('input[placeholder^="Type a video topic"]')
+      .fill("Canvas contained-pipeline journey");
+    await page.getByRole("button", { name: "New asset" }).click();
+    await expect(page.getByTestId("asset-tile").first()).toBeVisible({ timeout: 30_000 });
+    await page.getByText("Canvas contained-pipeline journey").first().click();
+    await page.waitForURL(/\/videos\/[0-9a-f-]+/);
+    await expect(page.getByTestId("checkpoint-panel")).toBeVisible();
+    await expect(page.getByText("Idea gate")).toBeVisible();
+  });
+
+  const approveCheckpoint = async (nextGate: string) => {
+    await page
+      .getByTestId("checkpoint-panel")
+      .getByRole("button", { name: "Approve & continue" })
+      .click();
+    await expect(page.getByTestId("checkpoint-panel").getByText(nextGate)).toBeVisible({
+      timeout: 120_000,
+    });
+  };
+
+  await test.step("IDEA → SCRIPT on one page (progress rail advances)", async () => {
+    await approveCheckpoint("Script gate");
+  });
+
+  await test.step("edit a beat in place at the Script checkpoint", async () => {
+    const editButton = page.getByRole("button", { name: "Edit", exact: true }).first();
+    await expect(editButton).toBeVisible({ timeout: 30_000 });
+    await editButton.click();
+    await page.locator("textarea").first().fill("Canvas beat, edited at the checkpoint.");
+    await page.getByRole("button", { name: /^Save/ }).first().click();
+    await expect(page.getByText("Canvas beat, edited at the checkpoint.")).toBeVisible({
+      timeout: 30_000,
+    });
+  });
+
+  await test.step("SCRIPT → ASSETS, thumbnail crowned at the checkpoint", async () => {
+    await approveCheckpoint("Assets gate");
+    await page.getByRole("button", { name: "Select thumbnail 1" }).click();
+    await expect(
+      page.getByTestId("checkpoint-panel").locator(".ring-accent").first(),
+    ).toBeVisible({ timeout: 30_000 });
+  });
+
+  await test.step("ASSETS → mock render → FINAL → APPROVED, all in place", async () => {
+    await approveCheckpoint("Final cut gate");
+    await page
+      .getByTestId("checkpoint-panel")
+      .getByRole("button", { name: "Approve & continue" })
+      .click();
+    await expect(page.getByText("Already uploaded it?")).toBeVisible({ timeout: 120_000 });
+  });
+
+  await test.step("publish from the same page → TRACKING", async () => {
+    await page
+      .locator('input[placeholder="https://youtu.be/…"]')
+      .fill("https://youtu.be/dQw4w9WgXcQ");
+    await page.getByRole("button", { name: "Mark as uploaded" }).click();
+    await expect(page.getByText("Tracking").first()).toBeVisible({ timeout: 60_000 });
+  });
+
+  await test.step("the Library shows the asset in Published with the full bar", async () => {
+    await page.goto(libUrl);
+    await expect(page.getByRole("button", { name: /Published/ })).toBeVisible({
+      timeout: 30_000,
+    });
+  });
+});
+
 test("baseline screenshots of the main authenticated routes", async ({ page }, testInfo) => {
   await signInOrBootstrap(page);
   const routes: [string, string][] = [

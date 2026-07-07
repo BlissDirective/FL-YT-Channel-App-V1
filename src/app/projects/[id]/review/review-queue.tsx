@@ -40,6 +40,7 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { attributionsFromAssets } from "@/lib/attribution";
 import { cn } from "@/lib/cn";
 import { SourceLibrary } from "./source-library";
+import { QcCard, WatchPanel } from "@/components/dashboard/checkpoint";
 
 const GATE_ICONS: Record<ApprovalGate, typeof Lightbulb> = {
   IDEA: Lightbulb,
@@ -279,93 +280,6 @@ function ReviewCard({ projectId, item }: { projectId: string; item: ReviewItem }
 }
 
 /** QC agent verdict card (idea #5). */
-function QcCard({ qc }: { qc: NonNullable<ReviewItem["qc"]> }) {
-  const score = Number(qc.score);
-  const [labeled, setLabeled] = useState<null | boolean>(null);
-  const [, startTransition] = useTransition();
-  const tone =
-    score >= 7.5 ? "text-success bg-success/10" : score >= 6 ? "text-ink bg-accent-soft" : "text-coral bg-coral/10";
-  const label = (agree: boolean) =>
-    startTransition(async () => {
-      setLabeled(agree); // optimistic; a lost label is a non-event
-      await labelQcReviewAction({
-        qcReviewId: qc.id,
-        videoId: qc.video_id,
-        gate: qc.gate,
-        agree,
-      }).catch(() => undefined);
-    });
-  return (
-    <div className="space-y-1.5 rounded-xl bg-canvas p-3">
-      <div className="flex items-center gap-2">
-        <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold", tone)}>
-          QC {score.toFixed(1)}/10
-        </span>
-        {qc.escalated && (
-          <span className="text-xs font-semibold text-muted" title={qc.judge_model ?? undefined}>
-            strong judge
-          </span>
-        )}
-        {qc.auto_approved && (
-          <span className="text-xs font-semibold text-success">
-            auto-approved (Co-pilot)
-          </span>
-        )}
-        {/* Calibration signal (Harness C1): does the operator agree with the
-            judge? Fifty of these make the rubric measurable. */}
-        <span className="ml-auto flex items-center gap-1">
-          {labeled === null ? (
-            <>
-              <button
-                type="button"
-                aria-label="Agree with this QC verdict"
-                onClick={() => label(true)}
-                className="rounded-full px-1.5 py-0.5 text-xs text-muted transition-colors hover:bg-success/10 hover:text-success"
-              >
-                👍
-              </button>
-              <button
-                type="button"
-                aria-label="Disagree with this QC verdict"
-                onClick={() => label(false)}
-                className="rounded-full px-1.5 py-0.5 text-xs text-muted transition-colors hover:bg-coral/10 hover:text-coral"
-              >
-                👎
-              </button>
-            </>
-          ) : (
-            <span className="text-xs text-muted">{labeled ? "agreed" : "disagreed"} ✓</span>
-          )}
-        </span>
-      </div>
-      <p className="text-sm">{qc.verdict}</p>
-      {(qc.criteria ?? []).length > 0 && (
-        <div className="flex flex-wrap gap-1 pt-0.5">
-          {qc.criteria!.map((c) => (
-            <span
-              key={c.id}
-              title={c.note}
-              className={cn(
-                "rounded-full px-2 py-0.5 text-[11px] font-medium",
-                c.pass ? "bg-success/10 text-success" : "bg-coral/10 text-coral",
-              )}
-            >
-              {c.pass ? "✓" : "✗"} {c.label}
-            </span>
-          ))}
-        </div>
-      )}
-      {qc.issues.length > 0 && (
-        <ul className="space-y-0.5 text-xs text-muted">
-          {qc.issues.map((issue, i) => (
-            <li key={i}>• {issue}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 // ── Gate-specific card bodies ─────────────────────────────────────────
 
 function IdeaBody({ item }: { item: ReviewItem }) {
@@ -712,100 +626,6 @@ function AttributionLedger({ assets }: { assets: ReviewItem["assets"] }) {
       <p className="mt-1.5 text-[10px] text-muted">
         Auto-added to the video description at publish.
       </p>
-    </div>
-  );
-}
-
-/** Self-Watch verdict summary (Fable5-Self-Watch-Loop-Plan.md) — the pre-publish
-    gate's scores + fix list, shown on held/awaiting FINAL cards. */
-function WatchPanel({ watch, videoId }: { watch: WatchVerdict | null; videoId: string }) {
-  const [labeled, setLabeled] = useState<null | boolean>(null);
-  const [, startTransition] = useTransition();
-  if (!watch || watch.degraded) return null;
-  const tone =
-    watch.overall >= 8 ? "text-success bg-success/10" : watch.overall >= 5 ? "text-ink bg-accent-soft" : "text-coral bg-coral/10";
-  const dims = [
-    { label: "Timing", d: watch.timing },
-    { label: "Script-match", d: watch.scriptMatch },
-    { label: "Competitive", d: watch.competitive },
-    { label: "Transitions", d: watch.transitions },
-  ].filter((x) => x.d.evaluated);
-  // Phase 4 calibration: agree/disagree feeds the C1 judge-calibration surface.
-  const label = (agree: boolean) =>
-    startTransition(async () => {
-      setLabeled(agree); // optimistic; a lost label is a non-event
-      await labelWatchVerdictAction({
-        videoId,
-        agree,
-        criterionId: agree ? undefined : (lowestDimension(watch) ?? undefined),
-      }).catch(() => undefined);
-    });
-  return (
-    <div className="space-y-1.5 rounded-xl bg-canvas p-3">
-      <div className="flex items-center gap-2">
-        <Gauge className="size-4 text-muted" />
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted">Self-Watch</span>
-        <span className="ml-auto flex items-center gap-1">
-          {labeled === null ? (
-            <>
-              <button
-                type="button"
-                aria-label="Agree with the Self-Watch verdict"
-                onClick={() => label(true)}
-                className="rounded-full px-1.5 py-0.5 text-xs text-muted transition-colors hover:bg-success/10 hover:text-success"
-              >
-                👍
-              </button>
-              <button
-                type="button"
-                aria-label="Disagree with the Self-Watch verdict"
-                onClick={() => label(false)}
-                className="rounded-full px-1.5 py-0.5 text-xs text-muted transition-colors hover:bg-coral/10 hover:text-coral"
-              >
-                👎
-              </button>
-            </>
-          ) : (
-            <span className="text-xs text-muted">{labeled ? "agreed" : "disagreed"} ✓</span>
-          )}
-        </span>
-        <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold", tone)}>
-          {watch.overall.toFixed(1)}/10
-        </span>
-      </div>
-      {watch.policyRisk && (
-        <p className="rounded-lg bg-coral/10 px-2 py-1 text-[11px] font-semibold text-coral">
-          ⚠ Content-policy risk — transformative value / repetitious content. Human review required.
-        </p>
-      )}
-      <div className="flex flex-wrap gap-1">
-        {dims.map((x) => (
-          <span
-            key={x.label}
-            className={cn(
-              "rounded-full px-2 py-0.5 text-[11px] font-medium",
-              x.d.pass ? "bg-success/10 text-success" : "bg-coral/10 text-coral",
-            )}
-          >
-            {x.d.pass ? "✓" : "✗"} {x.label} {x.d.score.toFixed(1)}
-          </span>
-        ))}
-      </div>
-      {watch.fixPlan.length > 0 && (
-        <ul className="space-y-0.5 text-xs text-muted">
-          {watch.fixPlan.slice(0, 4).map((f, i) => (
-            <li key={i}>
-              •{" "}
-              {f.kind === "reroll"
-                ? `Re-roll beat ${f.beatIdx + 1}`
-                : f.kind === "retime"
-                  ? `Re-time beat ${f.beatIdx + 1}`
-                  : "Flag"}
-              : {f.reason}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
