@@ -5,8 +5,8 @@ import { reviewGate, isQcLive } from "@/lib/adapters/qc";
 import { isTelegramLive, sendApprovalCard, sendReviewNeeded, sendDigest, sendTelegram } from "@/lib/adapters/telegram";
 import { editorialGuard, gateIdea, planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
 import { planMonthlyCalendar } from "@/lib/adapters/calendar";
-import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, privacyForScore } from "@/lib/pipeline/quality-gates";
-import { runWatchGate } from "@/lib/pipeline/watch-runner";
+import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore } from "@/lib/pipeline/quality-gates";
+import { autofixSettled, resolveWatchVerdict, watchBlocksPublish, watchHoldReason } from "./settle";
 import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import {
   analyticsConfigured,
@@ -792,11 +792,9 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
   for (const video of ((holding ?? []) as Video[])) {
     const rev = (video.operator_review ?? {}) as OperatorReview;
     if (rev.decided || rev.hold) continue; // decided, or already held for review
-    // Wait for the auto-fix loop to FULLY converge (done/held) before deciding —
-    // otherwise the operator holds/approves a video the loop is still improving.
-    const loopOn = isAutofixEnabled(project, video);
-    const afStatus = (video.autofix_state as { status?: string } | null)?.status;
-    if (loopOn && afStatus !== "done" && afStatus !== "held") continue;
+    // Shared settle rule 1: wait for the auto-fix loop to FULLY converge
+    // (done/held) — otherwise we'd hold/approve a video it is still improving.
+    if (!autofixSettled(project, video)) continue;
     const qc = await finalQc(db, video, project, cfg.publishFloorQc);
     // Pre-publish editorial review (metadata-only when the full check already
     // ran at the script stage; full otherwise).
@@ -826,12 +824,8 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
     // judged — otherwise a copilot video awaiting a manual tap would re-run the
     // competitive judge + temporal pass on every ~30-min tick. A re-render resets
     // watch_review (competitive un-evaluated), so it correctly re-judges then.
-    const existingWatch = video.watch_review;
-    const watch = existingWatch?.competitive?.evaluated
-      ? existingWatch
-      : await runWatchGate(db, video, project, { competitive: true });
-    const watchPolicyRisk = Boolean(watch && watch.policyRisk);
-    const watchBlocks = Boolean(watch && !watch.degraded && (watch.overall < qg.watchBlockPublishBelow || watchPolicyRisk));
+    const watch = await resolveWatchVerdict(db, video, project);
+    const { blocked: watchBlocks, policyRisk: watchPolicyRisk } = watchBlocksPublish(watch, qg);
 
     // Hard gate: below the publish floor, an editorial FAIL, or a failing
     // Self-Watch verdict → hold for the one human touch (never auto-published).
@@ -839,11 +833,9 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
       const reason =
         guard.verdict === "fail"
           ? `editorial review: ${guard.note || flags[0] || "flagged"}`
-          : watchPolicyRisk
-            ? "Self-Watch flagged a content-policy risk (transformative value / repetitious content) — human review required"
-            : watchBlocks
-              ? `Self-Watch ${watch!.overall.toFixed(1)} below the ${qg.watchBlockPublishBelow.toFixed(1)} floor — ${watch!.fixPlan.slice(0, 2).map((f) => f.reason).join("; ") || "quality issues"}`
-              : `QC ${qc.toFixed(1)} below the ${cfg.publishFloorQc.toFixed(1)} floor`;
+          : watchBlocks
+            ? watchHoldReason(watch!, qg)
+            : `QC ${qc.toFixed(1)} below the ${cfg.publishFloorQc.toFixed(1)} floor`;
       await db
         .from("videos")
         .update({

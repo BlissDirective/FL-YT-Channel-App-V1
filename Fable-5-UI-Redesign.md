@@ -1,7 +1,7 @@
 # Fable 5 — UI/UX Redesign: Running Log & Build Plan
 
 **Started:** 2026-07-06 · **Branch:** `claude/app-ui-ux-redesign-9j0267` ·
-**Status:** v1 SHIPPED — Phases 0–7 complete (cutover done); v2 backlog next. Final exit gate: `e2e-authed` green in CI.
+**Status:** v1 + v2 SHIPPED (Phases 0–7 + engine consolidation). Exit gate: `e2e-authed` green in CI. Next: Auto-Rescript spec.
 
 This is the living document for the full UI/UX redesign. It records every
 operator decision as it is made (§2), the target design those decisions imply
@@ -385,11 +385,51 @@ The redesign's insurance policy; also closes Enhancement P5.5.
   end-to-end video in mock mode, then one real (live-key) video before
   calling it done.
 
-### v2 backlog (explicitly out of scope for v1 — D-10)
-Unify `operator_runs`/`build_runs` engine-side · consolidate the two
-autonomy code paths' settle functions further · any schema changes ·
-multi-tenancy interplay (live-app Stage 3 happens after this redesign
-ships).
+### v2 — engine-side consolidation (SHIPPED 2026-07-07)
+
+The backlog D-10 deferred, now built:
+
+1. **One FINAL_REVIEW settle core** (`src/lib/pipeline/settle.ts`, 18 tests):
+   the invariants both owners must agree on — autofix-convergence wait,
+   Self-Watch verdict reuse-or-run, the publish-block rule (floor +
+   compliance policy risk, degraded-never-fakes-a-pass), and one hold-reason
+   phrasing — extracted from `finalizeAutoPilotVideos` (engine) and
+   `processOperatorApprovals` (operator). The owners keep their genuinely
+   distinct halves (per-run QC thresholds vs publish floor + editorial
+   guard; push vs Telegram) but can never drift on the safety rules again —
+   the exact drift class the Enhancement audit's §0.4 fixed once by hand.
+2. **One unified runs read model** (`src/lib/pipeline/runs.ts`, 4 tests):
+   `StudioRun` over `operator_runs` + `build_runs`; the Autopilot timeline
+   and the Feed both consume it (their duplicated boost-row mappings
+   deleted).
+3. **Schema changes: deliberately none.** The two run tables keep their
+   distinct write paths, budgets, and lifecycles; a destructive merge on a
+   live single-tenant DB buys nothing the accessor doesn't. The physical
+   merge (if ever) rides the Stage-3 migration, which must touch every row
+   of both tables anyway to add `org_id`.
+
+### Multi-tenancy interplay (for live-app Stage 3, which ships AFTER this)
+
+How the new IA maps onto the Stage-3 lift, recorded now so the migration
+plan can lean on it:
+
+- **The per-project Library (D-2) is already tenant-shaped.** Every v2
+  surface (Library/Canvas/Autopilot/Feed) is project-scoped; Stage 3 adds
+  `org_id` above `project_id` and the UI needs only an org switcher on Home
+  — no surface redesign.
+- **Data access is choke-pointed.** New read models (`library-data.ts`,
+  `feed.ts`, `runs.ts`) and the server-action contract are the only paths
+  the UI touches; adding org-aware RLS + a per-tenant key resolver changes
+  queries in a handful of files, all pinned by the contract manifest +
+  golden path.
+- **The settle core is where per-tenant policy lands.** Plan caps /
+  autonomy-tier gating per tenant (Stage 4 "gate by capability") slots into
+  `settle.ts` + `checkBudget` — one place each, both unit-tested.
+- **Signals are single-sourced** (signal strip / pulse / cost ledger), so
+  per-tenant metering (the billing meter) reuses `cost_ledger` untouched.
+- **Reminder from the live-app plan:** public signup stays DISABLED until
+  Stage 3's RLS rewrite; the bootstrap-one-account rule is unchanged by
+  this redesign.
 
 ---
 
@@ -421,3 +461,5 @@ ships).
 4. **CI note:** the `e2e-authed` job (local Supabase on GitHub runners) is the
    final Phase-7 exit gate — first run happens on push; fix-forward expected
    for selector-level surprises. |
+| 2026-07-07 | **v1 merged to `main`** (`5ee84cc`, operator instruction) after merging in the operator's Auto-Rescript spec commit. |
+| 2026-07-07 | **v2 shipped**: shared settle core (`settle.ts` — both owners refactored onto it, 18 tests), unified runs read model (`runs.ts` — Autopilot + Feed consume it, 4 tests), schema deliberately unchanged, multi-tenancy interplay documented (§ above). Suite: 374 tests green, build green. Next: Fable5-Auto-Rescript-Spec.md build. |

@@ -11,6 +11,7 @@ import {
 } from "@/lib/db/queries";
 import type { OperatorEvent } from "@/lib/db/types";
 import { operatorReadiness } from "@/lib/pipeline/operator-readiness";
+import { getStudioRuns } from "@/lib/pipeline/runs";
 import { Card, CardTitle } from "@/components/ui/card";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { OperatorPanel } from "../operator-panel";
@@ -52,16 +53,18 @@ export default async function AutopilotPage({
     .map((i) => ({ id: i.id, title: i.title, angle: i.angle }));
 
   // D-9: ONE activity timeline — boost (build) runs interleave with the
-  // operator's own events, labeled as boost runs (D-19).
-  const boostEvents: OperatorEvent[] = buildRuns.map((r) => ({
-    id: `boost-${r.id}`,
-    project_id: id,
-    operator_run_id: null,
-    kind: "boost",
-    message: `Boost run — ${r.videos.length} video${r.videos.length === 1 ? "" : "s"} (${r.status})`,
-    meta: {},
-    created_at: r.createdAt,
-  }));
+  // operator's own events via the unified runs model (v2: one seam).
+  const boostEvents: OperatorEvent[] = (await getStudioRuns(id, 10))
+    .filter((r) => r.source === "boost")
+    .map((r) => ({
+      id: `boost-${r.id}`,
+      project_id: id,
+      operator_run_id: null,
+      kind: "boost",
+      message: r.label,
+      meta: {},
+      created_at: r.createdAt,
+    }));
   const timeline = [...operatorEvents, ...boostEvents]
     .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
     .slice(0, 12);

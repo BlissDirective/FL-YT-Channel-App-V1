@@ -2,6 +2,7 @@ import "server-only";
 import { GATE_FOR_STATUS } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import { getOperatorEvents, getVideos } from "./queries";
+import { getStudioRuns } from "@/lib/pipeline/runs";
 
 /**
  * The per-project activity feed (UI v2 Phase 5, D-16): system events —
@@ -37,7 +38,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export async function getFeedEntries(projectId: string, limit = 40): Promise<FeedEntry[]> {
   const supabase = await createClient();
-  const [videos, operatorEvents, { data: autofixRuns }, { data: buildRuns }] =
+  const [videos, operatorEvents, { data: autofixRuns }, studioRuns] =
     await Promise.all([
       getVideos(projectId),
       getOperatorEvents(projectId, 20),
@@ -47,12 +48,7 @@ export async function getFeedEntries(projectId: string, limit = 40): Promise<Fee
         .eq("project_id", projectId)
         .order("created_at", { ascending: false })
         .limit(15),
-      supabase
-        .from("build_runs")
-        .select("id, status, count, created_at")
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false })
-        .limit(10),
+      getStudioRuns(projectId, 10, supabase),
     ]);
 
   const canvas = (videoId: string) => `/projects/${projectId}/videos/${videoId}`;
@@ -104,13 +100,12 @@ export async function getFeedEntries(projectId: string, limit = 40): Promise<Fee
     });
   }
 
-  type BuildRow = { id: string; status: string; count: number; created_at: string };
-  for (const r of ((buildRuns ?? []) as BuildRow[])) {
+  for (const r of studioRuns.filter((x) => x.source === "boost")) {
     entries.push({
       id: `boost-${r.id}`,
-      at: r.created_at,
+      at: r.createdAt,
       category: "system",
-      title: `Boost run — ${r.count} video${r.count === 1 ? "" : "s"} (${r.status})`,
+      title: r.label,
       href: `/projects/${projectId}/autopilot`,
     });
   }

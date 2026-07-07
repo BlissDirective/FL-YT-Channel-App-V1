@@ -30,8 +30,8 @@ import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
 import { pickBestVariant } from "@/lib/adapters/variant-judge";
 import { verifyBeatVisual, isBeatRelevanceLive, type BeatRelevance } from "@/lib/adapters/beat-relevance";
 import { playbookForStage } from "@/lib/pipeline/playbook";
-import { getQualityGateConfig, failClosedBlocksSpend, isAutofixEnabled, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
-import { runWatchGate } from "@/lib/pipeline/watch-runner";
+import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
+import { autofixSettled, resolveWatchVerdict, watchBlocksPublish, watchHoldReason } from "@/lib/pipeline/settle";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
 import { keywords } from "@/lib/pipeline/dedup";
 import { providerOutage } from "@/lib/pipeline/provider-health";
@@ -2930,27 +2930,18 @@ export async function finalizeAutoPilotVideos(
       // FINAL_REVIEW for one-tap approval (or auto-approve) rather than the
       // build-runner auto-publishing them here.
       if (video.operator_run_id) continue;
-      // Defer to the auto-fix loop: when this channel's loop is on and the
-      // video hasn't converged ('done') or been held, let the loop fix it
-      // first rather than publishing a pre-fix cut. (The sweep runs before this
+      // Defer to the auto-fix loop (shared settle rule 1): let the loop
+      // converge before publishing a pre-fix cut. (The sweep runs before this
       // in the same cron pass; this guards the rare over-the-limit race.)
-      const loopOn = isAutofixEnabled(project, video);
-      const afStatus = (video.autofix_state as { status?: string } | null)?.status;
-      if (loopOn && afStatus !== "done" && afStatus !== "held") continue;
+      if (!autofixSettled(project, video)) continue;
       const { floor, pub } = await runThresholds(db, row.build_run_id);
       const { score } = await scoreAndRecordGate(db, video, project, "FINAL", floor);
 
-      // Self-Watch parity (Fable5-Self-Watch-Loop-Plan.md): the same pre-publish
-      // gate the operator applies now also gates the manual/build-run finalizer —
-      // a low overall or a content-policy risk holds for a human. Reuse the stored
-      // verdict once its competitive dimension has been judged (held videos drop
-      // out of this scan via the paused_reason filter, so no per-tick re-run).
+      // Self-Watch parity (shared settle rules 2+3): the same pre-publish gate
+      // the operator applies also gates the build-run finalizer.
       const qg = await getQualityGateConfig(db);
-      const existingWatch = video.watch_review;
-      const watch = existingWatch?.competitive?.evaluated
-        ? existingWatch
-        : await runWatchGate(db, video, project, { competitive: true });
-      const watchBlocks = Boolean(watch && !watch.degraded && (watch.overall < qg.watchBlockPublishBelow || watch.policyRisk));
+      const watch = await resolveWatchVerdict(db, video, project);
+      const { blocked: watchBlocks } = watchBlocksPublish(watch, qg);
 
       if (score >= floor && !watchBlocks) {
         const privacy = privacyForScore(score, pub);
@@ -2973,9 +2964,7 @@ export async function finalizeAutoPilotVideos(
         const reason =
           score < floor
             ? `final QC ${score.toFixed(1)}/10 below the ${floor.toFixed(1)} floor`
-            : watch?.policyRisk
-              ? "Self-Watch flagged a content-policy risk"
-              : `Self-Watch ${watch!.overall.toFixed(1)}/10 below the ${qg.watchBlockPublishBelow.toFixed(1)} floor`;
+            : watchHoldReason(watch!, qg);
         await db
           .from("videos")
           .update({
