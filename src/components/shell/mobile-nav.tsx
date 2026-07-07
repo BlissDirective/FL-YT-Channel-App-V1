@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Home,
   LayoutDashboard,
   Lightbulb,
   Radar,
@@ -10,6 +11,14 @@ import {
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import {
+  globalNavV2,
+  isUiV2Client,
+  navIsActive,
+  projectIdFromPath,
+  projectNavV2,
+  type NavItem,
+} from "./nav-context";
 
 const TABS = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -20,22 +29,35 @@ const TABS = [
 ];
 
 /** Bottom tab bar for phones — the top nav pills are hidden below `sm`,
-    so this is the only route to Insights/Intel/Spend on mobile. */
+    so this is the only mobile route to everything. UI v2 (Phase 6): the tab
+    set is context-aware — project tabs inside a project (with a Home tab to
+    exit), global tabs elsewhere; the same IA as the desktop pills. */
 export function MobileNav() {
   const pathname = usePathname();
 
   // The login screen renders its own centered layout; no nav chrome there.
   if (pathname === "/login") return null;
 
+  let tabs: (NavItem | (typeof TABS)[number])[] = TABS;
+  let v2 = false;
+  if (isUiV2Client()) {
+    v2 = true;
+    const projectId = projectIdFromPath(pathname);
+    tabs = projectId
+      ? [{ label: "Home", href: "/", icon: Home }, ...projectNavV2(projectId)]
+      : globalNavV2();
+  }
+
   return (
     <nav
       aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card pb-[env(safe-area-inset-bottom)] shadow-float sm:hidden"
     >
-      <div className="grid grid-cols-5">
-        {TABS.map((tab) => {
-          const active =
-            tab.href === "/"
+      <div className={cn("grid", tabs.length === 4 ? "grid-cols-4" : "grid-cols-5")}>
+        {tabs.map((tab) => {
+          const active = v2
+            ? navIsActive(tab as NavItem, pathname)
+            : tab.href === "/"
               ? pathname === "/"
               : pathname.startsWith(tab.href);
           return (

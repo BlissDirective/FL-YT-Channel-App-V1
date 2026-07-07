@@ -6,6 +6,13 @@ import { LogOut, Settings, Sparkles } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { cn } from "@/lib/cn";
 import { BackButton } from "./back-button";
+import {
+  globalNavV2,
+  isUiV2Client,
+  navIsActive,
+  projectIdFromPath,
+  projectNavV2,
+} from "./nav-context";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/" },
@@ -19,6 +26,15 @@ export function TopNav() {
 
   // The login screen renders its own centered layout; no nav chrome there.
   if (pathname === "/login") return null;
+
+  // UI v2 (Phase 6): two-level IA — project tabs inside a project, global
+  // tabs elsewhere; the same sets the mobile bottom bar uses.
+  const v2ProjectId = isUiV2Client() ? projectIdFromPath(pathname) : null;
+  const v2Items = isUiV2Client()
+    ? v2ProjectId
+      ? projectNavV2(v2ProjectId)
+      : globalNavV2()
+    : null;
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 py-5 sm:px-8">
@@ -35,9 +51,10 @@ export function TopNav() {
       </div>
 
       <nav className="hidden items-center gap-1 rounded-full bg-card-warm p-1 shadow-card sm:flex">
-        {NAV_ITEMS.map((item) => {
-          const active =
-            item.href === "/"
+        {(v2Items ?? NAV_ITEMS).map((item) => {
+          const active = v2Items
+            ? navIsActive(item as never, pathname)
+            : item.href === "/"
               ? pathname === "/"
               : pathname.startsWith(item.href);
           return (

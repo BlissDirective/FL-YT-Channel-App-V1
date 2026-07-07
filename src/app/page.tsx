@@ -30,6 +30,9 @@ import { ActivityFeed } from "@/components/ui/activity-feed";
 import { ProjectCard } from "@/components/dashboard/project-card";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { SystemPulse } from "@/components/dashboard/system-pulse";
+import { AwaitingYouRow } from "@/components/dashboard/awaiting-you";
+import { tileState } from "@/lib/db/library";
+import { isUiV2 } from "@/lib/ui-v2";
 
 export const dynamic = "force-dynamic";
 
@@ -90,9 +93,21 @@ export default async function Home() {
       !["KILLED", "APPROVED", "TRACKING", "FINAL_REVIEW", "ASSETS_READY"].includes(v.status),
   ).length;
 
+  // UI v2 (Phase 6, D-15): the cross-project "awaiting you" row — per-project
+  // counts of assets flagged 🟠 by the same tileState the Library tiles use.
+  const awaiting = isUiV2()
+    ? projects.map((p) => ({
+        projectId: p.id,
+        projectName: p.name,
+        count: (videosByProject.get(p.id) ?? []).filter((v) => tileState(v).awaitingYou)
+          .length,
+      }))
+    : [];
+
   return (
     <div className="space-y-6 pt-2">
       <RealtimeRefresher />
+      {isUiV2() && <AwaitingYouRow projects={awaiting} />}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
