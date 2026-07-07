@@ -101,11 +101,19 @@ export async function reviewGate(opts: {
    * ±1.5 of it, the strong judge re-reviews. Omit for advisory-only reviews.
    */
   escalateNear?: number;
+  /**
+   * Force a single consistent judge model instead of the Haiku-screen → Opus
+   * cascade. The auto-fix loop uses this for the POST-FIX re-judge so scores stay
+   * on one comparable scale across passes (band routing depends on it) and the
+   * grader is independent of the fixer's tier.
+   */
+  judgeModel?: string;
 }): Promise<QcResult> {
   if (!isQcLive()) return heuristicReview();
 
   const lints = computeLints(opts.gate, opts.context);
   try {
+    if (opts.judgeModel) return await judgeOnce(opts.judgeModel, opts.gate, opts.context, lints);
     const screen = await judgeOnce(SCREEN_MODEL, opts.gate, opts.context, lints);
     const borderline =
       opts.escalateNear != null && Math.abs(screen.score - opts.escalateNear) <= ESCALATE_BAND;

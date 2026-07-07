@@ -10,6 +10,8 @@ import { isTwelveLabsLive, wantsTemporalPass } from "@/lib/adapters/twelvelabs";
 import { makeBeatClip } from "@/lib/pipeline/engine";
 import { runWatchGate } from "@/lib/pipeline/watch-runner";
 import { rerollActions } from "@/lib/pipeline/watch-gate";
+import { fixerModelForScore, REJUDGE_MODEL, SONNET_MODEL } from "@/lib/pipeline/fix-router";
+import { refineFixDirection, composeRevisionBrief } from "@/lib/adapters/fix-planner";
 import {
   DEFAULT_STICK_CAST,
   type FrameCritique,
@@ -31,7 +33,9 @@ import type {
 type Db = ReturnType<typeof createAdminClient>;
 type Loop = Exclude<AutofixLoop, "off">;
 
-const DEFAULT_CONFIG: AutofixConfig = { threshold: 7, maxRenders: 2, spendCapUsd: 1 };
+// maxRenders 3 (was 2) so the score-banded staircase can complete — a low render
+// can climb Sonnet→goal-line→Opus across passes before the cap holds it.
+const DEFAULT_CONFIG: AutofixConfig = { threshold: 7, maxRenders: 3, spendCapUsd: 1 };
 
 // ── Config / eligibility ──────────────────────────────────────────────
 
@@ -96,6 +100,21 @@ async function loadClips(db: Db, videoId: string): Promise<Clip[]> {
     .eq("video_id", videoId)
     .eq("kind", "clip");
   return ((data ?? []) as Clip[]).map((c) => ({ ...c, meta: (c.meta ?? {}) as Record<string, unknown> }));
+}
+
+/** The latest QC review's verdict + specific notes — the fix work-order that
+    steers a targeted regeneration (Layer 1: QC-notes-as-fix-guideline). */
+async function qcNotesForFix(db: Db, videoId: string): Promise<string> {
+  const { data } = await db
+    .from("qc_reviews")
+    .select("verdict, issues, created_at")
+    .eq("video_id", videoId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!data) return "";
+  const issues = ((data.issues ?? []) as string[]).filter(Boolean).slice(0, 6);
+  return [data.verdict as string, ...issues.map((i) => `• ${i}`)].filter(Boolean).join("\n").slice(0, 1400);
 }
 
 async function setState(db: Db, videoId: string, state: AutofixState) {
@@ -190,6 +209,10 @@ async function getCritique(
   const clips = await loadClips(db, video.id);
   const review = await reviewGate({
     gate: "FINAL",
+    // Consistent, strong, independent judge across every pass (Layer 1): band
+    // routing depends on scores being on one comparable scale, and the grader
+    // must not be the fixer's own tier.
+    judgeModel: REJUDGE_MODEL,
     context: {
       title: video.title,
       topic: video.topic,
@@ -202,6 +225,10 @@ async function getCritique(
     },
   });
   if (review.costUsd > 0) await recordCost(db, video, "autofix:critique", review.costUsd, "Auto-fix QC critique");
+  // A degraded review is a placeholder 6.0 (no real judgment) — with the forced
+  // single strong judge there's no cheaper screen to fall back to, so never let
+  // the band router act on a fake score: wait for a real re-judge next pass.
+  if (review.degraded) return null;
   const issues: FrameIssue[] = (review.issues ?? []).map((note) => ({
     beatIdx: null,
     category: "other",
@@ -252,6 +279,8 @@ async function planAnimation(
   project: Project,
   critique: FrameCritique,
   mem: AutofixMemory,
+  fixModel: string,
+  qcNotes: string,
 ): Promise<FixPlan> {
   const beats = await loadBeats(db, video.id);
   const clips = await loadClips(db, video.id);
@@ -303,6 +332,8 @@ async function planAnimation(
         tone: project.tone,
         format: video.format,
         beats: [steered],
+        model: fixModel,
+        steer: qcNotes,
       });
       const next = choreo.scenes[0];
       if (next) {
@@ -329,6 +360,8 @@ async function planAnimation(
         tone: project.tone,
         format: video.format,
         beats: [{ ...beat, text: `${beat.text} (${note})` }],
+        model: fixModel,
+        steer: qcNotes,
       });
       if (choreo.scenes[0]) {
         await patchClip(db, clip, lockCast(choreo.scenes[0], project));
@@ -380,6 +413,8 @@ async function planFootage(
   critique: FrameCritique,
   mem: AutofixMemory,
   budgetLeft: number,
+  fixModel: string,
+  qcNotes: string,
 ): Promise<FixPlan> {
   const beats = await loadBeats(db, video.id);
   const clips = await loadClips(db, video.id);
@@ -430,12 +465,28 @@ async function planFootage(
       continue;
     }
 
-    // Build a sharper visual direction from the fix + memory + (when the root
-    // cause is the script) a tighter visual-storytelling steer.
+    // Build a sharper visual direction. Prefer the notes-driven, score-banded
+    // fix planner (Layer 1) — it rewrites the prompt from the QC work-order with
+    // the banded model — and fall back to the string-concatenated steer when the
+    // planner is unavailable.
     const direction = [iss.fix, SCRIPT_RE.test(text) ? "tighten the visual storytelling for this beat" : "", hint]
       .filter(Boolean)
       .join(". ");
-    const steered = { ...beat, visualPrompt: `${beat.visualPrompt}. ${direction}`.slice(0, 600) };
+    let steered = { ...beat, visualPrompt: `${beat.visualPrompt}. ${direction}`.slice(0, 600) };
+    const refined = await refineFixDirection({
+      model: fixModel,
+      title: video.title,
+      niche: project.niche,
+      beatText: beat.text ?? "",
+      currentVisualPrompt: beat.visualPrompt ?? "",
+      issue: `${iss.note} ${iss.fix}`.trim(),
+      qcNotes,
+    });
+    if (refined) {
+      steered = { ...beat, visualPrompt: refined.visualPrompt };
+      costUsd += refined.costUsd;
+      ledgerCost += refined.costUsd;
+    }
 
     const meta = (target?.meta ?? {}) as { isVideo?: boolean; longClip?: boolean; model?: string; heroHold?: boolean; durationSec?: number };
     const isAiVideo = Boolean(meta.isVideo && meta.longClip);
@@ -620,6 +671,23 @@ export async function processAutofixForVideo(
     return { acted: true, kind: "done", score };
   }
 
+  // <4.0 band (Layer 1): a low-quality render that just got a fix and DIDN'T move
+  // is held immediately — reward a responder, don't throw good money after bad. A
+  // low render that DID improve falls through and continues the staircase.
+  if (open && open.toScore != null && attempts > 0) {
+    const wasLowBand = open.fromScore < config.threshold - 3;
+    const improved = score - open.fromScore >= 0.3;
+    if (wasLowBand && !improved) {
+      state.status = "held";
+      await setState(db, video.id, state);
+      await db
+        .from("videos")
+        .update({ paused_reason: `Auto-fix held — a low render (${open.fromScore.toFixed(1)}/10) didn't respond to a fix. Manual review.` })
+        .eq("id", video.id);
+      return { acted: true, kind: "held", score };
+    }
+  }
+
   // Out of attempts or budget — hold for a human.
   const spent = Number(state.spentUsd ?? 0);
   if (attempts >= config.maxRenders || spent >= config.spendCapUsd) {
@@ -647,18 +715,40 @@ export async function processAutofixForVideo(
     return { acted: true, kind: "held", score };
   }
 
-  // Apply one fix bundle and re-render.
+  // Apply one fix bundle and re-render. Score-banded model (Layer 1): the model
+  // scales with how close the render is to the pass bar; a score ≥ threshold that
+  // reached here only via a watch re-roll defaults to Sonnet.
+  const fixModel = fixerModelForScore(score, config.threshold)?.model ?? SONNET_MODEL;
+  const qcNotes = await qcNotesForFix(db, video.id);
   const budgetLeft = config.spendCapUsd - spent;
   const plan = loop === "animation"
-    ? await planAnimation(db, video, project, critique, mem)
-    : await planFootage(db, video, project, critique, mem, budgetLeft);
+    ? await planAnimation(db, video, project, critique, mem, fixModel, qcNotes)
+    : await planFootage(db, video, project, critique, mem, budgetLeft, fixModel, qcNotes);
 
   if (plan.changes.length === 0) {
+    // Layer 2 — scope-expanded remediation: no VISUAL fix is actionable, so the
+    // failure is structural/script (a starved beat, weak hook, pacing) that the
+    // loop can't safely re-render away. Rather than a generic hold, compose a
+    // SPECIFIC, notes-driven brief with the banded model so the human review is
+    // one-tap-actionable — what to change, not just "it failed".
+    // (Autonomous re-script/re-generate from FINAL isn't a safe primitive today —
+    // a FINAL revision only re-renders; step-back strands the video — so this
+    // holds with precise guidance instead of blindly re-generating.)
+    const structural = (critique.issues ?? []).some(isStructuralIssue);
+    let reason = `no actionable fix at ${score.toFixed(1)}/10`;
+    if (structural && qcNotes) {
+      const issues = (critique.issues ?? []).map((i) => i.note ?? "").filter(Boolean);
+      const brief = await composeRevisionBrief({ model: fixModel, qcNotes, issues });
+      if (brief) {
+        if (brief.costUsd > 0) await recordCost(db, video, "autofix:brief", brief.costUsd, "Auto-fix revision brief");
+        reason = `${score.toFixed(1)}/10 — the script/structure needs work: ${brief.brief.slice(0, 400)}`;
+      }
+    }
     state.status = "held";
     await setState(db, video.id, state);
     await db
       .from("videos")
-      .update({ paused_reason: `Auto-fix held — no actionable fix at ${score.toFixed(1)}/10. Manual review.` })
+      .update({ paused_reason: `Auto-fix held — ${reason}. Manual review.` })
       .eq("id", video.id);
     return { acted: true, kind: "held", score };
   }

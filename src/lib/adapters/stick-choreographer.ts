@@ -90,6 +90,10 @@ export async function choreographStickScenes(opts: {
   tone: string;
   format: string;
   beats: ScriptBeat[];
+  /** Score-banded fixer model (auto-fix remediation); defaults to SCRIPT_MODEL. */
+  model?: string;
+  /** QC work-order notes to steer the fix toward the judge's specific feedback. */
+  steer?: string;
 }): Promise<StickChoreography> {
   const all = opts.beats;
   const prompted = all.filter((b) => b.text?.trim());
@@ -109,7 +113,7 @@ For EACH beat, design one scene that visually acts out the narration:
 
 SCRIPT:
 ${script}
-
+${opts.steer ? `\nFIX GUIDANCE (address these QC notes where they apply):\n${opts.steer}\n` : ""}
 Call deliver_scenes with exactly ${prompted.length} scenes, one per beat, in order.`;
 
   const res = await anthropicFetch({
@@ -120,7 +124,7 @@ Call deliver_scenes with exactly ${prompted.length} scenes, one per beat, in ord
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: opts.model?.trim() || MODEL,
       max_tokens: 3000,
       temperature: 0.6,
       tools: [DELIVER_SCENES_TOOL],
