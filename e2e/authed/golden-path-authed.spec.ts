@@ -272,6 +272,21 @@ test("golden path v2: the same journey entirely on Library + Asset Canvas", asyn
   });
 });
 
+test("autopilot v2: merged surface renders operator system + boost", async ({ page }) => {
+  await signInOrBootstrap(page);
+  await page.goto(`${projectUrl}/autopilot`);
+  await expect(page.getByRole("heading", { name: "Autopilot" })).toBeVisible({
+    timeout: 30_000,
+  });
+  // The operator's go-live checklist (not yet launched in a fresh project).
+  await expect(page.getByText("Go-live checklist")).toBeVisible();
+  // Boost (the demoted Build & Post) opens the batch modal.
+  await expect(page.getByText("Boost — one-off batch")).toBeVisible();
+  await page.getByRole("button", { name: /Build & Post/ }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
+});
+
 test("baseline screenshots of the main authenticated routes", async ({ page }, testInfo) => {
   await signInOrBootstrap(page);
   const routes: [string, string][] = [
