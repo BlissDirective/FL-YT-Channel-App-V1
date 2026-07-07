@@ -287,6 +287,19 @@ test("autopilot v2: merged surface renders operator system + boost", async ({ pa
   await page.keyboard.press("Escape");
 });
 
+test("feed v2: filtered activity stream with the project's events", async ({ page }) => {
+  await signInOrBootstrap(page);
+  await page.goto(`${projectUrl}/feed`);
+  await expect(page.getByRole("heading", { name: "Feed" })).toBeVisible({ timeout: 30_000 });
+  // The golden-path project has history — entries render, incl. the publish.
+  await expect(page.getByText(/Published & tracking/).first()).toBeVisible();
+  // Filters narrow the stream.
+  await page.getByRole("tab", { name: "Needs action" }).click();
+  await expect(page.getByText(/Published & tracking/)).toHaveCount(0);
+  await page.getByRole("tab", { name: "All" }).click();
+  await expect(page.getByRole("button", { name: "Generate insights" })).toBeVisible();
+});
+
 test("baseline screenshots of the main authenticated routes", async ({ page }, testInfo) => {
   await signInOrBootstrap(page);
   const routes: [string, string][] = [

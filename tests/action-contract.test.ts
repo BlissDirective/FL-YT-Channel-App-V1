@@ -27,8 +27,9 @@ import expected from "./contracts/action-manifest.json";
 // start/pause actions respectively. Do NOT add to this list — wire the action
 // to a surface or delete it instead.
 const KNOWN_UNREFERENCED = new Set([
-  "runOptimizerNowAction", // intelligence.ts — /insights uses runAllOptimizerAction
-  "runOperatorNowAction", //  operator.ts — panel uses start/pause/stop actions
+  // runOptimizerNowAction was re-homed: the per-project Feed's "Generate
+  // insights" now calls it (Phase 5).
+  "runOperatorNowAction", // operator.ts — panel uses start/pause/stop actions
 ]);
 
 describe("server-action contract manifest", () => {
