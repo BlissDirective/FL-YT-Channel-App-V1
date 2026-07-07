@@ -81,6 +81,11 @@ class QueryBuilder implements PromiseLike<{
     return this;
   }
 
+  lt(col: string, val: unknown) {
+    this.filters.push((r) => Number(r[col]) < Number(val));
+    return this;
+  }
+
   lte(col: string, val: unknown) {
     this.filters.push((r) => String(r[col] ??
       "") <= String(val));

@@ -3958,6 +3958,39 @@ export async function killVideo(videoId: string, dbArg?: Db): Promise<EngineResu
   return { ok: true };
 }
 
+/**
+ * Autonomous re-script from a FINAL structural failure (Auto-Rescript spec,
+ * Self-Watch Layer 2 follow-up). Mirrors the proven script-stage auto-revision
+ * mechanism: record the brief as a revision approval (latestNotes reads the
+ * newest revision regardless of gate), rewrite the script, then re-arm the
+ * full-auto continuation so the video re-flows SCRIPT_READY → assets → render.
+ * Bounds/kill-switches live at the call site (autofix.ts); this is the
+ * primitive.
+ */
+export async function autoRescriptFromFinal(
+  db: Db,
+  video: Video,
+  project: Project,
+  brief: string,
+): Promise<EngineResult> {
+  if (video.status !== "FINAL_REVIEW") return { ok: false, error: "not at final review" };
+  await db.from("approvals").insert({
+    video_id: video.id,
+    gate: "SCRIPT",
+    decision: "revision",
+    decided_by: "autopilot",
+    notes: brief.slice(0, 2000),
+    decided_at: new Date().toISOString(),
+  });
+  await runScripting(db, video, project); // reads latestNotes → new version → SCRIPT_READY
+  // Re-arm the full-auto continuation (build-runner/cron drives SCRIPT_READY on).
+  await db
+    .from("videos")
+    .update({ auto_finish: true, paused_reason: null })
+    .eq("id", video.id);
+  return { ok: true };
+}
+
 export async function decideGate(
   opts: {
     videoId: string;

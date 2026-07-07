@@ -1,6 +1,37 @@
 # Fable5 — Autonomous Re-Script Follow-Up (Self-Watch Layer 2, full version)
 
-**Status:** SPEC — not built. This is the tested-follow-up to Self-Watch Layer 2.
+**Status:** **STAGES A + B BUILT & GREEN (2026-07-07)** — merged behind the
+kill-switch **OFF** (per §8). Execution stays disabled until Stage C's dry-run
+and Stage D's canary (operational stages, run on real traffic).
+
+> **Build status (2026-07-07):**
+> - **Shipped:** `autoRescriptFromFinal` (engine primitive, exported);
+>   `src/lib/pipeline/auto-rescript.ts` (`autoRescriptMode` on/dry/off +
+>   `shouldAutoRescript`, pure); the autofix call-site (env-gated re-script
+>   with full bookkeeping, `dry` would-rescript logging to `operator_events`,
+>   global kill-switch honored, fallback = the shipped Layer-2 guidance-hold,
+>   byte-for-byte); the **outcome guard** (first fresh critique after a
+>   re-script logs the QC-delta to `operator_events` kind `auto_rescript`;
+>   Δ≤0 → held, never re-attempted); `AutofixState` gains `autoRescripted` /
+>   `rescriptFromScore` / `rescriptSettled`.
+> - **Tests (Stage A/B, 24 new, all green):** predicate + mode truth tables;
+>   the engine primitive run with the REAL `runScripting` in mock-adapter
+>   mode — pinning open question §9.1: it reads `latestNotes`, writes a new
+>   script version, lands `SCRIPT_READY`, re-arms `auto_finish`, refuses any
+>   non-FINAL_REVIEW status with zero writes; the call-site: fires once with
+>   exact side-effects, once-per-video, dry-mode logging, env-off /
+>   non-auto-pilot / kill-switch / non-structural fallbacks, and both
+>   outcome-guard branches (regressive → hold + delta; improved → done).
+> - **§9 answers:** #1 pinned by test (above). #3 confirmed — the predicate
+>   gates on `auto_pilot_run`. #2 and #4 are Stage C/D observations by design
+>   (the continuation + cycle-budget debits are live-traffic behavior; the
+>   normal pipeline budget guards apply unchanged).
+> - **Still open (operational):** Stage C dry-run (`AUTOFIX_AUTO_RESCRIPT=dry`,
+>   built and tested — flip the env var), Stage D canary, the insights
+>   win-rate tile (compute from `operator_events` kind `auto_rescript` meta
+>   deltas once Stage C/D produce data).
+
+This is the tested-follow-up to Self-Watch Layer 2.
 Layer 2 shipped the *safe* half (a structural QC failure is held with a specific,
 banded-model, notes-driven brief as its `paused_reason`). This spec is the
 *autonomous* half: instead of holding, re-script the video from that brief,

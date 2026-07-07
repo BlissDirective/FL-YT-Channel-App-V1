@@ -134,6 +134,12 @@ export type AutofixState = {
   /** Cumulative loop spend on this video (USD), against the cap. */
   spentUsd?: number;
   history?: AutofixAttempt[];
+  /** Auto-Rescript spec: once-per-video re-script fired (durable bound). */
+  autoRescripted?: boolean;
+  /** FINAL score at the moment the re-script fired (outcome-guard baseline). */
+  rescriptFromScore?: number;
+  /** The post-rescript outcome guard has run (delta logged; hold applied if regressive). */
+  rescriptSettled?: boolean;
 };
 
 export type AutofixAttempt = {

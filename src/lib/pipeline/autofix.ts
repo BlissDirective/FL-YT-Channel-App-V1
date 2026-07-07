@@ -7,11 +7,12 @@ import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import { recordNamespaceLesson } from "@/lib/pipeline/memory-service";
 import { craftNamespaceForChange } from "@/lib/pipeline/memory";
 import { isTwelveLabsLive, wantsTemporalPass } from "@/lib/adapters/twelvelabs";
-import { makeBeatClip } from "@/lib/pipeline/engine";
+import { autoRescriptFromFinal, isKillSwitchOn, makeBeatClip } from "@/lib/pipeline/engine";
 import { runWatchGate } from "@/lib/pipeline/watch-runner";
 import { rerollActions } from "@/lib/pipeline/watch-gate";
 import { fixerModelForScore, REJUDGE_MODEL, SONNET_MODEL } from "@/lib/pipeline/fix-router";
 import { refineFixDirection, composeRevisionBrief } from "@/lib/adapters/fix-planner";
+import { autoRescriptMode, shouldAutoRescript } from "./auto-rescript";
 import {
   DEFAULT_STICK_CAST,
   type FrameCritique,
@@ -658,6 +659,31 @@ export async function processAutofixForVideo(
       .is("to_score", null);
   }
 
+  // Outcome guard (Auto-Rescript spec §5): the first fresh critique after a
+  // re-script settles it. Log the QC-delta; a re-script that didn't improve
+  // the score is a failure — hold, never re-attempt (the once-flag is set).
+  if (state.autoRescripted && state.rescriptSettled === false) {
+    const pre = Number(state.rescriptFromScore ?? state.bestScore ?? 0);
+    const delta = Math.round((score - pre) * 100) / 100;
+    state.rescriptSettled = true;
+    await db.from("operator_events").insert({
+      project_id: project.id,
+      operator_run_id: null,
+      kind: "auto_rescript",
+      message: `Auto-rescript outcome: “${video.title}” QC ${pre.toFixed(1)} → ${score.toFixed(1)} (Δ${delta >= 0 ? "+" : ""}${delta.toFixed(1)})`,
+      meta: { videoId: video.id, fromScore: pre, toScore: score, delta },
+    });
+    if (delta <= 0) {
+      state.status = "held";
+      await setState(db, video.id, state);
+      await db
+        .from("videos")
+        .update({ paused_reason: `Auto-fix held — the re-script did not improve QC (${pre.toFixed(1)} → ${score.toFixed(1)}). Manual review.` })
+        .eq("id", video.id);
+      return { acted: true, kind: "held", score };
+    }
+  }
+
   state.lastScore = score;
   state.bestScore = Math.max(Number(state.bestScore ?? 0), score);
   state.loop = loop;
@@ -728,12 +754,10 @@ export async function processAutofixForVideo(
   if (plan.changes.length === 0) {
     // Layer 2 — scope-expanded remediation: no VISUAL fix is actionable, so the
     // failure is structural/script (a starved beat, weak hook, pacing) that the
-    // loop can't safely re-render away. Rather than a generic hold, compose a
-    // SPECIFIC, notes-driven brief with the banded model so the human review is
-    // one-tap-actionable — what to change, not just "it failed".
-    // (Autonomous re-script/re-generate from FINAL isn't a safe primitive today —
-    // a FINAL revision only re-renders; step-back strands the video — so this
-    // holds with precise guidance instead of blindly re-generating.)
+    // loop can't safely re-render away. Compose a SPECIFIC, notes-driven brief
+    // with the banded model, then either re-script autonomously (Auto-Rescript
+    // spec — env-gated, auto-pilot-only, once per video, kill-switch honored)
+    // or hold with that brief as one-tap-actionable guidance.
     const structural = (critique.issues ?? []).some(isStructuralIssue);
     let reason = `no actionable fix at ${score.toFixed(1)}/10`;
     if (structural && qcNotes) {
@@ -741,6 +765,54 @@ export async function processAutofixForVideo(
       const brief = await composeRevisionBrief({ model: fixModel, qcNotes, issues });
       if (brief) {
         if (brief.costUsd > 0) await recordCost(db, video, "autofix:brief", brief.costUsd, "Auto-fix revision brief");
+
+        const mode = autoRescriptMode();
+        const wouldFire = shouldAutoRescript({
+          enabled: true,
+          autoPilot: Boolean(video.auto_pilot_run),
+          alreadyRescripted: Boolean(state.autoRescripted),
+        });
+
+        if (mode === "on" && wouldFire && !(await isKillSwitchOn(db))) {
+          const r = await autoRescriptFromFinal(db, video, project, brief.brief);
+          if (r.ok) {
+            // Once-per-video bound (durable) + outcome-guard baseline.
+            state.autoRescripted = true;
+            state.rescriptFromScore = score;
+            state.rescriptSettled = false;
+            state.status = "rerendering";
+            state.actedOnAt = critique.at;
+            await setState(db, video.id, state);
+            await db.from("autofix_runs").insert({
+              project_id: project.id,
+              video_id: video.id,
+              loop,
+              attempt: attempts + 1,
+              tier: "tier1",
+              from_score: score,
+              changes: ["Auto-rescript from QC notes"],
+              status: "applied",
+            });
+            await db.from("operator_events").insert({
+              project_id: project.id,
+              operator_run_id: null,
+              kind: "auto_rescript",
+              message: `Auto-rescript fired: “${video.title}” at QC ${score.toFixed(1)} — ${brief.brief.slice(0, 160)}`,
+              meta: { videoId: video.id, fromScore: score },
+            });
+            return { acted: true, kind: "fixed", score, changes: ["Auto-rescript from QC notes"] };
+          }
+        } else if (mode === "dry" && wouldFire) {
+          // Stage C dry-run: record what WOULD have fired; nothing executes.
+          await db.from("operator_events").insert({
+            project_id: project.id,
+            operator_run_id: null,
+            kind: "auto_rescript_dry",
+            message: `Would auto-rescript: “${video.title}” at QC ${score.toFixed(1)} — ${brief.brief.slice(0, 160)}`,
+            meta: { videoId: video.id, fromScore: score },
+          });
+        }
+
         reason = `${score.toFixed(1)}/10 — the script/structure needs work: ${brief.brief.slice(0, 400)}`;
       }
     }
