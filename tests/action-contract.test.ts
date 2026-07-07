@@ -26,11 +26,10 @@ import expected from "./contracts/action-manifest.json";
 // 2026-07-06): superseded by runAllOptimizerAction and the operator panel's
 // start/pause actions respectively. Do NOT add to this list — wire the action
 // to a surface or delete it instead.
-const KNOWN_UNREFERENCED = new Set([
-  // runOptimizerNowAction was re-homed: the per-project Feed's "Generate
-  // insights" now calls it (Phase 5).
-  "runOperatorNowAction", // operator.ts — panel uses start/pause/stop actions
-]);
+// Phase 7 cleared the list: runOptimizerNowAction was re-homed to the Feed's
+// "Generate insights"; runOperatorNowAction (no caller anywhere) was deleted.
+// Keep this empty — wire new actions to a surface in the same PR that adds them.
+const KNOWN_UNREFERENCED = new Set<string>([]);
 
 describe("server-action contract manifest", () => {
   const actual = buildManifest() as Record<string, string[]>;

@@ -51,7 +51,7 @@ export type PipelineResult = { ok: boolean; error?: string };
 function refresh(projectId: string) {
   revalidatePath("/");
   revalidatePath(`/projects/${projectId}`);
-  revalidatePath(`/projects/${projectId}/review`);
+  revalidatePath(`/projects/${projectId}/library`);
   revalidatePath("/settings");
 }
 

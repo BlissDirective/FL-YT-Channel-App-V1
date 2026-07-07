@@ -8,10 +8,13 @@ import type { WatchVerdict } from "@/lib/pipeline/watch-gate";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import {
+  ClipsGrid,
   DecisionBar,
   QcCard,
   ThumbPicker,
   WatchPanel,
+  type AttributionCredit,
+  type ClipTile,
   type ThumbCandidate,
 } from "@/components/dashboard/checkpoint";
 
@@ -37,6 +40,8 @@ export function CheckpointPanel({
   qc,
   watch,
   thumbs,
+  clips,
+  credits,
   idea,
   pendingClips,
 }: {
@@ -47,6 +52,8 @@ export function CheckpointPanel({
   qc: QcReview | null;
   watch: WatchVerdict | null;
   thumbs: ThumbCandidate[];
+  clips?: ClipTile[];
+  credits?: AttributionCredit[];
   idea: { topic: string; angle?: string | null; score?: number | null } | null;
   pendingClips: number;
 }) {
@@ -87,6 +94,14 @@ export function CheckpointPanel({
 
       {qc && <QcCard qc={qc} />}
       {gate === "FINAL" && <WatchPanel watch={watch} videoId={videoId} />}
+      {gate === "ASSETS" && (
+        <ClipsGrid
+          projectId={projectId}
+          videoId={videoId}
+          clips={clips ?? []}
+          credits={credits ?? []}
+        />
+      )}
       {gate === "ASSETS" && (
         <ThumbPicker projectId={projectId} videoId={videoId} thumbs={thumbs} />
       )}

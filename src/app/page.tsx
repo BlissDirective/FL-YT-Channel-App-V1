@@ -4,19 +4,15 @@ import {
   DollarSign,
   Download,
   Eye,
-  FileText,
   FolderPlus,
-  Lightbulb,
   Plus,
   Rocket,
   Sparkles,
-  TrendingUp,
   Upload,
 } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import {
-  getActivity,
   getMonthlyBudgetUsd,
   getPortfolioStats,
   getProjects,
@@ -25,14 +21,12 @@ import {
 import { createDemoProject } from "@/lib/actions/projects";
 import { Card, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
-import { ProgressBar } from "@/components/ui/progress-bar";
-import { ActivityFeed } from "@/components/ui/activity-feed";
 import { ProjectCard } from "@/components/dashboard/project-card";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { SystemPulse } from "@/components/dashboard/system-pulse";
 import { AwaitingYouRow } from "@/components/dashboard/awaiting-you";
+import { GenerateInsightsButton } from "@/app/insights/insights-list";
 import { tileState } from "@/lib/db/library";
-import { isUiV2 } from "@/lib/ui-v2";
 
 export const dynamic = "force-dynamic";
 
@@ -40,25 +34,15 @@ function compact(n: number): string {
   return Intl.NumberFormat("en", { notation: "compact" }).format(n);
 }
 
-function timeAgo(iso: string): string {
-  const sec = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-  if (sec < 60) return "now";
-  if (sec < 3600) return `${Math.floor(sec / 60)}m`;
-  if (sec < 86400) return `${Math.floor(sec / 3600)}h`;
-  return `${Math.floor(sec / 86400)}d`;
-}
-
 export default async function Home() {
   if (!isSupabaseConfigured()) return <SetupNotice />;
 
-  const [projects, allVideos, stats, activity, monthlyBudget] =
-    await Promise.all([
-      getProjects(),
-      getVideos(),
-      getPortfolioStats(),
-      getActivity(),
-      getMonthlyBudgetUsd(),
-    ]);
+  const [projects, allVideos, stats, monthlyBudget] = await Promise.all([
+    getProjects(),
+    getVideos(),
+    getPortfolioStats(),
+    getMonthlyBudgetUsd(),
+  ]);
 
   const videosByProject = new Map<string, typeof allVideos>();
   for (const v of allVideos) {
@@ -95,19 +79,17 @@ export default async function Home() {
 
   // UI v2 (Phase 6, D-15): the cross-project "awaiting you" row — per-project
   // counts of assets flagged 🟠 by the same tileState the Library tiles use.
-  const awaiting = isUiV2()
-    ? projects.map((p) => ({
+  const awaiting = projects.map((p) => ({
         projectId: p.id,
         projectName: p.name,
         count: (videosByProject.get(p.id) ?? []).filter((v) => tileState(v).awaitingYou)
           .length,
-      }))
-    : [];
+      }));
 
   return (
     <div className="space-y-6 pt-2">
       <RealtimeRefresher />
-      {isUiV2() && <AwaitingYouRow projects={awaiting} />}
+      <AwaitingYouRow projects={awaiting} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
@@ -124,6 +106,7 @@ export default async function Home() {
               <Download className="size-4" /> Export CSV
             </a>
           )}
+          <GenerateInsightsButton />
           <Link
             href="/projects/new"
             className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02]"
@@ -181,53 +164,6 @@ export default async function Home() {
             })}
           </div>
 
-          <div className="space-y-4">
-            <Card>
-              <CardTitle>Activity</CardTitle>
-              {activity.length === 0 ? (
-                <p className="text-sm text-muted">Nothing yet.</p>
-              ) : (
-                <ActivityFeed
-                  items={activity.map((a) => ({
-                    id: a.id,
-                    icon: a.kind === "idea" ? Lightbulb : FileText,
-                    title: a.title,
-                    detail: a.detail,
-                    time: timeAgo(a.at),
-                    tone: a.kind === "idea" ? "lavender" : "accent",
-                  }))}
-                />
-              )}
-            </Card>
-
-            <Card>
-              <CardTitle href="/costs" linkout>Monthly spend</CardTitle>
-              <p className="mb-3 flex items-center gap-1.5 text-sm text-muted">
-                <TrendingUp className="size-4 text-success" />
-                ${stats.monthlyCostUsd.toFixed(2)} of ${monthlyBudget.toFixed(0)}{" "}
-                budget this month
-              </p>
-              <ProgressBar
-                percent={
-                  monthlyBudget > 0
-                    ? (stats.monthlyCostUsd / monthlyBudget) * 100
-                    : 0
-                }
-                label={`$${stats.monthlyCostUsd.toFixed(0)}`}
-              />
-              <p className="mt-3 text-xs text-muted">
-                Every provider call is recorded as it happens. Budget caps
-                pause the pipeline before any overspend —{" "}
-                <Link
-                  href="/costs"
-                  className="font-semibold text-ink underline decoration-accent decoration-2 underline-offset-2"
-                >
-                  open the full spend log
-                </Link>
-                .
-              </p>
-            </Card>
-          </div>
         </>
       )}
     </div>

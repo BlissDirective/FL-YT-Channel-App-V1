@@ -101,21 +101,3 @@ export async function setOperatorAutonomyAction(
   }
 }
 
-/** Run one operator tick now (operator-triggered) — seeds today's video if the
-    slot is open and budget allows, instead of waiting for the cron. */
-export async function runOperatorNowAction(
-  projectId: string,
-): Promise<Result & { seeded?: boolean; reason?: string }> {
-  try {
-    const db = admin();
-    const run = await getOperatorRun(db, projectId);
-    if (!run) return { ok: false, error: "Operator is not running." };
-    const project = (await getProject(projectId)) as Project | null;
-    if (!project) return { ok: false, error: "Project not found." };
-    const out = await tickOperator(db, run, project);
-    revalidatePath(`/projects/${projectId}`);
-    return out.acted ? { ok: true, seeded: true } : { ok: true, seeded: false, reason: out.reason };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
-  }
-}

@@ -9,6 +9,7 @@ import { NotificationsCard } from "./notifications-card";
 import { CredentialHealthList } from "./credential-health";
 import { QualityGatesCard } from "./quality-gates-card";
 import { PurgeDemoData } from "./danger-zone";
+import { JudgeCalibration } from "@/app/insights/judge-calibration";
 
 async function getQualityGates(): Promise<QualityGates> {
   const supabase = await createClient();
@@ -51,6 +52,8 @@ export default async function SettingsPage() {
       />
 
       {configured && <QualityGatesCard initial={qualityGates} />}
+
+      {configured && <JudgeCalibration />}
 
       {configured && (
         <Card>

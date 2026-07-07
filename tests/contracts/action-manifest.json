@@ -39,8 +39,7 @@
     "stopOperatorAction(projectId: string)",
     "skipCalendarSlotAction(projectId: string, day: number)",
     "regenerateCalendarAction(projectId: string)",
-    "setOperatorAutonomyAction(projectId: string, mode: \"copilot\" | \"autopilot\",)",
-    "runOperatorNowAction(projectId: string,)"
+    "setOperatorAutonomyAction(projectId: string, mode: \"copilot\" | \"autopilot\",)"
   ],
   "pipeline": [
     "approveGateAction(projectId: string, videoId: string,)",

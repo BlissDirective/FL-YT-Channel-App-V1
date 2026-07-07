@@ -8,18 +8,10 @@ import { cn } from "@/lib/cn";
 import { BackButton } from "./back-button";
 import {
   globalNavV2,
-  isUiV2Client,
   navIsActive,
   projectIdFromPath,
   projectNavV2,
 } from "./nav-context";
-
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/" },
-  { label: "Insights", href: "/insights" },
-  { label: "Market Intel", href: "/intel" },
-  { label: "Spend", href: "/costs" },
-];
 
 export function TopNav() {
   const pathname = usePathname();
@@ -27,14 +19,10 @@ export function TopNav() {
   // The login screen renders its own centered layout; no nav chrome there.
   if (pathname === "/login") return null;
 
-  // UI v2 (Phase 6): two-level IA — project tabs inside a project, global
-  // tabs elsewhere; the same sets the mobile bottom bar uses.
-  const v2ProjectId = isUiV2Client() ? projectIdFromPath(pathname) : null;
-  const v2Items = isUiV2Client()
-    ? v2ProjectId
-      ? projectNavV2(v2ProjectId)
-      : globalNavV2()
-    : null;
+  // Two-level IA (Phase 6/7): project tabs inside a project, global tabs
+  // elsewhere; the same sets the mobile bottom bar uses.
+  const projectId = projectIdFromPath(pathname);
+  const items = projectId ? projectNavV2(projectId) : globalNavV2();
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 py-5 sm:px-8">
@@ -51,12 +39,8 @@ export function TopNav() {
       </div>
 
       <nav className="hidden items-center gap-1 rounded-full bg-card-warm p-1 shadow-card sm:flex">
-        {(v2Items ?? NAV_ITEMS).map((item) => {
-          const active = v2Items
-            ? navIsActive(item as never, pathname)
-            : item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+        {items.map((item) => {
+          const active = navIsActive(item, pathname);
           return (
             <Link
               key={item.href}

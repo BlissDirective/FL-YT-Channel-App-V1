@@ -15,8 +15,6 @@ import {
   Wallet,
 } from "lucide-react";
 
-export const isUiV2Client = () => process.env.NEXT_PUBLIC_UI_V2 === "1";
-
 /** /projects/{uuid}… → the project id (null for /projects/new and others). */
 export function projectIdFromPath(pathname: string): string | null {
   const m = pathname.match(/^\/projects\/([0-9a-f-]{36})(\/|$)/);

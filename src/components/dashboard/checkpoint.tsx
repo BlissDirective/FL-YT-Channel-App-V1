@@ -11,7 +11,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Gauge, Loader2, RefreshCw, X } from "lucide-react";
+import { Check, Gauge, Image as ImageIcon, Loader2, Play, RefreshCw, X } from "lucide-react";
 import type { WatchVerdict } from "@/lib/pipeline/watch-gate";
 import { lowestDimension } from "@/lib/pipeline/watch-gate";
 import type { QcReview } from "@/lib/db/queries";
@@ -21,8 +21,10 @@ import {
   labelQcReviewAction,
   labelWatchVerdictAction,
   requestRevisionAction,
+  rerollBeatVisualAction,
   selectThumbnailAction,
 } from "@/lib/actions/pipeline";
+import { SourceLibrary } from "./source-library";
 import { cn } from "@/lib/cn";
 
 // ── QC verdict card + C1 calibration thumbs ───────────────────────────────
@@ -376,6 +378,199 @@ export function ThumbPicker({
         Tap a thumbnail to crown it — it leads the render and the Publish Kit
         keeps all 3 for YouTube Test &amp; Compare.
       </p>
+      {error && <p className="mt-1 text-xs font-medium text-coral">{error}</p>}
+    </div>
+  );
+}
+
+// ── Clips grid (absorbed from the ASSETS review card, Phase 7) ─────────────
+// Per-beat visuals with the vision-gate relevance verdicts, one-tap reroll
+// (with an optional steer note), and the licensed-footage Source Library.
+export type ClipTile = {
+  id: string;
+  beatIdx: number | null;
+  url: string | null;
+  shotType?: string;
+  relevance?: { score?: number; depicts?: string; reason?: string };
+  fromLibrary?: boolean;
+  provider: string;
+};
+
+export type AttributionCredit = {
+  title: string;
+  author: string;
+  licenseLabel: string;
+  licenseUrl?: string | null;
+};
+
+const CLIP_GRADIENTS = [
+  "from-[#F5B829] to-[#F0876C]",
+  "from-[#A78BFA] to-[#F0876C]",
+  "from-[#17150F] to-[#5a5345]",
+  "from-[#5BB98C] to-[#A78BFA]",
+];
+
+export function ClipsGrid({
+  projectId,
+  videoId,
+  clips,
+  credits,
+}: {
+  projectId: string;
+  videoId: string;
+  clips: ClipTile[];
+  credits: AttributionCredit[];
+}) {
+  const router = useRouter();
+  const [rerolling, setRerolling] = useState<number | null>(null);
+  const [libraryBeat, setLibraryBeat] = useState<number | null>(null);
+  const [note, setNote] = useState("");
+  const [busyBeat, setBusyBeat] = useState<number | null>(null);
+  const [error, setError] = useState<string>();
+  const [, startTransition] = useTransition();
+  if (clips.length === 0) return null;
+
+  return (
+    <div>
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+        Clips ({clips.length})
+      </p>
+      <div className="grid grid-cols-4 gap-2">
+        {clips.map((c, i) => (
+          <div
+            key={c.id}
+            className={cn(
+              "relative aspect-video overflow-hidden rounded-lg",
+              !c.url && cn("bg-gradient-to-br", CLIP_GRADIENTS[i % CLIP_GRADIENTS.length]),
+            )}
+          >
+            {c.url && (
+              // eslint-disable-next-line @next/next/no-img-element -- signed/external URLs
+              <img src={c.url} alt="" className="size-full object-cover" />
+            )}
+            {c.provider === "pexels" && (
+              <Play className="absolute inset-0 m-auto size-4 text-white drop-shadow" />
+            )}
+            <span className="absolute bottom-1 left-1.5 text-[10px] font-bold text-white drop-shadow">
+              {c.shotType ?? "clip"}
+            </span>
+            {c.relevance && typeof c.relevance.score === "number" && (
+              <span
+                title={`Depicts: ${c.relevance.depicts ?? "?"} — ${c.relevance.reason ?? ""}`}
+                className={cn(
+                  "absolute left-1 top-1 rounded px-1 py-0.5 text-[9px] font-bold text-white",
+                  c.relevance.score >= 6
+                    ? "bg-success/90"
+                    : c.relevance.score >= 4
+                      ? "bg-accent/90 text-ink"
+                      : "bg-coral/90",
+                )}
+              >
+                ◎ {c.relevance.score.toFixed(0)}
+              </span>
+            )}
+            {c.fromLibrary && (
+              <span className="absolute bottom-1 right-1 rounded bg-success/90 px-1 py-0.5 text-[9px] font-bold text-white">
+                licensed
+              </span>
+            )}
+            {c.beatIdx !== null && (
+              <div className="absolute right-1 top-1 flex gap-1">
+                <button
+                  type="button"
+                  aria-label={`Find licensed footage for shot ${(c.beatIdx ?? 0) + 1}`}
+                  onClick={() => {
+                    setRerolling(null);
+                    setLibraryBeat(libraryBeat === c.beatIdx ? null : c.beatIdx);
+                  }}
+                  className="grid size-6 place-items-center rounded-full bg-black/50 text-white hover:bg-black/80"
+                >
+                  <ImageIcon className="size-3" />
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Reroll shot ${(c.beatIdx ?? 0) + 1}`}
+                  onClick={() => {
+                    setLibraryBeat(null);
+                    setRerolling(rerolling === c.beatIdx ? null : c.beatIdx);
+                  }}
+                  className="grid size-6 place-items-center rounded-full bg-black/50 text-white hover:bg-black/80"
+                >
+                  {busyBeat === c.beatIdx ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-3" />
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {libraryBeat !== null && (
+        <SourceLibrary
+          projectId={projectId}
+          videoId={videoId}
+          beatIdx={libraryBeat}
+          onClose={() => setLibraryBeat(null)}
+          onError={setError}
+        />
+      )}
+      {rerolling !== null && (
+        <div className="mt-2 flex gap-2">
+          <input
+            autoFocus
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={`Reroll shot ${rerolling + 1} — optional steer, e.g. “darker, no people”`}
+            className="min-w-0 flex-1 rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs outline-none focus:border-accent"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const beat = rerolling;
+              const steer = note;
+              setRerolling(null);
+              setNote("");
+              setBusyBeat(beat);
+              startTransition(async () => {
+                setError(undefined);
+                const r = await rerollBeatVisualAction(projectId, videoId, beat, steer);
+                setBusyBeat(null);
+                if (!r.ok) setError(r.error);
+                else router.refresh();
+              });
+            }}
+            className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white"
+          >
+            Reroll
+          </button>
+        </div>
+      )}
+      {credits.length > 0 && (
+        <div className="mt-2 rounded-xl bg-canvas p-3">
+          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+            Attribution ledger ({credits.length})
+          </p>
+          <ul className="space-y-1">
+            {credits.map((c, i) => (
+              <li key={i} className="text-[11px] leading-snug text-muted">
+                <span className="font-medium text-ink">{c.title}</span> by {c.author} ·{" "}
+                {c.licenseUrl ? (
+                  <a href={c.licenseUrl} target="_blank" rel="noreferrer" className="underline decoration-dotted">
+                    {c.licenseLabel}
+                  </a>
+                ) : (
+                  c.licenseLabel
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1.5 text-[10px] text-muted">
+            Auto-added to the video description at publish.
+          </p>
+        </div>
+      )}
       {error && <p className="mt-1 text-xs font-medium text-coral">{error}</p>}
     </div>
   );

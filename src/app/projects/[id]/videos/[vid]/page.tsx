@@ -13,7 +13,7 @@ import {
 import { VIDEO_MONTHLY_CAP_USD } from "@/lib/adapters/video-models";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
-import { buildAttributionBlock } from "@/lib/attribution";
+import { attributionsFromAssets, buildAttributionBlock } from "@/lib/attribution";
 import type { Asset, CuratedHighlight, Script, Video, ScriptBeat } from "@/lib/db/types";
 import { fontForNiche } from "@/lib/adapters/highlights";
 import { Card } from "@/components/ui/card";
@@ -144,6 +144,42 @@ export default async function VideoDetailPage({
             })),
         )
       : [];
+  // Clips grid + attribution for the ASSETS checkpoint (absorbed from the
+  // retired review card, Phase 7).
+  const clipTiles =
+    gate === "ASSETS"
+      ? await Promise.all(
+          allAssets
+            .filter((a) => a.kind === "clip")
+            .map(async (a) => {
+              const m = a.meta as {
+                shotType?: string;
+                relevance?: { score?: number; depicts?: string; reason?: string };
+                fromLibrary?: boolean;
+              };
+              return {
+                id: a.id,
+                beatIdx: a.beat_index,
+                url: await assetUrl(a),
+                shotType: m.shotType,
+                relevance: m.relevance,
+                fromLibrary: m.fromLibrary,
+                provider: a.provider,
+              };
+            }),
+        )
+      : [];
+  const credits =
+    gate === "ASSETS"
+      ? attributionsFromAssets(allAssets)
+          .filter((c) => c.requiresAttribution)
+          .map((c) => ({
+            title: c.title,
+            author: c.author,
+            licenseLabel: c.licenseLabel,
+            licenseUrl: c.licenseUrl,
+          }))
+      : [];
 
   const isPublishStage = v.status === "APPROVED" || v.status === "TRACKING";
   // Asset stage (mid-generation or assets done) → offer a step back to script.
@@ -231,6 +267,8 @@ export default async function VideoDetailPage({
           qc={(gateQc as QcReview) ?? null}
           watch={v.watch_review ?? null}
           thumbs={thumbCandidates}
+          clips={clipTiles}
+          credits={credits}
           idea={
             gate === "IDEA"
               ? {

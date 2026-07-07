@@ -24,7 +24,7 @@ export function RunDemoButton({ projectId }: { projectId: string }) {
             const r = await runDemoPipelineAction(projectId);
             if (!r.ok && r.error) setError(r.error);
             // Land where the result is: the new idea card in the queue.
-            else router.push(`/projects/${projectId}/review`);
+            else router.push(`/projects/${projectId}/library`);
           })
         }
         className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-ink transition-colors hover:bg-canvas disabled:opacity-50"

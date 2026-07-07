@@ -2,31 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  LayoutDashboard,
-  Lightbulb,
-  Radar,
-  Settings,
-  Wallet,
-} from "lucide-react";
+import { Home } from "lucide-react";
 import { cn } from "@/lib/cn";
 import {
   globalNavV2,
-  isUiV2Client,
   navIsActive,
   projectIdFromPath,
   projectNavV2,
   type NavItem,
 } from "./nav-context";
-
-const TABS = [
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Insights", href: "/insights", icon: Lightbulb },
-  { label: "Intel", href: "/intel", icon: Radar },
-  { label: "Spend", href: "/costs", icon: Wallet },
-  { label: "Settings", href: "/settings", icon: Settings },
-];
 
 /** Bottom tab bar for phones — the top nav pills are hidden below `sm`,
     so this is the only mobile route to everything. UI v2 (Phase 6): the tab
@@ -38,15 +22,10 @@ export function MobileNav() {
   // The login screen renders its own centered layout; no nav chrome there.
   if (pathname === "/login") return null;
 
-  let tabs: (NavItem | (typeof TABS)[number])[] = TABS;
-  let v2 = false;
-  if (isUiV2Client()) {
-    v2 = true;
-    const projectId = projectIdFromPath(pathname);
-    tabs = projectId
-      ? [{ label: "Home", href: "/", icon: Home }, ...projectNavV2(projectId)]
-      : globalNavV2();
-  }
+  const projectId = projectIdFromPath(pathname);
+  const tabs: NavItem[] = projectId
+    ? [{ label: "Home", href: "/", icon: Home }, ...projectNavV2(projectId)]
+    : globalNavV2();
 
   return (
     <nav
@@ -55,11 +34,7 @@ export function MobileNav() {
     >
       <div className={cn("grid", tabs.length === 4 ? "grid-cols-4" : "grid-cols-5")}>
         {tabs.map((tab) => {
-          const active = v2
-            ? navIsActive(tab as NavItem, pathname)
-            : tab.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(tab.href);
+          const active = navIsActive(tab, pathname);
           return (
             <Link
               key={tab.href}

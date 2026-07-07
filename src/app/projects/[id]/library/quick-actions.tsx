@@ -7,6 +7,7 @@ import {
   approveGateAction,
   killVideoAction,
   requestRevisionAction,
+  resetRenderAttemptsAction,
   resumeVideoAction,
 } from "@/lib/actions/pipeline";
 import {
@@ -134,13 +135,17 @@ export function GateQuickActions({
   );
 }
 
-/** Resume a paused / stalled drivable video from its tile. */
+/** Resume a paused / stalled video from its tile. Render-failed videos get
+    "Reset & retry" instead (clears the ×3 attempt counter, re-queues the
+    render) — re-homed from the retired needs-attention panel. */
 export function ResumeQuickAction({
   projectId,
   videoId,
+  renderFailed,
 }: {
   projectId: string;
   videoId: string;
+  renderFailed?: boolean;
 }) {
   const { isPending, error, act } = useAct();
   return (
@@ -148,11 +153,17 @@ export function ResumeQuickAction({
       <button
         type="button"
         disabled={isPending}
-        onClick={() => act(() => resumeVideoAction(projectId, videoId))}
+        onClick={() =>
+          act(() =>
+            renderFailed
+              ? resetRenderAttemptsAction(projectId, videoId)
+              : resumeVideoAction(projectId, videoId),
+          )
+        }
         className={btn.approve}
       >
         {isPending ? <Loader2 className="size-3 animate-spin" /> : <Play className="size-3" />}
-        Resume
+        {renderFailed ? "Reset & retry" : "Resume"}
       </button>
       {error && <p className="w-full text-xs font-medium text-coral">{error}</p>}
     </div>

@@ -11,6 +11,8 @@ import { ProjectSignalStrip } from "@/components/ui/signal-strip";
 import { StatusChip } from "@/components/ui/status-chip";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { ScoutChat } from "@/components/dashboard/scout-chat";
+import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-button";
+import { RunDemoButton } from "@/components/dashboard/run-demo-button";
 import { NewAsset } from "./new-asset";
 import {
   GateQuickActions,
@@ -80,16 +82,24 @@ export default async function LibraryPage({
         autopilot={library.operatorState}
       />
 
-      <NewAsset projectId={project.id} />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <NewAsset projectId={project.id} />
+        </div>
+        <RunIntelligenceButton projectId={project.id} />
+      </div>
 
       {empty && (
-        <div className="rounded-card bg-card p-8 text-center shadow-card">
+        <div className="space-y-3 rounded-card bg-card p-8 text-center shadow-card">
           <p className="font-semibold">Nothing here yet</p>
           <p className="mt-1 text-sm text-muted">
-            Type a topic above, queue an intelligence idea, or let Autopilot seed
-            the day&apos;s video — every asset appears here from first spark to
+            Type a topic above, generate ideas, or let Autopilot seed the
+            day&apos;s video — every asset appears here from first spark to
             published.
           </p>
+          <div className="flex justify-center">
+            <RunDemoButton projectId={project.id} />
+          </div>
         </div>
       )}
 
@@ -194,7 +204,11 @@ function VideoTile({ projectId, item }: { projectId: string; item: LibraryItem }
         atGate ? (
           <GateQuickActions projectId={projectId} videoId={video.id} />
         ) : paused ? (
-          <ResumeQuickAction projectId={projectId} videoId={video.id} />
+          <ResumeQuickAction
+            projectId={projectId}
+            videoId={video.id}
+            renderFailed={/render failed/i.test(video.paused_reason ?? "")}
+          />
         ) : undefined
       }
     />

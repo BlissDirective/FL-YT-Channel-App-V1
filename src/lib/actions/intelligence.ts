@@ -20,7 +20,7 @@ export async function runIntelligenceNowAction(
     const { created } = await runIntelligence(projectId, { targetLengthSec });
     revalidatePath("/");
     revalidatePath(`/projects/${projectId}`);
-    revalidatePath(`/projects/${projectId}/review`);
+    revalidatePath(`/projects/${projectId}/library`);
     return created > 0
       ? { ok: true }
       : { ok: false, error: "No new ideas this run — try again later or widen the niche." };
@@ -127,7 +127,7 @@ export async function saveScoutIdeaAction(
     });
     if (videoErr) return { ok: false, error: videoErr.message };
     revalidatePath(`/projects/${projectId}`);
-    revalidatePath(`/projects/${projectId}/review`);
+    revalidatePath(`/projects/${projectId}/library`);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };

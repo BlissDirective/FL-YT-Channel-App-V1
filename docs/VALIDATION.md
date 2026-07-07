@@ -22,16 +22,19 @@ revenue), an Activity feed, and a Monthly spend meter.
 ---
 
 ## 1. Overview & a project (Flows 1 + 3)
-1. Click the **Money Mindset (Demo)** card → the project home.
-2. Note the **pipeline board** (Ideas → Script → Assets → Render → Ready) with
-   live counts, the stat row, and **Scout** chat.
-3. Click **Run demo pipeline** → you're taken to the **Review queue** with a
-   new idea card.
+*(UI v2 — see Fable-5-UI-Redesign.md: the project home is the Library; gate
+decisions live on Library tiles and the Asset Canvas checkpoint.)*
+1. Click the **Money Mindset (Demo)** card → the project **Library**.
+2. Note the stage sections (Ideas → Script → Production → Ready → Published),
+   the signal strip, and **Scout** (collapsible section).
+3. Click **Run demo pipeline** (empty-state) → a new idea tile appears in
+   **Ideas** with quick actions.
 
-✅ Walk the demo video through the four gates:
+✅ Walk the demo video through the four checkpoints (tile quick-approve, or
+open the tile → Asset Canvas → checkpoint panel):
 - **Idea** → Approve.
-- **Script** → open "read along", play the voiceover, edit a line, Approve.
-- **Assets** → review clips + thumbnails, regenerate one, Approve.
+- **Script** → on the Canvas: play the voiceover, edit a line, Approve.
+- **Assets** → review clips + thumbnails at the checkpoint, reroll one, Approve.
 - **Final cut** → watch the rendered video, Approve.
 
 Try **Request changes** on one gate and watch it loop back with your note.
@@ -60,7 +63,7 @@ Try **Request changes** on one gate and watch it loop back with your note.
 
 ## 4. Intelligence, Scout & Optimizer (Phase 8)  🔑 Anthropic + YouTube keys
 1. On a project, click **Run intelligence** → scored idea cards land in the
-   review queue with source stats and a suggested angle.
+   Library’s Ideas section with source stats and a suggested angle.
 2. Open **Scout** on the project page → ask "tear down the top channels in my
    niche". Save a good finding as an idea card.
 3. Go to **/insights** → **Generate insights**. Review an Optimizer card;

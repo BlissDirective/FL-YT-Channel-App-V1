@@ -1,7 +1,7 @@
 # Fable 5 — UI/UX Redesign: Running Log & Build Plan
 
 **Started:** 2026-07-06 · **Branch:** `claude/app-ui-ux-redesign-9j0267` ·
-**Status:** plan locked (D-1..D-19, no open questions) — awaiting Phase 0 green-light
+**Status:** v1 SHIPPED — Phases 0–7 complete (cutover done); v2 backlog next. Final exit gate: `e2e-authed` green in CI.
 
 This is the living document for the full UI/UX redesign. It records every
 operator decision as it is made (§2), the target design those decisions imply
@@ -400,3 +400,24 @@ ships).
 | 2026-07-06 | Repo review completed (UI surface + backend map). Concept discussed; operator answered clarifying round 1 (→ D-1..D-14). This document created with consolidation strategy + draft phased build plan. Open: Q-A..Q-E. |
 | 2026-07-06 | Operator answered clarifying round 2: Q-A..Q-E all resolved (→ D-15..D-19). Specs updated (Home awaiting-you row, full-feed scope + filters, Published grid section, Ideas merge, boost runs). **No open questions — plan is ready for Phase 0 green-light.** Doc merged to `main` at operator's request. |
 | 2026-07-06 | **Phase 0 green-lit and built** (see Phase 0 box in §10): action-contract manifest (74 actions pinned + caller inventory), 14 safety-critical engine tests on a fake query-builder, authed mock-mode golden-path e2e + baseline screenshots, `e2e-authed` CI job on local Supabase. All local gates green (typecheck/lint/vitest 321/build/smoke e2e). Authed suite awaits its first CI run (needs Docker). Found + pinned two orphaned actions (`runOptimizerNowAction`, `runOperatorNowAction`) for Phase 7. |
+| 2026-07-07 | **Phase 1 shipped** (`6ff1f5a`): flag helper, `src/lib/db/library.ts` pure classification core (23 table-driven tests over every status), AssetTile / ProgressRail / CollapsibleSection / ProjectSignalStrip primitives in `/styleguide` + a browser smoke test, route shells. |
+| 2026-07-07 | **Phase 2 shipped** (`3e31881`): the per-project Library — stage-sectioned grid (Ideas merged per D-18, Published per D-17), quick actions calling the SAME server actions as the review queue, New asset, signal strip, Scout summonable, realtime tile movement. New table-op actions `queueIdeaCardAction`/`dismissIdeaCardAction` (mirror studio-mcp queue_idea; no engine change). Library-journey authed e2e added. |
+| 2026-07-07 | **Phase 3 shipped** (`170d3b5`): the Asset Canvas — QcCard/WatchPanel/ThumbPicker/DecisionBar extracted to `components/dashboard/checkpoint.tsx` (review queue re-imports them: one implementation, two hosts), video page gains ProgressRail header + kill/resume controls + CheckpointPanel at any gate (idea context at IDEA, thumbs + pending-clips at ASSETS, Self-Watch at FINAL, calibration 👍/👎 everywhere). Golden path ported to run entirely on Library+Canvas alongside the old-UI run (parity pair). |
+| 2026-07-07 | **Phase 4 shipped** (`7dc6fdb`): merged Autopilot surface — operator calendar/cadence as the system, Build & Post demoted to "Boost", boost runs interleaved into the operator activity timeline (D-9/D-19). Backend untouched. |
+| 2026-07-07 | **Phase 5 shipped** (`fde7879`): per-project Feed — one filtered stream (All/Needs action/Insights/Intel/System) of status changes, holds, autofix outcomes (with score deltas), operator + boost events, with InsightCard (Apply/Dismiss + canary preserved) and intel-scan cards. `runOptimizerNowAction` re-homed as the Feed's "Generate insights" (orphan list shrank). |
+| 2026-07-07 | **Phase 6 shipped** (`48e990e`): Home awaiting-you row (D-15, same tileState as the Library), context-aware two-level nav on both breakpoints behind the flag; flag-ON build + smoke verified. |
+| 2026-07-07 | **Phase 7 shipped (cutover)**: flag removed (v2 is the UI). `/projects/[id]` → Library (the project home, D-2); `/review`, `/downloads`, `/insights` → redirects; review-queue + needs-attention + QueueTopic + AdvanceStage deleted; ClipsGrid + SourceLibrary + attribution ledger absorbed into the ASSETS checkpoint **before** deletion (the caller-inventory test caught `resetRenderAttemptsAction` going orphan — re-homed as "Reset & retry" on failed tiles); JudgeCalibration re-homed to Settings; global Generate-insights to Home; Run-intelligence/demo to the Library; orphaned `runOperatorNowAction` deleted; manifest regenerated; KNOWN_UNREFERENCED now empty; e2e retargeted (v2 journey IS the golden path; screenshots cover library/autopilot/feed); VALIDATION.md updated. **Deliberate keep:** `/intel` remains as the summonable tool page (out of nav) — BlueprintView needs a full-page host; engine push-notification URLs still point at `/review` and land on the redirect (D-10: zero engine edits). |
+
+### Build notes / deviations (operator review welcome)
+
+1. **`/intel` kept as a tool page** (out of nav) rather than folded into the
+   Feed — the deep scan workspace + BlueprintView need a full page; the Feed,
+   Library, and Canvas summon it with context params. D-8 satisfied in spirit.
+2. **ScriptReview's sticky approve bar still exists** at the SCRIPT gate on
+   the Canvas alongside the CheckpointPanel decision bar (it additionally
+   auto-classifies shot types + jumps to VideoGen). Candidate for later merge.
+3. **Engine untouched throughout (D-10)** — including `arriveAtGate`'s push
+   URLs (`…/review`), which now land on the Library via redirect.
+4. **CI note:** the `e2e-authed` job (local Supabase on GitHub runners) is the
+   final Phase-7 exit gate — first run happens on push; fix-forward expected
+   for selector-level surprises. |
