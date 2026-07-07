@@ -121,9 +121,14 @@ export function tileState(v: LibraryVideo): TileState {
     railIndex,
     progressPercent:
       railIndex < 0 ? 0 : Math.round((railIndex / (RAIL_STEPS.length - 1)) * 100),
+    // A published/live asset is DONE — it never awaits the operator, even if
+    // its status field lagged at a gate (a stranded-publish row whose
+    // youtube_video_id / published_at is set) or it carries a stale
+    // paused_reason. Without this, such rows land in the Published section yet
+    // show a "your turn" badge + gate quick-actions (the reported bug).
     awaitingYou:
-      GATE_FOR_STATUS[v.status] !== undefined || paused || awaitingUpload,
-    failed: paused && /fail/i.test(v.paused_reason ?? ""),
+      !live && (GATE_FOR_STATUS[v.status] !== undefined || paused || awaitingUpload),
+    failed: !live && paused && /fail/i.test(v.paused_reason ?? ""),
     autopilot: Boolean(v.auto_pilot_run || v.build_run_id || v.auto_finish),
   };
 }

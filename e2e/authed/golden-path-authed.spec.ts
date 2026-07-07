@@ -223,7 +223,6 @@ test("baseline screenshots of the main authenticated routes", async ({ page }, t
     ["intel", "/intel"],
     ["costs", "/costs"],
     ["settings", "/settings"],
-    ["styleguide", "/styleguide"],
     ["library", projectUrl ? `${projectUrl}/library` : "/"],
     ["autopilot", projectUrl ? `${projectUrl}/autopilot` : "/"],
     ["feed", projectUrl ? `${projectUrl}/feed` : "/"],

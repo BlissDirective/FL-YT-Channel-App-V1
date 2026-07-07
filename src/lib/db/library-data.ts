@@ -119,20 +119,25 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
   for (const video of videos) {
     const tile = tileState(video);
     if (!tile.section) continue;
-    const gate = GATE_FOR_STATUS[video.status];
-    const diagnosis = video.status === "APPROVED" ? publishDiagnosis(video) : null;
+    const published = tile.section === "published";
+    // A published/live asset shows no gate label, no pending reason, and no
+    // quick actions — it is done (mirrors tileState.awaitingYou = false).
+    const gate = published ? undefined : GATE_FOR_STATUS[video.status];
+    const diagnosis =
+      !published && video.status === "APPROVED" ? publishDiagnosis(video) : null;
     const item: LibraryItem = {
       video,
       tile,
       qcScore: latestQc.get(video.id) ?? null,
       gateLabel: gate ? `${GATE_LABELS[gate]} gate` : null,
       thumbUrl: thumbUrls.get(video.id) ?? null,
-      views: tile.section === "published" ? (latestViews.get(video.id) ?? null) : null,
-      awaitingLabel:
-        video.paused_reason ??
-        (diagnosis && diagnosis.state !== "live" && diagnosis.message
-          ? diagnosis.message
-          : null),
+      views: published ? (latestViews.get(video.id) ?? null) : null,
+      awaitingLabel: published
+        ? null
+        : (video.paused_reason ??
+          (diagnosis && diagnosis.state !== "live" && diagnosis.message
+            ? diagnosis.message
+            : null)),
     };
     if (tile.awaitingYou) attentionCount += 1;
     sections[tile.section].push(item);

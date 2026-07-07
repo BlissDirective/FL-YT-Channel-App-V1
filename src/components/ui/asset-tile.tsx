@@ -60,20 +60,23 @@ export function AssetTile({
             // eslint-disable-next-line @next/next/no-img-element -- signed URLs are short-lived; next/image would re-proxy them
             <img src={thumbUrl} alt="" className="size-full object-cover" />
           ) : (
-            <span className="absolute inset-0 grid place-items-center text-xs font-semibold uppercase tracking-wide text-muted">
+            // Placeholder stage label sits at the BOTTOM so it never collides
+            // with the status badges pinned top-left (the stage also shows in
+            // the footer below).
+            <span className="absolute inset-x-0 bottom-1.5 truncate px-2 text-center text-[11px] font-semibold uppercase tracking-wide text-muted/80">
               {stageLabel}
             </span>
           )}
-          <span className="absolute left-1.5 top-1.5 flex gap-1">
+          <span className="absolute left-1.5 right-1.5 top-1.5 flex flex-wrap gap-1">
             {failed ? (
-              <StatusChip tone="coral" className="gap-1">
+              <StatusChip tone="coral" className="gap-1 whitespace-nowrap">
                 <AlertTriangle className="size-3" /> failed
               </StatusChip>
             ) : awaitingYou ? (
-              <StatusChip tone="warning" className="gap-1">● your turn</StatusChip>
+              <StatusChip tone="warning" className="gap-1 whitespace-nowrap">● your turn</StatusChip>
             ) : null}
             {autopilot && (
-              <StatusChip tone="lavender" className="gap-1">
+              <StatusChip tone="lavender" className="gap-1 whitespace-nowrap">
                 <Bot className="size-3" /> auto
               </StatusChip>
             )}

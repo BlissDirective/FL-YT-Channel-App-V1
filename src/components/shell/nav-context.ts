@@ -1,16 +1,15 @@
 /**
  * UI v2 navigation context (Phase 6, §5): the two-level IA. Inside a project
  * the tabs are Library · Autopilot · Feed · Settings; globally they are
- * Home · Spend · Settings (+ Styleguide on desktop, D-13). Insights and
- * Intel leave primary navigation (D-8/D-12) — they live in the Feed and as
- * summonable tools.
+ * Home · Spend · Settings. Insights and Intel leave primary navigation
+ * (D-8/D-12) — they live in the Feed and as summonable tools. (The Styleguide
+ * was removed post-launch — the UI is finalized.)
  */
 import {
   Bot,
   LayoutDashboard,
   ListVideo,
   Newspaper,
-  Palette,
   Settings,
   Wallet,
 } from "lucide-react";
@@ -33,7 +32,6 @@ export function globalNavV2(): NavItem[] {
   return [
     { label: "Home", href: "/", icon: LayoutDashboard },
     { label: "Spend", href: "/costs", icon: Wallet },
-    { label: "Styleguide", href: "/styleguide", icon: Palette },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
 }

@@ -27,7 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen font-sans antialiased">
-        <div className="mx-auto min-h-screen max-w-[1440px] p-3 sm:p-5">
+        {/* Top safe-area inset keeps the header clear of the mobile status
+            bar / notch when installed as a PWA or viewed in a browser whose
+            chrome overlays the viewport. */}
+        <div className="mx-auto min-h-screen max-w-[1440px] p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-5">
           <div className="min-h-[calc(100vh-2.5rem)] rounded-panel bg-surface shadow-card">
             <TopNav />
             {/* Bottom padding below `sm` keeps content clear of the tab bar. */}

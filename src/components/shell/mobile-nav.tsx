@@ -32,7 +32,16 @@ export function MobileNav() {
       aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card pb-[env(safe-area-inset-bottom)] shadow-float sm:hidden"
     >
-      <div className={cn("grid", tabs.length === 4 ? "grid-cols-4" : "grid-cols-5")}>
+      <div
+        className={cn(
+          "grid",
+          // Global nav = 3 tabs (Home · Spend · Settings); project nav = 5
+          // (Home + Library · Autopilot · Feed · Settings). Static classes so
+          // Tailwind keeps them.
+          { 3: "grid-cols-3", 4: "grid-cols-4", 5: "grid-cols-5" }[tabs.length] ??
+            "grid-cols-5",
+        )}
+      >
         {tabs.map((tab) => {
           const active = navIsActive(tab, pathname);
           return (

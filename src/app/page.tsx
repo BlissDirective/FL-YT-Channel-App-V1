@@ -90,14 +90,14 @@ export default async function Home() {
     <div className="space-y-6 pt-2">
       <RealtimeRefresher />
       <AwaitingYouRow projects={awaiting} />
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
           <p className="mt-1 text-sm text-muted">
             All your channel projects at a glance
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {stats.publishedCount > 0 && (
             <a
               href="/api/export"
@@ -213,14 +213,7 @@ function SetupNotice() {
           <code>NEXT_PUBLIC_SUPABASE_URL</code>,{" "}
           <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>, and{" "}
           <code>SUPABASE_SERVICE_ROLE_KEY</code> to the deployment environment,
-          then redeploy. Meanwhile, the{" "}
-          <Link
-            href="/styleguide"
-            className="font-semibold text-ink underline decoration-accent decoration-2 underline-offset-2"
-          >
-            styleguide
-          </Link>{" "}
-          works without a database.
+          then redeploy.
         </p>
       </Card>
     </div>

@@ -155,4 +155,15 @@ describe("tile badges", () => {
         .awaitingYou,
     ).toBe(false);
   });
+
+  it("a live video whose status lagged at a GATE is not awaiting-you (the published-pending bug)", () => {
+    // Stranded-publish shape: uploaded (has youtube_video_id / published_at)
+    // but the status field never advanced past a gate status.
+    for (const status of ["FINAL_REVIEW", "APPROVED"] as VideoStatus[]) {
+      const t = tileState(v(status, { youtube_video_id: "yt1", published_at: "2026-07-01T00:00:00Z" }));
+      expect(t.section, status).toBe("published");
+      expect(t.awaitingYou, status).toBe(false);
+      expect(t.failed, status).toBe(false);
+    }
+  });
 });

@@ -25,32 +25,32 @@ export function RunIntelligenceButton({ projectId }: { projectId: string }) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <button
-        type="button"
-        role="menuitem"
-        disabled={isPending}
-        onClick={() =>
-          startTransition(async () => {
-            setError(undefined);
-            const r = await runIntelligenceNowAction(projectId, length);
-            if (!r.ok && r.error) setError(r.error);
-            else router.push(`/projects/${projectId}/library`);
-          })
-        }
-        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-ink transition-colors hover:bg-canvas disabled:opacity-50"
-      >
-        {isPending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-        Generate ideas
-      </button>
-      <PillTabs
-        size="sm"
-        ariaLabel="Idea length"
-        options={LENGTHS}
-        value={length}
-        onChange={(v) => setLength(v as Length)}
-        className="mx-3"
-      />
-      {error && <p className="px-3 text-xs font-medium text-coral">{error}</p>}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() =>
+            startTransition(async () => {
+              setError(undefined);
+              const r = await runIntelligenceNowAction(projectId, length);
+              if (!r.ok && r.error) setError(r.error);
+              else router.push(`/projects/${projectId}/library`);
+            })
+          }
+          className="flex shrink-0 items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft disabled:opacity-50"
+        >
+          {isPending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+          Generate ideas
+        </button>
+        <PillTabs
+          size="sm"
+          ariaLabel="Idea length"
+          options={LENGTHS}
+          value={length}
+          onChange={(v) => setLength(v as Length)}
+        />
+      </div>
+      {error && <p className="text-xs font-medium text-coral">{error}</p>}
     </div>
   );
 }

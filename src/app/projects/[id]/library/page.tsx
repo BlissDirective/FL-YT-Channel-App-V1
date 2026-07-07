@@ -82,10 +82,8 @@ export default async function LibraryPage({
         autopilot={library.operatorState}
       />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="min-w-0 flex-1">
-          <NewAsset projectId={project.id} />
-        </div>
+      <div className="space-y-3">
+        <NewAsset projectId={project.id} />
         <RunIntelligenceButton projectId={project.id} />
       </div>
 
@@ -182,7 +180,8 @@ function VideoTile({ projectId, item }: { projectId: string; item: LibraryItem }
       : tile.section === "ready"
         ? "Ready to publish"
         : statusBlurb(video.status));
-  const paused = Boolean(video.paused_reason);
+  // Published/live assets are done — no Resume, even with a stale paused_reason.
+  const paused = tile.section !== "published" && Boolean(video.paused_reason);
   const atGate = item.gateLabel != null;
   return (
     <AssetTile
