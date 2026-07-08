@@ -39,6 +39,7 @@ import {
   type VideoGenResult,
 } from "@/lib/pipeline/engine";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
+import { mergeQualityGates } from "@/lib/pipeline/quality-gates";
 import { getKillSwitch } from "@/lib/db/queries";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
@@ -767,8 +768,10 @@ export async function saveTemplateAction(
 
 export type QualityGates = {
   ideaFloor?: number;
+  revisionWarnAt?: number;
   revisionHardCap?: number;
   qcLessonBelow?: number;
+  coldStartMin?: number;
   seedVisionFloor?: number;
   varietyMinDistance?: number;
   autofixThreshold?: number;
@@ -785,54 +788,28 @@ export type QualityGates = {
   playbookAutoGraduateConfidence?: number;
 };
 
-const clamp = (n: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, n));
-
 /** Persist operator-tuned quality-gate thresholds to app_settings. Values are
-    clamped to sane ranges so a typo can't wedge the pipeline. */
+    clamped to sane ranges so a typo can't wedge the pipeline, and merged onto
+    the stored blob so no unsent key is wiped (see mergeQualityGates). */
 export async function saveQualityGatesAction(
   gates: QualityGates,
 ): Promise<PipelineResult> {
-  const score = (n: number | undefined) =>
-    typeof n === "number" && Number.isFinite(n) ? clamp(n, 0, 10) : undefined;
-  const value: QualityGates = {
-    ideaFloor: score(gates.ideaFloor),
-    revisionHardCap:
-      typeof gates.revisionHardCap === "number" && Number.isFinite(gates.revisionHardCap)
-        ? clamp(Math.round(gates.revisionHardCap), 1, 10)
-        : undefined,
-    qcLessonBelow: score(gates.qcLessonBelow),
-    seedVisionFloor: score(gates.seedVisionFloor),
-    varietyMinDistance:
-      typeof gates.varietyMinDistance === "number" && Number.isFinite(gates.varietyMinDistance)
-        ? clamp(Math.round(gates.varietyMinDistance), 0, 32)
-        : undefined,
-    autofixThreshold: score(gates.autofixThreshold),
-    runFloor: score(gates.runFloor),
-    runPublic: score(gates.runPublic),
-    factRiskMax: score(gates.factRiskMax),
-    beatRelevanceFloor: score(gates.beatRelevanceFloor),
-    timingFloor: score(gates.timingFloor),
-    watchBlockPublishBelow: score(gates.watchBlockPublishBelow),
-    competitiveFloor: score(gates.competitiveFloor),
-    transitionFloor: score(gates.transitionFloor),
-    watchTemporalEscalateAt:
-      typeof gates.watchTemporalEscalateAt === "number" && Number.isFinite(gates.watchTemporalEscalateAt)
-        ? clamp(Math.round(gates.watchTemporalEscalateAt), 1, 20)
-        : undefined,
-    playbookShadowMinEvidence:
-      typeof gates.playbookShadowMinEvidence === "number" && Number.isFinite(gates.playbookShadowMinEvidence)
-        ? clamp(Math.round(gates.playbookShadowMinEvidence), 1, 50)
-        : undefined,
-    playbookAutoGraduateConfidence:
-      typeof gates.playbookAutoGraduateConfidence === "number" && Number.isFinite(gates.playbookAutoGraduateConfidence)
-        ? clamp(gates.playbookAutoGraduateConfidence, 0, 1)
-        : undefined,
-  };
   const supabase = await createClient();
+  // Read-merge-write: preserve any stored key the UI didn't send instead of
+  // wiping it (the revisionWarnAt / coldStartMin data-loss bug). Clamping +
+  // merge live in the pure, unit-tested mergeQualityGates helper.
+  const { data: existing } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", "quality_gates")
+    .maybeSingle();
+  const merged = mergeQualityGates(
+    gates as Record<string, number | undefined>,
+    (existing?.value as Record<string, unknown>) ?? null,
+  );
   const { error } = await supabase
     .from("app_settings")
-    .upsert({ key: "quality_gates", value });
+    .upsert({ key: "quality_gates", value: merged });
   revalidatePath("/settings");
   return error ? { ok: false, error: error.message } : { ok: true };
 }

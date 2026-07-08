@@ -89,6 +89,59 @@ export const DEFAULT_QUALITY_GATES: QualityGateConfig = {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
+/**
+ * Clamp spec for every tunable quality-gate key — the single source of truth
+ * the Settings save action and the runtime reader agree on. `int` rounds;
+ * `decimal` keeps fractions (scores, confidence). Every key `getQualityGateConfig`
+ * reads MUST appear here so a Settings save can round-trip it.
+ */
+export const GATE_CLAMPS: Record<
+  string,
+  { kind: "int" | "decimal"; lo: number; hi: number }
+> = {
+  ideaFloor: { kind: "decimal", lo: 0, hi: 10 },
+  revisionWarnAt: { kind: "int", lo: 1, hi: 10 },
+  revisionHardCap: { kind: "int", lo: 1, hi: 10 },
+  qcLessonBelow: { kind: "decimal", lo: 0, hi: 10 },
+  coldStartMin: { kind: "int", lo: 0, hi: 50 },
+  seedVisionFloor: { kind: "decimal", lo: 0, hi: 10 },
+  varietyMinDistance: { kind: "int", lo: 0, hi: 32 },
+  autofixThreshold: { kind: "decimal", lo: 0, hi: 10 },
+  runFloor: { kind: "decimal", lo: 0, hi: 10 },
+  runPublic: { kind: "decimal", lo: 0, hi: 10 },
+  factRiskMax: { kind: "decimal", lo: 0, hi: 10 },
+  beatRelevanceFloor: { kind: "decimal", lo: 0, hi: 10 },
+  timingFloor: { kind: "decimal", lo: 0, hi: 10 },
+  watchBlockPublishBelow: { kind: "decimal", lo: 0, hi: 10 },
+  competitiveFloor: { kind: "decimal", lo: 0, hi: 10 },
+  transitionFloor: { kind: "decimal", lo: 0, hi: 10 },
+  watchTemporalEscalateAt: { kind: "int", lo: 1, hi: 20 },
+  playbookShadowMinEvidence: { kind: "int", lo: 1, hi: 50 },
+  playbookAutoGraduateConfidence: { kind: "decimal", lo: 0, hi: 1 },
+};
+
+/**
+ * Build the `app_settings.quality_gates` value to persist: clamp each provided
+ * key per GATE_CLAMPS, drop absent/invalid keys, and MERGE onto the existing
+ * stored blob. Merging (not replacing) is the fix for the bug where a Settings
+ * save silently wiped keys the UI didn't send (e.g. revisionWarnAt / coldStartMin)
+ * back to their defaults. Pure + unit-tested.
+ */
+export function mergeQualityGates(
+  input: Record<string, number | undefined>,
+  existing: Record<string, unknown> | null | undefined,
+): Record<string, number> {
+  const clean: Record<string, number> = {};
+  for (const [key, spec] of Object.entries(GATE_CLAMPS)) {
+    const raw = input[key];
+    if (typeof raw !== "number" || !Number.isFinite(raw)) continue;
+    const v = spec.kind === "int" ? Math.round(raw) : raw;
+    clean[key] = clamp(v, spec.lo, spec.hi);
+  }
+  const base = (existing ?? {}) as Record<string, number>;
+  return { ...base, ...clean };
+}
+
 /** Per-instance cache — the engine consults thresholds at several points per
     hop; one DB read a minute is plenty for operator-tuned settings. */
 let cached: { at: number; cfg: QualityGateConfig } | null = null;

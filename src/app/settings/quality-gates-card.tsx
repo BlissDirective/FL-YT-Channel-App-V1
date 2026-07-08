@@ -8,8 +8,10 @@ import { Card, CardTitle } from "@/components/ui/card";
 
 export const QUALITY_GATE_DEFAULTS: Required<QualityGates> = {
   ideaFloor: 6,
+  revisionWarnAt: 3,
   revisionHardCap: 4,
   qcLessonBelow: 7,
+  coldStartMin: 5,
   seedVisionFloor: 6,
   varietyMinDistance: 6,
   autofixThreshold: 7,
@@ -29,9 +31,11 @@ export const QUALITY_GATE_DEFAULTS: Required<QualityGates> = {
 type GateKey = keyof QualityGates;
 
 const FIELDS: { key: GateKey; label: string; hint: string; min: number; max: number; step?: number }[] = [
-  { key: "ideaFloor", label: "Idea score floor", hint: "Ideas scoring below this are auto-dismissed", min: 0, max: 10, step: 0.5 },
+  { key: "ideaFloor", label: "Idea score floor", hint: "Ideas the judge scores below this are auto-dismissed", min: 0, max: 10, step: 0.5 },
+  { key: "revisionWarnAt", label: "Revision warn at", hint: "Revision round that starts warning you (before the hard cap)", min: 1, max: 10 },
   { key: "revisionHardCap", label: "Revision hard cap", hint: "Max script revision rounds before holding", min: 1, max: 10 },
   { key: "qcLessonBelow", label: "QC lesson below", hint: "QC scores under this record a lesson", min: 0, max: 10, step: 0.5 },
+  { key: "coldStartMin", label: "Cold-start minimum", hint: "Published-with-stats videos before performance ranking kicks in", min: 0, max: 50 },
   { key: "seedVisionFloor", label: "Seed vision floor", hint: "Minimum vision score for seeded frames", min: 0, max: 10, step: 0.5 },
   { key: "varietyMinDistance", label: "Variety min distance", hint: "Minimum topic distance between builds (0–32)", min: 0, max: 32 },
   { key: "autofixThreshold", label: "Autofix threshold", hint: "Frames under this score get an auto-fix pass", min: 0, max: 10, step: 0.5 },
@@ -79,9 +83,11 @@ export function QualityGatesCard({ initial }: { initial: QualityGates }) {
     <Card>
       <CardTitle>Quality gates</CardTitle>
       <p className="mb-4 text-sm text-muted">
-        The score thresholds the autonomous pipeline holds itself to — raise
-        them for a stricter channel, lower them to let more through. Scores
-        run 0–10.
+        These are the <span className="font-medium text-ink">pass/hold lines</span>,
+        not grading dials. The agents grade against fixed rubrics; these
+        thresholds decide what a given 0–10 score is allowed to do — raise them
+        so more videos hold for you, lower them to let more through
+        automatically.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {FIELDS.map((f) => (
