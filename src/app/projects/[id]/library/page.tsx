@@ -180,8 +180,13 @@ function VideoTile({ projectId, item }: { projectId: string; item: LibraryItem }
       : tile.section === "ready"
         ? "Ready to publish"
         : statusBlurb(video.status));
-  // Published/live assets are done — no Resume, even with a stale paused_reason.
-  const paused = tile.section !== "published" && Boolean(video.paused_reason);
+  // Resume only applies to a genuinely stalled in-progress asset. Published
+  // (done) and Ready-to-publish (forward action is publishing, reached by
+  // tapping the tile) never show it — even with a stale paused_reason.
+  const paused =
+    tile.section !== "published" &&
+    tile.section !== "ready" &&
+    Boolean(video.paused_reason);
   const atGate = item.gateLabel != null;
   return (
     <AssetTile

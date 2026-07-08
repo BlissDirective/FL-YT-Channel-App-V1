@@ -125,6 +125,20 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
     const gate = published ? undefined : GATE_FOR_STATUS[video.status];
     const diagnosis =
       !published && video.status === "APPROVED" ? publishDiagnosis(video) : null;
+    // Ready-to-publish (APPROVED, not yet live): the forward action is
+    // publishing, not "resume". Show the publish diagnosis (e.g. "open the
+    // Publish Kit to upload"), never a stale hold reason left over from an
+    // earlier gate.
+    const readyToPublish = tile.section === "ready";
+    const awaitingLabel = published
+      ? null
+      : readyToPublish
+        ? (diagnosis && diagnosis.state !== "live" ? diagnosis.message : null) ||
+          "Ready to publish — open to upload."
+        : (video.paused_reason ??
+          (diagnosis && diagnosis.state !== "live" && diagnosis.message
+            ? diagnosis.message
+            : null));
     const item: LibraryItem = {
       video,
       tile,
@@ -132,12 +146,7 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
       gateLabel: gate ? `${GATE_LABELS[gate]} gate` : null,
       thumbUrl: thumbUrls.get(video.id) ?? null,
       views: published ? (latestViews.get(video.id) ?? null) : null,
-      awaitingLabel: published
-        ? null
-        : (video.paused_reason ??
-          (diagnosis && diagnosis.state !== "live" && diagnosis.message
-            ? diagnosis.message
-            : null)),
+      awaitingLabel,
     };
     if (tile.awaitingYou) attentionCount += 1;
     sections[tile.section].push(item);

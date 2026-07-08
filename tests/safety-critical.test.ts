@@ -176,6 +176,17 @@ describe("decideGate revision cap (quality_gates defaults: warn 3, hard-cap 4)",
     });
     expect(db.row("videos", "v1")!.status).toBe("APPROVED");
   });
+
+  it("approving a HELD gate clears the stale paused_reason (no old hold in Ready-to-publish)", async () => {
+    const db = seededDb(
+      video("FINAL_REVIEW", { paused_reason: "Auto-fix held — 6.2/10 after 2 re-renders." }),
+    );
+    const r = await decideGate({ videoId: "v1", decision: "approved" }, db as never);
+    expect(r.ok).toBe(true);
+    const v = db.row("videos", "v1")!;
+    expect(v.status).toBe("APPROVED");
+    expect(v.paused_reason).toBeNull();
+  });
 });
 
 // ── killVideo: works from any status, audit-trailed at gates ──────────────

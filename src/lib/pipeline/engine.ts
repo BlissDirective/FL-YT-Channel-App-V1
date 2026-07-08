@@ -89,6 +89,30 @@ const STAGE_DELAY_MS = 700; // lets Realtime dashboards show in-progress states
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * Turn a raw provider error (often a wall of JSON) into a short, actionable
+ * hold reason for the Library tile / Canvas. Known operational failures get a
+ * plain-English fix; anything else is truncated so the card stays readable.
+ */
+export function humanizeProviderError(raw: string): string {
+  const s = raw ?? "";
+  if (/credit balance is too low|Plans & Billing|insufficient.*credit|billing/i.test(s)) {
+    return "Anthropic API is out of credits — add credits in the Anthropic console (Plans & Billing), then press Resume.";
+  }
+  if (/\b(401|invalid[_\s-]?api[_\s-]?key|authentication|unauthorized)\b/i.test(s)) {
+    return "Anthropic API key rejected (401) — check ANTHROPIC_API_KEY in Settings, then Resume.";
+  }
+  if (/\b(429|rate[_\s-]?limit)\b/i.test(s)) {
+    return "Anthropic API rate limit hit — wait a minute, then press Resume.";
+  }
+  if (/\b(500|502|503|529|overloaded|Internal Server Error)\b/i.test(s)) {
+    return "Anthropic API is temporarily unavailable — press Resume in a minute.";
+  }
+  // Strip embedded JSON braces so a raw SDK error reads cleanly, then cap.
+  const clean = s.replace(/\{.*$/s, "").replace(/\s+/g, " ").trim() || s.trim();
+  return clean.slice(0, 180);
+}
+
 async function getVideo(db: Db, id: string): Promise<Video | null> {
   const { data } = await db.from("videos").select("*").eq("id", id).maybeSingle();
   return (data as Video) ?? null;
@@ -1593,7 +1617,7 @@ export async function runPipeline(videoId: string, dbArg?: Db): Promise<EngineRe
       const stage = video.status.replace(/_/g, " ").toLowerCase();
       await db
         .from("videos")
-        .update({ paused_reason: `${stage} failed: ${msg.slice(0, 180)}` })
+        .update({ paused_reason: `${stage} paused — ${humanizeProviderError(msg)}` })
         .eq("id", videoId);
       console.error(`pipeline stage ${video.status} failed for ${videoId}:`, err);
       return { ok: false, error: msg };
@@ -2721,7 +2745,7 @@ export async function processPendingBuildVideos(
       errors++;
       await db
         .from("videos")
-        .update({ paused_reason: `Build & Post: ${String(err).slice(0, 140)}` })
+        .update({ paused_reason: `Build & Post paused — ${humanizeProviderError(String(err))}` })
         .eq("id", row.id);
       console.error(`build-runner ${row.id} failed:`, err);
     }
@@ -4067,6 +4091,12 @@ export async function decideGate(
 
   const next = ON_APPROVE[video.status];
   if (!next) return { ok: false, error: "No approve transition" };
-  await setStatus(db, video.id, next);
+  // Approving past a gate resolves any hold that was on it — clear the stale
+  // paused_reason so an approved video doesn't carry an old "Auto-fix held"
+  // (or budget/error) note forward into the Ready-to-publish section.
+  await db
+    .from("videos")
+    .update({ status: next, paused_reason: null })
+    .eq("id", video.id);
   return runPipeline(video.id, db);
 }
