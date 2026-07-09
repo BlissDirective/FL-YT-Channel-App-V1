@@ -63,8 +63,10 @@ test("library v2: asset born in Ideas, quick-approved through sections, killable
   await page.locator('input[name="name"]').fill(`Library v2 ${Date.now()}`);
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Create project" }).click();
-  await page.waitForURL(/\/projects\/[0-9a-f-]+$/, { timeout: 60_000 });
-  const libUrl = `${new URL(page.url()).pathname}/library`;
+  // createProject redirects to /projects/:id, which re-redirects to the
+  // Library (the project home since the v2 cutover) — match either landing.
+  await page.waitForURL(/\/projects\/[0-9a-f-]+(\/library)?$/, { timeout: 60_000 });
+  const libUrl = `${new URL(page.url()).pathname.replace(/\/library$/, "")}/library`;
 
   await test.step("new asset lands in the Ideas section, awaiting the operator", async () => {
     await page.goto(libUrl);

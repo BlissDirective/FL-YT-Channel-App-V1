@@ -52,6 +52,9 @@ jobs:
       - run: pnpm install --frozen-lockfile --filter @studio/clips...
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - name: Run clip queue
+        # Same guard as every step above: an empty scheduled queue skipped
+        # checkout, so packages/clips doesn't exist — running here would fail.
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         working-directory: packages/clips
         env:
           SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
