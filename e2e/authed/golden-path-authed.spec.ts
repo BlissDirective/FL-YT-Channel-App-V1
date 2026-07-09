@@ -62,7 +62,14 @@ test("library v2: asset born in Ideas, quick-approved through sections, killable
   await page.waitForURL(/\/projects\/new/);
   await page.locator('input[name="name"]').fill(`Library v2 ${Date.now()}`);
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Create project" }).click();
+  // The submit's label swaps to "Creating…" and the redirect unmounts it
+  // mid-click, which can strand Playwright's actionability retry loop
+  // (unbounded by default) even though the action fired — bound the click
+  // and let the waitForURL below be the real assertion.
+  await page
+    .getByRole("button", { name: /Create project|Creating…/ })
+    .click({ timeout: 15_000 })
+    .catch(() => {});
   // createProject redirects to /projects/:id, which re-redirects to the
   // Library (the project home since the v2 cutover) — match either landing.
   await page.waitForURL(/\/projects\/[0-9a-f-]+(\/library)?$/, { timeout: 60_000 });
@@ -114,7 +121,11 @@ test("golden path: idea → tracking on Library + Asset Canvas", async ({
   await page.waitForURL(/\/projects\/new/);
   await page.locator('input[name="name"]').fill(`Canvas v2 ${Date.now()}`);
   for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Create project" }).click();
+  // Same detach-tolerant click as the first spec (label swap + redirect).
+  await page
+    .getByRole("button", { name: /Create project|Creating…/ })
+    .click({ timeout: 15_000 })
+    .catch(() => {});
   await page.waitForURL(/\/projects\/[0-9a-f-]+/, { timeout: 60_000 });
   projectUrl = new URL(page.url()).pathname.replace(/\/library$/, "");
   const libUrl = `${projectUrl}/library`;
