@@ -3,7 +3,7 @@
  * query params land in access logs), constant-time via secureEquals.
  * These tests pin the fail-open/fail-closed matrix.
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NextRequest } from "next/server";
 import { requireCronAuth } from "@/lib/cron-auth";
 import { secureEquals } from "@/lib/secure-compare";
@@ -17,7 +17,7 @@ function fakeRequest(opts: { authorization?: string; url?: string } = {}): NextR
   } as never;
 }
 
-const ENV_KEYS = ["CRON_SECRET", "VERCEL"] as const;
+const ENV_KEYS = ["CRON_SECRET", "VERCEL", "ALLOW_UNAUTHENTICATED_CRON"] as const;
 let saved: Record<string, string | undefined>;
 
 beforeEach(() => {
@@ -85,6 +85,25 @@ describe("requireCronAuth with CRON_SECRET unset", () => {
 
   it("runs freely locally (no VERCEL env) so the mock stack needs zero config", () => {
     expect(requireCronAuth(fakeRequest())).toBeNull();
+  });
+
+  it("fails CLOSED (503) on any production build, not just Vercel", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    try {
+      expect(requireCronAuth(fakeRequest())?.status).toBe(503);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("ALLOW_UNAUTHENTICATED_CRON=1 is the explicit opt-out for CI/mock stacks", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.ALLOW_UNAUTHENTICATED_CRON = "1";
+    try {
+      expect(requireCronAuth(fakeRequest())).toBeNull();
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });
 

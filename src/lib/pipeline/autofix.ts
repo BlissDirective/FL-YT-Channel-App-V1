@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { reviewGate } from "@/lib/adapters/qc";
 import { isAutofixEnabled, getQualityGateConfig } from "@/lib/pipeline/quality-gates";
-import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
+import { checkBudget, recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import { recordNamespaceLesson } from "@/lib/pipeline/memory-service";
 import { craftNamespaceForChange } from "@/lib/pipeline/memory";
 import { isTwelveLabsLive, wantsTemporalPass } from "@/lib/adapters/twelvelabs";
@@ -737,6 +737,31 @@ export async function processAutofixForVideo(
       changes: [],
       status: "held",
       note: why,
+    });
+    return { acted: true, kind: "held", score };
+  }
+
+  // The project's budget caps bind here too — the loop previously enforced
+  // only its private per-video fix cap, so aggregate fix spend across videos
+  // could sail past the project's monthly budget unchecked.
+  const projectBudget = await checkBudget(db, project, video);
+  if (!projectBudget.ok) {
+    state.status = "held";
+    await setState(db, video.id, state);
+    await db
+      .from("videos")
+      .update({ paused_reason: `Auto-fix held — ${projectBudget.reason}. Manual review.` })
+      .eq("id", video.id);
+    await db.from("autofix_runs").insert({
+      project_id: project.id,
+      video_id: video.id,
+      loop,
+      attempt: attempts + 1,
+      tier: "tier1",
+      from_score: score,
+      changes: [],
+      status: "held",
+      note: projectBudget.reason,
     });
     return { acted: true, kind: "held", score };
   }

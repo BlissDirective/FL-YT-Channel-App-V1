@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireCronAuth } from "@/lib/cron-auth";
 import { sweepAutofix } from "@/lib/pipeline/autofix";
+import { isKillSwitchOn } from "@/lib/pipeline/engine";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -17,6 +19,11 @@ async function handle(request: NextRequest) {
   const denied = requireCronAuth(request);
   if (denied) return denied;
   try {
+    // Emergency stop: critiques + fixes are paid (Opus re-judges, FLUX
+    // re-rolls) — the sweep must respect the global kill switch.
+    if (await isKillSwitchOn(createAdminClient())) {
+      return NextResponse.json({ ok: true, skipped: "kill-switch" });
+    }
     const r = await sweepAutofix(8);
     return NextResponse.json({ ok: true, ...r });
   } catch (err) {

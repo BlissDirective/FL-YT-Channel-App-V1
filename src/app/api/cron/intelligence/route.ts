@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireCronAuth } from "@/lib/cron-auth";
 import { runIntelligenceAllProjects } from "@/lib/pipeline/intelligence";
+import { isKillSwitchOn } from "@/lib/pipeline/engine";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -11,6 +13,10 @@ async function handle(request: NextRequest) {
   const denied = requireCronAuth(request);
   if (denied) return denied;
   try {
+    // Emergency stop covers paid daily scouting too.
+    if (await isKillSwitchOn(createAdminClient())) {
+      return NextResponse.json({ ok: true, skipped: "kill-switch" });
+    }
     const { created, projects } = await runIntelligenceAllProjects();
     return NextResponse.json({ ok: true, created, projects });
   } catch (err) {

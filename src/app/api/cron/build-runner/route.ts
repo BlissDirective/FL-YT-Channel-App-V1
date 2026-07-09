@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { requireCronAuth } from "@/lib/cron-auth";
 import {
   finalizeAutoPilotVideos,
+  isKillSwitchOn,
   processPendingBuildVideos,
   reconcileBuildRuns,
   reconcileStuckRenders,
@@ -31,6 +32,13 @@ async function handle(request: NextRequest) {
   const denied = requireCronAuth(request);
   if (denied) return denied;
   try {
+    // Emergency stop: the kill switch promises "nothing will run". Without
+    // this gate the cron kept grading, auto-fixing, auto-approving, and
+    // releasing publishes while the switch was ON (runPipeline's internal
+    // check never covered finalize/release/sweep).
+    if (await isKillSwitchOn(createAdminClient())) {
+      return NextResponse.json({ ok: true, skipped: "kill-switch" });
+    }
     // Cheap passes first (release due slots, finalize rendered cuts, heal any
     // render-stranded videos), then the heavy generation step under a wall-clock
     // budget so a pass never hard-times-out mid-video and strands it.

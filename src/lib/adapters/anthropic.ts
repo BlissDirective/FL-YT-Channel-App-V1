@@ -11,11 +11,28 @@ import "server-only";
 const URL = "https://api.anthropic.com/v1/messages";
 const RETRYABLE = new Set([429, 500, 502, 503, 529]);
 
+// A hung socket previously blocked the serverless invocation to its full
+// maxDuration (300s) and stranded the video mid-stage — the runPipeline
+// catch only fires on a throw, never on a hang. 120s comfortably covers the
+// largest script/QC generations while leaving the route headroom to fail,
+// hold the video, and surface the error.
+const TIMEOUT_MS = 120_000;
+
 export async function anthropicFetch(init: RequestInit): Promise<Response> {
-  let res = await fetch(URL, init);
-  if (!res.ok && RETRYABLE.has(res.status)) {
-    await new Promise((r) => setTimeout(r, 1500 + Math.floor(Math.random() * 1000)));
-    res = await fetch(URL, init);
+  const attempt = () => fetch(URL, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  try {
+    const res = await attempt();
+    if (!res.ok && RETRYABLE.has(res.status)) {
+      await new Promise((r) => setTimeout(r, 1500 + Math.floor(Math.random() * 1000)));
+      return await attempt();
+    }
+    return res;
+  } catch (err) {
+    // Timeouts/aborts are as transient as a 529 — give it the same one retry.
+    if (err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError")) {
+      await new Promise((r) => setTimeout(r, 1500 + Math.floor(Math.random() * 1000)));
+      return await attempt();
+    }
+    throw err;
   }
-  return res;
 }

@@ -39,7 +39,7 @@ import {
   type VideoGenResult,
 } from "@/lib/pipeline/engine";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
-import { mergeQualityGates } from "@/lib/pipeline/quality-gates";
+import { invalidateQualityGateCache, mergeQualityGates } from "@/lib/pipeline/quality-gates";
 import { getKillSwitch } from "@/lib/db/queries";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
@@ -810,6 +810,9 @@ export async function saveQualityGatesAction(
   const { error } = await supabase
     .from("app_settings")
     .upsert({ key: "quality_gates", value: merged });
+  // Bust the engine's 60s config cache so this container applies the new
+  // thresholds immediately (other warm containers age out within a minute).
+  invalidateQualityGateCache();
   revalidatePath("/settings");
   return error ? { ok: false, error: error.message } : { ok: true };
 }

@@ -146,6 +146,13 @@ export function mergeQualityGates(
     hop; one DB read a minute is plenty for operator-tuned settings. */
 let cached: { at: number; cfg: QualityGateConfig } | null = null;
 
+/** Bust the per-instance cache. Called by the Settings save action so a warm
+    serverless container doesn't keep serving pre-save safety thresholds for
+    up to a minute after the operator changed them. */
+export function invalidateQualityGateCache(): void {
+  cached = null;
+}
+
 /** Resolve the quality-gate config. Gates are always enabled; every threshold
     is overridable via app_settings key 'quality_gates' (Settings UI card). */
 export async function getQualityGateConfig(db?: Db): Promise<QualityGateConfig> {
