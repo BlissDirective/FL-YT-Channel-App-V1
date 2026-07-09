@@ -10,8 +10,8 @@ import { anthropicPriceOf } from "./pricing";
  * pipeline always works (standing rule 4).
  *
  * Model is env-switchable via SCRIPT_MODEL (default Sonnet 4.6). Set it to
- * "claude-opus-4-8" for the flagship-quality writer — ~5x the token cost
- * (~$0.25–0.30/script vs ~$0.05); pricing below tracks whichever is set.
+ * "claude-opus-4-8" for the flagship-quality writer — ~1.7x the token cost
+ * (~$0.08–0.10/script vs ~$0.05); pricing below tracks whichever is set.
  */
 
 const MODEL = process.env.SCRIPT_MODEL?.trim() || "claude-sonnet-4-6";

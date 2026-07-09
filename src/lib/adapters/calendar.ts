@@ -173,7 +173,7 @@ export async function planMonthlyCalendar(opts: {
     const raw =
       (data.content.find((c) => c.type === "tool_use")?.input as { slots?: { day: number; subtopic: string; title: string; angle: string; priority?: number }[] } | undefined)?.slots ?? null;
     const PRICE: Record<string, { in: number; out: number }> = {
-      "claude-opus-4-8": { in: 15, out: 75 },
+      "claude-opus-4-8": { in: 5, out: 25 },
       "claude-sonnet-4-6": { in: 3, out: 15 },
       "claude-haiku-4-5": { in: 1, out: 5 },
     };

@@ -12,7 +12,7 @@ import type { Blueprint, IntelCompetitor } from "@/lib/db/types";
 
 const MODEL = process.env.INTEL_MODEL?.trim() || "claude-sonnet-4-6";
 const PRICING: Record<string, { in: number; out: number }> = {
-  "claude-opus-4-8": { in: 15, out: 75 },
+  "claude-opus-4-8": { in: 5, out: 25 },
   "claude-sonnet-4-6": { in: 3, out: 15 },
   "claude-haiku-4-5": { in: 1, out: 5 },
 };

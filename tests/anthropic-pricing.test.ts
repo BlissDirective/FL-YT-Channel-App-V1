@@ -5,7 +5,7 @@ import { ANTHROPIC_PRICING, anthropicCostUsd, anthropicPriceOf } from "@/lib/ada
 describe("anthropicPriceOf", () => {
   it("returns the table entry for known models", () => {
     expect(anthropicPriceOf("claude-haiku-4-5")).toEqual({ in: 1, out: 5 });
-    expect(anthropicPriceOf("claude-opus-4-8")).toEqual({ in: 15, out: 75 });
+    expect(anthropicPriceOf("claude-opus-4-8")).toEqual({ in: 5, out: 25 });
   });
 
   it("falls back to sonnet pricing for unknown models", () => {
