@@ -97,18 +97,35 @@ test("library v2: asset born in Ideas, quick-approved through sections, killable
     await expect(page.getByTestId("asset-tile").first()).toBeVisible();
   });
 
+  // A quick-approve advances the video server-side (the action's revalidated
+  // payload already carries the next gate) and calls router.refresh(), but the
+  // section-reclassified tile repaints off a Supabase Realtime event — and the
+  // CI local stack's realtime is unreliable, so the grid can lag the DB. Reload
+  // to assert the server truth (the pipeline advance) rather than race the
+  // client repaint; a stage-labelled tile after reload proves the approve took.
+  const approveAndReload = async (nextGate: string) => {
+    await page.getByRole("button", { name: "Approve", exact: true }).click();
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByText(nextGate).first()).toBeVisible({ timeout: 5_000 });
+    }).toPass({ timeout: 120_000 });
+  };
+
   await test.step("quick-approve moves the tile Ideas → Script → Production", async () => {
-    await page.getByRole("button", { name: "Approve", exact: true }).click();
-    await expect(page.getByText("Script gate").first()).toBeVisible({ timeout: 120_000 });
-    await page.getByRole("button", { name: "Approve", exact: true }).click();
-    await expect(page.getByText("Assets gate").first()).toBeVisible({ timeout: 120_000 });
+    await approveAndReload("Script gate");
+    await approveAndReload("Assets gate");
     await expect(page.getByRole("button", { name: /Production/ })).toBeVisible();
   });
 
   await test.step("kill from the tile removes the asset (confirmed + audited)", async () => {
     page.once("dialog", (d) => d.accept());
     await page.getByRole("button", { name: "Kill" }).click();
-    await expect(page.getByTestId("asset-tile")).toHaveCount(0, { timeout: 30_000 });
+    // Same realtime-lag tolerance as the approvals: reload to observe the
+    // server-side kill rather than race the grid's live removal.
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByTestId("asset-tile")).toHaveCount(0, { timeout: 5_000 });
+    }).toPass({ timeout: 60_000 });
   });
 });
 
@@ -143,14 +160,21 @@ test("golden path: idea → tracking on Library + Asset Canvas", async ({
     await expect(page.getByText("Idea gate")).toBeVisible();
   });
 
+  // The checkpoint approve advances the video server-side (verified via the
+  // action's revalidated payload) but the panel repaints off the same
+  // Realtime channel the Library tiles use — unreliable on the CI local
+  // stack. Reload to assert the server truth rather than race the repaint.
   const approveCheckpoint = async (nextGate: string) => {
     await page
       .getByTestId("checkpoint-panel")
       .getByRole("button", { name: "Approve & continue" })
       .click();
-    await expect(page.getByTestId("checkpoint-panel").getByText(nextGate)).toBeVisible({
-      timeout: 120_000,
-    });
+    await expect(async () => {
+      await page.reload();
+      await expect(
+        page.getByTestId("checkpoint-panel").getByText(nextGate),
+      ).toBeVisible({ timeout: 5_000 });
+    }).toPass({ timeout: 120_000 });
   };
 
   await test.step("IDEA → SCRIPT on one page (progress rail advances)", async () => {
@@ -182,7 +206,10 @@ test("golden path: idea → tracking on Library + Asset Canvas", async ({
       .getByTestId("checkpoint-panel")
       .getByRole("button", { name: "Approve & continue" })
       .click();
-    await expect(page.getByText("Already uploaded it?")).toBeVisible({ timeout: 120_000 });
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByText("Already uploaded it?")).toBeVisible({ timeout: 5_000 });
+    }).toPass({ timeout: 120_000 });
   });
 
   await test.step("publish from the same page → TRACKING", async () => {
@@ -190,7 +217,10 @@ test("golden path: idea → tracking on Library + Asset Canvas", async ({
       .locator('input[placeholder="https://youtu.be/…"]')
       .fill("https://youtu.be/dQw4w9WgXcQ");
     await page.getByRole("button", { name: "Mark as uploaded" }).click();
-    await expect(page.getByText("Tracking").first()).toBeVisible({ timeout: 60_000 });
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByText("Tracking").first()).toBeVisible({ timeout: 5_000 });
+    }).toPass({ timeout: 60_000 });
   });
 
   await test.step("the Library shows the asset in Published with the full bar", async () => {
