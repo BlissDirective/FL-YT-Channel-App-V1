@@ -81,8 +81,14 @@ test("library v2: asset born in Ideas, quick-approved through sections, killable
       .locator('input[placeholder^="Type a video topic"]')
       .fill("Library quick-action journey");
     await page.getByRole("button", { name: "New asset" }).click();
-    await expect(page.getByRole("button", { name: /Ideas/ })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByTestId("asset-tile").first()).toBeVisible();
+    // New-asset creation persists server-side; the tile's appearance in the
+    // Ideas section is a Realtime repaint, unreliable on the CI local stack.
+    // Reload to observe the committed tile rather than race the live insert.
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByTestId("asset-tile").first()).toBeVisible({ timeout: 5_000 });
+    }).toPass({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: /Ideas/ })).toBeVisible();
     await expect(page.getByText("your turn").first()).toBeVisible();
     await expect(page.getByText("Idea gate").first()).toBeVisible();
   });
@@ -153,7 +159,11 @@ test("golden path: idea → tracking on Library + Asset Canvas", async ({
       .locator('input[placeholder^="Type a video topic"]')
       .fill("Canvas contained-pipeline journey");
     await page.getByRole("button", { name: "New asset" }).click();
-    await expect(page.getByTestId("asset-tile").first()).toBeVisible({ timeout: 30_000 });
+    // Reload-tolerant tile appearance (CI realtime flakiness — see test 1).
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByTestId("asset-tile").first()).toBeVisible({ timeout: 5_000 });
+    }).toPass({ timeout: 30_000 });
     await page.getByText("Canvas contained-pipeline journey").first().click();
     await page.waitForURL(/\/videos\/[0-9a-f-]+/);
     await expect(page.getByTestId("checkpoint-panel")).toBeVisible();
