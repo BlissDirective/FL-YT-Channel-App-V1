@@ -47,10 +47,11 @@ Schema/editor decisions locked for Phase A/B (drive §2.3 + §5):
   waveform via Mediabunny; live `<Player>` scrub for editing + a "Render
   preview" button for final-fidelity checks.
 
-Also raised in pass 2 (operator): an **Editing-Craft Knowledge System** — the
-agent periodically researches, verifies, stores, and applies best-practice
-editing knowledge (techniques, transitions, SFX, timing, hooks) that shapes its
-decisions over time. Design in progress; lands as §11 once finalized.
+Also finalized in pass 2 (operator): the **Editing-Craft Knowledge System** —
+the agent periodically researches, verifies, stores, and applies best-practice
+editing knowledge that shapes its decisions over time. Full design + decisions
+KD1–KD5 in **§11** (a Phase C+ capability riding the existing `memory_entries`
+governance; does not touch the A/B foundation).
 
 Open for review pass 3 (post-A/B-authorization): Phase C (the agent) —
 tool-surface finalization, autonomy defaults per gate, the 8 conflict
@@ -507,3 +508,141 @@ down**, with variance capped.
   mitigated by per-capability render tests before Phase B; if any capability
   proves render-expensive/unstable, it stays in the schema but is disabled in
   the `/edit` UI until fixed (schema-complete, UI-gated) rather than dropped.
+
+---
+
+## 11. The Editing-Craft Knowledge System (review pass 2 — Phase C+ capability)
+
+The agent periodically **researches, verifies, stores, and applies** best-practice
+editing knowledge (techniques, transitions, SFX, timing, hooks) so that knowledge
+shapes its cuts over time and improves from the channel's own results.
+
+> **Key finding (verified against the code):** ~80% of this already exists. The
+> `memory_entries` store (migration 0039) + `memory.ts` + `outcome-audit.ts`
+> already implement a governed, evidence-gated, confidence-decaying,
+> shadow→active→retired knowledge base with per-channel RLS isolation, global
+> promotion, and a Spearman(QC-score, retention) anti-reward-hacking audit. The
+> `editing` / `visual` / `audio` namespaces already exist. This system is a
+> **governance layer we already built for scripts, extended to editing** — not a
+> new system. It rides existing infra and does **not** touch the A/B foundation.
+
+### 11.1 What is net-new (only three things)
+
+1. **External-research producer** — a weekly `editing-research.yml` agent
+   (mirrors `optimizer.yml`) that mines Tier-B/C sources into `status='shadow'`
+   memory rows **and** opens a PR regenerating a distilled skill file. Today all
+   memory is first-party-generated; nothing mines external craft.
+2. **Wire the `editing`/`visual`/`audio` namespaces into the cut.** Verified:
+   `engine.ts:379` injects only the **`script`**-stage playbook at authoring
+   time — editing knowledge exists but nothing reads it when the cut is made.
+   The MVDA loads it at edit-decision authoring, **and** graduated techniques
+   become `criterion` rows the Self-Watch/QC judges enforce.
+3. **Greenfield `.claude/skills/editing-craft/SKILL.md`** (none exist yet) — a
+   compiled digest of *active, graduated* lessons, human-reviewed as a git diff.
+   The DB stays source of truth; the skill file is the loaded artifact.
+
+### 11.2 Three trust tiers (source-weighted, not equal)
+
+- **Tier A — first-party (highest):** the channel's own retention curves +
+  (later) most-replayed heatmaps + canary A/B deltas. The **only** source that
+  can *graduate* a technique to apply-by-default.
+- **Tier B — second-party (medium):** competitor/niche signal, top-performer
+  pacing teardowns.
+- **Tier C — third-party (needs verification):** general editing craft (film
+  theory, Submagic/Opus conventions, creator breakdowns).
+
+### 11.3 Operator decisions (review pass 2)
+
+- **KD1 — graduation policy.** First-party **auto-graduates** (canary +
+  rollback); **all** second- and third-party knowledge requires a **human PR**
+  before it becomes loaded default context. **Tier-A gating is the anti-fad
+  firewall** — no external claim shapes a default cut until the channel's own
+  retention confirms it.
+- **KD1 — 2nd = 3rd, with tier-volume normalization (confirmed).** Second and
+  third party carry **equal** weight *as tiers*. Because Tier-C craft is
+  abundant and Tier-B niche signal is scarce, normalize by tier so the two
+  contribute **equally in aggregate, not per-item** — 3rd-party listicle-spam
+  cannot drown scarce 2nd-party niche signal (cap active external criteria per
+  category / weight by tier count).
+- **KD2 — dual application, split by channel.**
+  - **Authoring context → full, equal, day one.** ALL knowledge (1st/2nd/3rd,
+    2nd = 3rd) feeds the agent's *reasoning* when it authors the cut. No cap —
+    the retention-tuned QC gate is the backstop. This is the "consistent impact
+    input" the operator asked for, in full.
+  - **Rubric enforcement → present day one, confidence-banded.** External
+    (unproven) criteria affect the QC gate from day one but at a **capped
+    advisory weight of 30–40% of a proven criterion** (operator dial): they may
+    *nudge* a borderline cut, not *veto* a good one or homogenize the channel.
+    **Retention lifts each external criterion's weight toward full as it's
+    confirmed, decays it as it's refuted** — retention is the primary
+    learning/guiding factor over time, made mechanical. Because the cap is set
+    at the higher (30–40%) end, run a **tighter outcome-audit cadence** so the
+    Spearman(QC, retention) drift check catches a bad external criterion faster.
+- **KD3 — two layers with hard bidirectional boundaries.** `tier='global'`
+  editing-craft (shared across channels) ∪ `tier='channel'` first-party
+  specifics. Guards: (a) **no channel→channel bleed** — `match_memory` already
+  enforces per-channel read isolation; a channel lesson reaches global **only**
+  via `planGlobalPromotion` after confirmation on ≥N channels; (b) **global
+  always applies** — every session loads all `global` active lessons plus the
+  channel's; a channel may locally down-weight a global criterion its retention
+  refutes but **cannot edit/delete** the global lesson (read-only from a
+  channel's seat). **Guard test** asserts both: no foreign-`project_id` channel
+  row is ever returned to a session, **and** every active global lesson loads
+  for a zero-history session (no missed global application).
+- **KD4 — cadence + SEPARATE budget.** Weekly autonomous Editing Researcher +
+  on-demand trigger; first-party loop piggybacks the existing
+  `outcome-audit`/`optimizer` crons (near-zero marginal cost).
+  - **`RESEARCH_MONTHLY_CAP_USD` = $20/mo, a fully SEPARATE budget line.**
+    Research spend ledgers at **system scope (`project_id = null`, provider
+    `research`)**, so it is counted by a dedicated `researchMonthSpend()` and
+    **never** enters `monthSpend(project)` or `monthVideoSpend` — it does **not**
+    touch, count toward, or reduce any project's video-production budget (e.g. a
+    $60/mo production cap and the $20/mo research cap are independent).
+  - Enforced with the existing `checkBudget`/`recordCost` ledger + Agent SDK
+    **`maxBudgetUsd` per run** (~$2) + kill-switch respect (crons gate on it per
+    the audit fixes).
+  - **Automated budget tests:** (1) pre-flight abort when month-to-date research
+    spend ≥ cap; (2) per-run `maxBudgetUsd` ceiling terminates + holds on
+    overrun; (3) research spend records under provider `research` at system
+    scope and is invisible to project/video caps (positive *and* negative
+    assertions); (4) research cron no-ops under the kill switch; (5) monthly
+    over-cap canary in `outcome-audit`.
+- **KD5 — most-replayed heatmap: deferred to v1.** Rely on the official
+  YouTube Analytics retention-curve API for v1 (cleaner, no scraper); add
+  heatmap ingestion (SVG-scrape / Apify actor, needs ~50k views) later as a
+  higher-resolution Tier-A signal.
+
+### 11.4 The loop, end to end
+
+```
+external research ──► SHADOW lesson (quarantined, low confidence, PR-gated for
+                      default context; equal 2nd/3rd, tier-volume-normalized)
+        │
+        ├─ authoring input (full weight, day one) ─► agent proposes the cut
+        └─ rubric criterion (capped 30–40% until proven) ─► QC gate nudges
+                      │
+   applied on videos ─► FIRST-PARTY retention delta confirms or refutes
+                      │
+        confirm ─► weight lifts toward full · graduate to ACTIVE · (≥N channels) → GLOBAL
+        refute  ─► confidence decays · retire below RETIRE_FLOOR (fads die)
+                      │
+        outcome-audit Spearman(QC, retention) guards against reward-hacking
+```
+
+### 11.5 Grounding in 2026 continual-learning research
+
+Maps 1:1 onto current literature — **ACE** (Generator/Reflector/Curator +
+incremental playbook deltas = agent / Self-Watch / weekly curator),
+**Voyager** (embedding-indexed skill library, self-verify before commit =
+`match_memory` + Self-Watch), and audited skill-graph work (never store a
+capability without a re-checkable verifier = evidence-gate + outcome-audit).
+
+### 11.6 Build placement
+
+Phase **C+** (after the operator authorizes Phase C). Net-new work: the
+external-research producer + budget tests, the editing-namespace authoring/
+rubric wiring, migration `0043_editing_craft` (add `source_tier`, `source_url`,
+`technique_id`, `retention_delta`, `applies_when` to `memory_entries`; note the
+video-EDD migration is a different `0043` — final numbers assigned at build),
+and the first `.claude/skills/editing-craft/SKILL.md`. Everything else reuses
+the existing memory/rubric/outcome-audit harness.
