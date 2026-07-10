@@ -26,8 +26,35 @@ Operator decisions locked for Phases A/B (drive §2, §5, §8):
 4. **Cut-gate editor location → dedicated `/edit` route** (not embedded in the
    existing video Canvas page) — more room for a real timeline.
 
-Open for review pass 2: Phase C (the agent) — tool-surface finalization,
-autonomy defaults per gate, and the 8 conflict resolutions.
+### Decision log — review pass 2 (2026-07-10): the EDD schema + `/edit`
+
+Schema/editor decisions locked for Phase A/B (drive §2.3 + §5):
+
+- **D5 — Motion → keyframe model with preset buttons.** `MotionSpec.keyframes`
+  is canonical; Ken Burns / hero-hold presets emit keyframe tracks.
+- **D6 — Transitions → extensible registry, not a fixed set.** v1 ships
+  cut/crossfade/dissolve/slide/whip/dip-to-black/zoom-blur; new kinds register
+  a `{ render, maxSec }` entry (open `{kind: string}` union tail) with **no
+  schema migration**.
+- **D7 — SFX → both sources.** Curated library by default; ElevenLabs
+  generated SFX on demand (cached as an asset). Word-anchored or absolute time.
+- **D8 — Music → deferred.** Schema keeps the `music` cue + `DuckSpec`; the
+  feature is **UI-gated OFF** and validator-rejected until a licensed music
+  library exists.
+- **D9 — Gapless required.** `validateEdd` enforces a gapless, monotonic video
+  track in v1 (no gaps→black).
+- **Editor UX (FYI, not gated):** three audio lanes (VO / SFX / music) + a VO
+  waveform via Mediabunny; live `<Player>` scrub for editing + a "Render
+  preview" button for final-fidelity checks.
+
+Also raised in pass 2 (operator): an **Editing-Craft Knowledge System** — the
+agent periodically researches, verifies, stores, and applies best-practice
+editing knowledge (techniques, transitions, SFX, timing, hooks) that shapes its
+decisions over time. Design in progress; lands as §11 once finalized.
+
+Open for review pass 3 (post-A/B-authorization): Phase C (the agent) —
+tool-surface finalization, autonomy defaults per gate, the 8 conflict
+resolutions, and the finalized Editing-Craft Knowledge System.
 
 ---
 
@@ -126,55 +153,109 @@ create index if not exists edd_video_idx on edit_documents (video_id, version de
 -- videos gains: edit_document_version int (the active version; null = legacy path).
 ```
 
-### 2.3 `doc` body (TypeScript/Zod shape)
+### 2.3 `doc` body (TypeScript/Zod shape) — FINAL (review pass 2 decisions D5–D9)
 
 ```ts
 type EditDocument = {
-  format: "long" | "short";
-  fps: 30;
+  meta: {
+    schemaVersion: 1;
+    format: "long" | "short";
+    fps: 30;
+    aspect: "16:9" | "9:16";
+    targetDurationSec: number;                     // from tier/brief; validated ±tolerance
+  };
   intro: { sting: boolean; sec: number };          // was hardcoded INTRO_SEC=3
   outro: { endCard: boolean; sec: number };        // was hardcoded OUTRO_SEC=4
   tracks: {
-    video: VideoClip[];                            // ordered, gapless after validate()
-    audio: AudioCue[];                             // VO refs + SFX + music bed
+    video: VideoClip[];                            // ordered; GAPLESS (D9)
+    audio: AudioCue[];                             // VO + SFX + music bed
     captions: CaptionPage[];                       // styled pages w/ word tokens
-    overlays: Overlay[];                           // kinetic highlights, lower thirds
+    overlays: Overlay[];                           // kinetic highlights, lower thirds, progress bar
   };
 };
 
 type VideoClip = {
-  id: string;                                      // stable within the doc
+  id: string;                                      // stable within the doc ("v1", "v2"…)
   beatIdx: number;                                 // provenance link to script
-  assetId: string | null;                          // assets.id; null = generated slot pending
+  assetId: string | null;                          // assets.id; null = generation pending
   source: "still" | "stock" | "ai-clip" | "dataviz" | "stick";
-  start: number; duration: number;                 // timeline seconds — EXPLICIT
-  in: number;                                      // source in-point (trim)
-  motion: { kind: "none" | "kenburns" | "heroHold" | "pan"; from?: number; to?: number };
-  transitionOut: { kind: "cut" | "crossfade" | "slide" | "whip"; sec: number }; // new capability
+  start: number; duration: number;                 // timeline seconds — EXPLICIT (breaks VO-welding)
+  trim: { in: number; out: number };               // source in/out point (video assets)
+  motion: MotionSpec;                              // D5 — keyframe model + preset generators
+  transitionOut: Transition;                       // D6 — boundary into the next clip
 };
 
+// D5 — keyframe motion model. Presets (kenburns/heroHold) are UI buttons that
+// EMIT a keyframes[] track; the agent can also author keyframes directly.
+type Ease = "linear" | "easeIn" | "easeOut" | "easeInOut";
+type MotionSpec =
+  | { kind: "none" }
+  | { kind: "kenburns"; fromScale: number; toScale: number; anchor: "center"|"top"|"bottom"|"left"|"right" }
+  | { kind: "heroHold"; rate: number }
+  | { kind: "keyframes"; points: { t: number; scale: number; x: number; y: number; ease: Ease }[] };
+
+// D6 — EXTENSIBLE transition registry (all types available, not a closed set).
+// New transitions register a { render, maxSec } entry; the schema stores kind+params.
+type Transition =
+  | { kind: "cut" }
+  | { kind: "crossfade"; sec: number }
+  | { kind: "dissolve"; sec: number }
+  | { kind: "slide"; sec: number; dir: "left"|"right"|"up"|"down" }
+  | { kind: "whip"; sec: number }
+  | { kind: "dipToBlack"; sec: number }
+  | { kind: "zoomBlur"; sec: number }
+  | { kind: string; sec: number; params?: Record<string, unknown> }; // registry-extensible
+
 type AudioCue =
-  | { kind: "vo"; assetId: string; start: number; gainDb: number }
-  | { kind: "sfx"; name: string; atWord: { clipId: string; word: number }; gainDb: number }
-  | { kind: "music"; assetId: string; start: number; duckUnderVo: boolean };
+  | { kind: "vo";    assetId: string; start: number; gainDb: number; trim?: { in: number; out: number } }
+  | { kind: "sfx";   ref: SfxRef; at: TimeAnchor; gainDb: number }     // D7 — both sources
+  | { kind: "music"; assetId: string; start: number; gainDb: number; duck: DuckSpec }; // D8 — schema present, UI-gated OFF in v1
+
+// D7 — SFX from a curated library by default, generated (ElevenLabs SFX) on demand.
+type SfxRef     = { source: "library"; name: string } | { source: "generated"; assetId: string };
+type TimeAnchor = { kind: "abs"; sec: number } | { kind: "word"; clipId: string; captionToken: number };
+// D8 — music ducking (deferred to a later phase; field kept so nothing re-migrates)
+type DuckSpec   = { mode: "none" } | { mode: "fixed"; underVoDb: number }
+                | { mode: "sidechain"; depthDb: number; attackMs: number; releaseMs: number };
 
 type CaptionPage = {
   startMs: number; endMs: number;
-  tokens: { text: string; fromMs: number; toMs: number;
-            emphasis?: "pop" | "color" | "shake" }[];   // LLM emphasis pass output
-  style: string;                                        // named style from the skill/brand kit
+  tokens: { text: string; fromMs: number; toMs: number; emphasis: "none"|"pop"|"color"|"shake"|"scale" }[];
+  style: string;                                   // named style from brand kit
+  position: "bottom" | "center" | "top";
 };
 
 type Overlay =
-  | { kind: "highlight"; text: string; startMs: number; endMs: number; style: string }
-  | { kind: "lowerThird"; text: string; atSec: number };
+  | { kind: "highlight";  text: string; startMs: number; endMs: number; style: string; anchor: TimeAnchor }
+  | { kind: "lowerThird"; text: string; sub?: string; startSec: number; durationSec: number }
+  | { kind: "progressBar"; style: string };
 ```
 
-`validateEdd(doc)` (pure, unit-tested) enforces: gapless/monotonic video track,
-every `assetId` exists and is live, caption pages within runtime, VO cues cover
-every beat unless explicitly dropped, total runtime within target ±tolerance.
-The agent cannot commit an invalid document — validation runs in the tool, not
-in the prompt.
+**Review-pass-2 decisions baked in:**
+- **D5 keyframe motion** — `MotionSpec.keyframes` is the power path; `kenburns`/
+  `heroHold` presets are UI buttons that emit keyframe tracks.
+- **D6 extensible transitions** — the union stays open via the
+  `{ kind: string; sec; params? }` tail + a transition **registry**
+  (`{ render, maxSec }` per kind), so new transitions are added without a
+  schema migration. v1 ships cut/crossfade/dissolve/slide/whip/dipToBlack/
+  zoomBlur; more land by registering, not re-typing.
+- **D7 SFX both** — `library` is the default source; `generated` (ElevenLabs
+  sound-effects, cached as an asset) is on-demand. Both bind by absolute time
+  or word-anchor.
+- **D8 music deferred** — the `music` cue + `DuckSpec` exist in the schema
+  (so v1 needs no re-migration later) but are **UI-gated OFF** until a
+  licensed music library is in place.
+- **D9 gapless** — `validateEdd` requires the video track to be gapless and
+  monotonic (below).
+
+`validateEdd(doc)` (pure, unit-tested) enforces: **gapless + monotonic video
+track (D9)**; every `assetId` exists and is live; caption pages + overlays
+within runtime; each `transitionOut.sec` ≤ min(adjacent clip durations) and ≤
+the registry `maxSec` for its kind; keyframe `t` values within `[0, duration]`;
+word-anchored SFX/overlays reference a real caption token; music cues rejected
+while the feature is UI-gated; total runtime within `targetDurationSec ±
+tolerance`. The agent cannot commit an invalid document — validation runs in
+the tool, not in the prompt.
 
 ### 2.4 The compiler (Phase A bridge)
 
@@ -260,14 +341,38 @@ autofix holds today).
   page — Remotion `<Player>` + track lanes over the same EDD, **built custom
   in-house on our schema** (**Decision 2** — designcombo/react-video-editor
   dropped: license constraint + an unwanted scene-model translation layer;
-  license-clean, no lossy export). **v1 features (full vocabulary,
-  Decision 1):** scrub preview; drag clip boundaries (retime + source trim,
-  in/out points); transition picker (cut/crossfade/slide/whip); motion editor
-  (Ken Burns / hero-hold / pan keyframes); caption-style + kinetic-emphasis
-  editing; SFX-at-word placement; music-bed track with VO ducking; highlight
-  nudge; swap-visual (calls the same `request_visual` action); version history
-  with diff + revert; and **Approve cut** (= `decideGate`). The Canvas page
-  keeps its checkpoint panel and gains an **"Open editor"** link to `/edit`.
+  license-clean, no lossy export). The Canvas page keeps its checkpoint panel
+  and gains an **"Open editor"** link to `/edit`.
+- **Layout (review pass 2):**
+  ```
+  ┌ ← Library   title            [ Render preview ]  [ Approve cut ✓ ] ┐
+  ├───────────────────────────────┬───────────────────────────────────┤
+  │        PREVIEW  <Player>       │  INSPECTOR (selected clip):        │
+  │      scrub · play · loop       │  source [Swap ▾] · start/dur/trim  │
+  │                                │  motion [Ken Burns ▾] keyframes    │
+  │                                │  transition [Whip ▾] sec           │
+  ├───────────────────────────────┴───────────────────────────────────┤
+  │ V  ▐clips…▌  drag edges = retime/trim                              │
+  │ VO ▐waveform (Mediabunny)…▌                                        │
+  │ FX  ▲ sfx cues (▲ word-anchored)                                   │
+  │ ♪  ▐music bed — UI-gated OFF in v1 (D8)…▌                          │
+  │ CC ▐caption pages…▌  click = edit tokens/emphasis                  │
+  │ OV  ▐highlight / lowerThird / progress bar…▌                       │
+  ├────────────────────────────────────────────────────────────────────┤
+  │ Version v4 (you) ◄ v3 (compiler)         [ diff ]  [ revert ]      │
+  └────────────────────────────────────────────────────────────────────┘
+  ```
+- **v1 controls (full vocabulary, Decision 1):** scrub/loop preview; drag clip
+  edges (retime + source trim in/out); transition picker (the D6 registry set);
+  keyframe motion editor (D5; Ken Burns / hero-hold presets emit keyframes);
+  caption-style + per-token kinetic-emphasis editing; SFX placement (library +
+  generate-on-demand, D7) anchored to a caption word or absolute time;
+  highlight / lower-third / progress-bar overlays; swap-visual (calls
+  `request_visual`); version history with diff + revert; **Approve cut**
+  (= `decideGate`). Music lane present but **gated OFF** (D8).
+- **Preview fidelity:** the live `<Player>` renders instantly for editing (may
+  differ slightly from the final render); the **Render preview** button
+  produces a true-fidelity 480p check via `render_preview`.
 - **Human and agent are peers on the document:** a human save is just a new
   version with `author='human'`; the agent's next turn (if any) reads it. This
   *is* the touch-up path — no CapCut round-trip, no export.
