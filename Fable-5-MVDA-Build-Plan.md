@@ -6,6 +6,29 @@ agent-only mode both in scope from day one; semi-autonomous (human at Script +
 Cut gates) as the launch default; full-auto tier choreography replaced via a
 strangler pattern, with tiers surviving as **budget envelopes**.
 
+### Decision log — review pass 1 (2026-07-09)
+
+Operator decisions locked for Phases A/B (drive §2, §5, §8):
+
+1. **EDD v1 scope → FULL VOCABULARY from day one.** The v1 schema, `validateEdd`,
+   the render path, *and* the Phase-B timeline UI all exercise the complete
+   editing vocabulary immediately — trims / per-clip in-out, transitions, motion,
+   SFX cues, kinetic-word tokens, keyframes, music bed. No "subset first" hedge.
+2. **Timeline UI base → BUILD CUSTOM in-house on the Remotion `<Player>`.**
+   designcombo/react-video-editor is dropped as a dependency (license + a
+   scene-model translation layer we don't want); we own the editor against our
+   EDD directly.
+3. **Sequence → SHIP A + B, then a human verification/authorization gate before
+   Phase C.** The operator uses and tests the standalone human editor over
+   existing videos; **Phase C (the agent) does not begin until the operator
+   explicitly authorizes it.** Captions/kinetic (D) parallelizes with C *after*
+   that authorization, not during A/B.
+4. **Cut-gate editor location → dedicated `/edit` route** (not embedded in the
+   existing video Canvas page) — more room for a real timeline.
+
+Open for review pass 2: Phase C (the agent) — tool-surface finalization,
+autonomy defaults per gate, and the 8 conflict resolutions.
+
 ---
 
 ## 0. The one-paragraph thesis
@@ -163,6 +186,17 @@ highlights via the same resolution as `resolveHighlights`
 This gives byte-equivalent renders on day one (goldens assert it) and gives the
 timeline UI something real to edit before the agent exists.
 
+> **Decision 1 (full vocabulary from day one):** the compiler still emits a
+> *faithful* v1 (so goldens pass and nothing regresses), but the schema,
+> `validateEdd`, the render path (§3), and the Phase-B UI (§5) support the
+> **entire** vocabulary immediately — trims/in-out, transitions, motion, SFX,
+> kinetic tokens, keyframes, music bed. A human (Phase B) or the agent
+> (Phase C) can therefore use any capability the moment the document exists;
+> the compiler simply doesn't *invent* edits the legacy render didn't have.
+> This front-loads the render-path and validator work (they must handle every
+> field correctly before Phase B ships) — accepted in exchange for a Phase B
+> editor that is fully capable on release rather than growing feature-by-phase.
+
 ---
 
 ## 3. Render path changes
@@ -221,13 +255,19 @@ autofix holds today).
   plumbing (engine.ts:4018-4102), same autonomy dial (`projects.autonomy`,
   consumed at `arriveAtGate` engine.ts:207) — only the reviewed artifact
   changes: from a grid of raw assets to **the cut**.
-- **Timeline UI** (`/projects/[id]/videos/[vid]/edit`): Remotion `<Player>` +
-  track lanes over the same EDD — the designcombo/react-video-editor pattern,
-  built in-house on our schema (license-clean, no lossy export). v1 features:
-  scrub preview, drag clip boundaries (retime/trim), transition picker,
-  caption-style/emphasis editing, highlight nudge, swap-visual (calls the same
-  `request_visual` tool), version history with diff + revert, and
-  **Approve cut** (= `decideGate`).
+- **Timeline UI — dedicated `/edit` route** (`/projects/[id]/videos/[vid]/edit`,
+  **Decision 4**): a full-height timeline surface, not embedded in the Canvas
+  page — Remotion `<Player>` + track lanes over the same EDD, **built custom
+  in-house on our schema** (**Decision 2** — designcombo/react-video-editor
+  dropped: license constraint + an unwanted scene-model translation layer;
+  license-clean, no lossy export). **v1 features (full vocabulary,
+  Decision 1):** scrub preview; drag clip boundaries (retime + source trim,
+  in/out points); transition picker (cut/crossfade/slide/whip); motion editor
+  (Ken Burns / hero-hold / pan keyframes); caption-style + kinetic-emphasis
+  editing; SFX-at-word placement; music-bed track with VO ducking; highlight
+  nudge; swap-visual (calls the same `request_visual` action); version history
+  with diff + revert; and **Approve cut** (= `decideGate`). The Canvas page
+  keeps its checkpoint panel and gains an **"Open editor"** link to `/edit`.
 - **Human and agent are peers on the document:** a human save is just a new
   version with `author='human'`; the agent's next turn (if any) reads it. This
   *is* the touch-up path — no CapCut round-trip, no export.
@@ -274,28 +314,54 @@ approvals audit trail.
 
 ## 8. Phased build plan
 
-**Phase A — the document (week 1–1.5).** Migration 0043; `EditDocument` Zod
-schema + `validateEdd` (unit-tested, table-driven like `library.ts`);
-`compileEddFromLegacy`; `buildProps`/`VideoComp` EDD path; golden-render test
-asserting compiler output ≡ legacy render. *Additive; zero behavior change.*
+> **Sequencing (Decision 3):** build and ship **A + B**, then **stop at an
+> explicit operator authorization gate**. The operator uses/tests the standalone
+> human editor over real videos; **Phase C does not start until the operator
+> authorizes it in writing.** Phase D parallelizes with C *after* that
+> authorization — not during A/B.
 
-**Phase B — the timeline UI at the Cut gate (week 2–2.5).** `/edit` route with
-Player + lanes over the EDD; version history/diff/revert; CUT gate re-label
-for EDD videos; `request_visual` + `render_preview` server actions (shared
-with the agent later); `inputs_stale` flag wiring. *Standalone value: humans
-can re-cut any existing video today.*
+**Phase A — the document, FULL vocabulary (week 1.5–2).** Migration 0043;
+`EditDocument` Zod schema covering the **entire** vocabulary (trims/in-out,
+transitions, motion/keyframes, SFX, kinetic tokens, music bed) + `validateEdd`
+(unit-tested, table-driven like `library.ts`) that enforces every field;
+`compileEddFromLegacy` (faithful v1 — invents no edits); `buildProps`/
+`VideoComp` EDD path that **renders every capability** (not just today's);
+golden-render test asserting compiler output ≡ legacy render, plus new
+render tests per capability (a trim, a crossfade, an SFX cue, a kinetic token).
+*Additive; zero behavior change to existing videos. (½-week longer than a
+minimal EDD — the cost of Decision 1: the renderer + validator must handle
+every field before Phase B ships.)*
 
-**Phase C — the agent (week 3–4).** Agent SDK harness in the worker; in-process
+**Phase B — the human timeline editor at the Cut gate (week 2.5–3.5).**
+Dedicated `/edit` route (Decision 4), **custom-built on Remotion `<Player>`**
+(Decision 2 — no designcombo dependency); full-vocabulary lanes/controls per
+§5; version history/diff/revert; CUT gate re-label for EDD videos;
+`request_visual` + `render_preview` server actions (shared with the agent
+later); `inputs_stale` flag wiring; "Open editor" link from the Canvas page.
+*Standalone deliverable: the operator can hand-re-cut any existing video —
+no agent yet.*
+
+**► OPERATOR AUTHORIZATION GATE — verify & test A + B, then authorize Phase C.**
+Exit criteria the operator signs off on: compiler goldens green; every
+capability renders correctly from a hand-authored EDD; the `/edit` editor is
+usable end-to-end (open a real video → retime/trim/transition/caption/SFX →
+preview → Approve cut → render → publish); version revert works. Only then
+does review pass 2 (Phase C spec) and the build begin.
+
+**Phase C — the agent (week 3–4, post-authorization).** Agent SDK harness in the worker; in-process
 MCP toolset (§4); PreToolUse budget/QC/kill-switch hooks; session launch from
 `maybeFinish` handoff; CAS claim; post-render verdict routing + review
 invalidation; autofix exclusivity; `agent_sessions` audit table; skills
 installed (`remotion-dev/skills` + 4 house skills) + exemplar EDDs; Telegram
 notification on hold/ready (existing channel).
 
-**Phase D — captions & kinetic upgrade (week 4–5).** ElevenLabs
+**Phase D — captions & kinetic upgrade (week 4–5, parallel to C).** ElevenLabs
 `/with-timestamps` in `synthesizeBeatVo`; caption pages + emphasis pass +
 SFX cues as EDD fields; TikTok-style caption components; loudness/QC lint.
-*(Independently valuable; can run parallel to C.)*
+*(Independently valuable; runs parallel to C — i.e. after the authorization
+gate, not during A/B. Note: the EDD caption/SFX/kinetic **fields** are already
+built in Phase A per Decision 1; Phase D wires the exact ElevenLabs timing
+source + the emphasis-tagging pass that populates them at scale.)*
 
 **Phase E — trust & retirement (week 5–6+).** "Director" tier live beside
 Platinum; 2–3 weeks of side-by-side QC scores + gate decisions + (once
@@ -329,4 +395,10 @@ down**, with variance capped.
 - `scripts.beats` write-semantics unification (conflict #4 long-term cleanup).
 - Stick-pipeline EDD adoption (keeps its choreographer until after Phase E).
 - OpenCut re-evaluation Q4 2026 (external GUI only, if their Editor API ships).
+  Note: designcombo/react-video-editor was evaluated and **rejected** as the
+  editor base (Decision 2) — the `/edit` UI is custom on Remotion `<Player>`.
 - Trigger.dev migration when session/render volume outgrows Actions.
+- Full-vocabulary render surface (Decision 1) is the main new risk in Phase A —
+  mitigated by per-capability render tests before Phase B; if any capability
+  proves render-expensive/unstable, it stays in the schema but is disabled in
+  the `/edit` UI until fixed (schema-complete, UI-gated) rather than dropped.
