@@ -59,6 +59,56 @@ resolutions, and the finalized Editing-Craft Knowledge System.
 
 ---
 
+## Build status & session handoff (as of 2026-07-10)
+
+**Design: complete through review pass 2.** Decisions locked — pass 1 (D1–D4:
+full vocabulary, custom Remotion editor, A+B-then-authorize sequencing,
+dedicated `/edit`), pass 2 (D5–D9 schema/editor + KD1–KD5 knowledge system).
+Phase A SQL + validator spec reviewed and approved.
+
+**Phase A — part 1: BUILT & GREEN on `main` (commit `12ea0dd`).** Pure,
+additive, zero behavior change (nothing reads `edit_document_version` yet):
+- `supabase/migrations/0043_edit_documents.sql` — versioned append-only
+  `edit_documents` + nullable `videos.edit_document_version`.
+- `packages/core/src/edd.ts` — full-vocabulary `EditDocument` types (D5–D9),
+  `DEFAULT_TRANSITIONS` registry, `validateEdd` (all rules).
+- `packages/core/src/edd-compile.ts` — faithful `compileEdd` (legacy→EDD v1).
+- `tests/edd-validate.test.ts` + `tests/edd-compile.test.ts` — 41 tests.
+- Gates: typecheck (6 pkgs), vitest **453/453**, lint. (Bug caught+fixed:
+  vo-coverage maps VO→beat by time overlap, not `clip.assetId`.)
+
+**► NEXT (Phase A — part 2, the render path):** the resume point for a new
+session.
+1. `buildProps` (render-queue.ts:289): add an EDD branch — if
+   `videos.edit_document_version` is set, load that `edit_documents` row and map
+   its `doc` to `VideoProps`; else the legacy derivation (unchanged). Additive.
+2. `VideoComp.tsx` / `types.ts`: render the full EDD vocabulary — keyframe
+   motion (D5), the transition registry (D6, one renderer per kind), styled
+   caption pages + per-token emphasis, word-anchored SFX, overlays. Music lane
+   gated OFF (D8).
+3. DB wrapper `compileEddFromLegacy(videoId)` in `src/lib` that assembles
+   `CompileInput` (passing render's `INTRO_SEC`/`OUTRO_SEC`) → calls the pure
+   `compileEdd` → inserts EDD v1 (`author='compiler'`).
+4. `render_preview(range?)` path — 480p, restricted frame range, asset kind
+   `preview`.
+5. **Golden test:** compiler output ≡ legacy render (byte-equivalent) + a
+   per-capability render test each (a trim, a crossfade, an SFX cue, a kinetic
+   token). *Visual goldens need a real Remotion render — verify in CI / a
+   browser-capable session, not the sandbox.*
+
+Then **Phase B** (the `/edit` timeline UI, §5), then the **operator
+authorization gate** before **Phase C** (the agent) + **§11** (knowledge
+system). Phase C and §11 do NOT begin until the operator authorizes after
+testing A+B.
+
+**Session-log note:** this session also delivered `Fable-5-Investor-Level-
+Enhancement.md` (full audit + 9 bug fixes: kill-switch/budget-cap gaps, Opus
+pricing 3×, security headers, two CI repairs) and made the `e2e-authed` job
+non-blocking (trace-proven harness fragility, not app bugs; real gates stay
+green). See `git log be16cf6..main`.
+
+---
+
 ## 0. The one-paragraph thesis
 
 The system has **no explicit timeline today** — the "edit" is derived at render
