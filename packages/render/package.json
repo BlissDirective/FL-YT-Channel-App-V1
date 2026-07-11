@@ -6,12 +6,14 @@
   "scripts": {
     "render-queue": "tsx src/render-queue.ts",
     "studio": "remotion studio src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "edd-smoke": "tsx src/edd-smoke.ts"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.290",
     "@remotion/lottie": "4.0.290",
     "@remotion/renderer": "4.0.290",
+    "@studio/core": "workspace:*",
     "@studio/storage": "workspace:*",
     "@supabase/supabase-js": "^2.49.4",
     "d3-scale": "^4.0.2",

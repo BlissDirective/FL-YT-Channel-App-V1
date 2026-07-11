@@ -151,31 +151,84 @@ above): A1 duration floor, A2 shorts contract, A3/A3b compiled-v1 validity
 traps, A4 word-anchor semantics, A5 CTA lower-third, A6 pointer FK (migration
 0044). Gates re-run green: typecheck, vitest **458/458**, lint.
 
-**► NEXT (Phase A — part 2, the render path):** the resume point for a new
-session.
-1. `buildProps` (render-queue.ts:289): add an EDD branch — if
-   `videos.edit_document_version` is set, load that `edit_documents` row and map
-   its `doc` to `VideoProps`; else the legacy derivation (unchanged). Additive.
-2. `VideoComp.tsx` / `types.ts`: render the full EDD vocabulary — keyframe
-   motion (D5), the transition registry (D6, one renderer per kind), styled
-   caption pages + per-token emphasis, word-anchored SFX (resolved per the A4
-   flattened-token rule), overlays. Music lane gated OFF (D8). Pin the
-   trim/duration mapping semantics — freeze vs loop vs rate, heroHold 0.5×
-   (A10).
-3. DB wrapper `compileEddFromLegacy(videoId)` in `src/lib` that assembles
-   `CompileInput` (render's `INTRO_SEC`/`OUTRO_SEC` for longs, `0`/
-   `SHORT_TAIL_SEC` for shorts, `ctaText` for longs, `visualDurationSec` from
-   clip meta, curated highlights → overlays, `enable_captions`, derived-short
-   `source_segment` handling — A2/A5/A7) → calls the pure `compileEdd` →
-   inserts EDD v1 (`author='compiler'`).
-4. `render_preview(range?)` path — 480p, restricted frame range, asset kind
-   `preview`.
-5. **Golden test (redefined per A8):** (a) props/timeline golden — EDD-branch
-   `buildProps` output ≡ legacy branch on the same video (deterministic, runs
-   anywhere); (b) sampled-frame pixel equality via `renderStill` at fixed
-   frames; plus a per-capability render test each (a trim, a crossfade, an SFX
-   cue, a kinetic token). *Visual goldens need a real Remotion render — verify
-   in CI / a browser-capable session, not the sandbox.*
+**Phase A — part 2: BUILT & VERIFIED (2026-07-11).** The render path:
+1. `buildProps` EDD branch — when `videos.edit_document_version` is set, the
+   active document is loaded and resolved (`resolveEddPayload`: assetId →
+   signed media/audio URLs, shared `clipMediaFromAsset` so legacy + EDD media
+   resolution can never drift) and attached as `props.edd`; legacy beats stay
+   populated (freebie Short, thumbnail pick, chart QC). Missing row → legacy
+   fallback, never a crash. Optional version override for previews.
+2. Full-vocabulary EDD composition (`packages/render/src/edd/`): `EddVideo`
+   renders explicit clip timing + source trims (loop semantics pinned per
+   A10), keyframe/kenburns/heroHold motion (`motion.ts`, pure), the D6
+   transition set (crossfade/dissolve/slide/whip/dipToBlack/zoomBlur via
+   reverse-stacked clip overlap — outgoing clip animates out ON TOP, so video
+   playback stays continuous across the boundary; unknown registry kinds
+   degrade to crossfade), caption pages + per-token emphasis
+   (none/pop/color/shake/scale, `EddCaptions.tsx`, "clean" ≡ legacy captions),
+   word-anchored SFX via the SAME core resolver as the validator (A4),
+   highlight/lowerThird/progressBar overlays (highlights reuse the curated
+   preset renderer), intro sting / end card / CTA / fallback card extracted to
+   `scenes.tsx` and shared with the legacy compositions. Music skipped (D8).
+   `LongForm`/`VerticalShort` delegate to `EddVideo` when `props.edd` is set;
+   duration fns + `beatTimeline` are EDD-aware (render meta gains
+   `eddVersion`; retention attribution is per-clip, §3).
+3. `compileEddFromLegacy(videoId, {activate})` in
+   `src/lib/pipeline/edd-service.ts` — assembles CompileInput exactly as
+   buildProps derives the implicit timeline (VO-welded durations incl. the
+   ??5 default, derived-short segment cut, highlight timing via the shared
+   core resolver, enable_captions, ctaText, per-format intro/outro), validates
+   (`buildEddContext`), inserts v1 via `insertEddVersion` (max+1 with
+   unique-conflict retry — A9; `parent_version` carried for Phase B optimistic
+   concurrency). Activation is EXPLICIT — nothing renders from an EDD until
+   the pointer is set.
+4. Preview path: `requestEddPreview()` sets `videos.edd_preview`
+   (migration 0045); the farm renders 480p (optional frame range) into asset
+   kind `preview`, pruned to the newest 2, request cleared first (poison-safe).
+5. Goldens per A8: layer 1 — `tests/edd-golden.test.ts` asserts compiled
+   timeline/runtime/VO/captions/CTA/motion against the REAL legacy functions;
+   `tests/edd-render-units.test.ts` covers motion/transition/anchor math per
+   capability. Layer 2 — `pnpm --filter @studio/render edd-smoke`
+   (`src/edd-smoke.ts`): a real Remotion render of a hand-authored
+   full-vocabulary EDD (stills at 8 capability-critical frames + an encoded
+   range across a crossfade). **Run and verified in this session** (Chromium
+   headless shell): intro sting, kenburns+captions, mid-crossfade blend,
+   keyframe pan, fallback card + highlight, dip-to-black, custom lower-third
+   + sub + progress bar, end card — all render correctly. Audit additions
+   found while building: **A11** (compiler now maps the art-director motion
+   table — zoom-out/pans/static — instead of flattening everything to Ken
+   Burns; legacy default is 1.02→1.12, not 1.0), **A12** (non-hero footage
+   plays untransformed in legacy; compiler emits `{kind:"none"}` via
+   `visualIsVideo`).
+
+**Part-2 review pass (2026-07-11, 8-angle finder sweep + fixes, all gates +
+visual smoke re-run green).** Fixed: **A13** vo-coverage rejected VO assets
+with no recorded duration (now the pipeline-wide 5s default / the cue's trim);
+**A14** VO cues now carry `trim` = the beat window (legacy hard-cuts VO at the
+boundary; untrimmed audio bled over the next beat); **A15** the compiler
+sanitizes ASR word-timing jitter (overlaps/out-of-order/overruns previously
+compiled into validator-rejected documents) and **A15b** caption pages hold to
+the next page / clip end (legacy sliding-window behavior — no blink-off);
+**A16** compiled shorts center their captions (legacy vertical position);
+**A17** asset video/still classification is ONE shared `isVideoClipMeta`;
+**A18** all EDD frame boundaries derive from cumulative absolute positions
+(independent rounding could open 1-frame holes between gapless clips /
+double-render a caption frame); migration 0045 now also extends the
+`asset_kind` enum with `'preview'` (inserts would have been rejected);
+preview renders use scale 0.5 (h264 rejects the odd width 480/1080 produced);
+the preview request clear is conditional on `requestedAt` (a newer request is
+never dropped); the preview asset insert is checked and pruning runs AFTER it;
+the footage frame-critic samples EDD-aware beat windows; the freebie Short's
+meta no longer claims an `eddVersion`; a missing referenced asset (legacy
+re-roll under an active EDD) flags the version `inputs_stale` + logs loudly
+(full mutation exclusivity is Phase C, conflict #3/#6); caption sizing/pill,
+easing, and FPS all single-sourced. Documented (not code): per-clip
+`meta.beats` entries can repeat `beatIdx` once editing splits beats — the
+watch-gate flicker heuristic and chart-QC midpoint lookup treat first-clip
+windows as the beat; revisit when Phase B editing ships (before Phase C).
+
+**► NEXT: Phase B — the `/edit` timeline editor (§5).** Then the operator
+authorization gate before Phase C.
 
 Then **Phase B** (the `/edit` timeline UI, §5), then the **operator
 authorization gate** before **Phase C** (the agent) + **§11** (knowledge

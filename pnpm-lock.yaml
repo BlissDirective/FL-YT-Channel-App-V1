@@ -149,6 +149,9 @@ importers:
       '@remotion/renderer':
         specifier: 4.0.290
         version: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@studio/core':
+        specifier: workspace:*
+        version: link:../core
       '@studio/storage':
         specifier: workspace:*
         version: link:../storage

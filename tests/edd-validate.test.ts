@@ -255,6 +255,15 @@ describe("validateEdd — audio, VO coverage (Decision 1), music gate (D8)", () 
     expect(rules(d)).not.toContain("vo.coverage");
   });
 
+  // Audit A13 — a VO asset with no recorded duration must not fail coverage
+  // (the pipeline-wide default is 5s, same as buildProps' `?? 5`).
+  it("passes vo coverage when the VO asset lacks a durationSec", () => {
+    const d = baseDoc();
+    const ctx = baseCtx();
+    ctx.assets = ctx.assets.map((a) => (a.kind === "vo" ? { id: a.id, kind: a.kind } : a));
+    expect(validateEdd(d, ctx).errors.map((e) => e.rule)).not.toContain("vo.coverage");
+  });
+
   it("rejects a music cue while music is UI-gated off (D8)", () => {
     const d = baseDoc();
     d.tracks.audio.push({ kind: "music", assetId: "a-img-0", start: 0, gainDb: -12, duck: { mode: "none" } });

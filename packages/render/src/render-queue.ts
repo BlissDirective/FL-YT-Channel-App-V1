@@ -16,12 +16,14 @@ import { createClient } from "@supabase/supabase-js";
 import { bundle } from "@remotion/bundler";
 import { ensureBrowser, renderMedia, renderStill, selectComposition } from "@remotion/renderer";
 import { isR2Path, r2Configured, r2Get, r2Put, r2SignedGetUrl, stripR2, toR2Path } from "@studio/storage";
+import { DEFAULT_SFX_LIBRARY, isVideoClipMeta, resolveHighlightTiming, type EditDocument } from "@studio/core";
 import {
   FPS,
   INTRO_SEC,
   beatTimeline,
   longFormDurationSec,
   verticalShortDurationSec,
+  type EddClipMedia,
   type Highlight,
   type RenderBeat,
   type StickCast,
@@ -228,65 +230,162 @@ async function resumableUpload(
 /** Curated highlight as stored on the video (no timing — resolved here). */
 type CuratedHighlight = Omit<Highlight, "startMs" | "endMs"> & { beatIdx: number };
 
-const normWord = (w: string) => w.toLowerCase().replace(/[^\p{L}\p{N}$%.]/gu, "");
-
-/**
- * Resolve curated highlights to beat-local timing using the beat's word
- * timestamps: a highlight appears when its emphasis word is spoken and holds
- * long enough to read. Falls back to ~20% into the beat when the word can't
- * be located (e.g. a rewritten phrase with no shared token). Multiple
- * highlights on one beat (the hook always has ≥2 for the Short) are then
- * de-overlapped so they play in sequence rather than stacking on screen.
- */
-const HL_GAP_MS = 200;
-
+/** Timing resolution lives in @studio/core (resolveHighlightTiming) so the
+    EDD compiler wrapper produces the SAME windows this render uses. */
 function resolveHighlights(
   curated: CuratedHighlight[],
   words: { w: string; start: number; end: number }[],
   durationSec: number,
 ): Highlight[] {
-  const beatMs = Math.max(0, durationSec * 1000);
-  const resolved = curated.map((h) => {
-    const wordCount = h.text.trim().split(/\s+/).filter(Boolean).length;
-    const readMs = Math.max(1600, wordCount * 340);
-
-    let startMs = Math.round(beatMs * 0.2);
-    const emph = h.emphasisWord ? normWord(h.emphasisWord.split(/\s+/)[0] ?? "") : "";
-    if (emph && words.length) {
-      const hit =
-        words.find((w) => normWord(w.w) === emph) ??
-        words.find((w) => normWord(w.w).includes(emph) && emph.length >= 3);
-      if (hit) startMs = Math.round(hit.start * 1000);
-    }
-
-    let endMs = startMs + readMs;
-    if (beatMs > 0) {
-      endMs = Math.min(endMs, beatMs - 50);
-      if (endMs - startMs < 800) startMs = Math.max(0, endMs - readMs);
-    }
-    return { ...h, startMs, endMs };
-  });
-
-  // De-overlap within the beat: keep highlights sequential with a small gap so
-  // two never share the screen. Push later ones back; clamp to the beat.
-  resolved.sort((a, b) => a.startMs - b.startMs);
-  for (let i = 1; i < resolved.length; i++) {
-    const prev = resolved[i - 1];
-    const cur = resolved[i];
-    if (cur.startMs < prev.endMs + HL_GAP_MS) {
-      const readMs = Math.max(1600, cur.text.trim().split(/\s+/).filter(Boolean).length * 340);
-      cur.startMs = prev.endMs + HL_GAP_MS;
-      cur.endMs = cur.startMs + readMs;
-    }
-    if (beatMs > 0 && cur.endMs > beatMs - 50) {
-      cur.endMs = beatMs - 50;
-      if (cur.startMs > cur.endMs - 600) cur.startMs = Math.max(0, cur.endMs - 600);
-    }
-  }
-  return resolved;
+  return resolveHighlightTiming(curated, words, durationSec);
 }
 
-async function buildProps(videoId: string): Promise<{
+/** A clip asset's meta, as written by asset generation. */
+type ClipAssetMeta = {
+  url?: string;
+  stillImage?: boolean;
+  isVideo?: boolean;
+  heroHold?: boolean;
+  durationSec?: number;
+  stickScene?: StickScene;
+  /** Tier 9 #4 — extra still paths/urls for a multi-image section. */
+  images?: string[];
+  /** Tier 9.5 — programmatic data-viz spec; render draws the chart. */
+  dataViz?: RenderBeat["dataViz"];
+  /** Tier 9.5 — Lottie b-roll spec (url may be a storage path to sign). */
+  lottie?: { url?: string; loop?: boolean };
+};
+
+/**
+ * Resolve a clip asset row to renderable media (signed URLs, video/still
+ * detection, multi-image sets, programmatic b-roll specs). Shared by the
+ * legacy beat derivation and the EDD media map so the two can never drift.
+ */
+async function clipMediaFromAsset(
+  clip: { storage_path?: string | null; meta?: unknown } | undefined,
+): Promise<EddClipMedia & { heroHold: boolean }> {
+  const clipMeta = (clip?.meta ?? {}) as ClipAssetMeta;
+  // Generated video clips live in Storage (no meta.url) — sign the path and
+  // treat as video. Stills are signed as images. External (Pexels) use url.
+  const clipSigned = clip?.storage_path ? await sign(clip.storage_path) : null;
+  const isVideoClip = isVideoClipMeta(clipMeta);
+  // Tier 9 #4 — resolve extra stills (external urls pass through; storage
+  // paths get signed). The primary still leads, so the cross-dissolve always
+  // includes the frame the rest of the pipeline already vetted/cached.
+  const primaryStill = !isVideoClip ? (clipSigned ?? undefined) : undefined;
+  let images: string[] | undefined;
+  if (!isVideoClip && clipMeta.images?.length) {
+    const extra = await Promise.all(
+      clipMeta.images.map((p) => (/^https?:\/\//.test(p) ? Promise.resolve(p) : sign(p))),
+    );
+    images = [primaryStill, ...extra].filter((u): u is string => Boolean(u));
+    if (images.length < 2) images = undefined;
+  }
+  let lottie: { url: string; loop?: boolean } | undefined;
+  if (clipMeta.lottie?.url) {
+    lottie = {
+      url: /^https?:\/\//.test(clipMeta.lottie.url)
+        ? clipMeta.lottie.url
+        : ((await sign(clipMeta.lottie.url)) ?? clipMeta.lottie.url),
+      loop: clipMeta.lottie.loop,
+    };
+  }
+  return {
+    imageUrl: primaryStill,
+    images,
+    videoUrl: clipMeta.url ?? (clipMeta.isVideo ? (clipSigned ?? undefined) : undefined),
+    videoDurationSec: clipMeta.durationSec,
+    stickScene: clipMeta.stickScene,
+    dataViz: clipMeta.dataViz,
+    lottie,
+    heroHold: Boolean(clipMeta.heroHold),
+  };
+}
+
+/**
+ * Load + resolve the video's active (or overridden) EDD into the render
+ * payload: the doc, plus assetId → media/audio URL maps. Returns undefined
+ * (legacy path) when the video has no active EDD, or when the row is missing
+ * (shouldn't happen — migration 0044's FK guards the pointer — but a render
+ * must degrade to legacy, never crash; the mock-first philosophy).
+ */
+async function resolveEddPayload(
+  videoId: string,
+  version: number | null | undefined,
+  assets: { id: string; storage_path?: string | null; meta?: unknown }[],
+  scriptBeats: { idx: number; text: string }[],
+  mediaCache?: Map<string, EddClipMedia & { heroHold: boolean }>,
+): Promise<VideoProps["edd"]> {
+  if (version == null) return undefined;
+  const { data: eddRow } = await db
+    .from("edit_documents")
+    .select("version, doc")
+    .eq("video_id", videoId)
+    .eq("version", version)
+    .maybeSingle();
+  const doc = eddRow?.doc as EditDocument | undefined;
+  if (!doc) {
+    console.error(`⚠️  ${videoId}: EDD v${version} missing — rendering legacy derivation`);
+    return undefined;
+  }
+  const assetById = new Map(assets.map((a) => [a.id, a]));
+  const media: NonNullable<VideoProps["edd"]>["media"] = {};
+  let missingAsset = false;
+  for (const clip of doc.tracks.video) {
+    if (!clip.assetId || media[clip.assetId]) continue;
+    const asset = assetById.get(clip.assetId);
+    if (!asset) {
+      // An asset this version references was re-rolled/deleted under it
+      // (delete+insert re-rolls mint new ids). The clip degrades to the
+      // branded fallback card; flag the version below so /edit surfaces
+      // "inputs changed" instead of a silent visual downgrade. Full mutation
+      // exclusivity (conflict #3) lands in Phase C.
+      console.error(`⚠️  ${videoId}: EDD v${version} references missing asset ${clip.assetId}`);
+      missingAsset = true;
+      continue;
+    }
+    const cached = mediaCache?.get(clip.assetId);
+    const resolved = cached ?? (await clipMediaFromAsset(asset));
+    mediaCache?.set(clip.assetId, resolved);
+    const { heroHold: _hero, ...m } = resolved;
+    media[clip.assetId] = m;
+  }
+  if (missingAsset) {
+    await db
+      .from("edit_documents")
+      .update({ inputs_stale: true })
+      .eq("video_id", videoId)
+      .eq("version", version);
+  }
+  const audio: Record<string, string> = {};
+  for (const cue of doc.tracks.audio) {
+    const ids =
+      cue.kind === "vo"
+        ? [cue.assetId]
+        : cue.kind === "sfx" && cue.ref.source === "generated"
+          ? [cue.ref.assetId]
+          : [];
+    for (const id of ids) {
+      if (audio[id]) continue;
+      const asset = assetById.get(id);
+      const url = asset?.storage_path ? await sign(asset.storage_path) : null;
+      if (url) audio[id] = url;
+    }
+  }
+  return {
+    version: eddRow!.version as number,
+    doc,
+    media,
+    audio,
+    sfxLibrary: DEFAULT_SFX_LIBRARY,
+    beatText: Object.fromEntries(scriptBeats.map((b) => [b.idx, b.text])),
+  };
+}
+
+async function buildProps(
+  videoId: string,
+  eddVersionOverride?: number,
+): Promise<{
   props: VideoProps;
   project: { id: string };
   video: { id: string; title: string; target_length_sec: number; kind: string; project_id: string; highlights?: unknown };
@@ -331,6 +430,9 @@ async function buildProps(videoId: string): Promise<{
     video.enable_highlights ? ((video.highlights as CuratedHighlight[] | null) ?? []) : []
   );
   const beats: RenderBeat[] = [];
+  // Per-call cache: an EDD video resolves the same clip assets here AND in
+  // resolveEddPayload — sign each once, not twice.
+  const mediaCache = new Map<string, Awaited<ReturnType<typeof clipMediaFromAsset>>>();
   for (const sb of scriptBeats) {
     const vo = assets.find((a) => a.kind === "vo" && a.beat_index === sb.idx);
     const clip = assets.find((a) => a.kind === "clip" && a.beat_index === sb.idx);
@@ -338,38 +440,12 @@ async function buildProps(videoId: string): Promise<{
       durationSec?: number;
       words?: { w: string; start: number; end: number }[];
     };
-    const clipMeta = (clip?.meta ?? {}) as {
-      url?: string;
-      stillImage?: boolean;
-      isVideo?: boolean;
-      heroHold?: boolean;
-      durationSec?: number;
-      stickScene?: StickScene;
-      /** Tier 9 #4 — extra still paths/urls for a multi-image section. */
-      images?: string[];
-      /** Tier 9.5 — programmatic data-viz spec; render draws the chart. */
-      dataViz?: RenderBeat["dataViz"];
-      /** Tier 9.5 — Lottie b-roll spec (url may be a storage path to sign). */
-      lottie?: { url?: string; loop?: boolean };
-    };
-    // Generated video clips live in Storage (no meta.url) — sign the path and
-    // treat as video. Stills are signed as images. External (Pexels) use url.
-    const clipSigned = clip?.storage_path ? await sign(clip.storage_path) : null;
-    const isVideoClip = Boolean(clipMeta.isVideo || clipMeta.url);
     const durationSec = Number(voMeta.durationSec ?? 5);
     const words = voMeta.words ?? [];
-    // Tier 9 #4 — resolve extra stills (external urls pass through; storage
-    // paths get signed). The primary still leads, so the cross-dissolve always
-    // includes the frame the rest of the pipeline already vetted/cached.
-    const primaryStill = !isVideoClip ? (clipSigned ?? undefined) : undefined;
-    let images: string[] | undefined;
-    if (!isVideoClip && clipMeta.images?.length) {
-      const extra = await Promise.all(
-        clipMeta.images.map((p) => (/^https?:\/\//.test(p) ? Promise.resolve(p) : sign(p))),
-      );
-      images = [primaryStill, ...extra].filter((u): u is string => Boolean(u));
-      if (images.length < 2) images = undefined;
-    }
+    // Media resolution (signing, video/still detection, multi-image sets,
+    // programmatic b-roll) is shared with the EDD path — see clipMediaFromAsset.
+    const media = clip?.id && mediaCache.has(clip.id) ? mediaCache.get(clip.id)! : await clipMediaFromAsset(clip);
+    if (clip?.id) mediaCache.set(clip.id, media);
     beats.push({
       idx: sb.idx,
       text: sb.text,
@@ -378,24 +454,17 @@ async function buildProps(videoId: string): Promise<{
       durationSec,
       words,
       voUrl: vo ? await sign(vo.storage_path) : null,
-      videoUrl: clipMeta.url ?? (clipMeta.isVideo ? (clipSigned ?? undefined) : undefined),
-      videoDurationSec: clipMeta.durationSec,
-      heroHold: Boolean(clipMeta.heroHold),
-      imageUrl: primaryStill,
-      images,
+      videoUrl: media.videoUrl,
+      videoDurationSec: media.videoDurationSec,
+      heroHold: media.heroHold,
+      imageUrl: media.imageUrl,
+      images: media.images,
       // Stick Studio: a stick scene on the clip asset drives programmatic
       // rendering instead of footage (Phase 2 writes it; here we just pass it).
-      stickScene: clipMeta.stickScene,
+      stickScene: media.stickScene,
       // Tier 9.5 — programmatic b-roll inserts (data-viz / Lottie).
-      dataViz: clipMeta.dataViz,
-      lottie: clipMeta.lottie?.url
-        ? {
-            url: /^https?:\/\//.test(clipMeta.lottie.url)
-              ? clipMeta.lottie.url
-              : ((await sign(clipMeta.lottie.url)) ?? clipMeta.lottie.url),
-            loop: clipMeta.lottie.loop,
-          }
-        : undefined,
+      dataViz: media.dataViz,
+      lottie: media.lottie,
       highlights: resolveHighlights(
         curated.filter((h) => h.beatIdx === sb.idx),
         words,
@@ -418,8 +487,21 @@ async function buildProps(videoId: string): Promise<{
   const introVo = assets.find((a) => a.kind === "vo" && a.beat_index === -1);
   const introVoUrl = introVo?.storage_path ? await sign(introVo.storage_path) : undefined;
 
+  // MVDA Phase A pt 2 — the explicit timeline. When the video has an active
+  // EDD (videos.edit_document_version), attach the resolved document; the
+  // LongForm/VerticalShort compositions render IT instead of the beats. The
+  // legacy beats stay populated above (freebie Short, thumbnail, chart QC).
+  const edd = await resolveEddPayload(
+    videoId,
+    eddVersionOverride ?? (video.edit_document_version as number | null),
+    assets,
+    scriptBeats,
+    mediaCache,
+  );
+
   return {
     props: {
+      edd,
       title: video.title,
       projectName: project.name,
       brand: {
@@ -512,7 +594,12 @@ async function renderOne(
       resolution: variant === "long" ? "1080p" : "1080x1920",
       durationSec,
       // Retention curves map back to script beats through this (idea #2).
+      // EDD renders carry per-clip entries + the document version, so dips
+      // attribute to explicit clips/transitions, not just beats (plan §3).
       beats: variant === "long" ? timeline : undefined,
+      // Only the compositions that actually render the document carry its
+      // version — the freebie Short is always the legacy beat-0 cut.
+      eddVersion: compId === "Short" ? undefined : props.edd?.version,
     };
 
     // Always store both cuts so every video is downloadable regardless of size
@@ -909,18 +996,26 @@ async function runFootageCritic(
   if (beats.length === 0) return;
 
   // Mid-beat frame offsets in the chosen composition's timeline (long-form is
-  // offset by the intro sting; the vertical short starts at 0).
+  // offset by the intro sting; the vertical short starts at 0). For an EDD
+  // video the composition renders the DOCUMENT's clip timings, so windows
+  // come from the EDD-aware beatTimeline — the legacy accumulation would
+  // screenshot frames labeled with the wrong beat once clips are retimed.
+  const timeline = beatTimeline(props);
+  const windowFor = (idx: number) => timeline.find((t) => t.idx === idx);
   const starts: number[] = [];
   let cum = startOffsetSec;
   for (const b of beats) {
-    starts.push(cum);
+    starts.push(props.edd ? (windowFor(b.idx)?.start ?? cum) : cum);
     cum += Math.max(1, b.durationSec);
   }
   const composition = await selectComposition({ serveUrl, id: compId, inputProps: props });
   const outDir = mkdtempSync(join(tmpdir(), "footcritic-"));
   const frames: FootageFrame[] = [];
   for (const i of sampleEvenly(beats.length, maxFrames)) {
-    const midSec = starts[i] + Math.max(1, beats[i].durationSec) / 2;
+    const beatWindow = props.edd ? windowFor(beats[i].idx) : undefined;
+    const midSec = beatWindow
+      ? (beatWindow.start + beatWindow.end) / 2
+      : starts[i] + Math.max(1, beats[i].durationSec) / 2;
     const frame = Math.min(composition.durationInFrames - 1, Math.max(0, Math.round(midSec * FPS)));
     const out = join(outDir, `kf-${i}.jpg`);
     await renderStill({ composition, serveUrl, output: out, frame, inputProps: props, imageFormat: "jpeg", jpegQuality: 80 });
@@ -988,11 +1083,21 @@ async function main() {
     .filter((v) => renderAttempts(v.paused_reason) < MAX_RENDER_ATTEMPTS)
     .slice(0, 5);
 
+  // Lazily bundle once for renders AND previews (bundling costs ~30s; skip it
+  // entirely on passes with nothing to draw).
+  let serveUrlCache: string | null = null;
+  const getServeUrl = async (): Promise<string> => {
+    if (!serveUrlCache) {
+      await ensureBrowser();
+      const entry = fileURLToPath(new URL("./index.ts", import.meta.url));
+      serveUrlCache = await bundle({ entryPoint: entry });
+    }
+    return serveUrlCache;
+  };
+
   if (queue.length > 0) {
     console.log(`Queue: ${queue.length} video(s)`);
-    await ensureBrowser();
-    const entry = fileURLToPath(new URL("./index.ts", import.meta.url));
-    const serveUrl = await bundle({ entryPoint: entry });
+    const serveUrl = await getServeUrl();
 
     // Wall-clock budget: the job is SIGKILLed at 60 min (workflow timeout),
     // which would skip the catch below and strand a mid-render video at
@@ -1023,9 +1128,123 @@ async function main() {
     console.log("Queue empty — nothing to render.");
   }
 
+  // MVDA Phase A pt 2 — EDD preview requests (480p, optional frame range),
+  // queued by the /edit UI (and later the agent) via videos.edd_preview.
+  await renderEddPreviews(getServeUrl);
+
   // Independent of the render queue: publish any videos (long or short) the
   // operator has tapped Publish on. Runs even when the render queue is empty.
   await publishStagedVideos();
+}
+
+/** Previews are small and short-lived: stored in Supabase Storage (never R2)
+    so pruning can delete the objects, keeping only the newest N per video. */
+const PREVIEW_KEEP = 2;
+
+async function renderEddPreviews(getServeUrl: () => Promise<string>) {
+  const { data: requests } = await db
+    .from("videos")
+    .select("id, title, kind, edd_preview, edit_document_version")
+    .not("edd_preview", "is", null)
+    .limit(5);
+  if (!requests || requests.length === 0) return;
+  console.log(`Previews: ${requests.length} request(s)`);
+
+  for (const v of requests) {
+    const req = (v.edd_preview ?? {}) as {
+      fromSec?: number;
+      toSec?: number;
+      version?: number;
+      requestedAt?: string;
+    };
+    // Clear the request first — a poisoned request must not wedge the farm on
+    // every pass; a failed preview is re-requested from the UI. The clear is
+    // conditional on requestedAt so a NEWER request queued after our read is
+    // not silently dropped (it stays set and renders next pass).
+    const clear = db.from("videos").update({ edd_preview: null }).eq("id", v.id);
+    const { data: cleared } = await (req.requestedAt
+      ? clear.filter("edd_preview->>requestedAt", "eq", req.requestedAt)
+      : clear
+    ).select("id");
+    if (!cleared || cleared.length === 0) continue; // superseded by a newer request
+    try {
+      const built = await buildProps(v.id, req.version ?? undefined);
+      if (!built?.props.edd) {
+        console.log(`⏭  preview ${v.title}: no EDD to render`);
+        continue;
+      }
+      const { props } = built;
+      const edd = props.edd!; // narrowed above; TS can't see through the guard
+      const serveUrl = await getServeUrl();
+      const compId = v.kind === "short" ? "VerticalShort" : "LongForm";
+      const composition = await selectComposition({ serveUrl, id: compId, inputProps: props });
+      const total = composition.durationInFrames;
+      const from = Math.max(0, Math.min(total - 2, Math.round((req.fromSec ?? 0) * FPS)));
+      const to =
+        req.toSec != null ? Math.max(from + 1, Math.min(total - 1, Math.round(req.toSec * FPS))) : total - 1;
+
+      const out = join(mkdtempSync(join(tmpdir(), "preview-")), "preview.mp4");
+      await renderMedia({
+        composition,
+        serveUrl,
+        codec: "h264",
+        outputLocation: out,
+        inputProps: props,
+        timeoutInMilliseconds: 120000,
+        concurrency: Math.max(2, cpus().length),
+        imageFormat: "jpeg",
+        jpegQuality: 70,
+        crf: 28,
+        x264Preset: "veryfast",
+        // Half-resolution true-fidelity check (plan §3: "480p-class"): 0.5
+        // keeps both scaled dimensions even integers (960×540 / 540×960) —
+        // h264 rejects odd/fractional dims, so 480/height would break 16:9.
+        scale: 0.5,
+        frameRange: [from, to],
+      });
+
+      const file = readFileSync(out);
+      const key = `videos/${v.id}/preview-${edd.version}-${Date.now()}.mp4`;
+      const { error: upErr } = await db.storage
+        .from("media")
+        .upload(key, file, { contentType: "video/mp4", upsert: true });
+      if (upErr) throw new Error(`preview upload failed: ${upErr.message}`);
+
+      // Insert FIRST (checked — a silent failure here would look like a
+      // working preview feature with no previews), then prune to the newest
+      // PREVIEW_KEEP so a failed insert never destroys a good older preview.
+      const { error: insErr } = await db.from("assets").insert({
+        video_id: v.id,
+        kind: "preview",
+        provider: "remotion",
+        storage_path: key,
+        meta: {
+          eddVersion: edd.version,
+          fromSec: req.fromSec ?? 0,
+          toSec: req.toSec ?? null,
+          durationSec: Math.round(((to - from + 1) / FPS) * 10) / 10,
+          resolution: "540p",
+        },
+        cost_usd: 0,
+      });
+      if (insErr) throw new Error(`preview asset insert failed: ${insErr.message}`);
+      const { data: old } = await db
+        .from("assets")
+        .select("id, storage_path")
+        .eq("video_id", v.id)
+        .eq("kind", "preview")
+        .order("created_at", { ascending: false });
+      for (const stale of (old ?? []).slice(PREVIEW_KEEP)) {
+        if (stale.storage_path && !isR2Path(stale.storage_path)) {
+          await db.storage.from("media").remove([stale.storage_path]);
+        }
+        await db.from("assets").delete().eq("id", stale.id);
+      }
+      console.log(`🎞  ${v.title}: preview v${edd.version} [${from}-${to}] → ${key}`);
+    } catch (err) {
+      console.error(`❌ preview ${v.title}: ${String(err).slice(0, 200)}`);
+    }
+  }
 }
 
 /**

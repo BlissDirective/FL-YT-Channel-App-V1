@@ -16,6 +16,30 @@ import { ASPECT_FOR_FORMAT } from "./edd";
 
 export type CompileWord = { w: string; start: number; end: number }; // beat-local seconds
 
+/** Is a clip asset's meta footage (vs a still)? Generated clips set isVideo;
+    external (Pexels) clips carry a url. ONE definition shared by the render
+    farm's media resolution and the compiler wrapper so the two can never
+    classify an asset differently (audit A17). */
+export function isVideoClipMeta(meta: { isVideo?: unknown; url?: unknown } | null | undefined): boolean {
+  return Boolean(meta?.isVideo || meta?.url);
+}
+
+/** A curated kinetic highlight with beat-local timing already resolved (the
+    caller runs resolveHighlightTiming so compiled timings match the legacy
+    render exactly — audit A7). */
+export type CompileHighlight = {
+  text: string;
+  startMs: number; // beat-local
+  endMs: number; // beat-local
+  stylePreset: string;
+  emphasisWord?: string;
+  fontFamily?: string;
+  emphasisColor?: string;
+  position?: "center" | "upper-third" | "lower-third-safe";
+  intensity?: "subtle" | "med" | "high";
+  maxLines?: number;
+};
+
 export type CompileBeat = {
   idx: number;
   text: string;
@@ -24,12 +48,23 @@ export type CompileBeat = {
   visualAssetId: string | null;
   source: EddSource;
   heroHold?: boolean;
+  /** Art-director camera move from the script beat ('zoom-in' | 'zoom-out' |
+      'pan-left' | 'pan-right' | 'pan-up' | 'static'; default zoom-in). The
+      compiler maps it onto MotionSpec so the compiled cut keeps the legacy
+      camera variety (audit A11). */
+  motion?: string;
   /** Source length of the visual asset when known (video clips). The trim
       window is clamped to it — legacy LOOPS a shorter source across the beat
       (loop/rate live in the render path; trim is only the source window), so
       an unclamped trim.out would fail validateEdd (audit A3b). */
   visualDurationSec?: number;
+  /** True when the visual is footage. Legacy applies the art-director camera
+      move only to STILLS — non-hero footage plays untransformed — so the
+      compiler emits {kind:"none"} for it (audit A12). */
+  visualIsVideo?: boolean;
   words: CompileWord[];
+  /** Curated highlights for this beat, timing-resolved (beat-local ms). */
+  highlights?: CompileHighlight[];
 };
 
 export type CompileInput = {
@@ -51,8 +86,48 @@ export type CompileInput = {
   ctaText?: string;
 };
 
-/** Today's Ken-Burns default (VideoComp: slow 1.0 → 1.12 zoom, centered). */
-const KENBURNS_DEFAULT: MotionSpec = { kind: "kenburns", fromScale: 1.0, toScale: 1.12, anchor: "center" };
+/**
+ * Map the legacy art-director motion string onto a MotionSpec that renders
+ * the SAME camera move (audit A11 — VideoComp.motionStyle is the reference:
+ * zoom-in 1.02→1.12, zoom-out 1.12→1.02, static 1.04→1.06, pans hold scale
+ * 1.12 and translate ±3% across the beat). Pans become keyframe tracks; x/y
+ * keyframe values are % of the frame. Exported so goldens can assert it.
+ */
+export function legacyMotionToSpec(motion: string | undefined, durationSec: number): MotionSpec {
+  switch (motion) {
+    case "zoom-out":
+      return { kind: "kenburns", fromScale: 1.12, toScale: 1.02, anchor: "center" };
+    case "static":
+      return { kind: "kenburns", fromScale: 1.04, toScale: 1.06, anchor: "center" };
+    case "pan-left":
+      return {
+        kind: "keyframes",
+        points: [
+          { t: 0, scale: 1.12, x: 3, y: 0, ease: "linear" },
+          { t: durationSec, scale: 1.12, x: -3, y: 0, ease: "linear" },
+        ],
+      };
+    case "pan-right":
+      return {
+        kind: "keyframes",
+        points: [
+          { t: 0, scale: 1.12, x: -3, y: 0, ease: "linear" },
+          { t: durationSec, scale: 1.12, x: 3, y: 0, ease: "linear" },
+        ],
+      };
+    case "pan-up":
+      return {
+        kind: "keyframes",
+        points: [
+          { t: 0, scale: 1.12, x: 0, y: 3, ease: "linear" },
+          { t: durationSec, scale: 1.12, x: 0, y: -3, ease: "linear" },
+        ],
+      };
+    case "zoom-in":
+    default:
+      return { kind: "kenburns", fromScale: 1.02, toScale: 1.12, anchor: "center" };
+  }
+}
 
 export function compileEdd(input: CompileInput): EditDocument {
   const captionStyle = input.captionStyle ?? "clean";
@@ -81,32 +156,81 @@ export function compileEdd(input: CompileInput): EditDocument {
       start,
       duration,
       trim: { in: 0, out: Math.max(1 / 30, Math.min(duration, b.visualDurationSec ?? duration)) },
-      motion: b.heroHold ? { kind: "heroHold", rate: 0.5 } : KENBURNS_DEFAULT,
+      // heroHold renders the default slow zoom at 0.5× playback (a per-clip
+      // pan on a hero clip is not representable in v1 — documented exclusion).
+      // Non-hero footage plays untransformed, exactly like the legacy path
+      // (A12); stills get the art-director move (A11).
+      motion: b.heroHold
+        ? { kind: "heroHold", rate: 0.5 }
+        : b.visualIsVideo
+          ? { kind: "none" }
+          : legacyMotionToSpec(b.motion, duration),
       transitionOut: { kind: "cut" }, // faithful: today's beats are hard cuts
       // narrated beats without VO would fail validation; today the pipeline
       // guarantees VO for narrated beats, so silence is only for empty beats.
       silent: !narrated || b.voAssetId === null,
     });
 
-    if (b.voAssetId) audio.push({ kind: "vo", assetId: b.voAssetId, start, gainDb: 0 });
+    if (b.voAssetId) {
+      // trim = the beat's window. Legacy hard-cuts VO at the beat boundary
+      // (its <Audio> lived inside the beat's Sequence); without this a VO
+      // file longer than its recorded duration bleeds over the next beat's
+      // narration (audit A14).
+      audio.push({ kind: "vo", assetId: b.voAssetId, start, gainDb: 0, trim: { in: 0, out: duration } });
+    }
 
-    // Captions: paginate this beat's words into ≤perPage-word pages, converting
-    // beat-local seconds → absolute ms (offset by the clip start).
-    for (let w = 0; w < b.words.length; w += perPage) {
-      const slice = b.words.slice(w, w + perPage);
-      if (slice.length === 0) continue;
-      const tokens: CaptionToken[] = slice.map((word) => ({
-        text: word.w,
-        fromMs: Math.round((start + word.start) * 1000),
-        toMs: Math.round((start + word.end) * 1000),
-        emphasis: "none",
-      }));
-      captions.push({
+    // Captions: sanitize the beat's word timings first — ASR word timestamps
+    // routinely overlap by a few ms or run past the VO duration, and the
+    // validator hard-rejects overlap/non-monotonic tokens (audit A15). Then
+    // paginate into ≤perPage-word pages in absolute ms. Pages HOLD until the
+    // next page starts (last page: to the clip end), matching the legacy
+    // sliding window, which keeps the current chunk on screen until the next
+    // begins (audit A15b). Verticals center their captions (audit A16).
+    const clipStartMs = Math.round(start * 1000);
+    const clipEndMs = Math.round((start + duration) * 1000);
+    let prevTokEnd = clipStartMs;
+    const cleanWords: CaptionToken[] = [];
+    for (const word of b.words) {
+      const rawFrom = Math.round((start + word.start) * 1000);
+      const rawTo = Math.round((start + word.end) * 1000);
+      const fromMs = Math.max(rawFrom, prevTokEnd);
+      const toMs = Math.min(Math.max(rawTo, fromMs + 1), clipEndMs);
+      if (fromMs >= clipEndMs || toMs <= fromMs) continue; // degenerate / outside the beat
+      cleanWords.push({ text: word.w, fromMs, toMs, emphasis: "none" });
+      prevTokEnd = toMs;
+    }
+    const beatPages: CaptionPage[] = [];
+    for (let w = 0; w < cleanWords.length; w += perPage) {
+      const tokens = cleanWords.slice(w, w + perPage);
+      beatPages.push({
         startMs: tokens[0].fromMs,
-        endMs: tokens[tokens.length - 1].toMs,
+        endMs: tokens[tokens.length - 1].toMs, // extended below
         tokens,
         style: captionStyle,
-        position: "bottom",
+        position: input.format === "short" ? "center" : "bottom",
+      });
+    }
+    for (let p = 0; p < beatPages.length; p++) {
+      beatPages[p].endMs = p + 1 < beatPages.length ? beatPages[p + 1].startMs : clipEndMs;
+    }
+    captions.push(...beatPages);
+
+    // Curated kinetic highlights → highlight overlays (absolute ms, style =
+    // the render preset name, abs-anchored at their resolved start — A7).
+    for (const h of b.highlights ?? []) {
+      overlays.push({
+        kind: "highlight",
+        text: h.text,
+        startMs: Math.round(start * 1000 + h.startMs),
+        endMs: Math.round(start * 1000 + h.endMs),
+        style: h.stylePreset,
+        anchor: { kind: "abs", sec: start + h.startMs / 1000 },
+        emphasisWord: h.emphasisWord,
+        fontFamily: h.fontFamily,
+        emphasisColor: h.emphasisColor,
+        position: h.position,
+        intensity: h.intensity,
+        maxLines: h.maxLines,
       });
     }
 

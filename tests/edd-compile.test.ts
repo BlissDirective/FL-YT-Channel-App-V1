@@ -190,4 +190,50 @@ describe("compileEdd", () => {
     ]);
     expect(validateEdd(doc, ctxFor(inp)).ok).toBe(true);
   });
+
+  // Audit A14 — legacy hard-cuts VO at the beat boundary (Audio inside the
+  // beat's Sequence); the compiled cue must carry that window as trim.
+  it("trims each VO cue to its beat window", () => {
+    const doc = compileEdd(input());
+    const vo = doc.tracks.audio.filter((a) => a.kind === "vo");
+    expect(vo[0]).toMatchObject({ trim: { in: 0, out: 6 } });
+  });
+
+  // Audit A15b — legacy's sliding window keeps the current chunk on screen
+  // until the next begins; pages must hold to the next page / the clip end.
+  it("holds caption pages to the next page start and the clip end", () => {
+    const doc = compileEdd({ ...input(), wordsPerPage: 2 });
+    // Beat 0 (clip 3–9s): pages [p0, p1]; p0 holds to p1.startMs, p1 to 9000.
+    const beat0 = doc.tracks.captions.filter((p) => p.startMs < 9000);
+    expect(beat0[0].endMs).toBe(beat0[1].startMs);
+    expect(beat0[beat0.length - 1].endMs).toBe(9000);
+  });
+
+  // Audit A15 — ASR jitter (overlapping / out-of-order words, ends past the
+  // VO duration) must be sanitized, or the compiled doc fails validation.
+  it("sanitizes overlapping and overrunning word timings into a valid doc", () => {
+    const inp = input();
+    inp.beats[0].words = [
+      { w: "one", start: 0.1, end: 0.62 },
+      { w: "two", start: 0.5, end: 0.48 }, // overlaps AND ends before it starts
+      { w: "three", start: 5.9, end: 7.5 }, // runs past the 6s beat
+    ];
+    const doc = compileEdd(inp);
+    expect(validateEdd(doc, ctxFor(inp)).ok).toBe(true);
+    const tokens = doc.tracks.captions.flatMap((p) => p.tokens);
+    for (let i = 1; i < tokens.length; i++) {
+      expect(tokens[i].fromMs).toBeGreaterThanOrEqual(tokens[i - 1].toMs);
+    }
+  });
+
+  // Audit A16 — legacy verticals center their captions.
+  it("centers caption pages on shorts", () => {
+    const inp = input();
+    inp.format = "short";
+    inp.introSec = 0;
+    inp.outroSec = 1.5;
+    delete inp.targetDurationSec;
+    const doc = compileEdd(inp);
+    expect(doc.tracks.captions.every((p) => p.position === "center")).toBe(true);
+  });
 });

@@ -102,9 +102,47 @@ export type CaptionPage = {
 };
 
 export type Overlay =
-  | { kind: "highlight"; text: string; startMs: number; endMs: number; style: string; anchor: TimeAnchor }
+  | {
+      kind: "highlight";
+      text: string;
+      startMs: number;
+      endMs: number;
+      style: string; // a render highlight preset name (see DEFAULT_OVERLAY_STYLES)
+      anchor: TimeAnchor;
+      /** Optional presentation details carried over from the curated
+          kinetic-highlight system so compiled documents stay faithful (audit
+          A7). Hand/agent-authored overlays may omit them — the renderer falls
+          back to the preset's defaults. */
+      emphasisWord?: string;
+      fontFamily?: string;
+      emphasisColor?: string;
+      position?: "center" | "upper-third" | "lower-third-safe";
+      intensity?: "subtle" | "med" | "high";
+      maxLines?: number;
+    }
   | { kind: "lowerThird"; text: string; sub?: string; startSec: number; durationSec: number }
   | { kind: "progressBar"; style: string };
+
+// ── Named-style registries (validation context defaults) ──────────────
+// The render package owns the visual definitions; these are the NAMES the
+// validator accepts. New styles are added here + a renderer entry — no
+// schema migration (same pattern as DEFAULT_TRANSITIONS / D6).
+export const DEFAULT_CAPTION_STYLES = ["clean"] as const;
+export const DEFAULT_OVERLAY_STYLES = [
+  "word-pop",
+  "highlight-box-swipe",
+  "stat-card",
+  "quote-card",
+  "typewriter",
+  "color-flash-pop",
+  "sticker-tag",
+  "underline-swipe",
+  "bar", // progress-bar style
+] as const;
+/** Curated SFX library: name → public URL. Empty until a licensed pack lands
+    (D7) — generated (ElevenLabs) SFX reference an asset id instead and work
+    today. The validator rejects library names not present here. */
+export const DEFAULT_SFX_LIBRARY: Record<string, string> = {};
 
 export type EditDocument = {
   meta: {
@@ -240,7 +278,13 @@ export function validateEdd(doc: EditDocument, ctx: EddContext): EddValidation {
     const clipEnd = c.start + c.duration;
     const covered = doc.tracks.audio.some((cue) => {
       if (cue.kind !== "vo") return false;
-      const voDur = assetById.get(cue.assetId)?.durationSec ?? 0;
+      // A VO asset without a recorded duration gets the pipeline-wide 5s
+      // default (same as buildProps' `?? 5`) — `?? 0` would make a cue that
+      // starts exactly at its clip fail the strict overlap below, rejecting
+      // documents the legacy path renders fine (audit A13).
+      const voDur = cue.trim
+        ? Math.max(FRAME, cue.trim.out - cue.trim.in)
+        : (assetById.get(cue.assetId)?.durationSec ?? 5);
       const cueEnd = cue.start + Math.max(voDur, FRAME);
       return cue.start < clipEnd - FRAME && cueEnd > clipStart + FRAME;
     });
@@ -358,24 +402,48 @@ function validateAnchor(
     if (at.sec < 0 || at.sec > runtimeSec + FRAME) add(rule, w, "absolute anchor outside runtime");
     return;
   }
-  // word anchor: the clip must exist AND the token index must resolve within
-  // the clip's caption tokens — flattened across EVERY page overlapping the
-  // clip's window, in page order (a clip usually spans several 5-word pages;
-  // see the TimeAnchor doc — the renderer resolves identically).
-  const clip = clipById.get(at.clipId);
-  if (!clip) {
+  // word anchor: must resolve through the SAME function the renderer uses
+  // (A4 — captionToken indexes the clip's tokens flattened across every page
+  // overlapping the clip's window, in page order).
+  if (!clipById.has(at.clipId)) {
     add(rule, w, `word-anchor clip ${at.clipId} not found`);
     return;
   }
+  if (resolveWordAnchorSec(doc, at) === null) {
+    add(rule, w, `word-anchor token ${at.captionToken} does not resolve on clip ${at.clipId}`);
+  }
+}
+
+/**
+ * Resolve a time anchor to absolute seconds. Word anchors return the anchored
+ * token's fromMs (A4 semantics: `captionToken` indexes the clip's caption
+ * tokens flattened across every page overlapping the clip's time window, in
+ * page order). Returns null when the anchor doesn't resolve — validateEdd
+ * rejects such documents, so the renderer can treat null as unreachable.
+ * SHARED by validateEdd and the render package so the two can never disagree.
+ */
+export function resolveWordAnchorSec(doc: EditDocument, at: TimeAnchor): number | null {
+  if (at.kind === "abs") return at.sec;
+  const clip = doc.tracks.video.find((c) => c.id === at.clipId);
+  if (!clip) return null;
   const startMs = clip.start * 1000;
   const endMs = (clip.start + clip.duration) * 1000;
-  let tokenCount = 0;
+  let idx = at.captionToken;
+  if (idx < 0) return null;
   for (const p of doc.tracks.captions) {
-    if (p.startMs < endMs && p.endMs > startMs) tokenCount += p.tokens.length;
+    if (!(p.startMs < endMs && p.endMs > startMs)) continue;
+    if (idx < p.tokens.length) return p.tokens[idx].fromMs / 1000;
+    idx -= p.tokens.length;
   }
-  if (at.captionToken < 0 || at.captionToken >= tokenCount) {
-    add(rule, w, `word-anchor token ${at.captionToken} does not resolve on clip ${at.clipId} (${tokenCount} tokens)`);
-  }
+  return null;
+}
+
+/** Retention timeline for an EDD render: one entry per clip, mapped to its
+    script beat — supersedes the legacy beat timeline in the render asset's
+    meta (plan §3: dips attribute to explicit clips, not just beats). */
+export function eddTimeline(doc: EditDocument): { idx: number; start: number; end: number }[] {
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  return doc.tracks.video.map((c) => ({ idx: c.beatIdx, start: r2(c.start), end: r2(c.start + c.duration) }));
 }
 
 /** Total runtime = intro + Σ clip durations + outro. */

@@ -1,8 +1,13 @@
+import { INTRO_SEC, OUTRO_SEC, RENDER_FPS, SHORT_TAIL_SEC, eddTimeline, introOutroRuntime } from "@studio/core";
+import type { EditDocument } from "@studio/core";
 import type { StickCast, StickScene } from "./stick/types";
 
 export type WordTiming = { w: string; start: number; end: number };
 
 export type { StickCast, StickScene };
+// Timing constants live in @studio/core (shared with the app's EDD compiler
+// wrapper); re-exported so render code keeps importing from "./types".
+export { INTRO_SEC, OUTRO_SEC, SHORT_TAIL_SEC };
 
 // ── Kinetic Highlights ────────────────────────────────────────────────
 // Keep these unions in sync with src/lib/db/types.ts (the app owns curation;
@@ -98,11 +103,46 @@ export type LottieSpec = {
   loop?: boolean;
 };
 
+// ── EDD render payload (MVDA Phase A pt 2) ────────────────────────────
+// buildProps attaches this when videos.edit_document_version is set. The doc
+// is the cut; media/audio resolve its asset references to signed URLs. The
+// legacy `beats` stay populated alongside (freebie Short, thumbnail pick and
+// chart QC still read them) — only the LongForm/VerticalShort timeline
+// switches to the document.
+
+/** Per-asset resolved visual media — the same fields BeatScene consumes. */
+export type EddClipMedia = {
+  imageUrl?: string;
+  images?: string[];
+  videoUrl?: string;
+  videoDurationSec?: number;
+  stickScene?: StickScene;
+  dataViz?: ChartSpec;
+  lottie?: LottieSpec;
+};
+
+export type EddPayload = {
+  version: number;
+  doc: EditDocument;
+  /** clip assetId → resolved visual media (signed URLs). */
+  media: Record<string, EddClipMedia>;
+  /** audio assetId (VO / generated SFX) → signed URL. */
+  audio: Record<string, string>;
+  /** curated library SFX name → URL (empty until a licensed pack lands, D7). */
+  sfxLibrary?: Record<string, string>;
+  /** beat idx (stringified — inputProps JSON round-trip) → narration text,
+      for the no-footage fallback card. */
+  beatText?: Record<string, string>;
+};
+
 export type VideoProps = {
   title: string;
   projectName: string;
   brand: { primary: string; secondary: string };
   beats: RenderBeat[];
+  /** The explicit timeline (EDD). When set, LongForm/VerticalShort render the
+      document instead of the legacy beat derivation. */
+  edd?: EddPayload;
   /** Render word-window captions. Default true; off pairs with Kinetic
       Highlights so the two text layers don't clutter the frame. */
   captions?: boolean;
@@ -118,14 +158,10 @@ export type VideoProps = {
   introVoUrl?: string;
 };
 
-export const FPS = 30;
-/** Intro title card. ~3s — long enough for a short narrated hook line. */
-export const INTRO_SEC = 3;
-export const OUTRO_SEC = 4;
-/** CTA tail appended after the last beat of a full vertical short. */
-export const SHORT_TAIL_SEC = 1.5;
+export const FPS = RENDER_FPS;
 
 export function longFormDurationSec(props: VideoProps): number {
+  if (props.edd) return introOutroRuntime(props.edd.doc);
   return (
     INTRO_SEC +
     props.beats.reduce((s, b) => s + Math.max(1, b.durationSec), 0) +
@@ -135,6 +171,7 @@ export function longFormDurationSec(props: VideoProps): number {
 
 /** Full vertical short: all beats back-to-back plus the CTA tail. */
 export function verticalShortDurationSec(props: VideoProps): number {
+  if (props.edd) return introOutroRuntime(props.edd.doc);
   return (
     props.beats.reduce((s, b) => s + Math.max(1, b.durationSec), 0) + SHORT_TAIL_SEC
   );
@@ -142,10 +179,11 @@ export function verticalShortDurationSec(props: VideoProps): number {
 
 /** Beat start offsets in the final long-form timeline — stored in the
     render asset's meta so retention curves can be mapped back to beats
-    (idea #2 foundation). */
+    (idea #2 foundation). EDD videos map per-clip (finer attribution, §3). */
 export function beatTimeline(
   props: VideoProps,
 ): { idx: number; start: number; end: number }[] {
+  if (props.edd) return eddTimeline(props.edd.doc);
   let t = INTRO_SEC;
   return props.beats.map((b) => {
     const start = t;
