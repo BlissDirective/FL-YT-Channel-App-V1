@@ -920,3 +920,55 @@ rubric wiring, migration `0043_editing_craft` (add `source_tier`, `source_url`,
 video-EDD migration is a different `0043` — final numbers assigned at build),
 and the first `.claude/skills/editing-craft/SKILL.md`. Everything else reuses
 the existing memory/rubric/outcome-audit harness.
+
+---
+
+## 12. Review pass 3 — discussion draft (2026-07-11, pre-authorization)
+
+Phase C does not build until the operator authorizes after testing A+B (§8).
+This section frames the pass-3 decisions with recommendations; operator
+decisions get logged here as C1–C6 when made.
+
+- **C1 — Tool surface (§4), amended by what A/B built.** The §4 verb table
+  stands, with these concretions: the single-field edit verbs
+  (`retime_clip/trim_clip/set_transition/set_motion/…`) are IMPLEMENTED — the
+  pure ops in `src/lib/edd-editor.ts` are exactly the agent's mutation layer
+  (validated, invariant-preserving, unit-tested); `propose_edd` = the same
+  `insertEddVersion(requireParentHead)` the human save uses (A9 is mechanical
+  for both peers); `render_preview` = `requestEddPreview` + poll the preview
+  asset; `judge_preview` reuses frame-critic/watch rubrics on the preview
+  asset. IMPORTANT split: the agent does NOT `normalizeTarget` — the human
+  re-pins the target (human is the authority); the agent stays bound to the
+  brief target ±5% (the validator is its fence). Net-new for C: an `sfx`
+  asset_kind enum value + an ElevenLabs sound-effects adapter (D7 generated
+  path), and the `edit_session_requested` handoff column (conflict #2).
+- **C2 — Autonomy defaults per gate.** Recommendation: CUT gate starts in
+  **assist** (operator reviews every agent cut) for the first ~10 videos,
+  then **copilot** (auto-approve ≥7.5, same `qc.ts` convention); Script gate
+  unchanged; `mark_ready` is hook-gated below the QC floor regardless of
+  autonomy. Full-auto (autopilot at CUT) only after Phase E's side-by-side
+  criteria hold.
+- **C3 — The 8 conflicts (§6): build status + what pass 3 must confirm.**
+  Already live from A/B: #5 (explicit timing IS the EDD), #7 partially
+  (human-path activation clears stored verdicts), #3 partially (missing-asset
+  → `inputs_stale` + loud log). Pass 3 confirms the remaining designs: #2
+  `maybeFinish` → `edit_session_requested` → build-runner launches the
+  session; #6 `sweepAutofix` skips `edit_document_version` videos (one-line
+  exclusivity, land EARLY in C); #1 CAS claim discipline; #8 agent tools
+  ledger via `recordCost` only.
+- **C4 — Knowledge system (§11) sequencing.** Recommendation: agent core
+  first; the Editing-Craft Knowledge System starts after the agent has cut
+  ~10 videos (lessons need real cuts + retention to attach to). KD1–KD5 stay
+  as locked in pass 2.
+- **C5 — Budgets/models.** Per §9: `maxBudgetUsd` per session from the tier
+  envelope (default ~$0.80), `maxTurns` ≈ 12, Sonnet turns with Opus
+  escalation near QC thresholds, previews ≈ free (CI minutes). Kill-switch +
+  monthly caps inherited (audit fixes).
+- **C6 — Operator A+B test checklist (the authorization gate, §8 exit
+  criteria, made concrete).** On 2–3 REAL videos: open `/edit` from the
+  Canvas → v1 compiles; retime/trim/transition/motion/caption-emphasis edits
+  preview live; Save → version history + diff; Revert works; Render preview
+  lands (farm pass) and matches the live preview; Approve cut renders and the
+  output ≡ the pre-EDD render for an UNEDITED v1 (the faithfulness bar);
+  an edited cut renders the edits; "Use legacy render" restores the old path.
+  Then authorize Phase C in writing here.
