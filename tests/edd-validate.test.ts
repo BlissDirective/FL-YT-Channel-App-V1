@@ -271,6 +271,32 @@ describe("validateEdd — audio, VO coverage (Decision 1), music gate (D8)", () 
     expect(rules(bad)).toContain("sfx.anchor");
   });
 
+  // Audit A4 — captionToken indexes the clip's tokens flattened across ALL
+  // pages overlapping the clip's window (a clip usually spans several 5-word
+  // pages), so an anchor past the first page must still resolve.
+  it("resolves a word anchor on a later caption page of the same clip", () => {
+    const d = baseDoc();
+    d.tracks.captions.push({
+      startMs: 4500,
+      endMs: 6000,
+      style: "clean",
+      position: "bottom",
+      tokens: [
+        { text: "second", fromMs: 4500, toMs: 5200, emphasis: "none" },
+        { text: "page", fromMs: 5200, toMs: 6000, emphasis: "none" },
+      ],
+    });
+    // Clip v1 spans 3–8s → 3 tokens total across both pages. Index 2 (last
+    // token of page 2) resolves; index 3 is out of range.
+    d.tracks.audio.push({ kind: "sfx", ref: { source: "library", name: "ding" }, at: { kind: "word", clipId: "v1", captionToken: 2 }, gainDb: -6 });
+    expect(rules(d)).not.toContain("sfx.anchor");
+
+    const bad = baseDoc();
+    bad.tracks.captions.push(structuredClone(d.tracks.captions[1]));
+    bad.tracks.audio.push({ kind: "sfx", ref: { source: "library", name: "ding" }, at: { kind: "word", clipId: "v1", captionToken: 3 }, gainDb: -6 });
+    expect(rules(bad)).toContain("sfx.anchor");
+  });
+
   it("rejects an unknown library SFX name", () => {
     const d = baseDoc();
     d.tracks.audio.push({ kind: "sfx", ref: { source: "library", name: "airhorn" }, at: { kind: "abs", sec: 4 }, gainDb: 0 });

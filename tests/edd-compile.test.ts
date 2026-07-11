@@ -29,6 +29,7 @@ function input(): CompileInput {
         voAssetId: "vo-0",
         visualAssetId: "img-0",
         source: "still",
+        visualDurationSec: 10,
         words: [
           { w: "First", start: 0, end: 0.5 },
           { w: "beat", start: 0.5, end: 1 },
@@ -43,6 +44,7 @@ function input(): CompileInput {
         visualAssetId: "img-1",
         source: "ai-clip",
         heroHold: true,
+        visualDurationSec: 10,
         words: [
           { w: "Second", start: 0, end: 0.5 },
           { w: "beat", start: 0.5, end: 1 },
@@ -66,7 +68,7 @@ function ctxFor(inp: CompileInput): EddContext {
     sfxLibrary: new Set(),
     overlayStyles: new Set(),
     musicEnabled: false,
-    toleranceSec: Math.max(2, inp.targetDurationSec * 0.05),
+    toleranceSec: Math.max(2, (inp.targetDurationSec ?? 0) * 0.05),
   };
 }
 
@@ -131,5 +133,61 @@ describe("compileEdd", () => {
   it("carries the target and aspect through to meta", () => {
     const doc = compileEdd(input());
     expect(doc.meta).toMatchObject({ schemaVersion: 1, format: "long", fps: 30, aspect: "16:9", targetDurationSec: 19 });
+  });
+
+  // Audit A1 — legacy floors every beat at 1s (Math.max(1, durationSec) in
+  // beatTimeline/VideoComp); a frame-floor compiler would drift every
+  // subsequent clip start and the goldens could never pass.
+  it("floors sub-1s beats at 1s exactly like the legacy timeline", () => {
+    const inp = input();
+    inp.beats[0].durationSec = 0.4;
+    const doc = compileEdd(inp);
+    expect(doc.tracks.video.map((c) => [c.start, c.duration])).toEqual([
+      [3, 1],
+      [4, 6],
+    ]);
+  });
+
+  // Audit A3 — a compiled v1 must ALWAYS validate. When the brief target is
+  // omitted, the compiler pins meta.targetDurationSec to the actual runtime,
+  // so a legacy video whose VO drifted far from the brief still compiles to
+  // an insertable document.
+  it("defaults targetDurationSec to the actual runtime when omitted", () => {
+    const inp = input();
+    delete inp.targetDurationSec;
+    inp.beats[0].durationSec = 20; // way past any brief tolerance
+    const doc = compileEdd(inp);
+    expect(doc.meta.targetDurationSec).toBe(3 + 20 + 6 + 4);
+    // A3b — the beat outruns its 10s source: legacy loops it, so the trim
+    // window clamps to the source instead of failing validation.
+    expect(doc.tracks.video[0].trim).toEqual({ in: 0, out: 10 });
+    expect(validateEdd(doc, { ...ctxFor(inp), toleranceSec: 2 }).ok).toBe(true);
+  });
+
+  // Audit A2 — VerticalShort has no intro sting; its body starts at 0 and it
+  // ends on the 1.5s compact CTA tail (SHORT_TAIL_SEC).
+  it("compiles a short with no sting, clips from 0, and the CTA tail", () => {
+    const inp = input();
+    inp.format = "short";
+    inp.introSec = 0;
+    inp.outroSec = 1.5;
+    delete inp.targetDurationSec;
+    const doc = compileEdd(inp);
+    expect(doc.intro).toEqual({ sting: false, sec: 0 });
+    expect(doc.outro).toEqual({ endCard: true, sec: 1.5 });
+    expect(doc.tracks.video[0].start).toBe(0);
+    expect(doc.meta.aspect).toBe("9:16");
+    expect(validateEdd(doc, ctxFor(inp)).ok).toBe(true);
+  });
+
+  // Audit A5 — the legacy LongForm CTA lower-third (70% of runtime, 5s) must
+  // live IN the document, or an EDD-driven render silently drops it.
+  it("emits the legacy CTA lower-third when ctaText is passed", () => {
+    const inp = { ...input(), ctaText: "Enjoying this? Subscribe — it's free" };
+    const doc = compileEdd(inp);
+    expect(doc.tracks.overlays).toEqual([
+      { kind: "lowerThird", text: inp.ctaText, startSec: 19 * 0.7, durationSec: 5 },
+    ]);
+    expect(validateEdd(doc, ctxFor(inp)).ok).toBe(true);
   });
 });

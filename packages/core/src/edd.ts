@@ -57,7 +57,9 @@ export const DEFAULT_TRANSITIONS: TransitionRegistry = {
 // ── D7 — SFX: curated library by default, generated on demand ─────────
 export type SfxRef = { source: "library"; name: string } | { source: "generated"; assetId: string };
 /** An SFX/overlay time anchor: absolute seconds, or pinned to a caption word
-    (survives retiming). */
+    (survives retiming). `captionToken` indexes the clip's caption tokens
+    FLATTENED across every page overlapping the clip's time window, in page
+    order — the validator and the renderer must resolve it identically. */
 export type TimeAnchor =
   | { kind: "abs"; sec: number }
   | { kind: "word"; clipId: string; captionToken: number };
@@ -356,8 +358,10 @@ function validateAnchor(
     if (at.sec < 0 || at.sec > runtimeSec + FRAME) add(rule, w, "absolute anchor outside runtime");
     return;
   }
-  // word anchor: the clip must exist AND a caption page overlapping that clip's
-  // time range must contain the token index.
+  // word anchor: the clip must exist AND the token index must resolve within
+  // the clip's caption tokens — flattened across EVERY page overlapping the
+  // clip's window, in page order (a clip usually spans several 5-word pages;
+  // see the TimeAnchor doc — the renderer resolves identically).
   const clip = clipById.get(at.clipId);
   if (!clip) {
     add(rule, w, `word-anchor clip ${at.clipId} not found`);
@@ -365,9 +369,12 @@ function validateAnchor(
   }
   const startMs = clip.start * 1000;
   const endMs = (clip.start + clip.duration) * 1000;
-  const page = doc.tracks.captions.find((p) => p.startMs < endMs && p.endMs > startMs);
-  if (!page || at.captionToken < 0 || at.captionToken >= page.tokens.length) {
-    add(rule, w, `word-anchor token ${at.captionToken} does not resolve on clip ${at.clipId}`);
+  let tokenCount = 0;
+  for (const p of doc.tracks.captions) {
+    if (p.startMs < endMs && p.endMs > startMs) tokenCount += p.tokens.length;
+  }
+  if (at.captionToken < 0 || at.captionToken >= tokenCount) {
+    add(rule, w, `word-anchor token ${at.captionToken} does not resolve on clip ${at.clipId} (${tokenCount} tokens)`);
   }
 }
 

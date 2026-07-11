@@ -53,13 +53,82 @@ editing knowledge that shapes its decisions over time. Full design + decisions
 KD1–KD5 in **§11** (a Phase C+ capability riding the existing `memory_entries`
 governance; does not touch the A/B foundation).
 
+### Audit — 2026-07-11: Phase A pt-1 + plan hardening
+
+A full audit of commit `12ea0dd` against the legacy render it must reproduce
+(`types.ts` / `VideoComp.tsx` / `render-queue.ts`). **Fixed in code, all gates
+re-run green (typecheck, 458 tests, lint):**
+
+- **A1 — duration floor.** Legacy floors every beat at **1s**
+  (`Math.max(1, durationSec)` — types.ts:131/150, VideoComp.tsx:52); the
+  compiler floored at one frame. One sub-1s beat would drift every later clip
+  start and the goldens could never pass. `compileEdd` now floors at 1s.
+- **A2 — shorts contract.** `VerticalShort` has **no intro sting**, body from
+  0s, and a **1.5s compact CTA tail** (`SHORT_TAIL_SEC`); the compiler
+  hardcoded `sting:true`/`endCard:true` with clips starting at `introSec`.
+  The flags now follow the durations passed; caller contract: long =
+  `INTRO_SEC`/`OUTRO_SEC`, short = `0`/`SHORT_TAIL_SEC`.
+- **A3 — compiled-v1 validity trap.** Pinning the tier/brief target meant any
+  legacy video whose VO drifted past ±5% compiled to a document that **fails
+  `validateEdd`** (`runtime.total`) and could never be inserted.
+  `targetDurationSec` is now optional; omitted → the actual computed runtime.
+  **A3b:** a beat outrunning its source video (legacy *loops* it) produced
+  `trim.out > source` (also invalid); the trim window now clamps to the new
+  `CompileBeat.visualDurationSec` — loop/rate semantics live in the render
+  path (A10).
+- **A4 — word-anchor semantics were ambiguous.** The validator resolved only
+  the FIRST caption page overlapping a clip — a 6s beat spans ~3 five-word
+  pages, so tokens past page 1 could never anchor. Defined: `captionToken`
+  indexes the clip's tokens **flattened across all overlapping pages in page
+  order**; validator updated, the pt-2 renderer must resolve identically.
+- **A5 — the CTA lower-third was dropped.** Legacy LongForm always renders
+  "Enjoying this? Subscribe…" at 70% of runtime for 5s (VideoComp.tsx:62-65);
+  compiled docs emitted `overlays: []`, so an EDD-driven render silently loses
+  it (or the render path hardcodes it, breaking the single-source-of-truth
+  rule). New `CompileInput.ctaText` emits the `lowerThird` overlay; the pt-2
+  wrapper passes the render package's copy (long-forms only).
+- **A6 — dangling-pointer guard (migration 0044).** Composite FK
+  `videos(id, edit_document_version) → edit_documents(video_id, version)`:
+  the active pointer can no longer reference a nonexistent version, and a
+  pointed-at version row cannot be deleted directly (append-only, now
+  mechanical).
+
+**Documented for part 2 / Phase B (design, no code yet):**
+
+- **A7 — wrapper faithfulness inputs.** `compileEddFromLegacy` must also
+  carry: curated kinetic highlights (`resolveHighlights` output → `highlight`
+  overlays with abs anchors — extend `CompileInput`), `enable_captions=false`
+  (pass no words), derived shorts (`source_segment` beat cut + parent
+  `sourceId`, as `buildProps` does), and `visualDurationSec` from the clip
+  asset's meta. **Intro-card content** (hero image, `introPhrase`, the
+  beat -1 hook VO) stays render-derived in v1 — the EDD controls sting on/off
+  + length only; editing the hook itself is a later schema rev (an explicit
+  exclusion so the goldens are well-defined).
+- **A8 — golden redefinition.** Encoded video is not byte-deterministic;
+  "byte-equivalent renders" is unachievable as written. Two-layer golden
+  instead: (1) deterministic **props/timeline golden** — the EDD branch of
+  `buildProps` must equal the legacy branch's output (`beatTimeline`, asset
+  URLs, caption/highlight timings) on the same video; (2) **sampled-frame
+  pixel equality** via `renderStill` at fixed frames (intro, two mid-beat, a
+  cut boundary, outro) — verified in CI / a browser-capable session.
+- **A9 — version-allocation concurrency (Phase B/C).** Two writers computing
+  `max(version)+1` race (human save vs agent turn). The unique
+  `(video_id, version)` constraint is the backstop (retry on conflict), and
+  every write must carry `parent_version` = the head it edited, rejected as a
+  conflict ("document changed — reload") when the head moved — optimistic
+  concurrency surfaced in `/edit`, enforced inside `propose_edd`.
+- **A10 — trim/rate semantics to pin in pt 2.** `trim` is the source window;
+  how it maps onto `duration` (freeze last frame vs loop vs playback rate,
+  incl. heroHold 0.5×) must be defined when the EDD renderer is built — until
+  then the validator only checks that the window fits the source.
+
 Open for review pass 3 (post-A/B-authorization): Phase C (the agent) —
 tool-surface finalization, autonomy defaults per gate, the 8 conflict
 resolutions, and the finalized Editing-Craft Knowledge System.
 
 ---
 
-## Build status & session handoff (as of 2026-07-10)
+## Build status & session handoff (as of 2026-07-11)
 
 **Design: complete through review pass 2.** Decisions locked — pass 1 (D1–D4:
 full vocabulary, custom Remotion editor, A+B-then-authorize sequencing,
@@ -77,6 +146,11 @@ additive, zero behavior change (nothing reads `edit_document_version` yet):
 - Gates: typecheck (6 pkgs), vitest **453/453**, lint. (Bug caught+fixed:
   vo-coverage maps VO→beat by time overlap, not `clip.assetId`.)
 
+**Phase A — part 1 hardened by the 2026-07-11 audit** (see the audit log
+above): A1 duration floor, A2 shorts contract, A3/A3b compiled-v1 validity
+traps, A4 word-anchor semantics, A5 CTA lower-third, A6 pointer FK (migration
+0044). Gates re-run green: typecheck, vitest **458/458**, lint.
+
 **► NEXT (Phase A — part 2, the render path):** the resume point for a new
 session.
 1. `buildProps` (render-queue.ts:289): add an EDD branch — if
@@ -84,17 +158,24 @@ session.
    its `doc` to `VideoProps`; else the legacy derivation (unchanged). Additive.
 2. `VideoComp.tsx` / `types.ts`: render the full EDD vocabulary — keyframe
    motion (D5), the transition registry (D6, one renderer per kind), styled
-   caption pages + per-token emphasis, word-anchored SFX, overlays. Music lane
-   gated OFF (D8).
+   caption pages + per-token emphasis, word-anchored SFX (resolved per the A4
+   flattened-token rule), overlays. Music lane gated OFF (D8). Pin the
+   trim/duration mapping semantics — freeze vs loop vs rate, heroHold 0.5×
+   (A10).
 3. DB wrapper `compileEddFromLegacy(videoId)` in `src/lib` that assembles
-   `CompileInput` (passing render's `INTRO_SEC`/`OUTRO_SEC`) → calls the pure
-   `compileEdd` → inserts EDD v1 (`author='compiler'`).
+   `CompileInput` (render's `INTRO_SEC`/`OUTRO_SEC` for longs, `0`/
+   `SHORT_TAIL_SEC` for shorts, `ctaText` for longs, `visualDurationSec` from
+   clip meta, curated highlights → overlays, `enable_captions`, derived-short
+   `source_segment` handling — A2/A5/A7) → calls the pure `compileEdd` →
+   inserts EDD v1 (`author='compiler'`).
 4. `render_preview(range?)` path — 480p, restricted frame range, asset kind
    `preview`.
-5. **Golden test:** compiler output ≡ legacy render (byte-equivalent) + a
-   per-capability render test each (a trim, a crossfade, an SFX cue, a kinetic
-   token). *Visual goldens need a real Remotion render — verify in CI / a
-   browser-capable session, not the sandbox.*
+5. **Golden test (redefined per A8):** (a) props/timeline golden — EDD-branch
+   `buildProps` output ≡ legacy branch on the same video (deterministic, runs
+   anywhere); (b) sampled-frame pixel equality via `renderStill` at fixed
+   frames; plus a per-capability render test each (a trim, a crossfade, an SFX
+   cue, a kinetic token). *Visual goldens need a real Remotion render — verify
+   in CI / a browser-capable session, not the sandbox.*
 
 Then **Phase B** (the `/edit` timeline UI, §5), then the **operator
 authorization gate** before **Phase C** (the agent) + **§11** (knowledge
@@ -315,8 +396,10 @@ beats in script order, duration = VO `meta.durationSec`, Ken Burns default,
 hard cuts, constants for intro/outro, captions from the stored word timings,
 highlights via the same resolution as `resolveHighlights`
 (render-queue.ts:243-287). Output: EDD version 1, `author='compiler'`.
-This gives byte-equivalent renders on day one (goldens assert it) and gives the
-timeline UI something real to edit before the agent exists.
+This gives render-equivalent output on day one (goldens assert it — the
+two-layer definition in audit A8: props/timeline equality + sampled-frame
+stills) and gives the timeline UI something real to edit before the agent
+exists.
 
 > **Decision 1 (full vocabulary from day one):** the compiler still emits a
 > *faithful* v1 (so goldens pass and nothing regresses), but the schema,
@@ -482,8 +565,9 @@ transitions, motion/keyframes, SFX, kinetic tokens, music bed) + `validateEdd`
 (unit-tested, table-driven like `library.ts`) that enforces every field;
 `compileEddFromLegacy` (faithful v1 — invents no edits); `buildProps`/
 `VideoComp` EDD path that **renders every capability** (not just today's);
-golden-render test asserting compiler output ≡ legacy render, plus new
-render tests per capability (a trim, a crossfade, an SFX cue, a kinetic token).
+golden test asserting compiler output ≡ legacy render (two-layer per audit
+A8: props/timeline golden + sampled-frame stills), plus new render tests per
+capability (a trim, a crossfade, an SFX cue, a kinetic token).
 *Additive; zero behavior change to existing videos. (½-week longer than a
 minimal EDD — the cost of Decision 1: the renderer + validator must handle
 every field before Phase B ships.)*
