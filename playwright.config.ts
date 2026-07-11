@@ -25,6 +25,12 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:3000",
     trace: "on-first-retry",
+    // Sandboxed/browser-capable agent sessions carry a system Chromium that
+    // doesn't match this Playwright version's pinned revision — point
+    // PW_CHROMIUM_PATH at it instead of downloading. CI leaves this unset.
+    ...(process.env.PW_CHROMIUM_PATH
+      ? { launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH } }
+      : {}),
   },
   projects: [
     {

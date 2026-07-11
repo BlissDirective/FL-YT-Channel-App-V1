@@ -227,8 +227,95 @@ easing, and FPS all single-sourced. Documented (not code): per-clip
 watch-gate flicker heuristic and chart-QC midpoint lookup treat first-clip
 windows as the beat; revisit when Phase B editing ships (before Phase C).
 
-**► NEXT: Phase B — the `/edit` timeline editor (§5).** Then the operator
-authorization gate before Phase C.
+**Phase B — the `/edit` timeline editor: BUILT (2026-07-11).** Per §5 +
+Decisions 2/4 (custom on Remotion `<Player>`, dedicated route):
+- **Route** `/projects/[id]/videos/[vid]/edit` (server page + client editor).
+  First visit compiles the faithful v1 (nothing renders from it until a save/
+  approve activates the pointer). Derived shorts edit against the parent's
+  script/assets (same sourceId rules everywhere).
+- **Live preview**: `@remotion/player` over the SAME `EddVideo` composition
+  the farm renders (`@studio/render/src/player` — the browser-safe surface;
+  app deps gained remotion/@remotion/player, transpilePackages updated).
+  Every edit re-renders the player instantly; **Render preview** queues the
+  farm's half-res true-fidelity render (`requestPreviewAction` +
+  workflow dispatch), latest 2 linked under the player.
+- **Lanes** (§5 layout): V (intro/clips/outro, drag right edge = retime with
+  gapless reflow, transition badges), VO (cue blocks), FX (▲ word-anchored /
+  △ abs SFX), ♪ (visible, gated OFF — D8), CC (pages, kinetic-emphasis
+  highlighted), OV (highlight/lowerThird/progressBar). Click = select +
+  seek player.
+- **Inspector**: per-clip timing/trim/motion (kind editor + Ken Burns & hero
+  presets that EMIT specs — D5; keyframe rows editable), transition picker
+  (full D6 registry, sec clamped to maxSec + adjacent durations), silent-
+  pause toggle, visual swap grid (any live clip asset) + **Regenerate visual**
+  (= the existing `rerollBeatVisualAction` — request_visual's Phase B face);
+  caption page style/position + click-a-word emphasis cycling; overlay
+  add/edit/remove; SFX gain + placement (placement unlocks when a curated
+  pack or generated SFX assets exist — D7).
+- **Document ops** are pure (`src/lib/edd-editor.ts`) and validated LIVE with
+  the production `validateEdd` on every change (Save disabled while invalid).
+  Save = new version row (author `human`), **A9 optimistic concurrency**
+  (parent-head check server-side), auto-activates; human saves re-pin
+  `targetDurationSec` to the actual runtime so ±5% never blocks an
+  intentional re-cut (the agent keeps the brief target in Phase C). Version
+  strip: author/status/note + structural diff summaries + one-click revert
+  (append-only copy). "Use legacy render" escape hatch (pointer → null).
+- **CUT gate** (§5): the Canvas checkpoint re-labels ASSETS → **Cut** when an
+  EDD is active; "Open editor · cut vN" chip on the Canvas; **Approve cut**
+  resolves the gate through the existing `decideGate` and stamps the active
+  version `approved`.
+- **Tests**: `tests/edd-editor.test.ts` — every editor operation keeps the
+  document `validateEdd`-clean (grow/shrink retime reflow incl. caption
+  truncation + VO window follow, transition clamping, keyframe pinning,
+  silent-pause coverage, big-recut target re-pin, diff summaries); action
+  manifest regenerated (`edit.ts` actions all wired to surfaces);
+  `e2e/authed/edit-editor.spec.ts` — mock-pipeline journey: open editor →
+  compiled v1 → retime → save v2 (activated) → CUT relabel → approve cut.
+
+**Phase B — live verification + review pass (2026-07-11).**
+- **Verified end-to-end against a real local Supabase stack** (docker:
+  postgres + auth + PostgREST + realtime + storage; all migrations incl.
+  0043–0045 applied clean on a fresh DB): the new
+  `e2e/authed/edit-editor.spec.ts` drives the mock pipeline to the assets
+  gate, opens `/edit` (v1 compiles on first visit), selects a clip, retimes
+  it, saves v2 (activated), sees the Canvas re-label to the **Cut gate**, and
+  approves the cut through `decideGate` — **passing**. Two pre-existing repo
+  bugs were root-caused on the way: (1) `Card` dropped all extra props, so
+  every `data-testid` on a Card never rendered — **the** cause of the authed
+  suite's "checkpoint-panel not found" fragility that made e2e-authed
+  non-blocking; fixed by forwarding rest props. (2) The first-visit compile
+  path 404'd in production only: React memoizes same-URL GET fetches within a
+  render, so the post-compile refetch was served the original empty response;
+  fixed by building the row from the compiler's return. Playwright config
+  gained a `PW_CHROMIUM_PATH` passthrough for browser-capable agent sandboxes
+  (no-op in CI).
+- **3-angle review pass, fixes applied (B1–B16):** approve-cut is now gate-
+  guarded (a stale editor tab can no longer approve whatever gate the video
+  reached later) and stamps `approved` only after `decideGate` succeeds; A9
+  optimistic concurrency moved INSIDE the version allocator
+  (`requireParentHead`) closing the check-then-act window where a concurrent
+  save was silently appended; activating a version past the render clears
+  `watch_review`/`vision_review` (conflict #7's drift class, delivered early
+  for the human path); duration edits commit on blur/Enter (a per-keystroke
+  retime destructively truncated captions through intermediate values);
+  `retimeClip` clamps/drops overlays and dead word-anchored SFX that no
+  longer fit a shrink (every editor op again yields a validateEdd-able doc);
+  the silent-pause toggle MUTES the welded VO cue (−60 dB) instead of
+  deleting it, making it reversible; VO trim clamping is `trim.in`-aware;
+  revert now checks its activation write; the editor remounts on head change
+  (a revert previously left the stale doc on screen and a later save undid
+  it); derived shorts can reach the editor from their Canvas; the first
+  preview request now shows a "rendering on the farm…" indicator; the
+  derived-short segment cut, source classification (`sourceForClipMeta`),
+  clip-media resolution (`clip-media.ts`, farm + editor share ONE resolver
+  with injected signers), overlay/caption style registries, error-wrapping
+  (`guarded()`), and the e2e login helper are all single-homed. Documented:
+  first-visit compile creates version rows as a GET side effect (harmless —
+  append-only, non-activating; Phase C exclusivity keys off the pointer, which
+  only a save/approve sets).
+
+**► NEXT: the OPERATOR AUTHORIZATION GATE** — use/test A+B on real videos
+(exit criteria in §8), then authorize Phase C (review pass 3).
 
 Then **Phase B** (the `/edit` timeline UI, §5), then the **operator
 authorization gate** before **Phase C** (the agent) + **§11** (knowledge

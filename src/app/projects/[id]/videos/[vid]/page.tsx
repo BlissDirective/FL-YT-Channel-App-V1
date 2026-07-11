@@ -254,6 +254,18 @@ export default async function VideoDetailPage({
           <StatusChip tone="neutral">
             ${Number(v.total_cost_usd).toFixed(2)} spent
           </StatusChip>
+          {((s && allAssets.some((a) => a.kind === "vo")) ||
+            (v.kind === "short" && v.parent_video_id != null)) && (
+            <Link
+              href={`/projects/${id}/videos/${vid}/edit`}
+              className="flex items-center gap-1 rounded-full bg-canvas px-3 py-1 text-xs font-semibold shadow-card hover:bg-accent-soft"
+            >
+              <Clapperboard className="size-3.5" />
+              Open editor
+              {(v as { edit_document_version?: number | null }).edit_document_version != null &&
+                ` · cut v${(v as { edit_document_version?: number | null }).edit_document_version}`}
+            </Link>
+          )}
         </div>
         <ProgressRail steps={RAIL_STEPS} current={railIndexFor(v)} className="mt-4" />
       </div>
@@ -263,6 +275,10 @@ export default async function VideoDetailPage({
           projectId={id}
           videoId={vid}
           gate={gate}
+          isCutGate={
+            gate === "ASSETS" &&
+            (v as { edit_document_version?: number | null }).edit_document_version != null
+          }
           pausedReason={v.paused_reason}
           qc={(gateQc as QcReview) ?? null}
           watch={v.watch_review ?? null}

@@ -36,6 +36,7 @@ export function CheckpointPanel({
   projectId,
   videoId,
   gate,
+  isCutGate,
   pausedReason,
   qc,
   watch,
@@ -48,6 +49,9 @@ export function CheckpointPanel({
   projectId: string;
   videoId: string;
   gate: ApprovalGate;
+  /** MVDA §5: for EDD videos the ASSETS slot is the CUT gate — the reviewed
+      artifact is the cut (the /edit document), not the raw asset grid. */
+  isCutGate?: boolean;
   pausedReason: string | null;
   qc: QcReview | null;
   watch: WatchVerdict | null;
@@ -68,7 +72,9 @@ export function CheckpointPanel({
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">
             Checkpoint
           </p>
-          <h2 className="font-semibold leading-snug">{GATE_LABELS[gate]} gate</h2>
+          <h2 className="font-semibold leading-snug">
+            {isCutGate ? "Cut" : GATE_LABELS[gate]} gate
+          </h2>
         </div>
       </div>
 

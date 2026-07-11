@@ -16,7 +16,8 @@ import { createClient } from "@supabase/supabase-js";
 import { bundle } from "@remotion/bundler";
 import { ensureBrowser, renderMedia, renderStill, selectComposition } from "@remotion/renderer";
 import { isR2Path, r2Configured, r2Get, r2Put, r2SignedGetUrl, stripR2, toR2Path } from "@studio/storage";
-import { DEFAULT_SFX_LIBRARY, isVideoClipMeta, resolveHighlightTiming, type EditDocument } from "@studio/core";
+import { DEFAULT_SFX_LIBRARY, resolveHighlightTiming, type EditDocument } from "@studio/core";
+import { resolveClipMedia } from "./clip-media";
 import {
   FPS,
   INTRO_SEC,
@@ -240,66 +241,15 @@ function resolveHighlights(
   return resolveHighlightTiming(curated, words, durationSec);
 }
 
-/** A clip asset's meta, as written by asset generation. */
-type ClipAssetMeta = {
-  url?: string;
-  stillImage?: boolean;
-  isVideo?: boolean;
-  heroHold?: boolean;
-  durationSec?: number;
-  stickScene?: StickScene;
-  /** Tier 9 #4 — extra still paths/urls for a multi-image section. */
-  images?: string[];
-  /** Tier 9.5 — programmatic data-viz spec; render draws the chart. */
-  dataViz?: RenderBeat["dataViz"];
-  /** Tier 9.5 — Lottie b-roll spec (url may be a storage path to sign). */
-  lottie?: { url?: string; loop?: boolean };
-};
-
 /**
- * Resolve a clip asset row to renderable media (signed URLs, video/still
- * detection, multi-image sets, programmatic b-roll specs). Shared by the
- * legacy beat derivation and the EDD media map so the two can never drift.
+ * Resolve a clip asset row to renderable media. The implementation lives in
+ * clip-media.ts and is SHARED with the app's /edit Player payload — one
+ * ladder for the farm, the EDD map, and the editor preview.
  */
-async function clipMediaFromAsset(
+function clipMediaFromAsset(
   clip: { storage_path?: string | null; meta?: unknown } | undefined,
 ): Promise<EddClipMedia & { heroHold: boolean }> {
-  const clipMeta = (clip?.meta ?? {}) as ClipAssetMeta;
-  // Generated video clips live in Storage (no meta.url) — sign the path and
-  // treat as video. Stills are signed as images. External (Pexels) use url.
-  const clipSigned = clip?.storage_path ? await sign(clip.storage_path) : null;
-  const isVideoClip = isVideoClipMeta(clipMeta);
-  // Tier 9 #4 — resolve extra stills (external urls pass through; storage
-  // paths get signed). The primary still leads, so the cross-dissolve always
-  // includes the frame the rest of the pipeline already vetted/cached.
-  const primaryStill = !isVideoClip ? (clipSigned ?? undefined) : undefined;
-  let images: string[] | undefined;
-  if (!isVideoClip && clipMeta.images?.length) {
-    const extra = await Promise.all(
-      clipMeta.images.map((p) => (/^https?:\/\//.test(p) ? Promise.resolve(p) : sign(p))),
-    );
-    images = [primaryStill, ...extra].filter((u): u is string => Boolean(u));
-    if (images.length < 2) images = undefined;
-  }
-  let lottie: { url: string; loop?: boolean } | undefined;
-  if (clipMeta.lottie?.url) {
-    lottie = {
-      url: /^https?:\/\//.test(clipMeta.lottie.url)
-        ? clipMeta.lottie.url
-        : ((await sign(clipMeta.lottie.url)) ?? clipMeta.lottie.url),
-      loop: clipMeta.lottie.loop,
-    };
-  }
-  return {
-    imageUrl: primaryStill,
-    images,
-    videoUrl: clipMeta.url ?? (clipMeta.isVideo ? (clipSigned ?? undefined) : undefined),
-    videoDurationSec: clipMeta.durationSec,
-    stickScene: clipMeta.stickScene,
-    dataViz: clipMeta.dataViz,
-    lottie,
-    heroHold: Boolean(clipMeta.heroHold),
-  };
+  return resolveClipMedia(clip, sign);
 }
 
 /**

@@ -1,5 +1,5 @@
 import type React from "react";
-import type { Transition } from "@studio/core";
+import { transitionSecOf, type Transition } from "@studio/core";
 import { applyEase, clamp01 } from "./motion";
 
 /**
@@ -19,9 +19,7 @@ import { applyEase, clamp01 } from "./motion";
  * windows inside their clips.
  */
 
-export function transitionSec(t: Transition): number {
-  return "sec" in t && typeof t.sec === "number" ? Math.max(0, t.sec) : 0;
-}
+export const transitionSec = transitionSecOf;
 
 /** Straddling transitions render a boundary overlay (centered on the cut)
     instead of extending the outgoing clip. New straddle-style kinds (a dip to

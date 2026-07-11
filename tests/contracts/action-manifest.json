@@ -19,6 +19,13 @@
   "diagnostics": [
     "testCredentialAction(service: string)"
   ],
+  "edit": [
+    "saveEddAction(projectId: string, videoId: string, rawDoc: EditDocument, parentVersion: number, note: string,)",
+    "revertEddAction(projectId: string, videoId: string, toVersion: number,)",
+    "requestPreviewAction(projectId: string, videoId: string, range?: { fromSec?: number; toSec?: number },)",
+    "approveCutAction(projectId: string, videoId: string)",
+    "deactivateEddAction(projectId: string, videoId: string)"
+  ],
   "intel": [
     "runVideoIntelAction(input: { projectId: string; videoId?: string | null; topic: string; competitorUrls?: string[]; transcript?: string; depth?: \"quick\" | \"deep\"; sourceUrl?: string; vouched?: boolean; /** Deep + precise frame sampling → enqueue for the Actions worker. */ frames?: boolean; })"
   ],

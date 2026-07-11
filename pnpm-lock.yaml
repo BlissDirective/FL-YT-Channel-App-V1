@@ -11,9 +11,15 @@ importers:
       '@fontsource-variable/plus-jakarta-sans':
         specifier: ^5.2.8
         version: 5.2.8
+      '@remotion/player':
+        specifier: 4.0.290
+        version: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@studio/core':
         specifier: workspace:*
         version: link:packages/core
+      '@studio/render':
+        specifier: workspace:*
+        version: link:packages/render
       '@studio/storage':
         specifier: workspace:*
         version: link:packages/storage
@@ -44,6 +50,9 @@ importers:
       recharts:
         specifier: ^2.15.0
         version: 2.15.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      remotion:
+        specifier: 4.0.290
+        version: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       server-only:
         specifier: ^0.0.1
         version: 0.0.1

@@ -438,6 +438,12 @@ export function resolveWordAnchorSec(doc: EditDocument, at: TimeAnchor): number 
   return null;
 }
 
+/** A transition's duration, read safely off the open union (0 for cut /
+    kinds without a sec). */
+export function transitionSecOf(t: Transition): number {
+  return "sec" in t && typeof t.sec === "number" ? Math.max(0, t.sec) : 0;
+}
+
 /** Retention timeline for an EDD render: one entry per clip, mapped to its
     script beat — supersedes the legacy beat timeline in the render asset's
     meta (plan §3: dips attribute to explicit clips, not just beats). */

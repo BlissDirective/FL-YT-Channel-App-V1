@@ -20,37 +20,8 @@
  *   SUPABASE_SERVICE_ROLE_KEY — the app must be BUILT with these env vars.
  */
 import { expect, test, type Page } from "@playwright/test";
+import { signInOrBootstrap } from "./helpers";
 
-const EMAIL = "operator@example.com";
-const PASSWORD = "golden-path-e2e";
-
-// One asset takes ~10 mock stage-hops with QC reviews between; generous.
-test.describe.configure({ mode: "serial" });
-test.setTimeout(240_000);
-
-let projectUrl = ""; // captured in the golden path, reused for screenshots
-
-/** Bootstrap on a fresh stack; fall back to sign-in on retries. */
-async function signInOrBootstrap(page: Page) {
-  await page.goto("/login");
-  await page.getByRole("tab", { name: "First-time setup" }).click();
-  await page.locator('input[name="email"]').fill(EMAIL);
-  await page.locator('input[name="password"]').fill(PASSWORD);
-  await page.getByRole("button", { name: "Create operator account" }).click();
-
-  const alreadyExists = page.getByText("An account already exists");
-  await Promise.race([
-    page.waitForURL("/", { timeout: 30_000 }),
-    alreadyExists.waitFor({ timeout: 30_000 }),
-  ]);
-  if (page.url().includes("/login")) {
-    await page.getByRole("tab", { name: "Sign in" }).click();
-    await page.locator('input[name="email"]').fill(EMAIL);
-    await page.locator('input[name="password"]').fill(PASSWORD);
-    await page.getByRole("button", { name: "Sign in", exact: true }).click();
-    await page.waitForURL("/", { timeout: 30_000 });
-  }
-}
 
 test("library v2: asset born in Ideas, quick-approved through sections, killable", async ({
   page,

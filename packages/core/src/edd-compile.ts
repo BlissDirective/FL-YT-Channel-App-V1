@@ -24,6 +24,18 @@ export function isVideoClipMeta(meta: { isVideo?: unknown; url?: unknown } | nul
   return Boolean(meta?.isVideo || meta?.url);
 }
 
+/** Classify a clip asset into its EDD source kind — ONE ladder shared by the
+    compiler wrapper and the /edit swap picker (audit A17/B-review). */
+export function sourceForClipMeta(
+  meta: { isVideo?: unknown; url?: unknown; dataViz?: unknown; stickScene?: unknown } | null | undefined,
+  provider: string | null | undefined,
+): EddSource {
+  if (meta?.dataViz) return "dataviz";
+  if (meta?.stickScene) return "stick";
+  if (isVideoClipMeta(meta)) return provider === "pexels" ? "stock" : "ai-clip";
+  return "still";
+}
+
 /** A curated kinetic highlight with beat-local timing already resolved (the
     caller runs resolveHighlightTiming so compiled timings match the legacy
     render exactly — audit A7). */

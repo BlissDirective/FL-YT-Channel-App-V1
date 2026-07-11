@@ -12,7 +12,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@studio/core", "@studio/storage"],
+  transpilePackages: ["@studio/core", "@studio/storage", "@studio/render"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

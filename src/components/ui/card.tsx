@@ -5,16 +5,22 @@ import { cn } from "@/lib/cn";
 export function Card({
   className,
   children,
+  ...rest
 }: {
   className?: string;
   children: React.ReactNode;
-}) {
+} & React.HTMLAttributes<HTMLDivElement>) {
+  // Forward the rest (data-testid above all): several surfaces tag their Card
+  // for the e2e suite, and silently dropping the attribute broke every
+  // getByTestId on a Card — the root cause of the authed suite's
+  // "checkpoint-panel not found" flake.
   return (
     <div
       className={cn(
         "rounded-card bg-card p-5 shadow-card",
         className,
       )}
+      {...rest}
     >
       {children}
     </div>
