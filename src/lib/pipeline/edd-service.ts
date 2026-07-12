@@ -17,7 +17,7 @@ import {
   type EddContext,
   type EditDocument,
 } from "@studio/core";
-import { buildEddContext, cutBeatsToSegment, insertEddVersion, type EddDb } from "@studio/core";
+import { assembleCompileInput, buildEddContext, cutBeatsToSegment, insertEddVersion, type EddDb } from "@studio/core";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Moved to @studio/core in Phase C (shared with the agent worker); re-exported
@@ -94,62 +94,17 @@ export async function compileEddFromLegacy(
   const curated: CuratedHighlight[] = video.enable_highlights ? (video.highlights ?? []) : [];
   const captionsEnabled = video.enable_captions ?? true;
 
-  const beats: CompileBeat[] = scriptBeats.map((sb) => {
-    const vo = (assets as AssetRow[]).find((a) => a.kind === "vo" && a.beat_index === sb.idx);
-    const clip = (assets as AssetRow[]).find((a) => a.kind === "clip" && a.beat_index === sb.idx);
-    const voMeta = (vo?.meta ?? {}) as { durationSec?: number; words?: { w: string; start: number; end: number }[] };
-    const clipMeta = (clip?.meta ?? {}) as ClipMeta;
-    // buildProps defaults a missing VO duration to 5s — the compiler must too.
-    const durationSec = Number(voMeta.durationSec ?? 5);
-    const words = voMeta.words ?? [];
-    // Shared with the render farm's clipMediaFromAsset (audit A17) — the
-    // compiler and renderer must classify an asset identically.
-    const isVideo = isVideoClipMeta(clipMeta);
-    const source = sourceForClipMeta(clipMeta, clip?.provider);
-    return {
-      idx: sb.idx,
-      text: sb.text,
-      durationSec,
-      voAssetId: vo?.id ?? null,
-      visualAssetId: clip?.id ?? null,
-      source,
-      heroHold: Boolean(clipMeta.heroHold),
-      motion: sb.motion,
-      visualIsVideo: isVideo,
-      visualDurationSec: isVideo ? clipMeta.durationSec : undefined,
-      // Captions off (A7): compile no caption pages, but still resolve
-      // highlights below — legacy renders highlights regardless.
-      words: captionsEnabled ? words : [],
-      highlights: resolveHighlightTiming(
-        curated.filter((h) => h.beatIdx === sb.idx),
-        words,
-        durationSec,
-      ).map((h) => ({
-        text: h.text,
-        startMs: h.startMs,
-        endMs: h.endMs,
-        stylePreset: h.stylePreset,
-        emphasisWord: h.emphasisWord,
-        fontFamily: h.fontFamily,
-        emphasisColor: h.emphasisColor,
-        position: h.position,
-        intensity: h.intensity,
-        maxLines: h.maxLines,
-      })),
-    };
+  const input = assembleCompileInput({
+    kind: video.kind,
+    scriptBeats,
+    assets: assets as AssetRow[],
+    curatedHighlights: curated,
+    captionsEnabled,
   });
 
-  const isShort = video.kind === "short";
-  const doc = compileEdd({
-    format: isShort ? "short" : "long",
-    // A3 — no brief target: the compiled document pins the ACTUAL runtime so
-    // v1 always validates, however far the VO drifted from the brief.
-    introSec: isShort ? 0 : INTRO_SEC,
-    outroSec: isShort ? SHORT_TAIL_SEC : OUTRO_SEC,
-    beats,
-    captionStyle: "clean",
-    ctaText: isShort ? undefined : CTA_TEXT,
-  });
+  // A3 — no brief target: the compiled document pins the ACTUAL runtime so
+  // v1 always validates, however far the VO drifted from the brief.
+  const doc = compileEdd(input);
 
   const ctx = buildEddContext(assets as AssetRow[], scriptBeats, doc.meta.targetDurationSec);
   const verdict = validateEdd(doc, ctx);

@@ -132,6 +132,9 @@ export async function updateProject(
       autofix_loop: autofix.loop,
       autofix_enabled: autofix.enabled,
       autofix_config: autofix.config,
+      mvda_enabled: formData.get("mvda_enabled") === "on",
+      // C2: the CUT gate's copilot floor, clamped to a sane band.
+      cut_copilot_floor: Math.min(10, Math.max(5, Number(formData.get("cut_copilot_floor") ?? 7))),
       youtube_channel_title: String(formData.get("youtube_channel_title") ?? "").trim() || null,
       // Refresh token is write-only: only overwrite when a new value is pasted,
       // so saving the form doesn't wipe an existing token. Blank keeps current.

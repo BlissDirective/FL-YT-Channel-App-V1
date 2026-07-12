@@ -1,0 +1,62 @@
+/**
+ * Pure MVDA session guard logic (Phase C, plan §4 "hard hooks") — the
+ * mechanical, prompt-independent gate every tool call passes through
+ * (canUseTool). Unit-tested in tests/agent-guards.test.ts.
+ */
+
+export type SessionState = {
+  maxBudgetUsd: number;
+  spentUsd: number;
+  previews: number;
+  judges: number;
+  versions: number;
+  lessons: number;
+  /** Latest judge_preview overall score for the CURRENT head (null = unjudged). */
+  judgeScore: number | null;
+  /** C2 — the cut gate's floor; mark_ready is denied below it. */
+  floor: number;
+  killSwitch: boolean;
+};
+
+export const SESSION_CAPS = { previews: 3, judges: 3, versions: 15, lessons: 3 } as const;
+
+/** Tools that spend money (Anthropic vision / render minutes). */
+const PAID = new Set(["render_preview", "judge_preview"]);
+/** Tools that mutate the document/state (blocked under the kill switch). */
+const MUTATING = new Set([
+  "propose_edd", "retime_clip", "trim_clip", "set_transition", "set_motion",
+  "set_emphasis", "set_caption_style", "set_silent", "swap_visual",
+  "render_preview", "judge_preview", "mark_ready", "write_lesson",
+]);
+
+export type Gate = { allow: true } | { allow: false; reason: string };
+
+export function gateTool(name: string, s: SessionState): Gate {
+  if (s.killSwitch && MUTATING.has(name)) {
+    return { allow: false, reason: "kill switch is ON — session is read-only" };
+  }
+  if (PAID.has(name) && s.spentUsd >= s.maxBudgetUsd) {
+    return { allow: false, reason: `session budget exhausted ($${s.spentUsd.toFixed(2)} / $${s.maxBudgetUsd})` };
+  }
+  if (name === "render_preview" && s.previews >= SESSION_CAPS.previews) {
+    return { allow: false, reason: `preview cap reached (${SESSION_CAPS.previews}/session)` };
+  }
+  if (name === "judge_preview" && s.judges >= SESSION_CAPS.judges) {
+    return { allow: false, reason: `judge cap reached (${SESSION_CAPS.judges}/session)` };
+  }
+  if (name === "write_lesson" && s.lessons >= SESSION_CAPS.lessons) {
+    return { allow: false, reason: `lesson cap reached (${SESSION_CAPS.lessons}/session)` };
+  }
+  if (MUTATING.has(name) && !PAID.has(name) && name !== "mark_ready" && s.versions >= SESSION_CAPS.versions) {
+    return { allow: false, reason: `version cap reached (${SESSION_CAPS.versions}/session)` };
+  }
+  if (name === "mark_ready") {
+    if (s.judgeScore == null) {
+      return { allow: false, reason: "judge_preview must score the current cut before mark_ready" };
+    }
+    if (s.judgeScore < s.floor) {
+      return { allow: false, reason: `judge score ${s.judgeScore.toFixed(1)} is below the cut floor ${s.floor} — keep editing` };
+    }
+  }
+  return { allow: true };
+}

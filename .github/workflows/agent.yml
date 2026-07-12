@@ -1,0 +1,66 @@
+name: MVDA Cut Agent
+
+# The Master Video Development Agent (plan §4, Phase C): claims videos whose
+# clips finished on an mvda_enabled channel (edit_session_requested) and runs
+# a bounded cut session — compile → edit → preview → judge → mark_ready.
+# Budget/caps/kill-switch are enforced mechanically inside the worker
+# (packages/agent/src/session-state.ts), not here.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+  push:
+    paths:
+      - packages/agent/**
+      - .github/workflows/agent.yml
+
+concurrency:
+  group: mvda-agent
+  cancel-in-progress: false
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      # Idle-cron guard (same pattern as clips.yml): one cheap REST peek
+      # before checkout/install — most half-hours have no cut waiting.
+      - name: Check for requested cut sessions
+        id: peek
+        if: github.event_name == 'schedule'
+        env:
+          SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          COUNT=$(curl -s "https://reffwibuitzrkertuuvy.supabase.co/rest/v1/videos?select=id&edit_session_requested=eq.true" \
+            -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" \
+            -H "Prefer: count=exact" -H "Range: 0-0" -D - -o /dev/null \
+            | tr -d '\r' | awk -F'/' 'tolower($0) ~ /^content-range:/ {print $NF}')
+          echo "count=${COUNT:-0}" >> "$GITHUB_OUTPUT"
+          echo "cut sessions requested: ${COUNT:-0}"
+      - name: Queue empty — exit early
+        if: github.event_name == 'schedule' && steps.peek.outputs.count == '0'
+        run: echo "No cut sessions requested — skipping checkout/install."
+      - uses: actions/checkout@v4
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
+      - uses: pnpm/action-setup@v4
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
+      - uses: actions/setup-node@v4
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @studio/agent...
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
+      - name: Run cut sessions
+        if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
+        working-directory: packages/agent
+        env:
+          SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          AGENT_MODEL: ${{ vars.AGENT_MODEL }}
+          AGENT_MAX_BUDGET_USD: ${{ vars.AGENT_MAX_BUDGET_USD }}
+          AGENT_MAX_TURNS: ${{ vars.AGENT_MAX_TURNS }}
+        run: pnpm agent-queue

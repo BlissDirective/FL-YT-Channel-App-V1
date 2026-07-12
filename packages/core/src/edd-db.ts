@@ -1,4 +1,7 @@
 import { validateEdd, type EddContext, type EditDocument } from "./edd";
+import { isVideoClipMeta, sourceForClipMeta, type CompileBeat, type CompileInput } from "./edd-compile";
+import { CTA_TEXT, INTRO_SEC, OUTRO_SEC, SHORT_TAIL_SEC } from "./render-constants";
+import { resolveHighlightTiming } from "./highlight-timing";
 import { DEFAULT_CAPTION_STYLES, DEFAULT_OVERLAY_STYLES, DEFAULT_SFX_LIBRARY, DEFAULT_TRANSITIONS } from "./edd";
 
 /**
@@ -125,4 +128,87 @@ export async function insertEddVersion(
     // Unique violation — another writer took this slot; loop re-arbitrates.
   }
   return { ok: false, error: "could not allocate an EDD version (concurrent writers)" };
+}
+
+/** Row shapes the assembly needs (structural slices of the app/worker rows). */
+export type AssemblyAsset = {
+  id: string;
+  kind: string;
+  beat_index: number | null;
+  provider: string;
+  meta: Record<string, unknown> | null;
+};
+export type AssemblyBeat = { idx: number; text: string; motion?: string };
+export type AssemblyHighlight = {
+  beatIdx: number;
+  text: string;
+  emphasisWord?: string;
+  stylePreset: string;
+  fontFamily: string;
+  emphasisColor?: string;
+  position: "center" | "upper-third" | "lower-third-safe";
+  intensity: "subtle" | "med" | "high";
+  maxLines: number;
+};
+
+/**
+ * Assemble CompileInput from a video's rows EXACTLY the way the render farm
+ * derives its implicit timeline (VO-welded durations incl. the ??5 default,
+ * shared classification, resolved highlight timing) — ONE assembly for the
+ * app's edd-service and the agent worker.
+ */
+export function assembleCompileInput(args: {
+  kind: string; // videos.kind
+  scriptBeats: AssemblyBeat[];
+  assets: AssemblyAsset[];
+  curatedHighlights: AssemblyHighlight[];
+  captionsEnabled: boolean;
+}): CompileInput {
+  const beats: CompileBeat[] = args.scriptBeats.map((sb) => {
+    const vo = args.assets.find((a) => a.kind === "vo" && a.beat_index === sb.idx);
+    const clip = args.assets.find((a) => a.kind === "clip" && a.beat_index === sb.idx);
+    const voMeta = (vo?.meta ?? {}) as { durationSec?: number; words?: { w: string; start: number; end: number }[] };
+    const clipMeta = (clip?.meta ?? {}) as { heroHold?: boolean; durationSec?: number };
+    const durationSec = Number(voMeta.durationSec ?? 5); // buildProps' ??5 default
+    const words = voMeta.words ?? [];
+    const isVideo = isVideoClipMeta(clip?.meta as { isVideo?: unknown; url?: unknown } | null);
+    return {
+      idx: sb.idx,
+      text: sb.text,
+      durationSec,
+      voAssetId: vo?.id ?? null,
+      visualAssetId: clip?.id ?? null,
+      source: sourceForClipMeta(clip?.meta as never, clip?.provider),
+      heroHold: Boolean(clipMeta.heroHold),
+      motion: sb.motion,
+      visualIsVideo: isVideo,
+      visualDurationSec: isVideo ? clipMeta.durationSec : undefined,
+      words: args.captionsEnabled ? words : [],
+      highlights: resolveHighlightTiming(
+        args.curatedHighlights.filter((h) => h.beatIdx === sb.idx),
+        words,
+        durationSec,
+      ).map((h) => ({
+        text: h.text,
+        startMs: h.startMs,
+        endMs: h.endMs,
+        stylePreset: h.stylePreset,
+        emphasisWord: h.emphasisWord,
+        fontFamily: h.fontFamily,
+        emphasisColor: h.emphasisColor,
+        position: h.position,
+        intensity: h.intensity,
+        maxLines: h.maxLines,
+      })),
+    };
+  });
+  const isShort = args.kind === "short";
+  return {
+    format: isShort ? "short" : "long",
+    introSec: isShort ? 0 : INTRO_SEC,
+    outroSec: isShort ? SHORT_TAIL_SEC : OUTRO_SEC,
+    beats,
+    captionStyle: "clean",
+    ctaText: isShort ? undefined : CTA_TEXT,
+  };
 }

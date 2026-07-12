@@ -331,6 +331,39 @@ export function SettingsForm({
           </p>
         </Field>
 
+        <Field label="Agent editor (MVDA)">
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="mvda_enabled"
+              defaultChecked={project.mvda_enabled ?? false}
+              className="size-4 accent-accent"
+            />
+            Let the cut agent edit this channel&apos;s videos
+          </label>
+          <p className="mt-1 text-xs text-muted">
+            When clips finish, the agent authors the cut (pacing, transitions,
+            emphasis) and lands it at the Cut gate instead of the automatic
+            assembly. The Asset gate&apos;s autonomy below decides what happens
+            next: Assist waits for you, Co-pilot advances when the judge clears
+            the floor.
+          </p>
+          <div className="mt-3 max-w-[200px]">
+            <span className="mb-1 block text-xs font-medium text-muted">
+              Cut auto-approve floor (judge score)
+            </span>
+            <input
+              name="cut_copilot_floor"
+              type="number"
+              min={5}
+              max={10}
+              step={0.5}
+              defaultValue={project.cut_copilot_floor ?? 7}
+              className="input"
+            />
+          </div>
+        </Field>
+
         <Field label="Autonomy per gate">
           <div className="space-y-2">
             {GATES.map((g) => (

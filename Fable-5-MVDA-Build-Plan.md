@@ -967,7 +967,12 @@ writing here (Decision 3).
   envelope (default ~$0.80), `maxTurns` ≈ 12, Sonnet turns with Opus
   escalation near QC thresholds, previews ≈ free (CI minutes). Kill-switch +
   monthly caps inherited (audit fixes).
-- **C6 — OPEN: the authorization gate.** Operator A+B test checklist (§8
+- **C6 — AUTHORIZED (operator, 2026-07-12).** "While I continue testing.
+  Proceed to building remaining phase C, D, and E. Test and audit thoroughly
+  along the way. Merge push all to main once complete." — the operator opened
+  the C/D/E build while continuing A+B testing in parallel. The original
+  checklist below stays as the operator's acceptance list for the live system.
+- **C6 (original) — the authorization gate.** Operator A+B test checklist (§8
   exit criteria, made concrete): On 2–3 REAL videos: open `/edit` from the
   Canvas → v1 compiles; retime/trim/transition/motion/caption-emphasis edits
   preview live; Save → version history + diff; Revert works; Render preview
@@ -982,3 +987,45 @@ writing here (Decision 3).
   autonomy knob (assist default, ≥7.0 copilot threshold per C2), (5) skills +
   exemplar EDDs + Telegram notifications; §11 knowledge system after ~5 real
   agent cuts (C4). Phase D (captions/kinetic timing source) parallelizes.
+
+### Phase C — BUILT (2026-07-12), in C6's locked order
+
+1. **Guards first (committed as Phase C 1/3):** migration
+   `0046_agent_sessions.sql` (`edit_session_requested`, `mvda_enabled`,
+   `cut_copilot_floor` default 7.0, `agent_sessions` audit table + RLS);
+   `sweepAutofix` skips `edit_document_version` videos (conflict #6);
+   `maybeFinish`/`fullAutoGenerate` fork MVDA projects to
+   `edit_session_requested` instead of ASSEMBLING (conflict #2); `arriveAtGate`
+   uses `cut_copilot_floor` for the CUT gate (C2); shared `edd-ops`/`edd-db`
+   moved into `@studio/core` so human and agent literally run the same code.
+2. **Agent worker (`packages/agent`):** Claude Agent SDK session over an
+   in-process MCP server exposing 14 bounded verbs (tools.ts) — every mutation
+   goes through `validateAgainst` + `insertEddVersion(requireParentHead)`
+   (A9 for both peers); `ensureCompiled` bootstraps the faithful v1 via the
+   SAME `assembleCompileInput` as the app. In-process Remotion preview
+   (0.5-scale h264, uploaded as a `preview` asset) and judge
+   (`renderStill` ≤6 clip midpoints → footage frame-critic), both ledgered.
+3. **Hard hooks:** pure `gateTool` (session-state.ts) runs in `canUseTool` —
+   kill switch (mutations blocked, reads allowed), $0.80 budget, caps
+   (3 previews / 3 judges / 15 versions / 3 lessons), and `mark_ready` denied
+   until the CURRENT head is judged ≥ the floor (a new version voids the
+   score). CAS claim on `edit_session_requested`; every session writes an
+   `agent_sessions` audit row.
+4. **Autonomy knob:** finish path reads `project.autonomy.ASSETS` — assist
+   (default) holds at the CUT gate + Telegram "ready for review"; copilot
+   auto-approves only when the judge cleared `cut_copilot_floor` (C2), with
+   the approval row `decided_by='mvda-agent'`. Settings UI: per-project
+   MVDA toggle + floor field.
+5. **Ops:** `.github/workflows/agent.yml` (30-min cron + dispatch, idle-peek
+   guard, no-key → idle); `write_lesson` lands SHADOW `memory_entries` in the
+   `editing` namespace (§11 stays dormant until ~5 real cuts per C4).
+
+**Verified:** workspace typecheck clean; 521 unit tests (15 new in
+`tests/agent-guards.test.ts`: gate matrix + real handlers over an in-memory
+allocator); lint + prod build clean; and a LIVE selftest against a local
+Supabase stack (`agent-queue --selftest`) drove the real handlers end-to-end —
+compile → retime (v1→v2, author `agent`) → mark_ready denied unjudged →
+judged 8.0 → activated at the CUT gate, `agent_sessions` row `ready`,
+assist mode held for operator review. Model/turn/budget knobs ride
+`AGENT_MODEL`/`AGENT_MAX_TURNS`/`AGENT_MAX_BUDGET_USD` (C5: Sonnet default,
+Opus escalation is an env flip away).

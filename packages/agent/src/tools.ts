@@ -1,0 +1,254 @@
+import { z } from "zod";
+import {
+  assembleCompileInput,
+  compileEdd,
+  cutBeatsToSegment,
+  insertEddVersion,
+  introOutroRuntime,
+  retimeClip,
+  setTrim,
+  setTransition,
+  setMotion,
+  setTokenEmphasis,
+  setPageStyle,
+  setClipSilent,
+  swapClipAsset,
+  sourceForClipMeta,
+  validateAgainst,
+  type EddDb,
+  type EditDocument,
+  type MotionSpec,
+  type Transition,
+} from "@studio/core";
+import { gateTool, type SessionState } from "./session-state";
+
+/**
+ * The MVDA tool surface (plan §4, C1): bounded verbs over the SAME pure
+ * edd-ops the /edit inspector uses. Every mutation validates with the
+ * production validateEdd and appends a version (author 'agent',
+ * requireParentHead — A9). Handlers are plain async functions so the
+ * self-test can drive them without the LLM; agent-queue wraps them into
+ * an in-process MCP server for the SDK session.
+ */
+
+type Db = { from(table: string): any }; // supabase-js client (worker service role)
+
+export type SessionCtx = {
+  db: Db;
+  state: SessionState;
+  video: { id: string; kind: string; title: string; project_id: string };
+  scriptId: string;
+  beats: { idx: number; text: string; motion?: string }[];
+  assets: {
+    id: string; kind: string; beat_index: number | null; provider: string;
+    storage_path: string | null; meta: Record<string, unknown> | null;
+  }[];
+  headVersion: number;
+  doc: EditDocument;
+  /** Injected renderers so the self-test can stub them (agent-queue wires
+      real Remotion + the footage frame-critic). */
+  renderPreview: (doc: EditDocument, range?: { fromSec?: number; toSec?: number }) => Promise<{ path: string }>;
+  judgeDoc: (doc: EditDocument) => Promise<{ score: number; issues: string[]; costUsd: number }>;
+  onReady?: (note: string) => Promise<void>;
+};
+
+const num = (v: number) => Math.round(v * 100) / 100;
+
+/** Validate + append the working doc as a new agent version. */
+async function persist(ctx: SessionCtx, doc: EditDocument, note: string): Promise<string> {
+  const verdict = validateAgainst(doc, ctx.assets, ctx.beats);
+  if (!verdict.ok) {
+    return `REJECTED (document invalid): ${verdict.errors.slice(0, 3).map((e) => `${e.rule}: ${e.msg}`).join("; ")}`;
+  }
+  const inserted = await insertEddVersion(ctx.db as unknown as EddDb, {
+    videoId: ctx.video.id,
+    scriptId: ctx.scriptId,
+    doc,
+    author: "agent",
+    note,
+    parentVersion: ctx.headVersion,
+    requireParentHead: true,
+  });
+  if (!inserted.ok) return `REJECTED: ${inserted.error}`;
+  ctx.doc = doc;
+  ctx.headVersion = inserted.version;
+  ctx.state.versions += 1;
+  ctx.state.judgeScore = null; // a new cut must be re-judged before mark_ready
+  return `ok — saved v${inserted.version} (runtime ${num(introOutroRuntime(doc))}s)`;
+}
+
+/** Compile the faithful v1 when the video has no document yet. */
+export async function ensureCompiled(ctx: SessionCtx): Promise<string> {
+  if (ctx.headVersion > 0) return `head is v${ctx.headVersion}`;
+  const input = assembleCompileInput({
+    kind: ctx.video.kind,
+    scriptBeats: ctx.beats,
+    assets: ctx.assets,
+    curatedHighlights: [],
+    captionsEnabled: true,
+  });
+  const doc = compileEdd(input);
+  const verdict = validateAgainst(doc, ctx.assets, ctx.beats);
+  if (!verdict.ok) throw new Error(`compiled v1 invalid: ${verdict.errors[0]?.rule}`);
+  const inserted = await insertEddVersion(ctx.db as unknown as EddDb, {
+    videoId: ctx.video.id,
+    scriptId: ctx.scriptId,
+    doc,
+    author: "compiler",
+    note: "Compiled from legacy beats + assets (agent session bootstrap)",
+    parentVersion: null,
+  });
+  if (!inserted.ok) throw new Error(inserted.error);
+  ctx.doc = doc;
+  ctx.headVersion = inserted.version;
+  return `compiled v${inserted.version}`;
+}
+
+const motionSchema = z.union([
+  z.object({ kind: z.literal("none") }),
+  z.object({ kind: z.literal("kenburns"), fromScale: z.number(), toScale: z.number(), anchor: z.enum(["center", "top", "bottom", "left", "right"]) }),
+  z.object({ kind: z.literal("heroHold"), rate: z.number().min(0.1).max(1) }),
+  z.object({
+    kind: z.literal("keyframes"),
+    points: z.array(z.object({ t: z.number(), scale: z.number(), x: z.number(), y: z.number(), ease: z.enum(["linear", "easeIn", "easeOut", "easeInOut"]) })).min(2),
+  }),
+]);
+const transitionSchema = z.object({
+  kind: z.enum(["cut", "crossfade", "dissolve", "slide", "whip", "dipToBlack", "zoomBlur"]),
+  sec: z.number().min(0).max(2).optional(),
+  dir: z.enum(["left", "right", "up", "down"]).optional(),
+});
+
+export type ToolDef = { description: string; schema: z.ZodTypeAny; run: (args: any) => Promise<string> };
+
+export function makeTools(ctx: SessionCtx): Record<string, ToolDef> {
+  return {
+    get_context: {
+      description: "The video's brief, beats, asset inventory, and session state — read this first.",
+      schema: z.object({}),
+      run: async () => {
+        const clips = ctx.assets.filter((a) => a.kind === "clip").map((a) => ({
+          id: a.id, beat: a.beat_index,
+          source: sourceForClipMeta(a.meta as never, a.provider),
+          durationSec: (a.meta as { durationSec?: number } | null)?.durationSec,
+        }));
+        return JSON.stringify({
+          title: ctx.video.title,
+          kind: ctx.video.kind,
+          beats: ctx.beats,
+          clipAssets: clips,
+          headVersion: ctx.headVersion,
+          runtimeSec: num(introOutroRuntime(ctx.doc)),
+          budget: { max: ctx.state.maxBudgetUsd, spent: num(ctx.state.spentUsd) },
+          judge: ctx.state.judgeScore,
+          cutFloor: ctx.state.floor,
+        });
+      },
+    },
+    get_edd: {
+      description: "The current head Edit Decision Document (full JSON).",
+      schema: z.object({}),
+      run: async () => JSON.stringify(ctx.doc),
+    },
+    retime_clip: {
+      description: "Set a clip's duration (seconds ≥1); later clips reflow gapless.",
+      schema: z.object({ clipId: z.string(), durationSec: z.number().min(1), note: z.string().default("") }),
+      run: (a) => persist(ctx, retimeClip(ctx.doc, a.clipId, a.durationSec), a.note || `retime ${a.clipId} → ${a.durationSec}s`),
+    },
+    trim_clip: {
+      description: "Set a clip's source trim window {in,out} (video sources loop the window).",
+      schema: z.object({ clipId: z.string(), in: z.number().min(0), out: z.number().min(0), note: z.string().default("") }),
+      run: (a) => persist(ctx, setTrim(ctx.doc, a.clipId, a.in, a.out), a.note || `trim ${a.clipId}`),
+    },
+    set_transition: {
+      description: "Set a clip's outgoing transition (registry kinds; sec clamped to fit).",
+      schema: z.object({ clipId: z.string(), transition: transitionSchema, note: z.string().default("") }),
+      run: (a) => persist(ctx, setTransition(ctx.doc, a.clipId, a.transition as Transition), a.note || `transition ${a.clipId} → ${a.transition.kind}`),
+    },
+    set_motion: {
+      description: "Set a clip's camera motion (none/kenburns/heroHold/keyframes; x/y are % of frame).",
+      schema: z.object({ clipId: z.string(), motion: motionSchema, note: z.string().default("") }),
+      run: (a) => persist(ctx, setMotion(ctx.doc, a.clipId, a.motion as MotionSpec), a.note || `motion ${a.clipId} → ${a.motion.kind}`),
+    },
+    set_emphasis: {
+      description: "Set a caption token's kinetic emphasis (none|pop|color|shake|scale).",
+      schema: z.object({ pageIdx: z.number().int().min(0), tokenIdx: z.number().int().min(0), emphasis: z.enum(["none", "pop", "color", "shake", "scale"]) }),
+      run: (a) => persist(ctx, setTokenEmphasis(ctx.doc, a.pageIdx, a.tokenIdx, a.emphasis), `emphasis p${a.pageIdx}t${a.tokenIdx} → ${a.emphasis}`),
+    },
+    set_caption_style: {
+      description: "Set a caption page's style/position.",
+      schema: z.object({ pageIdx: z.number().int().min(0), style: z.string().optional(), position: z.enum(["bottom", "center", "top"]).optional() }),
+      run: (a) => persist(ctx, setPageStyle(ctx.doc, a.pageIdx, { style: a.style, position: a.position }), `caption page ${a.pageIdx} style`),
+    },
+    set_silent: {
+      description: "Flag a clip as an intentional narration pause (mutes its VO reversibly).",
+      schema: z.object({ clipId: z.string(), silent: z.boolean() }),
+      run: (a) => persist(ctx, setClipSilent(ctx.doc, a.clipId, a.silent), `${a.silent ? "mute" : "unmute"} ${a.clipId}`),
+    },
+    swap_visual: {
+      description: "Swap a clip's visual to another EXISTING live clip asset (no new spend).",
+      schema: z.object({ clipId: z.string(), assetId: z.string(), note: z.string().default("") }),
+      run: async (a) => {
+        const asset = ctx.assets.find((x) => x.id === a.assetId && x.kind === "clip");
+        if (!asset) return `REJECTED: asset ${a.assetId} is not a live clip asset`;
+        const doc = swapClipAsset(ctx.doc, a.clipId, {
+          id: asset.id,
+          source: sourceForClipMeta(asset.meta as never, asset.provider),
+          durationSec: (asset.meta as { durationSec?: number } | null)?.durationSec,
+        });
+        return persist(ctx, doc, a.note || `swap ${a.clipId} → ${a.assetId.slice(0, 8)}`);
+      },
+    },
+    render_preview: {
+      description: "Render a half-res true-fidelity preview of the current cut (costs render time; ≤3/session).",
+      schema: z.object({ fromSec: z.number().min(0).optional(), toSec: z.number().min(0).optional() }),
+      run: async (a) => {
+        const out = await ctx.renderPreview(ctx.doc, a);
+        ctx.state.previews += 1;
+        return `preview rendered: ${out.path}`;
+      },
+    },
+    judge_preview: {
+      description: "Score the CURRENT cut with the vision judge (required before mark_ready; ≤3/session).",
+      schema: z.object({}),
+      run: async () => {
+        const verdict = await ctx.judgeDoc(ctx.doc);
+        ctx.state.judges += 1;
+        ctx.state.spentUsd += verdict.costUsd;
+        ctx.state.judgeScore = verdict.score;
+        await ctx.db.from("edit_documents").update({ judge: verdict }).eq("video_id", ctx.video.id).eq("version", ctx.headVersion);
+        return JSON.stringify({ score: verdict.score, floor: ctx.state.floor, issues: verdict.issues.slice(0, 6) });
+      },
+    },
+    mark_ready: {
+      description: "Finish: activate the current cut and arrive at the CUT gate (denied below the judge floor).",
+      schema: z.object({ note: z.string().default("") }),
+      run: async (a) => {
+        await ctx.db.from("videos").update({ edit_document_version: ctx.headVersion }).eq("id", ctx.video.id);
+        await ctx.db.from("edit_documents").update({ status: "previewed" }).eq("video_id", ctx.video.id).eq("version", ctx.headVersion);
+        await ctx.onReady?.(a.note);
+        return `ready — v${ctx.headVersion} is the active cut at the CUT gate`;
+      },
+    },
+    write_lesson: {
+      description: "Append one concise editing lesson learned this session (≤3/session).",
+      schema: z.object({ text: z.string().min(10).max(500) }),
+      run: async (a) => {
+        await ctx.db.from("memory_entries").insert({
+          project_id: ctx.video.project_id,
+          namespace: "editing",
+          tier: "channel",
+          kind: "lesson",
+          status: "shadow",
+          text: a.text,
+          evidence: `mvda session on video ${ctx.video.id} (v${ctx.headVersion})`,
+          meta: { source: "mvda-session", videoId: ctx.video.id },
+        });
+        ctx.state.lessons += 1;
+        return "lesson recorded (shadow)";
+      },
+    },
+  };
+}
+
+export { gateTool, cutBeatsToSegment };
