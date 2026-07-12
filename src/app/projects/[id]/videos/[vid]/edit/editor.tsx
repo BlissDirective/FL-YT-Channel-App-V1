@@ -313,7 +313,7 @@ export function EddEditor(props: {
               {ver.active && <StatusChip tone="success">active</StatusChip>}
               {ver.inputsStale && <StatusChip tone="warning">inputs stale</StatusChip>}
               <span className="text-muted">{ver.note}</span>
-              <span className="ml-auto text-muted">{ver.summary.join(" · ")}</span>
+              <span className="w-full text-muted sm:ml-auto sm:w-auto sm:text-right">{ver.summary.join(" · ")}</span>
               {ver.version !== props.headVersion && (
                 <button
                   type="button"

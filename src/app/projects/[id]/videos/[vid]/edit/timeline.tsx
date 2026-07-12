@@ -79,10 +79,20 @@ export function EddTimeline({
   for (let t = 0; t <= runtime; t += step) ticks.push(t);
 
   const lane = "relative h-9 rounded-lg bg-canvas";
-  const label = "w-8 shrink-0 pt-2 text-[10px] font-bold uppercase text-muted";
+  // Labels stay pinned while the lanes scroll horizontally under them.
+  const label =
+    "sticky left-0 z-20 w-8 shrink-0 bg-card pt-2 text-[10px] font-bold uppercase text-muted";
+
+  // Readability floor: a long video squeezed into a phone width smears every
+  // lane into an unreadable strip. Below ~PX_PER_SEC px/second the lanes keep
+  // a fixed scale and scroll horizontally instead (the Card scrolls; labels
+  // are sticky). Desktop with a fitting runtime stays exactly as before.
+  const PX_PER_SEC = 10;
+  const laneMinWidth = Math.min(12000, Math.round(runtime * PX_PER_SEC));
 
   return (
     <Card className="space-y-1.5 overflow-x-auto" data-testid="edd-timeline">
+      <div className="space-y-1.5" style={{ minWidth: `${laneMinWidth}px` }}>
       {/* ruler */}
       <div className="flex gap-2">
         <div className={label} />
@@ -105,7 +115,7 @@ export function EddTimeline({
         <div ref={laneRef} className={`${lane} min-w-0 flex-1`}>
           {doc.intro.sting && doc.intro.sec > 0 && (
             <div
-              className="absolute inset-y-0 rounded-md bg-ink/15 text-center text-[9px] leading-9 text-muted"
+              className="absolute inset-y-0 overflow-hidden truncate rounded-md bg-ink/15 text-center text-[9px] leading-9 text-muted"
               style={{ left: 0, width: widthPct(doc.intro.sec) }}
             >
               sting
@@ -119,13 +129,13 @@ export function EddTimeline({
               <div
                 key={clip.id}
                 onClick={() => onSelect({ type: "clip", id: clip.id }, clip.start)}
-                className={`absolute inset-y-0 cursor-pointer rounded-md border text-center text-[10px] font-semibold leading-9 ${
+                className={`absolute inset-y-0 cursor-pointer overflow-hidden rounded-md border text-center text-[10px] font-semibold leading-9 ${
                   SOURCE_COLORS[clip.source] ?? "bg-accent/60"
                 } ${selected ? "border-ink ring-2 ring-ink/40" : "border-transparent"}`}
                 style={{ left: pct(clip.start), width: widthPct(dur) }}
                 title={`beat ${clip.beatIdx} · ${dur.toFixed(1)}s · ${clip.motion.kind} · ${clip.transitionOut.kind}`}
               >
-                <span className="truncate px-1">
+                <span className="block truncate px-1">
                   b{clip.beatIdx}
                   {clip.silent ? " 🔇" : ""}
                 </span>
@@ -147,7 +157,7 @@ export function EddTimeline({
           })}
           {doc.outro.endCard && doc.outro.sec > 0 && (
             <div
-              className="absolute inset-y-0 rounded-md bg-ink/15 text-center text-[9px] leading-9 text-muted"
+              className="absolute inset-y-0 overflow-hidden truncate rounded-md bg-ink/15 text-center text-[9px] leading-9 text-muted"
               style={{ left: pct(runtime - doc.outro.sec), width: widthPct(doc.outro.sec) }}
             >
               end card
@@ -268,6 +278,7 @@ export function EddTimeline({
             );
           })}
         </div>
+      </div>
       </div>
     </Card>
   );
