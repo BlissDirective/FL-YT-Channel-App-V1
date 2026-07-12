@@ -17,6 +17,9 @@ concurrency:
   group: render-farm
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   render:
     runs-on: ubuntu-latest

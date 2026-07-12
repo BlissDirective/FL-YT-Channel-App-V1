@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertOperator } from "@/lib/auth-guard";
 import { processAutofixForVideo } from "@/lib/pipeline/autofix";
 import type { Project, Video } from "@/lib/db/types";
 
@@ -32,6 +33,11 @@ export async function runAutofixNowAction(
   projectId: string,
   videoId: string,
 ): Promise<{ ok: boolean; reason?: string; kind?: string; score?: number; changes?: string[]; error?: string }> {
+  try {
+    await assertOperator(); // service-role path — bypasses RLS, verify caller
+  } catch {
+    return { ok: false, error: "Not authenticated." };
+  }
   let db: ReturnType<typeof createAdminClient>;
   try {
     db = createAdminClient();

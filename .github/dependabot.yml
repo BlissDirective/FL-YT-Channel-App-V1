@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # Keep GitHub Actions patched. Third-party actions are pinned to major tags
+  # (e.g. actions/checkout@v4); Dependabot proposes updates as they ship so a
+  # force-moved tag doesn't silently change what runs in CI with the repo token.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  # npm/pnpm dependency security + version updates.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

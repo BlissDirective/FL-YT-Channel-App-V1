@@ -18,6 +18,9 @@ concurrency:
   group: mvda-agent
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   agent:
     runs-on: ubuntu-latest

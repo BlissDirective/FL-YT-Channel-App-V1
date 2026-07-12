@@ -16,6 +16,9 @@ concurrency:
   group: video-intel
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   perceive:
     runs-on: ubuntu-latest
@@ -43,11 +46,25 @@ jobs:
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - name: Install ffmpeg + yt-dlp
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
+        env:
+          # Pin yt-dlp to a specific release (not 'latest') and verify the
+          # binary against that release's published SHA2-256SUMS before making
+          # it executable. 'latest' + no verification means a compromised or
+          # MITM'd release runs arbitrary code in a job holding the
+          # service-role + provider keys. Bump YTDLP_VERSION to update.
+          YTDLP_VERSION: "2025.06.09"
         run: |
           sudo apt-get -qq update
           sudo apt-get -qq install -y ffmpeg
-          sudo curl -sL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-          sudo chmod a+rx /usr/local/bin/yt-dlp
+          base="https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}"
+          curl -fsSL "${base}/yt-dlp" -o /tmp/yt-dlp
+          curl -fsSL "${base}/SHA2-256SUMS" -o /tmp/yt-dlp.sums
+          want=$(grep -E '  yt-dlp$' /tmp/yt-dlp.sums | awk '{print $1}')
+          got=$(sha256sum /tmp/yt-dlp | awk '{print $1}')
+          if [ -z "$want" ] || [ "$want" != "$got" ]; then
+            echo "yt-dlp checksum mismatch (want=$want got=$got) — refusing to install"; exit 1
+          fi
+          sudo install -m 0755 /tmp/yt-dlp /usr/local/bin/yt-dlp
           yt-dlp --version && ffmpeg -version | head -1
       - uses: pnpm/action-setup@v4
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'

@@ -39,7 +39,10 @@ export async function getProjects(): Promise<Project[]> {
     .from("projects")
     .select("*")
     .order("created_at", { ascending: true });
-  return (data as Project[]) ?? [];
+  // Dashboard cards never need the channel refresh token; strip it so it can't
+  // ride into a client component if a card ever becomes "use client" (the
+  // publish path reads the token directly via the admin client instead).
+  return ((data as Project[]) ?? []).map((p) => ({ ...p, youtube_refresh_token: null }));
 }
 
 export async function getProject(id: string): Promise<Project | null> {

@@ -12,8 +12,17 @@ export async function middleware(request: NextRequest) {
   const url = SUPABASE_URL;
   const anonKey = SUPABASE_ANON_KEY;
 
-  // Unconfigured: let everything through; pages show the setup notice.
-  if (!url || !anonKey) return NextResponse.next();
+  // Unconfigured: in local dev, let everything through so the setup notice
+  // shows. In production (Vercel or any hosted build), missing Supabase config
+  // means auth can't be enforced — fail CLOSED (503) rather than serving the
+  // whole control panel unauthenticated.
+  if (!url || !anonKey) {
+    const hosted = Boolean(process.env.VERCEL) || process.env.NODE_ENV === "production";
+    if (hosted) {
+      return new NextResponse("Service unavailable — auth is not configured.", { status: 503 });
+    }
+    return NextResponse.next();
+  }
 
   let response = NextResponse.next({ request });
 

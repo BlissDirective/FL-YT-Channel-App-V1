@@ -22,6 +22,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import { signInOrBootstrap } from "./helpers";
 
+// Shared across the serial tests below (set once the golden-path test creates a
+// project). Declared here — assigning to an undeclared name throws under ESM
+// strict mode; the later screenshot test also null-guards it.
+let projectUrl: string | undefined;
 
 test("library v2: asset born in Ideas, quick-approved through sections, killable", async ({
   page,

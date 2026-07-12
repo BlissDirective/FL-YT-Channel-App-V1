@@ -15,6 +15,9 @@ on:
 env:
   SUPABASE_PROJECT_REF: reffwibuitzrkertuuvy
 
+permissions:
+  contents: read
+
 jobs:
   migrate:
     runs-on: ubuntu-latest

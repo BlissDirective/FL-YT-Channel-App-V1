@@ -1,6 +1,7 @@
 import "server-only";
 import {
   buildVisualPrompt,
+  checkPublicHttpUrl,
   GATE_FOR_STATUS,
   GATE_LABELS,
   ON_APPROVE,
@@ -3505,6 +3506,12 @@ export async function applySourceClip(opts: {
     return { ok: false, error: "That source's licence isn't usable for commercial remix." };
   }
 
+  // The provider's media URL is fetched here and/or streamed by the render
+  // worker — validate it's a public host before it's stored/fetched (SSRF: a
+  // compromised or spoofed provider response can't point us at internal hosts).
+  const safeFull = checkPublicHttpUrl(c.fullUrl);
+  if (!safeFull.ok) return { ok: false, error: `Source media URL rejected: ${safeFull.reason}` };
+
   const meta: Record<string, unknown> = {
     shotType: "stock",
     sourceProvider: c.provider,
@@ -3575,9 +3582,10 @@ export async function applyPressKitClip(opts: {
   const db = await createClient();
   const video = await getVideo(db, opts.videoId);
   if (!video) return { ok: false, error: "Video not found" };
-  if (!/^https?:\/\//i.test(opts.url)) {
-    return { ok: false, error: "Enter a full https:// URL to the asset." };
-  }
+  // This URL is fetched server-side and/or streamed by the render worker —
+  // block non-public / internal / metadata hosts (SSRF).
+  const safeUrl = checkPublicHttpUrl(opts.url);
+  if (!safeUrl.ok) return { ok: false, error: `Asset URL rejected: ${safeUrl.reason}` };
 
   const license = {
     id: "press-kit",

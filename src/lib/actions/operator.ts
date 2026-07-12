@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertOperator } from "@/lib/auth-guard";
 import {
   pauseOperator,
   startOperator,
@@ -16,7 +17,11 @@ import type { Project } from "@/lib/db/types";
 
 type Result = { ok: boolean; error?: string };
 
-function admin() {
+/** Every operator action bypasses RLS (service role) and starts/stops
+    autonomous spend — assert the caller is the operator before handing one a
+    client. */
+async function admin() {
+  await assertOperator();
   return createAdminClient();
 }
 
@@ -24,7 +29,7 @@ function admin() {
     budget cycle on the first start; resuming a paused run keeps the anchor. */
 export async function startOperatorAction(projectId: string): Promise<Result> {
   try {
-    const r = await startOperator(admin(), projectId);
+    const r = await startOperator(await admin(), projectId);
     revalidatePath(`/projects/${projectId}`);
     return { ok: r.ok, error: r.error };
   } catch (err) {
@@ -35,7 +40,7 @@ export async function startOperatorAction(projectId: string): Promise<Result> {
 /** Pause temporarily — the budget clock keeps elapsing; no new videos seed. */
 export async function pauseOperatorAction(projectId: string): Promise<Result> {
   try {
-    const r = await pauseOperator(admin(), projectId);
+    const r = await pauseOperator(await admin(), projectId);
     revalidatePath(`/projects/${projectId}`);
     return { ok: r.ok };
   } catch (err) {
@@ -46,7 +51,7 @@ export async function pauseOperatorAction(projectId: string): Promise<Result> {
 /** Stop the run entirely. The budget cap is not reset before the 30-day mark. */
 export async function stopOperatorAction(projectId: string): Promise<Result> {
   try {
-    const r = await stopOperator(admin(), projectId);
+    const r = await stopOperator(await admin(), projectId);
     revalidatePath(`/projects/${projectId}`);
     return { ok: r.ok };
   } catch (err) {
@@ -57,7 +62,7 @@ export async function stopOperatorAction(projectId: string): Promise<Result> {
 /** Veto a calendar slot — the operator skips it and produces the next one. */
 export async function skipCalendarSlotAction(projectId: string, day: number): Promise<Result> {
   try {
-    const r = await skipCalendarSlot(admin(), projectId, day);
+    const r = await skipCalendarSlot(await admin(), projectId, day);
     revalidatePath(`/projects/${projectId}`);
     return { ok: r.ok };
   } catch (err) {
@@ -68,7 +73,7 @@ export async function skipCalendarSlotAction(projectId: string, day: number): Pr
 /** Re-plan the 30-day calendar from scratch. */
 export async function regenerateCalendarAction(projectId: string): Promise<Result> {
   try {
-    const r = await regenerateCalendarFor(admin(), projectId);
+    const r = await regenerateCalendarFor(await admin(), projectId);
     revalidatePath(`/projects/${projectId}`);
     return { ok: r.ok, error: r.error };
   } catch (err) {
@@ -85,7 +90,7 @@ export async function setOperatorAutonomyAction(
   mode: "copilot" | "autopilot",
 ): Promise<Result> {
   try {
-    const db = admin();
+    const db = await admin();
     const run = await getOperatorRun(db, projectId);
     if (!run) return { ok: false, error: "Operator is not running — start it first." };
     const config = { ...(run.config ?? {}), autonomy: mode };

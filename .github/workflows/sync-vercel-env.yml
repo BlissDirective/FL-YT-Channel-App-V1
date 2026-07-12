@@ -7,17 +7,17 @@ name: Sync Vercel Env
 
 on:
   workflow_dispatch:
-    inputs:
-      vercel_token:
-        description: >-
-          Vercel API token (fallback when the VERCEL_TOKEN secret is not
-          configured). Prefer the secret — dispatch inputs are retained in
-          run metadata.
-        required: false
-        type: string
   push:
     branches: [main]
     paths: ['.github/workflows/sync-vercel-env.yml']
+
+# The Vercel token must come from a masked secret. A workflow_dispatch input
+# was removed here: dispatch inputs are stored UNMASKED in run metadata / the
+# audit log, so a project-write token pasted that way is readable by anyone
+# with Actions read access.
+
+permissions:
+  contents: read
 
 env:
   PROJECT_ID: prj_rkpoDeBAEVf6P1Es1uko0gsSez9D
@@ -29,9 +29,9 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN || secrets.VERCEL_FULL_ACCESS_TOKEN || inputs.vercel_token }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN || secrets.VERCEL_FULL_ACCESS_TOKEN }}
     steps:
-      - name: Mask token input
+      - name: Mask token
         run: |
           [ -z "$VERCEL_TOKEN" ] || echo "::add-mask::$VERCEL_TOKEN"
       - name: Upsert environment variables

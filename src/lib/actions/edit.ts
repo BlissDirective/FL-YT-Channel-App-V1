@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { GATE_FOR_STATUS, validateEdd, type EddDb, type EditDocument, type VideoStatus } from "@studio/core";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertOperator } from "@/lib/auth-guard";
 import {
   buildEddContext,
   cutBeatsToSegment,
@@ -34,9 +35,12 @@ function refresh(projectId: string, videoId: string) {
 }
 
 /** Server-action exceptions reach clients as opaque digests in production;
-    convert them to readable inline errors (same contract as actions/pipeline). */
+    convert them to readable inline errors (same contract as actions/pipeline).
+    These actions use the service-role client (RLS bypass), so `assertOperator`
+    runs first — an unauthenticated action-ID dispatch never reaches the body. */
 async function guarded<T extends EditActionResult>(fn: () => Promise<T>): Promise<T | EditActionResult> {
   try {
+    await assertOperator();
     return await fn();
   } catch (err) {
     console.error("edit action failed:", err);

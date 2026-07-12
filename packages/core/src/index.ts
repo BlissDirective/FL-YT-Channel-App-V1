@@ -10,3 +10,4 @@ export * from "./edd-db";
 export * from "./edd-lint";
 export * from "./emphasis";
 export * from "./highlight-timing";
+export * from "./safe-url";

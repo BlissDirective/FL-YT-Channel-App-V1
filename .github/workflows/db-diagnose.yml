@@ -12,6 +12,9 @@ on:
 env:
   SUPABASE_PROJECT_REF: reffwibuitzrkertuuvy
 
+permissions:
+  contents: read
+
 jobs:
   diagnose:
     runs-on: ubuntu-latest

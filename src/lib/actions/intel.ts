@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { checkPublicHttpUrl } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import { getProject } from "@/lib/db/queries";
 import {
@@ -53,6 +54,11 @@ export async function runVideoIntelAction(input: {
     if (!input.vouched) {
       return { ok: false, error: "Confirm research-use to run a deep scan." };
     }
+    // This URL is later handed to yt-dlp on a secret-bearing runner — reject
+    // non-public / flag-like values before it is ever stored (SSRF + arg
+    // injection defense; the worker re-checks as belt-and-suspenders).
+    const safe = checkPublicHttpUrl(sourceUrl);
+    if (!safe.ok) return { ok: false, error: `Source URL rejected: ${safe.reason}` };
   }
 
   try {

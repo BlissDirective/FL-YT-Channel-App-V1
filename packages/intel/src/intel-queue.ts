@@ -131,15 +131,41 @@ function run(cmd: string, args: string[], cwd?: string) {
   execFileSync(cmd, args, { cwd, stdio: "pipe", timeout: 180_000 });
 }
 
+/** Reject non-public / flag-like URLs before they reach yt-dlp. A bare value
+    starting with '-' would be parsed as a yt-dlp option (e.g. --exec = RCE);
+    an internal/metadata host would be an SSRF from the runner. Mirrors
+    @studio/core checkPublicHttpUrl (not a dep of this worker package). */
+function assertSafeSourceUrl(url: string): void {
+  const value = (url ?? "").trim();
+  if (!value || value.startsWith("-")) throw new Error("unsafe source URL");
+  let u: URL;
+  try {
+    u = new URL(value);
+  } catch {
+    throw new Error("invalid source URL");
+  }
+  if (u.protocol !== "https:" && u.protocol !== "http:") throw new Error("source URL must be http(s)");
+  const host = u.hostname.replace(/^\[|\]$/g, "");
+  const blocked = [
+    /^localhost$/i, /^0\.0\.0\.0$/, /^127\./, /^10\./, /^192\.168\./,
+    /^172\.(1[6-9]|2\d|3[01])\./, /^169\.254\./, /^::1$/, /^f[cd][0-9a-f]{2}:/i,
+    /^fe80:/i, /\.internal$/i, /\.local$/i, /^metadata\./i,
+  ];
+  if (blocked.some((p) => p.test(host))) throw new Error(`source host ${host} is not publicly routable`);
+}
+
 /** Download the source once (gated lane: vouched URL only). */
 function downloadVideo(url: string, dir: string): string {
+  assertSafeSourceUrl(url);
   const input = join(dir, "input.mp4");
   run("yt-dlp", [
     "-q",
     "--no-playlist",
+    "--no-exec", // never run post-download commands
     "--max-filesize", "300M",
     "-f", "best[height<=720][ext=mp4]/best[height<=720]/best",
     "-o", input,
+    "--", // end of options: the URL below can never be parsed as a flag
     url,
   ]);
   return input;
