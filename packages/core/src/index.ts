@@ -6,4 +6,6 @@ export * from "./edd-compile";
 export * from "./render-constants";
 export * from "./edd-ops";
 export * from "./edd-db";
+export * from "./edd-lint";
+export * from "./emphasis";
 export * from "./highlight-timing";

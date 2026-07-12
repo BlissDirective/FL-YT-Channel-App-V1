@@ -16,6 +16,7 @@ import {
   DEFAULT_OVERLAY_STYLES,
   DEFAULT_TRANSITIONS,
   introOutroRuntime,
+  lintEdd,
   validateEdd,
   type EddContext,
   type EddSource,
@@ -32,7 +33,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import { EddTimeline, type Selection } from "./timeline";
-import { EddInspector } from "./inspector";
+import { EddInspector, type SfxOption } from "./inspector";
 
 /**
  * The /edit editor (MVDA Phase B, plan §5): PREVIEW <Player> + INSPECTOR on
@@ -82,6 +83,8 @@ export function EddEditor(props: {
   pendingPreview: boolean;
   previews: { url: string; meta: { eddVersion?: number; fromSec?: number; toSec?: number }; createdAt: string }[];
   captionsEnabled: boolean;
+  sfxOptions: SfxOption[];
+  sfxLive: boolean;
 }) {
   const router = useRouter();
   const playerRef = useRef<PlayerRef>(null);
@@ -115,6 +118,8 @@ export function EddEditor(props: {
     [props.ctxAssets, props.beats, props.maps.sfxLibrary],
   );
   const validation = useMemo(() => validateEdd(doc, ctx), [doc, ctx]);
+  // Craft lint (Phase D) — advisory only; a warned document still saves.
+  const lint = useMemo(() => lintEdd(doc), [doc]);
 
   const runtime = introOutroRuntime(doc);
   const vertical = doc.meta.aspect === "9:16";
@@ -235,6 +240,12 @@ export function EddEditor(props: {
           {validation.errors.length > 3 && ` · +${validation.errors.length - 3} more`}
         </div>
       )}
+      {validation.ok && lint.length > 0 && (
+        <div className="rounded-xl bg-accent-soft px-3 py-2 text-xs font-medium text-ink">
+          {lint.slice(0, 3).map((w) => `${w.rule}: ${w.msg}`).join(" · ")}
+          {lint.length > 3 && ` · +${lint.length - 3} more`}
+        </div>
+      )}
       {props.versions[0]?.inputsStale && (
         <div className="rounded-xl bg-coral/10 px-3 py-2 text-xs font-medium text-coral">
           Inputs changed under this cut (script or assets were regenerated) — re-check clips
@@ -284,6 +295,8 @@ export function EddEditor(props: {
           videoId={props.videoId}
           brand={props.brand}
           seekTo={(sec) => playerRef.current?.seekTo(Math.round(sec * FPS))}
+          sfxOptions={props.sfxOptions}
+          sfxLive={props.sfxLive}
         />
       </div>
 

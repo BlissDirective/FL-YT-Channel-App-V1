@@ -24,6 +24,7 @@
     "revertEddAction(projectId: string, videoId: string, toVersion: number,)",
     "requestPreviewAction(projectId: string, videoId: string, range?: { fromSec?: number; toSec?: number },)",
     "approveCutAction(projectId: string, videoId: string)",
+    "generateSfxAction(projectId: string, videoId: string, prompt: string, durationSec?: number,)",
     "deactivateEddAction(projectId: string, videoId: string)"
   ],
   "intel": [

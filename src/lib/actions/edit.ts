@@ -10,8 +10,12 @@ import {
   requestEddPreview,
 } from "@/lib/pipeline/edd-service";
 import { decideGate } from "@/lib/pipeline/engine";
+import { checkBudget, recordCost } from "@/lib/pipeline/ledger";
 import { dispatchWorkflow } from "@/lib/adapters/gh-dispatch";
+import { generateSoundEffect, isSfxLive } from "@/lib/adapters/sfx";
+import { uploadMedia } from "@/lib/storage";
 import { normalizeTarget } from "@/lib/edd-editor";
+import { createHash } from "node:crypto";
 import type { ScriptBeat, ShortSegment } from "@/lib/db/types";
 
 /**
@@ -31,7 +35,7 @@ function refresh(projectId: string, videoId: string) {
 
 /** Server-action exceptions reach clients as opaque digests in production;
     convert them to readable inline errors (same contract as actions/pipeline). */
-async function guarded(fn: () => Promise<EditActionResult>): Promise<EditActionResult> {
+async function guarded<T extends EditActionResult>(fn: () => Promise<T>): Promise<T | EditActionResult> {
   try {
     return await fn();
   } catch (err) {
@@ -234,6 +238,73 @@ export async function approveCutAction(projectId: string, videoId: string): Prom
       .eq("version", video.edit_document_version);
     refresh(projectId, videoId);
     return { ok: true };
+  });
+}
+
+/**
+ * Generate a sound effect (Phase D, D7 generated source): ElevenLabs
+ * sound-generation → `media` storage → asset row kind='sfx'. The cue itself
+ * is placed client-side (addAudioCue) and lands with the next save — this
+ * action only mints the referenced asset. Budget-gated + ledgered like every
+ * other paid provider call.
+ */
+export async function generateSfxAction(
+  projectId: string,
+  videoId: string,
+  prompt: string,
+  durationSec?: number,
+): Promise<EditActionResult & { assetId?: string }> {
+  return guarded(async () => {
+    if (!isSfxLive()) return { ok: false, error: "ElevenLabs is not configured — generated SFX unavailable" };
+    const trimmed = prompt.trim();
+    if (trimmed.length < 3) return { ok: false, error: "describe the sound (e.g. \"deep cinematic whoosh\")" };
+
+    const db = createAdminClient();
+    const [{ data: video }, { data: project }] = await Promise.all([
+      db
+        .from("videos")
+        .select("id, project_id, total_cost_usd, kind, parent_video_id")
+        .eq("id", videoId)
+        .maybeSingle(),
+      db.from("projects").select("id, budget").eq("id", projectId).maybeSingle(),
+    ]);
+    if (!video || !project) return { ok: false, error: "video or project not found" };
+
+    const budget = await checkBudget(db, project, video, 0.1);
+    if (!budget.ok) return { ok: false, error: budget.reason };
+
+    const sfx = await generateSoundEffect({ prompt: trimmed, durationSec });
+    // Derived shorts edit against the PARENT's asset set (the same sourceId
+    // convention as validation and the render farm) — the sfx row must land
+    // where those lookups read.
+    const sourceId: string =
+      video.kind === "short" && video.parent_video_id ? video.parent_video_id : videoId;
+    const key = `videos/${sourceId}/sfx-${createHash("sha256").update(trimmed).digest("hex").slice(0, 16)}.${sfx.fileExt}`;
+    await uploadMedia(key, sfx.audio, sfx.contentType);
+
+    const { data: asset, error } = await db
+      .from("assets")
+      .insert({
+        video_id: sourceId,
+        kind: "sfx",
+        provider: "elevenlabs",
+        storage_path: key,
+        beat_index: null,
+        meta: { prompt: trimmed, durationSec: sfx.durationSec, generated: true },
+        cost_usd: sfx.costUsd,
+      })
+      .select("id")
+      .single();
+    if (error || !asset) return { ok: false, error: `asset insert failed: ${error?.message}` };
+
+    await recordCost(db, video as { id: string; project_id: string; total_cost_usd: number }, {
+      provider: "elevenlabs",
+      usd: sfx.costUsd,
+      description: "Generated SFX",
+    }, trimmed.slice(0, 80));
+
+    refresh(projectId, videoId);
+    return { ok: true, assetId: asset.id as string };
   });
 }
 

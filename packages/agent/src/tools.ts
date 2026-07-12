@@ -1,10 +1,14 @@
 import { z } from "zod";
 import {
+  addAudioCue,
   assembleCompileInput,
+  autoEmphasis,
   compileEdd,
   cutBeatsToSegment,
   insertEddVersion,
   introOutroRuntime,
+  lintEdd,
+  lintSummary,
   retimeClip,
   setTrim,
   setTransition,
@@ -142,6 +146,7 @@ export function makeTools(ctx: SessionCtx): Record<string, ToolDef> {
           budget: { max: ctx.state.maxBudgetUsd, spent: num(ctx.state.spentUsd) },
           judge: ctx.state.judgeScore,
           cutFloor: ctx.state.floor,
+          lint: lintSummary(lintEdd(ctx.doc)),
         });
       },
     },
@@ -197,6 +202,41 @@ export function makeTools(ctx: SessionCtx): Record<string, ToolDef> {
           durationSec: (asset.meta as { durationSec?: number } | null)?.durationSec,
         });
         return persist(ctx, doc, a.note || `swap ${a.clipId} → ${a.assetId.slice(0, 8)}`);
+      },
+    },
+    auto_emphasis: {
+      description:
+        "One-shot deterministic emphasis pass: numbers pop, money/percent scale, power words color — sparse (≤1 per page), skips pages already emphasized (Phase D).",
+      schema: z.object({ maxTotal: z.number().int().min(1).max(20).default(10) }),
+      run: async (a) => {
+        const { doc, picks } = autoEmphasis(ctx.doc, { maxTotal: a.maxTotal });
+        if (picks.length === 0) return "no emphasis-worthy tokens found (or pages already authored)";
+        return persist(ctx, doc, `auto emphasis (${picks.length} tokens)`);
+      },
+    },
+    add_sfx: {
+      description:
+        "Place a generated SFX cue (existing kind='sfx' asset) at an absolute second or anchored to a caption word of a clip (survives retiming).",
+      schema: z.object({
+        assetId: z.string(),
+        atSec: z.number().min(0).optional(),
+        wordAnchor: z.object({ clipId: z.string(), captionToken: z.number().int().min(0) }).optional(),
+        gainDb: z.number().min(-24).max(6).default(-6),
+        note: z.string().default(""),
+      }),
+      run: async (a) => {
+        const asset = ctx.assets.find((x) => x.id === a.assetId && x.kind === "sfx");
+        if (!asset) return `REJECTED: asset ${a.assetId} is not a generated sfx asset`;
+        if (a.atSec == null && !a.wordAnchor) return "REJECTED: provide atSec or wordAnchor";
+        const doc = addAudioCue(ctx.doc, {
+          kind: "sfx",
+          ref: { source: "generated", assetId: asset.id },
+          at: a.wordAnchor
+            ? { kind: "word", clipId: a.wordAnchor.clipId, captionToken: a.wordAnchor.captionToken }
+            : { kind: "abs", sec: a.atSec as number },
+          gainDb: a.gainDb,
+        });
+        return persist(ctx, doc, a.note || `sfx ${asset.id.slice(0, 8)}`);
       },
     },
     render_preview: {

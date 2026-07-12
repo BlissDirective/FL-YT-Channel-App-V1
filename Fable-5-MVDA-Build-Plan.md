@@ -1020,7 +1020,38 @@ writing here (Decision 3).
    guard, no-key → idle); `write_lesson` lands SHADOW `memory_entries` in the
    `editing` namespace (§11 stays dormant until ~5 real cuts per C4).
 
-**Verified:** workspace typecheck clean; 521 unit tests (15 new in
+### Phase D — BUILT (2026-07-12): captions & kinetic upgrade
+
+- **ElevenLabs `/with-timestamps`** was already the live timing source
+  (voice.ts: character alignment → word folding → `vo.meta.words` →
+  compiler caption pages; Kokoro keeps the estimated-timing fallback) —
+  verified, no change needed.
+- **Emphasis pass** (`packages/core/src/emphasis.ts`): deterministic
+  `autoEmphasis` — money/percent → `scale`, numerals → `pop`, power words →
+  `color`; ≤1 token per page, hard total cap, never touches a page with
+  authored emphasis. NOT applied by the compiler (v1 stays faithful) — it
+  runs as a versioned edit: the agent's new `auto_emphasis` tool (baseline)
+  + `set_emphasis` hand-tuning (the LLM tier of the pass IS the agent).
+- **Generated SFX (D7):** migration `0047_sfx_asset_kind.sql` ('sfx' enum
+  value); `src/lib/adapters/sfx.ts` (ElevenLabs sound-generation, env-tunable
+  cost estimate); `generateSfxAction` (budget-gated via `checkBudget`,
+  ledgered via `recordCost`, asset lands on the sourceId so derived-short
+  validation finds it); /edit AddSfxPanel now generates + places abs-time
+  cues; agent `add_sfx` tool places abs OR word-anchored cues over existing
+  sfx assets (no agent-side spend). Render path needed NOTHING — buildProps,
+  edd-player-data, EddVideo, and the agent's playerProps already handled
+  kind='sfx' + `{source:'generated'}` cues end-to-end.
+- **Taste lint** (`packages/core/src/edd-lint.ts`): advisory `lintEdd` —
+  caption walls (>42 chars/page), emphasis density (per page + >20% overall),
+  gain sanity ([-24,+6] with the -60 intentional-mute carve-out), SFX
+  density budget, >3 consecutive non-cut transitions, motionless stills held
+  >8s. Surfaced in /edit (amber strip) and in the agent's `get_context`
+  (`lint:` summary); warnings never block a save.
+- **Verified:** 535 unit tests (13 new in `tests/edd-craft.test.ts` +
+  2 new agent-tool tests), workspace typecheck, lint, prod build, and the
+  live local-stack selftest re-run green with the 16-verb tool surface.
+
+**Phase C verification record:** workspace typecheck clean; 521 unit tests (15 new in
 `tests/agent-guards.test.ts`: gate matrix + real handlers over an in-memory
 allocator); lint + prod build clean; and a LIVE selftest against a local
 Supabase stack (`agent-queue --selftest`) drove the real handlers end-to-end —

@@ -12,6 +12,7 @@ import {
   type Transition,
 } from "@studio/core";
 import {
+  addAudioCue,
   addOverlay,
   heroHoldPreset,
   kenBurnsPreset,
@@ -28,7 +29,9 @@ import {
   swapClipAsset,
   updateOverlay,
 } from "@/lib/edd-editor";
+import { useRouter } from "next/navigation";
 import { rerollBeatVisualAction } from "@/lib/actions/pipeline";
+import { generateSfxAction } from "@/lib/actions/edit";
 import { Card } from "@/components/ui/card";
 import type { Selection } from "./timeline";
 import type { EditorAssetOption } from "./editor";
@@ -71,6 +74,8 @@ const btnCls = "flex items-center gap-1 rounded-full bg-canvas px-2.5 py-1 text-
 const rowCls = "flex flex-wrap items-center gap-2";
 const labelCls = "w-20 shrink-0 text-[11px] font-semibold text-muted";
 
+export type SfxOption = { id: string; label: string; durationSec?: number };
+
 export function EddInspector({
   doc,
   selection,
@@ -82,6 +87,8 @@ export function EddInspector({
   videoId,
   brand,
   seekTo,
+  sfxOptions,
+  sfxLive,
 }: {
   doc: EditDocument;
   selection: Selection;
@@ -93,6 +100,8 @@ export function EddInspector({
   videoId: string;
   brand: { primary: string; secondary: string };
   seekTo: (sec: number) => void;
+  sfxOptions: SfxOption[];
+  sfxLive: boolean;
 }) {
   return (
     <Card className="max-h-[560px] space-y-3 overflow-y-auto" data-testid="edd-inspector">
@@ -124,7 +133,15 @@ export function EddInspector({
         </p>
       )}
       <AddOverlayPanel doc={doc} onChange={onChange} onSelect={onSelect} brand={brand} />
-      <AddSfxPanel />
+      <AddSfxPanel
+        doc={doc}
+        onChange={onChange}
+        onSelect={onSelect}
+        projectId={projectId}
+        videoId={videoId}
+        sfxOptions={sfxOptions}
+        sfxLive={sfxLive}
+      />
     </Card>
   );
 }
@@ -692,14 +709,111 @@ function AddOverlayPanel({
   );
 }
 
-function AddSfxPanel() {
-  // v1: the curated library is empty (D7) and generated SFX assets arrive
-  // with Phase C/D — placement UI lands the moment either source exists
-  // (word/abs anchors are already supported end-to-end in the schema,
-  // validator, and renderer).
+/** Generated SFX (Phase D, D7): mint a sound with ElevenLabs, then place it
+    as an absolute-time cue. Word anchoring stays available on the cue itself
+    (schema + renderer support it; the agent's add_sfx uses it). */
+function AddSfxPanel({
+  doc,
+  onChange,
+  onSelect,
+  projectId,
+  videoId,
+  sfxOptions,
+  sfxLive,
+}: {
+  doc: EditDocument;
+  onChange: (d: EditDocument) => void;
+  onSelect: (sel: Selection) => void;
+  projectId: string;
+  videoId: string;
+  sfxOptions: SfxOption[];
+  sfxLive: boolean;
+}) {
+  const router = useRouter();
+  const [prompt, setPrompt] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [generating, startGenerate] = useTransition();
+  const [assetId, setAssetId] = useState(sfxOptions[0]?.id ?? "");
+  const [atSec, setAtSec] = useState(Math.round((doc.intro.sec + 1) * 10) / 10);
+
+  if (!sfxLive && sfxOptions.length === 0) {
+    return (
+      <p className="text-[10px] text-muted">
+        Generated SFX needs ElevenLabs configured (D7); the curated library arrives with a licensed pack.
+      </p>
+    );
+  }
+
+  const generate = () =>
+    startGenerate(async () => {
+      setError(null);
+      const r = await generateSfxAction(projectId, videoId, prompt);
+      if (!r.ok) setError(r.error ?? "generation failed");
+      else {
+        setPrompt("");
+        if (r.assetId) setAssetId(r.assetId);
+        router.refresh(); // pulls the new asset into the options + player map
+      }
+    });
+
+  const place = () => {
+    const chosen = sfxOptions.find((o) => o.id === assetId) ?? sfxOptions[0];
+    if (!chosen) return;
+    onChange(
+      addAudioCue(doc, {
+        kind: "sfx",
+        ref: { source: "generated", assetId: chosen.id },
+        at: { kind: "abs", sec: Math.max(0, atSec) },
+        gainDb: -6,
+      }),
+    );
+    onSelect({ type: "audio", index: doc.tracks.audio.length });
+  };
+
   return (
-    <p className="text-[10px] text-muted">
-      SFX placement unlocks when a curated pack or generated SFX assets exist (D7).
-    </p>
+    <div className="space-y-1.5">
+      <p className="text-[11px] font-semibold text-muted">Sound effects</p>
+      {sfxLive && (
+        <div className={rowCls}>
+          <input
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder='e.g. "deep cinematic whoosh"'
+            className="min-w-0 flex-1 rounded-lg border border-line bg-canvas px-2 py-1 text-xs"
+          />
+          <button type="button" disabled={generating || prompt.trim().length < 3} className={btnCls} onClick={generate}>
+            {generating ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />} Generate
+          </button>
+        </div>
+      )}
+      {sfxOptions.length > 0 && (
+        <div className={rowCls}>
+          <select value={assetId} onChange={(e) => setAssetId(e.target.value)} className={`${selectCls} max-w-[160px]`}>
+            {sfxOptions.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <span className="text-[11px] text-muted">at</span>
+          <input
+            type="number"
+            step={0.1}
+            min={0}
+            value={atSec}
+            onChange={(e) => setAtSec(Number(e.target.value))}
+            className={inputCls}
+          />
+          <span className="text-[11px] text-muted">s</span>
+          <button type="button" className={btnCls} onClick={place}>
+            <Plus className="size-3" /> Place cue
+          </button>
+        </div>
+      )}
+      {error && <p className="text-[10px] font-medium text-coral">{error}</p>}
+      {sfxLive && sfxOptions.length === 0 && !error && (
+        <p className="text-[10px] text-muted">Describe a sound and Generate — it appears here for placement.</p>
+      )}
+    </div>
   );
 }

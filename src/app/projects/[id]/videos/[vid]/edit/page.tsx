@@ -121,6 +121,18 @@ export default async function EditPage({
   const assetRows = assets as Asset[];
   const maps = await buildPlayerMaps(assetRows, beats);
 
+  // Generated SFX assets (Phase D, D7) — placement options for the inspector.
+  const sfxOptions = assetRows
+    .filter((a) => (a.kind as string) === "sfx")
+    .map((a) => {
+      const meta = a.meta as { prompt?: string; durationSec?: number } | null;
+      return {
+        id: a.id,
+        label: (meta?.prompt ?? "sound effect").slice(0, 60),
+        durationSec: meta?.durationSec,
+      };
+    });
+
   // Swap-picker options: every live clip asset, with a preview URL.
   const clipOptions: EditorAssetOption[] = await Promise.all(
     assetRows
@@ -204,6 +216,8 @@ export default async function EditPage({
         pendingPreview={Boolean((v as unknown as { edd_preview?: unknown }).edd_preview)}
         previews={previews.filter((p): p is typeof p & { url: string } => Boolean(p.url))}
         captionsEnabled={v.enable_captions ?? true}
+        sfxOptions={sfxOptions}
+        sfxLive={Boolean(process.env.ELEVENLABS_API_KEY)}
       />
     </div>
   );

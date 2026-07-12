@@ -278,8 +278,10 @@ async function runSession(videoRow: Record<string, unknown>, selftest = false): 
         `You are the studio's cut editor. Improve the cut of "${video.title}" ` +
         `(${introOutroRuntime(ctx.doc).toFixed(0)}s ${video.kind}). Work the loop: get_context → ` +
         `make targeted edits (pacing first: tighten slow beats, vary transitions where the topic shifts, ` +
-        `add 2-4 kinetic caption emphases on the words that carry the hook, prefer hero holds on premium clips) → ` +
+        `auto_emphasis for the baseline then set_emphasis to hand-tune the 2-4 words that carry the hook, ` +
+        `prefer hero holds on premium clips; add_sfx sparingly if generated sfx assets exist) → ` +
         `judge_preview → adjust → when the judge clears the floor, mark_ready with a one-line rationale. ` +
+        `Heed the lint field in get_context — it flags caption walls, emphasis spam, and dead stills. ` +
         `House rules: never exceed ±5% of the target runtime; keep every narrated beat covered; ` +
         `small number of strong edits beats many weak ones.`;
       for await (const message of sdk.query({

@@ -170,10 +170,16 @@ const ASSETS = [
     storage_path: null,
     meta: {
       durationSec: 6,
-      words: [
-        { w: "alpha", start: 0.2, end: 0.9 },
-        { w: "beta", start: 0.9, end: 1.6 },
-      ],
+      words:
+        i === 0
+          ? [
+              { w: "never", start: 0.2, end: 0.9 },
+              { w: "$400", start: 0.9, end: 1.6 },
+            ]
+          : [
+              { w: "alpha", start: 0.2, end: 0.9 },
+              { w: "beta", start: 0.9, end: 1.6 },
+            ],
     },
   })),
   ...[0, 1, 2].map((i) => ({
@@ -184,6 +190,14 @@ const ASSETS = [
     storage_path: null,
     meta: { url: `mock/clips/${i}.png` },
   })),
+  {
+    id: "sfx-1",
+    kind: "sfx",
+    beat_index: null,
+    provider: "elevenlabs",
+    storage_path: "videos/vid-1/sfx-1.mp3",
+    meta: { prompt: "deep whoosh", durationSec: 1.2, generated: true },
+  },
 ];
 
 function seedDoc(): EditDocument {
@@ -296,6 +310,33 @@ describe("agent tools over the shared allocator", () => {
     expect(h.db.tables.videos[0].edit_document_version).toBe(1);
     expect(h.db.tables.edit_documents[0].status).toBe("previewed");
     expect(h.ready()).toBe("tightened the hook");
+  });
+
+  it("auto_emphasis persists a version when it finds hook tokens (Phase D)", async () => {
+    const tools = makeTools(h.ctx);
+    // Beat 0's VO carries "never" + "$400" — money wins with "scale".
+    const res = await tools.auto_emphasis.run({ maxTotal: 10 });
+    expect(res).toMatch(/^ok — saved v2/);
+    const emphasized = h.ctx.doc.tracks.captions.flatMap((p) => p.tokens).filter((t) => t.emphasis !== "none");
+    expect(emphasized.length).toBeGreaterThan(0);
+  });
+
+  it("add_sfx places generated cues (abs + word anchors) and rejects non-sfx assets", async () => {
+    const tools = makeTools(h.ctx);
+    expect(await tools.add_sfx.run({ assetId: "img-0", atSec: 1, gainDb: -6, note: "" })).toMatch(/^REJECTED/);
+    expect(await tools.add_sfx.run({ assetId: "sfx-1", gainDb: -6, note: "" })).toMatch(/^REJECTED: provide/);
+    const abs = await tools.add_sfx.run({ assetId: "sfx-1", atSec: 2, gainDb: -6, note: "" });
+    expect(abs).toMatch(/^ok — saved v2/);
+    const clip = h.ctx.doc.tracks.video.find((c) => c.beatIdx === 0)!;
+    const word = await tools.add_sfx.run({
+      assetId: "sfx-1",
+      wordAnchor: { clipId: clip.id, captionToken: 0 },
+      gainDb: -6,
+      note: "",
+    });
+    expect(word).toMatch(/^ok — saved v3/);
+    const cues = h.ctx.doc.tracks.audio.filter((c) => c.kind === "sfx");
+    expect(cues).toHaveLength(2);
   });
 
   it("write_lesson lands a shadow memory entry in the editing namespace", async () => {
