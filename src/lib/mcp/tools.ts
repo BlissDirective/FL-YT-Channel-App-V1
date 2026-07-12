@@ -325,12 +325,12 @@ export const TOOLS: Tool[] = [
     inputSchema: obj(
       {
         videoId: { type: "string", description: "Video at the Script gate (SCRIPT_READY)." },
-        tier: { type: "string", description: "base | economy | premium | platinum (default base)." },
+        tier: { type: "string", description: "base | economy | premium | platinum | director (default base)." },
       },
       ["videoId"],
     ),
     handler: async (a, db) => {
-      const tier = (["base", "economy", "premium", "platinum"].includes(str(a.tier)) ? str(a.tier) : "base") as AutoTier;
+      const tier = (["base", "economy", "premium", "platinum", "director"].includes(str(a.tier)) ? str(a.tier) : "base") as AutoTier;
       return fullAutoGenerate({ videoId: str(a.videoId), tier }, db as never);
     },
   },

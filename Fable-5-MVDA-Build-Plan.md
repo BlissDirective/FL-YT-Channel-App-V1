@@ -1051,6 +1051,49 @@ writing here (Decision 3).
   2 new agent-tool tests), workspace typecheck, lint, prod build, and the
   live local-stack selftest re-run green with the 16-verb tool surface.
 
+### Phase E — BUILT (2026-07-12): trust, attribution, the knowledge loop
+
+- **Director tier** (`auto-tiers.ts` + migration `0048_director_tier.sql`):
+  lives beside Platinum with the IDENTICAL clip plan (same jobs, same budget
+  packing — asserted by test) + `videos.director_cut`; `fullAutoGenerate`
+  stamps it, `maybeFinish`/the zero-clip fork route stamped videos to the
+  agent cut session even when project `mvda_enabled` is off. Plan cost =
+  Platinum + ~$0.80 (the session). Operator degrade ladder + earn-premium
+  guard + build UI + MCP tool all know the tier.
+- **MVDA scoreboard** (`src/app/settings/mvda-scoreboard.tsx`): 30-day
+  sessions (ready/held/failed), avg judge, agent spend, and the retirement
+  side-by-side — FINAL QC avg for EDD-rendered vs legacy-rendered videos —
+  with the §8 criteria printed under it.
+- **Retention → EDD attribution** (`packages/core/src/edd-attribution.ts` +
+  outcome-audit): pure `attributeRetentionToEdd` maps audience-retention
+  dips (>3pts, intro cliff excluded) onto the exact clip/motion/transition/
+  caption-style playing at that second — one dip per clip, worst first;
+  `describeDip` phrases it. The nightly outcome-audit fetches curves for
+  ≤4 EDD-rendered videos/run and lands ≤3 SHADOW editing lessons — the
+  Tier-A evidence stream (§11.2).
+- **Research producer** (`editing-research.ts` + `/api/cron/editing-research`
+  + `editing-research.yml`, Mondays): one bounded Claude call proposes 3–5
+  techniques → SHADOW lessons in the GLOBAL editing tier with provenance
+  columns (`source_tier` B/C, `technique_id`, `applies_when`, `source_url` —
+  migration 0048). Pure `researchGate` enforces KD4+C4 mechanically: kill
+  switch, **≥5 real agent cuts**, and the SEPARATE `RESEARCH_MONTHLY_CAP_USD`
+  ($20) — spend ledgers at system scope (provider `research`, project_id
+  null) via `researchMonthSpend`/`recordResearchCost`, invisible to every
+  project/video cap.
+- **Knowledge context in the session (KD1–KD3):**
+  `.claude/skills/editing-craft/SKILL.md` — the curated, PR-gated house
+  rubric — is injected into every agent prompt, plus ≤12 editing lessons
+  (global tier + THIS channel only, shadow marked `·unproven` so they inform
+  but never dominate).
+- **Verified:** 548 unit tests (attribution suite, research-gate matrix incl.
+  the KD4 pre-flight/kill-switch/separate-budget tests, director≡platinum
+  plan equality), typecheck/lint/build clean, live selftest re-run (which
+  first CAUGHT a real fence: repeated sessions walked the runtime to the
+  ±5% tolerance edge and the validator correctly rejected the next grow —
+  the selftest now edits toward the pinned target), and the full authed
+  /edit e2e (compile → retime → save → CUT gate → approve) green against
+  the local stack with the Phase D/E inspector.
+
 **Phase C verification record:** workspace typecheck clean; 521 unit tests (15 new in
 `tests/agent-guards.test.ts`: gate matrix + real handlers over an in-memory
 allocator); lint + prod build clean; and a LIVE selftest against a local

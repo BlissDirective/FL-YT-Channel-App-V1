@@ -5,6 +5,7 @@ export * from "./edd";
 export * from "./edd-compile";
 export * from "./render-constants";
 export * from "./edd-ops";
+export * from "./edd-attribution";
 export * from "./edd-db";
 export * from "./edd-lint";
 export * from "./emphasis";

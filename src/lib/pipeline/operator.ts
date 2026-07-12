@@ -487,12 +487,12 @@ async function seedVideo(
   // back to the per-format default. Then downgrade at seed time if the slot's
   // estimate no longer fits the remaining cycle budget (protects day-30 output).
   let tier = ((slot?.tier as AutoTier | undefined) ?? (isShort ? cfg.shortsTier : cfg.longTier)) as AutoTier;
-  const STEP: AutoTier[] = ["platinum", "premium", "economy", "base"];
+  const STEP: AutoTier[] = ["director", "platinum", "premium", "economy", "base"];
   // Phase 8 — earn the premium tiers: spending Premium/Platinum money on an
   // unproven format is the fastest way to burn a cycle budget. Until this
   // format's recent videos beat the channel's median views, cap the tier at
   // economy; a winning format graduates automatically.
-  if ((tier === "premium" || tier === "platinum") && !(await formatEarnedPremium(db, run.project_id, fmt))) {
+  if ((tier === "premium" || tier === "platinum" || tier === "director") && !(await formatEarnedPremium(db, run.project_id, fmt))) {
     tier = "economy";
   }
   if (STEP.includes(tier)) {

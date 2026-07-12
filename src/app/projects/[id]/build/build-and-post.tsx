@@ -18,7 +18,7 @@ import type { BuildCostEstimate, ChannelPlaybook } from "@/lib/pipeline/engine";
 
 type IdeaOption = { id: string; title: string; angle: string };
 type Kind = "long" | "short";
-type Tier = "base" | "economy" | "premium" | "platinum";
+type Tier = "base" | "economy" | "premium" | "platinum" | "director";
 type ScheduleMode = "all_at_once" | "multi_day" | "staggered";
 
 const TIERS: { id: Tier; label: string; blurb: string }[] = [
@@ -26,6 +26,7 @@ const TIERS: { id: Tier; label: string; blurb: string }[] = [
   { id: "economy", label: "Economy", blurb: "A few Seedance Fast accents (≤3); rest stills/stock" },
   { id: "premium", label: "Premium", blurb: "Hero bookends + Seedance b-roll (~1/min)" },
   { id: "platinum", label: "Platinum", blurb: "Kling hero bookends + Seedance 2.0 b-roll" },
+  { id: "director", label: "Director", blurb: "Platinum visuals + the MVDA agent edits the cut" },
 ];
 
 const THUMB_STYLES: { id: string; label: string }[] = [

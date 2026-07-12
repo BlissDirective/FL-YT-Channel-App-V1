@@ -2128,7 +2128,13 @@ export async function fullAutoGenerate(
 
   // 3) Mark auto-finish FIRST so the Assets gate holds (arriveAtGate sees it)
   //    while clips generate — the worker advances to render once they land.
-  await db.from("videos").update({ auto_finish: true }).eq("id", opts.videoId);
+  //    Director tier (Phase E) ALSO stamps director_cut: the clip worker's
+  //    maybeFinish routes this video to an agent cut session regardless of the
+  //    project-level mvda_enabled flag.
+  await db
+    .from("videos")
+    .update({ auto_finish: true, ...(opts.tier === "director" ? { director_cut: true } : {}) })
+    .eq("id", opts.videoId);
 
   // 4) Approve the script gate → runs VO + stock + base stills → ASSETS_READY.
   await decideGate({ videoId: opts.videoId, decision: "approved" }, db);
@@ -2139,10 +2145,10 @@ export async function fullAutoGenerate(
   if (clips.length === 0) {
     // No AI clips to wait on — nothing will ever trigger the worker's
     // maybeFinish, so the video would strand at ASSETS_READY forever (Base tier,
-    // all-stock scripts, or budget-packed-to-empty). MVDA channels hand off to
-    // the agent cut session here (same fork as maybeFinish, conflict #2);
-    // everyone else advances to render now.
-    if (project.mvda_enabled) {
+    // all-stock scripts, or budget-packed-to-empty). MVDA channels and Director
+    // videos hand off to the agent cut session here (same fork as maybeFinish,
+    // conflict #2); everyone else advances to render now.
+    if (project.mvda_enabled || opts.tier === "director") {
       await db
         .from("videos")
         .update({ edit_session_requested: true, auto_finish: false })

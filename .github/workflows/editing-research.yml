@@ -1,0 +1,36 @@
+name: Editing Research
+
+# Weekly editing-craft research producer (MVDA §11, KD4): pings the app's
+# cron route, which proposes external techniques as SHADOW lessons in the
+# global editing tier. The route enforces every real gate — kill switch,
+# C4 (≥5 real agent cuts), and the separate $20/mo research budget — so
+# this job is just the trigger.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1" # Mondays 07:00 UTC
+
+concurrency:
+  group: editing-research
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_URL: ${{ vars.APP_BASE_URL || 'https://fl-yt-channel-app-v1.vercel.app' }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Trigger editing research
+        run: |
+          echo "Pinging ${BASE_URL}/api/cron/editing-research"
+          CODE=$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST \
+            "${BASE_URL}/api/cron/editing-research" \
+            -H "Authorization: Bearer ${CRON_SECRET}")
+          echo "HTTP $CODE — $(cat /tmp/r.json)"
+          case "$CODE" in
+            200) echo "✅ research run complete (or cleanly gated)";;
+            401) echo "❌ unauthorized — set CRON_SECRET to match the app's env"; exit 1;;
+            *) echo "❌ run failed (HTTP $CODE)"; exit 1;;
+          esac

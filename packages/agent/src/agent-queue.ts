@@ -198,6 +198,40 @@ function realJudge(ctx: Omit<SessionCtx, "state" | "renderPreview" | "judgeDoc" 
   };
 }
 
+// ── Knowledge context (§11, KD2/KD3) ──────────────────────────────────
+
+/** The curated house rubric — the human-approved layer (PR-gated, KD1). */
+function craftSkill(): string {
+  try {
+    const path = new URL("../../../.claude/skills/editing-craft/SKILL.md", import.meta.url).pathname;
+    const text = readFileSync(path, "utf8").trim();
+    return text ? `\n\n=== HOUSE EDITING RUBRIC ===\n${text.slice(0, 6000)}` : "";
+  } catch {
+    return ""; // skill file is an enhancement, never a dependency
+  }
+}
+
+/** Authoring context (KD2: full weight day one, shadow included; KD3: the
+    channel's lessons + the global craft tier, never another channel's). */
+async function editingLessons(projectId: string): Promise<string> {
+  try {
+    const { data } = await db
+      .from("memory_entries")
+      .select("text, tier, status, project_id, confidence")
+      .eq("namespace", "editing")
+      .in("status", ["active", "shadow"])
+      .or(`tier.eq.global,project_id.eq.${projectId}`)
+      .order("confidence", { ascending: false })
+      .limit(12);
+    const rows = (data ?? []) as { text: string; tier: string; status: string }[];
+    if (rows.length === 0) return "";
+    const lines = rows.map((r) => `- [${r.tier}${r.status === "shadow" ? "·unproven" : ""}] ${r.text}`);
+    return `\n\n=== EDITING LESSONS (advisory; unproven ones can inform, never dominate) ===\n${lines.join("\n")}`;
+  } catch {
+    return "";
+  }
+}
+
 // ── Session runner ────────────────────────────────────────────────────
 
 async function runSession(videoRow: Record<string, unknown>, selftest = false): Promise<void> {
@@ -253,8 +287,17 @@ async function runSession(videoRow: Record<string, unknown>, selftest = false): 
 
     if (selftest) {
       // Drive the REAL handlers without the LLM: retime → judge → mark_ready.
+      // Retime TOWARD the pinned target — the agent is fenced to ±5% (C1) and
+      // repeated selftests on one video would otherwise walk the runtime to
+      // the tolerance edge and (correctly) get rejected.
       const firstClip = ctx.doc.tracks.video[0];
-      const r1 = await tools.retime_clip.run({ clipId: firstClip.id, durationSec: firstClip.duration + 1, note: "selftest" });
+      const drift = introOutroRuntime(ctx.doc) - ctx.doc.meta.targetDurationSec;
+      const step = drift > 0 ? -1 : 1;
+      const r1 = await tools.retime_clip.run({
+        clipId: firstClip.id,
+        durationSec: Math.max(1, firstClip.duration + step),
+        note: "selftest",
+      });
       if (!r1.startsWith("ok")) throw new Error(`retime failed: ${r1}`);
       const gDenied = gateTool("mark_ready", state);
       if (gDenied.allow) throw new Error("mark_ready must be denied before a judge pass");
@@ -283,7 +326,9 @@ async function runSession(videoRow: Record<string, unknown>, selftest = false): 
         `judge_preview → adjust → when the judge clears the floor, mark_ready with a one-line rationale. ` +
         `Heed the lint field in get_context — it flags caption walls, emphasis spam, and dead stills. ` +
         `House rules: never exceed ±5% of the target runtime; keep every narrated beat covered; ` +
-        `small number of strong edits beats many weak ones.`;
+        `small number of strong edits beats many weak ones.` +
+        craftSkill() +
+        (await editingLessons(video.project_id));
       for await (const message of sdk.query({
         prompt,
         options: {

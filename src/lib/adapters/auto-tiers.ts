@@ -4,8 +4,11 @@ import { clampDuration, getVideoModel } from "./video-models";
 /** Full Auto-Generate quality tiers (smart mix; stock stays free).
     base → economy → premium → platinum climb the AI-video spend; custom is
     operator-driven (per-video models + a price cap). Accent counts scale with
-    narration length, so a tier works for short- and long-form alike. */
-export type AutoTier = "base" | "economy" | "premium" | "platinum" | "custom";
+    narration length, so a tier works for short- and long-form alike.
+    director (MVDA Phase E) = Platinum visuals + the agent authors the cut:
+    identical clip plan, plus the video routes to an agent session instead of
+    automatic assembly when clips finish. */
+export type AutoTier = "base" | "economy" | "premium" | "platinum" | "director" | "custom";
 
 export type SectionJob = { model: string; targetSec: number; heroHold: boolean };
 
@@ -38,7 +41,7 @@ function heroBookendCount(eligibleBeats: number): 0 | 1 | 2 {
 
 /** Tiers that force hero accents at the start and end of the video. */
 function tierBookends(tier: AutoTier): boolean {
-  return tier === "premium" || tier === "platinum" || tier === "custom";
+  return tier === "premium" || tier === "platinum" || tier === "director" || tier === "custom";
 }
 
 /** Pick n items spread evenly across an array (preserves order, no dupes). */
@@ -82,7 +85,10 @@ export function tierJobForSection(
       return hero
         ? { model: "seedance-2", targetSec: clampSec(sec, 8, 15), heroHold: true }
         : { model: "seedance-2-fast", targetSec: clampSec(sec, 5, 10), heroHold: false };
-    case "platinum": {
+    case "platinum":
+    case "director": {
+      // Director rides Platinum's exact visual plan — the tier's delta is the
+      // agent cut session, which happens after clips land (engine/clip-queue).
       if (hero) return { model: "kling-2-5-turbo", targetSec: 10, heroHold: true };
       // Long-form (>6 min): cheaper Seedance Fast b-roll to stay under budget.
       const cheap = totalSec > PLATINUM_CHEAP_BROLL_OVER_SEC;
@@ -105,8 +111,8 @@ export function tierJobForSection(
     budget allocation BEFORE scripts exist. Planning only — actual spend is
     enforced at generation time by the per-video / portfolio caps. */
 export const TIER_PLAN_COST: Record<"short" | "long", Record<AutoTier, number>> = {
-  short: { base: 0, economy: 0.3, premium: 1.2, platinum: 2.5, custom: 1.5 },
-  long: { base: 0, economy: 1.0, premium: 3.5, platinum: 7.0, custom: 4.0 },
+  short: { base: 0, economy: 0.3, premium: 1.2, platinum: 2.5, director: 3.3, custom: 1.5 },
+  long: { base: 0, economy: 1.0, premium: 3.5, platinum: 7.0, director: 7.8, custom: 4.0 },
 };
 
 export function planCostFor(format: "short" | "long", tier: AutoTier): number {
@@ -118,6 +124,7 @@ export const AUTO_TIERS: { id: AutoTier; label: string; blurb: string }[] = [
   { id: "economy", label: "Economy", blurb: "A few Seedance Fast accents (≤3); rest stays stills/stock" },
   { id: "premium", label: "Premium", blurb: "Hero bookends (Seedance 2.0) + Seedance Fast b-roll, ~1/min" },
   { id: "platinum", label: "Platinum", blurb: "Kling hero bookends + Seedance 2.0 b-roll (Fast over 6 min)" },
+  { id: "director", label: "Director", blurb: "Platinum visuals + the MVDA agent authors the cut (~$0.80/session)" },
   { id: "custom", label: "Custom", blurb: "Pick your own hero & b-roll models, lengths, and price cap" },
 ];
 

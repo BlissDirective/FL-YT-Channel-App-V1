@@ -323,7 +323,7 @@ async function processJob(job: Job) {
 async function maybeFinish(videoId: string) {
   const { data: video } = await db
     .from("videos")
-    .select("auto_finish, status, project_id")
+    .select("auto_finish, status, project_id, director_cut")
     .eq("id", videoId)
     .maybeSingle();
   if (!video?.auto_finish || video.status !== "ASSETS_READY") return;
@@ -344,7 +344,8 @@ async function maybeFinish(videoId: string) {
     .select("mvda_enabled")
     .eq("id", video.project_id)
     .maybeSingle();
-  if (project?.mvda_enabled) {
+  // Director tier (Phase E) is a per-video opt-in to the same handoff.
+  if (project?.mvda_enabled || video.director_cut) {
     await db
       .from("videos")
       .update({ edit_session_requested: true, auto_finish: false })

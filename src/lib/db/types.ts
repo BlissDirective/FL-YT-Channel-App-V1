@@ -246,6 +246,10 @@ export type Video = {
   /** MVDA conflict #2: clips done → the agent worker claims this flag and
       runs the cut session before the video reaches the CUT gate. */
   edit_session_requested: boolean;
+  /** Phase E Director tier: per-video opt-in to the agent cut (routes the
+      clips-done handoff to an agent session even when project mvda_enabled
+      is off). */
+  director_cut: boolean;
   /** Auto-fix loop state machine for this video. */
   autofix_state: AutofixState;
   /** Script prose fact-check verdict ({risk, claims[], searched, at}). */

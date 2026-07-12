@@ -44,6 +44,39 @@ export async function recordCost(
   video.total_cost_usd = next;
 }
 
+// ── Editing-craft research budget (MVDA §11, KD4) ─────────────────────
+// A fully SEPARATE budget line: research spend ledgers at SYSTEM scope
+// (project_id null, provider 'research') so it never enters monthSpend()
+// or any project/video cap, and production spend never eats the research cap.
+
+export const RESEARCH_MONTHLY_CAP_USD = Number(process.env.RESEARCH_MONTHLY_CAP_USD) > 0
+  ? Number(process.env.RESEARCH_MONTHLY_CAP_USD)
+  : 20;
+
+/** Month-to-date research spend (system scope only). */
+export async function researchMonthSpend(db: Db): Promise<number> {
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const { data } = await db
+    .from("cost_ledger")
+    .select("usd")
+    .is("project_id", null)
+    .eq("provider", "research")
+    .gte("at", monthStart);
+  return (data ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
+}
+
+/** Ledger a research run at system scope. No video/project totals change. */
+export async function recordResearchCost(db: Db, usd: number, description: string): Promise<void> {
+  if (usd <= 0) return;
+  await db.from("cost_ledger").insert({
+    project_id: null,
+    video_id: null,
+    provider: "research",
+    description,
+    usd,
+  });
+}
+
 /** Month-to-date ledger spend for a project. */
 export async function monthSpend(db: Db, projectId: string): Promise<number> {
   const monthStart = new Date(

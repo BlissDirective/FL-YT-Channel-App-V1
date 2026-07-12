@@ -1,6 +1,7 @@
 import "server-only";
+import { attributeRetentionToEdd, describeDip, type EditDocument } from "@studio/core";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { analyticsConfigured, getVideoMetrics } from "@/lib/adapters/youtube-analytics";
+import { analyticsConfigured, getRetentionCurve, getVideoMetrics } from "@/lib/adapters/youtube-analytics";
 import { recordNamespaceLesson, runQualityGraduation } from "@/lib/pipeline/memory-service";
 import { getQualityGateConfig } from "@/lib/pipeline/quality-gates";
 
@@ -198,7 +199,66 @@ export async function runOutcomeAudit(db: Db, projectId: string): Promise<{ wrot
     console.error("quality graduation (outcome-audit) failed (non-fatal):", err);
   }
 
+  // Retention → EDD attribution (MVDA Phase E, plan §3): for videos rendered
+  // from an explicit cut, map the audience-retention dips onto the exact
+  // clips/transitions/caption styles and land the worst patterns as SHADOW
+  // editing lessons — the Tier-A evidence the §11 knowledge loop graduates on.
+  try {
+    await attributeEddRetention(db, projectId, project.youtube_refresh_token);
+  } catch (err) {
+    console.error("EDD retention attribution failed (non-fatal):", err);
+  }
+
   return { wrote: audits.length };
+}
+
+/** Per-run bound on curve fetches (one Analytics call per video). */
+const ATTRIBUTION_VIDEOS_PER_RUN = 4;
+/** At most this many lessons land per run — dips are lessons, not logs. */
+const ATTRIBUTION_LESSONS_PER_RUN = 3;
+
+async function attributeEddRetention(
+  db: Db,
+  projectId: string,
+  refreshToken: string | null,
+): Promise<void> {
+  if (!analyticsConfigured(refreshToken)) return;
+
+  // Published videos rendered from an EDD, newest first.
+  const { data: eddVids } = await db
+    .from("videos")
+    .select("id, youtube_video_id, title, edit_document_version")
+    .eq("project_id", projectId)
+    .not("edit_document_version", "is", null)
+    .not("youtube_video_id", "is", null)
+    .order("updated_at", { ascending: false })
+    .limit(ATTRIBUTION_VIDEOS_PER_RUN);
+
+  let lessons = 0;
+  for (const v of (eddVids ?? []) as { id: string; youtube_video_id: string; title: string; edit_document_version: number }[]) {
+    if (lessons >= ATTRIBUTION_LESSONS_PER_RUN) break;
+    const curve = await getRetentionCurve(refreshToken, v.youtube_video_id);
+    if (!curve || curve.length < 3) continue;
+    const { data: row } = await db
+      .from("edit_documents")
+      .select("doc")
+      .eq("video_id", v.id)
+      .eq("version", v.edit_document_version)
+      .maybeSingle();
+    if (!row?.doc) continue;
+
+    const dips = attributeRetentionToEdd(row.doc as EditDocument, curve, { minDropPts: 3, maxDips: 2 });
+    for (const dip of dips) {
+      if (lessons >= ATTRIBUTION_LESSONS_PER_RUN) break;
+      await recordNamespaceLesson(db, projectId, "editing", {
+        text: `${describeDip(dip)} — avoid this pattern on future cuts`,
+        evidence: `retention −${dip.dropPts.toFixed(1)}pts on "${v.title}" (EDD v${v.edit_document_version})`,
+        confidence: 0.4,
+        status: "shadow",
+      });
+      lessons++;
+    }
+  }
 }
 
 export async function runOutcomeAuditAllProjects(): Promise<{ projects: number; wrote: number }> {

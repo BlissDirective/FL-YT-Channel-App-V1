@@ -166,3 +166,24 @@ describe("selectClipBeats", () => {
     expect(heroCost(longSel)).toBeGreaterThan(heroCost(shortSel));
   });
 });
+
+describe("director tier (MVDA Phase E)", () => {
+  it("rides Platinum's exact visual plan — same jobs for hero and b-roll", () => {
+    expect(tierJobForSection("director", "hero", 60)).toEqual(tierJobForSection("platinum", "hero", 60));
+    expect(tierJobForSection("director", "broll", 60, 120)).toEqual(tierJobForSection("platinum", "broll", 60, 120));
+    // Long-form cheap-b-roll switchover applies identically.
+    expect(tierJobForSection("director", "broll", 60, 400)).toEqual(tierJobForSection("platinum", "broll", 60, 400));
+    expect(tierJobForSection("director", "stock", 60)).toBeNull();
+  });
+
+  it("selects the same clips as platinum but plans the agent-session premium", () => {
+    const beats = [beat(0), beat(1), beat(2), beat(3)];
+    const director = selectClipBeats("director", beats);
+    const platinum = selectClipBeats("platinum", beats);
+    expect(director.clips).toEqual(platinum.clips);
+    expect(director.totalUsd).toBe(platinum.totalUsd); // clip spend identical
+    // The tier's delta (the ~$0.80 cut session) lives in the plan estimate.
+    expect(planCostFor("long", "director")).toBeGreaterThan(planCostFor("long", "platinum"));
+    expect(planCostFor("short", "director")).toBeGreaterThan(planCostFor("short", "platinum"));
+  });
+});
