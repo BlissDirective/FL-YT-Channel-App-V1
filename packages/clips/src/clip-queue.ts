@@ -323,7 +323,7 @@ async function processJob(job: Job) {
 async function maybeFinish(videoId: string) {
   const { data: video } = await db
     .from("videos")
-    .select("auto_finish, status")
+    .select("auto_finish, status, project_id")
     .eq("id", videoId)
     .maybeSingle();
   if (!video?.auto_finish || video.status !== "ASSETS_READY") return;
@@ -333,6 +333,26 @@ async function maybeFinish(videoId: string) {
     .eq("video_id", videoId)
     .in("status", ["queued", "running"]);
   if ((count ?? 0) > 0) return; // more clips still pending
+
+  // MVDA handoff (plan §6 conflict #2): on an agent-enabled channel the
+  // finished assets go to a CUT SESSION, not straight to the render. The
+  // video parks at ASSETS_READY with edit_session_requested; the agent
+  // worker claims the flag, authors the cut, and the CUT gate (assist, or
+  // copilot ≥ cut_copilot_floor) decides the advance.
+  const { data: project } = await db
+    .from("projects")
+    .select("mvda_enabled")
+    .eq("id", video.project_id)
+    .maybeSingle();
+  if (project?.mvda_enabled) {
+    await db
+      .from("videos")
+      .update({ edit_session_requested: true, auto_finish: false })
+      .eq("id", videoId);
+    console.log(`✂️  ${videoId}: all clips done → agent cut session requested (MVDA)`);
+    return;
+  }
+
   await db.from("approvals").insert({
     video_id: videoId,
     gate: "ASSETS",

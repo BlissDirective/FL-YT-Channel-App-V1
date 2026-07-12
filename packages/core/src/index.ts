@@ -4,4 +4,6 @@ export * from "./visual-prompt";
 export * from "./edd";
 export * from "./edd-compile";
 export * from "./render-constants";
+export * from "./edd-ops";
+export * from "./edd-db";
 export * from "./highlight-timing";

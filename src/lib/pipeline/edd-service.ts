@@ -17,7 +17,12 @@ import {
   type EddContext,
   type EditDocument,
 } from "@studio/core";
+import { buildEddContext, cutBeatsToSegment, insertEddVersion, type EddDb } from "@studio/core";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+// Moved to @studio/core in Phase C (shared with the agent worker); re-exported
+// so existing app imports stay stable.
+export { buildEddContext, cutBeatsToSegment, insertEddVersion };
 import type { CuratedHighlight, ScriptBeat, ShortSegment } from "@/lib/db/types";
 
 /**
@@ -51,46 +56,6 @@ type ClipMeta = {
   stickScene?: unknown;
   dataViz?: unknown;
 };
-
-/** Cut a script's beats down to a derived short's segment, in SEGMENT order —
-    the one implementation shared by the compiler, the /edit page, and the
-    save path (three drifting copies caused a validation split in review). */
-export function cutBeatsToSegment<T extends { idx: number }>(
-  beats: T[],
-  segment: { beats?: number[] } | null | undefined,
-): T[] {
-  if (!segment?.beats?.length) return beats;
-  const order = new Map(segment.beats.map((idx, i) => [idx, i] as const));
-  return beats
-    .filter((b) => order.has(b.idx))
-    .sort((a, b) => (order.get(a.idx) ?? 0) - (order.get(b.idx) ?? 0));
-}
-
-/** The EDD validation context for a video: its live assets + script beats +
-    the v1 registries. Shared by the compiler and (Phase B) the save path. */
-export function buildEddContext(
-  assets: Pick<AssetRow, "id" | "kind" | "meta">[],
-  beats: Pick<ScriptBeat, "idx" | "text">[],
-  targetDurationSec: number,
-): EddContext {
-  return {
-    assets: assets.map((a) => ({
-      id: a.id,
-      kind: a.kind,
-      durationSec:
-        typeof (a.meta as { durationSec?: unknown } | null)?.durationSec === "number"
-          ? ((a.meta as { durationSec: number }).durationSec)
-          : undefined,
-    })),
-    beats: beats.map((b) => ({ idx: b.idx, hasText: b.text.trim().length > 0 })),
-    transitions: DEFAULT_TRANSITIONS,
-    captionStyles: new Set<string>(DEFAULT_CAPTION_STYLES),
-    sfxLibrary: new Set<string>(Object.keys(DEFAULT_SFX_LIBRARY)),
-    overlayStyles: new Set<string>(DEFAULT_OVERLAY_STYLES),
-    musicEnabled: false, // D8
-    toleranceSec: Math.max(2, targetDurationSec * 0.05),
-  };
-}
 
 export type CompileResult =
   | { ok: true; version: number; doc: EditDocument }
@@ -198,7 +163,7 @@ export async function compileEddFromLegacy(
     };
   }
 
-  const inserted = await insertEddVersion(db, {
+  const inserted = await insertEddVersion(db as unknown as EddDb, {
     videoId,
     scriptId: script.id,
     doc,
@@ -216,66 +181,6 @@ export async function compileEddFromLegacy(
     if (error) return { ok: false, error: `activate failed: ${error.message}` };
   }
   return { ok: true, version: inserted.version, doc };
-}
-
-/**
- * Append a new EDD version row. Versions are allocated max+1 with a retry on
- * the unique-violation race (audit A9): the unique (video_id, version)
- * constraint arbitrates concurrent writers.
- *
- * `requireParentHead` is the optimistic-concurrency mode for human/agent
- * writes: the new version must land DIRECTLY on parentVersion — if any other
- * writer got there first (including one detected via the unique violation,
- * the TOCTOU window the head pre-check can't close), the save is rejected
- * with a conflict instead of silently appending on top of edits the author
- * never saw. The compiler inserts roots (parentVersion null) and just takes
- * the next slot.
- */
-export async function insertEddVersion(
-  db: ReturnType<typeof createAdminClient>,
-  args: {
-    videoId: string;
-    scriptId: string;
-    doc: EditDocument;
-    author: "agent" | "human" | "compiler";
-    note: string;
-    parentVersion: number | null;
-    requireParentHead?: boolean;
-  },
-): Promise<{ ok: true; version: number } | { ok: false; error: string }> {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const { data: head } = await db
-      .from("edit_documents")
-      .select("version")
-      .eq("video_id", args.videoId)
-      .order("version", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const headVersion = head?.version ?? 0;
-    if (args.requireParentHead && headVersion !== (args.parentVersion ?? 0)) {
-      return {
-        ok: false,
-        error: `document changed under you (v${headVersion} is now the head) — reload the editor`,
-      };
-    }
-    const version = headVersion + 1;
-    const { error } = await db.from("edit_documents").insert({
-      video_id: args.videoId,
-      version,
-      parent_version: args.parentVersion,
-      script_id: args.scriptId,
-      author: args.author,
-      status: "draft",
-      doc: args.doc,
-      note: args.note,
-    });
-    if (!error) return { ok: true, version };
-    if (error.code !== "23505") return { ok: false, error: error.message };
-    // Unique violation — another writer took this version. Loop: the head
-    // re-read either reports the conflict (requireParentHead) or takes the
-    // next slot (compiler roots).
-  }
-  return { ok: false, error: "could not allocate an EDD version (concurrent writers)" };
 }
 
 /**

@@ -205,6 +205,12 @@ async function arriveAtGate(
   // QC agent reviews every arrival; failures degrade to a neutral verdict
   // and never block the gate.
   const mode: AutonomyMode = project.autonomy?.[gate] ?? "assist";
+  // C2 — the CUT gate (ASSETS slot with an active EDD) auto-approves at the
+  // per-project cut floor (default 7.0), not the app-wide 7.5.
+  const isCutGate = gate === "ASSETS" && video.edit_document_version != null;
+  const autoApproveFloor = isCutGate
+    ? Number(project.cut_copilot_floor ?? 7.0)
+    : COPILOT_AUTO_APPROVE_SCORE;
   let qcScore: number | null = null;
   let qcErrored = false;
   try {
@@ -213,12 +219,11 @@ async function arriveAtGate(
       context: await qcContext(db, video, project, gate),
       // Borderline results near the auto-approve bar re-judge on the strong
       // model when this review can gate an automatic advance (C1 cascade).
-      escalateNear: mode === "assist" ? undefined : COPILOT_AUTO_APPROVE_SCORE,
+      escalateNear: mode === "assist" ? undefined : autoApproveFloor,
     });
     qcScore = review.score;
     if (review.degraded) qcErrored = true; // live-but-failed → hold below, never a fake 6/10
-    const autoApprove =
-      mode === "copilot" && review.score >= COPILOT_AUTO_APPROVE_SCORE;
+    const autoApprove = mode === "copilot" && review.score >= autoApproveFloor;
     await db.from("qc_reviews").insert({
       video_id: video.id,
       gate,
@@ -255,8 +260,7 @@ async function arriveAtGate(
     console.error("web-push delivery failed:", err);
   }
 
-  const copilotApproved =
-    mode === "copilot" && qcScore != null && qcScore >= COPILOT_AUTO_APPROVE_SCORE;
+  const copilotApproved = mode === "copilot" && qcScore != null && qcScore >= autoApproveFloor;
   // Full Auto owns advancement past the Assets gate (it pauses here so the
   // generated clips can replace the stills before the render runs).
   if (gate === "ASSETS" && video.auto_finish) return;
@@ -2135,9 +2139,18 @@ export async function fullAutoGenerate(
   if (clips.length === 0) {
     // No AI clips to wait on — nothing will ever trigger the worker's
     // maybeFinish, so the video would strand at ASSETS_READY forever (Base tier,
-    // all-stock scripts, or budget-packed-to-empty). Advance to render now.
-    await db.from("videos").update({ auto_finish: false }).eq("id", opts.videoId);
-    await decideGate({ videoId: opts.videoId, decision: "approved" }, db); // ASSETS → ASSEMBLING
+    // all-stock scripts, or budget-packed-to-empty). MVDA channels hand off to
+    // the agent cut session here (same fork as maybeFinish, conflict #2);
+    // everyone else advances to render now.
+    if (project.mvda_enabled) {
+      await db
+        .from("videos")
+        .update({ edit_session_requested: true, auto_finish: false })
+        .eq("id", opts.videoId);
+    } else {
+      await db.from("videos").update({ auto_finish: false }).eq("id", opts.videoId);
+      await decideGate({ videoId: opts.videoId, decision: "approved" }, db); // ASSETS → ASSEMBLING
+    }
   } else {
     // Seed-still vision gate (Tier 4 #1): vet each selected seed and re-roll a
     // weak one BEFORE queuing the paid video job that would animate it.

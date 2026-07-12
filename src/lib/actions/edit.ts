@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { GATE_FOR_STATUS, validateEdd, type EditDocument, type VideoStatus } from "@studio/core";
+import { GATE_FOR_STATUS, validateEdd, type EddDb, type EditDocument, type VideoStatus } from "@studio/core";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   buildEddContext,
@@ -132,7 +132,7 @@ export async function saveEddAction(
       };
     }
 
-    const inserted = await insertEddVersion(db, {
+    const inserted = await insertEddVersion(db as unknown as EddDb, {
       videoId,
       scriptId,
       doc,
@@ -171,7 +171,7 @@ export async function revertEddAction(
         .maybeSingle(),
     ]);
     if (!row || !video) return { ok: false, error: `v${toVersion} not found` };
-    const inserted = await insertEddVersion(db, {
+    const inserted = await insertEddVersion(db as unknown as EddDb, {
       videoId,
       scriptId: row.script_id as string,
       doc: row.doc as EditDocument,

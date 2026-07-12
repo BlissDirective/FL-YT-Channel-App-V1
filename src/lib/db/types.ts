@@ -36,6 +36,11 @@ export type Project = {
   voice_id: string | null;
   voice_name: string | null;
   autonomy: Record<ApprovalGate, AutonomyMode>;
+  /** MVDA: this channel's videos get an agent cut session (Phase C). */
+  mvda_enabled: boolean;
+  /** C2 — the CUT gate's copilot auto-approve floor (default 7.0; deliberately
+      below the app-wide 7.5). */
+  cut_copilot_floor: number;
   budget: Budget;
   /** Niche RPM (USD per 1,000 views) — drives estimated revenue. */
   rpm_usd: number;
@@ -236,6 +241,11 @@ export type Video = {
   publish_privacy: string | null;
   /** Per-asset auto-fix override: null = inherit project, true/false = force. */
   autofix_enabled: boolean | null;
+  /** MVDA: the active Edit Decision Document version (null = legacy render). */
+  edit_document_version: number | null;
+  /** MVDA conflict #2: clips done → the agent worker claims this flag and
+      runs the cut session before the video reaches the CUT gate. */
+  edit_session_requested: boolean;
   /** Auto-fix loop state machine for this video. */
   autofix_state: AutofixState;
   /** Script prose fact-check verdict ({risk, claims[], searched, at}). */

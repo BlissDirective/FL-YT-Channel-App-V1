@@ -900,6 +900,11 @@ export async function sweepAutofix(
     .limit(limit + 20);
 
   const videos = ((rows ?? []) as Video[]).filter((v) => {
+    // MVDA exclusivity (plan §6 conflict #6): a video with an ACTIVE edit
+    // document belongs to the agent/editor loop — post-render verdicts route
+    // back to the document, never to the legacy re-roll machinery (whose
+    // delete+insert re-rolls would dangle the document's asset refs).
+    if (v.edit_document_version != null) return false;
     const s = (v.autofix_state ?? {}) as AutofixState;
     return s.status !== "done" && s.status !== "held";
   });
