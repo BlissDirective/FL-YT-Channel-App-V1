@@ -45,7 +45,7 @@ jobs:
         run: echo "No cut sessions requested — skipping checkout/install."
       - uses: actions/checkout@v4
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - uses: actions/setup-node@v4
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'

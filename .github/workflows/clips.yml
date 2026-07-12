@@ -45,7 +45,7 @@ jobs:
       - name: Install ffmpeg
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg && ffmpeg -version | head -1
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - uses: actions/setup-node@v4
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
