@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Clapperboard, Radar } from "lucide-react";
-import { GATE_FOR_STATUS } from "@studio/core";
+import { GATE_FOR_STATUS, bracketById } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import {
   getClipJobs,
@@ -24,7 +24,7 @@ import type { QcReview } from "@/lib/db/queries";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { CheckpointPanel } from "./checkpoint-panel";
 import { CanvasControls } from "./canvas-controls";
-import { DirectorControls } from "./director-controls";
+import { DirectorConsole, type ConsoleReview, type ConsoleDecision } from "./director-console";
 import { ScriptReview } from "./script-review";
 import { HighlightsEditor } from "./highlights-editor";
 import { StepBackStage } from "./step-back";
@@ -85,6 +85,10 @@ export default async function VideoDetailPage({
   const v = video as Video;
   const s = (script as Script) ?? null;
   const directorMode = (project.pipeline_mode ?? "autonomous") === "director";
+  const lengthTargetLabel = v.length_target
+    ? bracketById(v.length_target.bracket)?.label ??
+      `${Math.round(v.length_target.minSec / 60)}–${Math.round(v.length_target.maxSec / 60)} min`
+    : null;
   const beats = (s?.beats ?? []) as ScriptBeat[];
   const allAssets = (assets as Asset[]) ?? [];
 
@@ -134,6 +138,24 @@ export default async function VideoDetailPage({
       ? supabase.from("ideas").select("angle, score").eq("id", v.idea_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
+  // Director console data: every review + decision for the asset (only when
+  // this project is in Director Mode).
+  const [{ data: allReviews }, { data: decisions }] = directorMode
+    ? await Promise.all([
+        supabase
+          .from("qc_reviews")
+          .select("id, gate, score, verdict, issues, strengths, created_at")
+          .eq("video_id", vid)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("operator_decisions")
+          .select("id, stage, action, agent_score, agent_verdict, operator_notes, cost_usd, created_at")
+          .eq("video_id", vid)
+          .order("created_at", { ascending: false })
+          .limit(50),
+      ])
+    : [{ data: null }, { data: null }];
+
   const thumbCandidates =
     gate === "ASSETS"
       ? await Promise.all(
@@ -275,11 +297,14 @@ export default async function VideoDetailPage({
       </div>
 
       {directorMode && (
-        <DirectorControls
+        <DirectorConsole
           projectId={id}
           videoId={vid}
           status={v.status}
           pausedReason={v.paused_reason}
+          lengthTargetLabel={lengthTargetLabel}
+          reviews={(allReviews as ConsoleReview[]) ?? []}
+          decisions={(decisions as ConsoleDecision[]) ?? []}
         />
       )}
 

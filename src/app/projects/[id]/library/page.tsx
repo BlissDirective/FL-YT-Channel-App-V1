@@ -141,7 +141,7 @@ export default async function LibraryPage({
         >
           <Grid>
             {library.sections.ideas.map((item) => (
-              <VideoTile key={item.video.id} projectId={project.id} item={item} />
+              <VideoTile key={item.video.id} projectId={project.id} item={item} directorMode={directorMode} />
             ))}
             {library.ideaCards.map((idea) => (
               <IdeaCardTile key={idea.id} projectId={project.id} idea={idea} />
@@ -163,7 +163,7 @@ export default async function LibraryPage({
           >
             <Grid>
               {items.map((item) => (
-                <VideoTile key={item.video.id} projectId={project.id} item={item} />
+                <VideoTile key={item.video.id} projectId={project.id} item={item} directorMode={directorMode} />
               ))}
             </Grid>
           </CollapsibleSection>
@@ -178,7 +178,7 @@ export default async function LibraryPage({
         >
           <Grid>
             {library.sections.published.map((item) => (
-              <VideoTile key={item.video.id} projectId={project.id} item={item} />
+              <VideoTile key={item.video.id} projectId={project.id} item={item} directorMode={directorMode} />
             ))}
           </Grid>
         </CollapsibleSection>
@@ -203,7 +203,15 @@ function Grid({ children }: { children: React.ReactNode }) {
   );
 }
 
-function VideoTile({ projectId, item }: { projectId: string; item: LibraryItem }) {
+function VideoTile({
+  projectId,
+  item,
+  directorMode = false,
+}: {
+  projectId: string;
+  item: LibraryItem;
+  directorMode?: boolean;
+}) {
   const { video, tile } = item;
   const stageLabel =
     item.gateLabel ??
@@ -220,6 +228,10 @@ function VideoTile({ projectId, item }: { projectId: string; item: LibraryItem }
     tile.section !== "ready" &&
     Boolean(video.paused_reason);
   const atGate = item.gateLabel != null;
+  const terminal = ["TRACKING", "KILLED"].includes(video.status);
+  // Director Mode: the whole tile links to the Console (its click target). No
+  // autonomous quick-actions/chips; the label reads as awaiting direction.
+  const directorAwaiting = directorMode && !terminal;
   return (
     <AssetTile
       href={`/projects/${projectId}/videos/${video.id}`}
@@ -230,14 +242,22 @@ function VideoTile({ projectId, item }: { projectId: string; item: LibraryItem }
       railTotal={RAIL_STEPS.length}
       stageLabel={stageLabel}
       qcScore={item.qcScore}
-      awaitingYou={tile.awaitingYou || Boolean(item.stalled)}
-      awaitingLabel={item.awaitingLabel ?? undefined}
-      failed={tile.failed || Boolean(item.stalled)}
-      autopilot={tile.autopilot}
+      awaitingYou={directorMode ? directorAwaiting : tile.awaitingYou || Boolean(item.stalled)}
+      awaitingLabel={
+        directorMode
+          ? directorAwaiting
+            ? `Awaiting direction · ${stageLabel}`
+            : undefined
+          : item.awaitingLabel ?? undefined
+      }
+      failed={directorMode ? false : tile.failed || Boolean(item.stalled)}
+      autopilot={directorMode ? undefined : tile.autopilot}
       spendUsd={Number(video.total_cost_usd)}
       views={item.views}
       actions={
-        atGate ? (
+        directorMode ? (
+          <span className="text-[11px] font-semibold text-accent">Open Console →</span>
+        ) : atGate ? (
           <GateQuickActions projectId={projectId} videoId={video.id} />
         ) : item.stalled ? (
           <NudgeQuickAction projectId={projectId} videoId={video.id} />
