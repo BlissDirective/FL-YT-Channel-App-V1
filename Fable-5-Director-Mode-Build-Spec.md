@@ -409,7 +409,9 @@ projects with a clear message.
 
 Each phase ships independently behind the mode flag; autonomous mode is
 regression-safe throughout because every change branches on
-`pipeline_mode === 'director'`.
+`pipeline_mode === 'director'`. The mode-isolation suite (§10.2) is a
+merge gate per phase: D1 requires §10.2.1–10.2.4 + 10.2.7 green, D2 adds
+§10.2.5, D3 adds §10.2.6, and later phases must keep the whole suite green.
 
 **D1 — Foundation (mode + guards).** Migration §3.1/§3.2/§3.3; Settings +
 wizard mode UI with freeze/resume confirm; `runPipeline` mode guard +
@@ -458,6 +460,8 @@ order, D6 last.
 
 ## 10. Testing
 
+### 10.1 Feature tests
+
 - **Unit:** mode guard (runPipeline no-op matrix per caller); decideGate
   cap-bypass; bracket→word-budget math; freeze/re-arm status matrix;
   mergeQualityGates untouched-in-director invariant; disagreement-mining
@@ -467,6 +471,115 @@ order, D6 last.
   mode flip both directions mid-pipeline.
 - **E2E (Playwright, existing harness):** console renders per stage; a
   low-QC advance succeeds with advisory chip visible.
+
+### 10.2 Mode-isolation test suite (no cross-mode leakage)
+
+**The isolation invariant, stated once and enforced everywhere:** for a
+project in Director Mode, *no* autonomous-mode function, setting, sweep,
+notification, or UI surface may act on it or render for it — and vice
+versa, no director-only action, setting, or surface may act on or render
+for an autonomous project. The suites below (`tests/mode-isolation.spec.ts`
++ a Playwright counterpart) prove the invariant holds today and keep
+holding as the codebase grows. **Merge gates:** D1 cannot merge without
+10.2.1–10.2.4 and 10.2.7 green; D2 adds 10.2.5; D3 adds 10.2.6; every later
+phase must keep the whole suite green.
+
+**10.2.1 Autonomous entry-point registry (the architectural guard).**
+Maintain an explicit registry constant `AUTONOMOUS_ENTRY_POINTS` listing
+every function that can autonomously move, mutate, or publish a video:
+`runPipeline` (hop loop), `decideGate` auto-approve paths,
+`processPendingBuildVideos`, `finalizeAutoPilotVideos`,
+`releaseScheduledVideos`, the auto-fix sweep, `watch-runner`,
+`auto-rescript`, the Autopilot Operator tick, Telegram approval handlers,
+and each autonomous MCP tool. A parameterized test invokes **every**
+registry entry against a director-mode fixture project (spy/recording DB
+client) and asserts **zero writes** to `videos`, `assets`, `qc_reviews`,
+`build_runs`, and zero adapter calls. A companion CI check greps the
+pipeline/actions/mcp modules for status-mutation call sites
+(`runPipeline(`, `decideGate(`, `.from("videos").update`) and fails if any
+call site is not either (a) inside a registry-covered function or (b)
+inside a director action module — so a *future* automation cannot be added
+without landing in the registry and inheriting the isolation test.
+
+**10.2.2 Engine no-op matrix.** Property-style matrix test: every
+`VIDEO_STATUS` × every caller origin (cron, gate-decision chain, Telegram,
+MCP, build-run, realtime nudge) × `pipeline_mode='director'` →
+`runPipeline` returns without any status change, `paused_reason` change,
+or spend. Exactly one path advances a director video: `runDirectedStage`
+with explicit `directed` opts — and it advances exactly one stage (asserted
+by status delta = 1 transition, never two).
+
+**10.2.3 Settings-inertness matrix (standard settings dead in Director).**
+For a director project, each autonomous setting is proven to have **zero
+behavioral effect** by running the relevant flow at both extremes of the
+setting and asserting identical outcomes:
+- per-gate `autonomy` (all 3^4 gate combinations sampled: assist/copilot/
+  autopilot never auto-approve anything);
+- `COPILOT_AUTO_APPROVE_SCORE` (a 10.0-scored artifact still waits);
+- `revisionWarnAt` / `revisionHardCap` (11th revision succeeds, no warn);
+- every blocking floor in `QualityGateConfig` (idea/seed-vision/fact-risk/
+  beat-relevance/watch floors at max strictness: generation proceeds,
+  finding recorded as advisory only);
+- operator-run `autoApproveHours` / `autoApproveQc` / calendar slots
+  (never fire);
+- autofix latch / stall nudges (never fire).
+The inverse direction: for an autonomous project, director-only settings
+(`director_micro_loops`, `length_target` UI defaults) have zero effect,
+and **no** `operator_decisions` rows are ever written by autonomous flows
+(assert table untouched after a full autonomous mock walkthrough).
+Exceptions stay shared *by design* and are asserted to fire in BOTH modes:
+budget caps, `failClosedBlocksSpend`, `isKillSwitchOn`,
+`reconcileStuckRenders`.
+
+**10.2.4 Sweep/cron isolation (integration, twin-project diff).** Seed two
+byte-identical projects — one autonomous, one director — with videos parked
+at every status. Run **every** cron/sweep entry point once. Assert: the
+autonomous project's rows changed as expected; the director project's
+`videos`, `assets`, `qc_reviews`, and `cost_ledger` rows are **byte-
+identical before/after** (full row snapshot diff = ∅), and no Telegram/
+push adapter calls referenced it.
+
+**10.2.5 Server-action mode assertions (wrong-mode rejection).** Every
+director server action begins with an `assertPipelineMode('director')`
+guard; every autonomous mutating server action (gate approve-all, build-run
+start, autopilot start, schedule release) asserts `'autonomous'`. The test
+calls **each** action against the wrong-mode project and asserts a typed
+`WRONG_MODE` error and zero DB writes. This is the API-level seam that
+makes UI isolation (10.2.6) defense-in-depth rather than the only barrier.
+Includes MCP: autonomous tools refuse on director projects; director tools
+refuse on autonomous projects.
+
+**10.2.6 UI isolation (component + Playwright).** Director project renders
+**none** of: gate approve/revise quick actions, Build & Post panel,
+Autopilot page (route redirects to Library), auto-fix latch chips, operator
+calendar panel, Telegram approval hints, copilot/autopilot status copy;
+the Settings autonomy + threshold cards render disabled/advisory. Autonomous
+project renders **none** of: Director Console layout, Generate/Advance/
+Re-render buttons, bracket picker, mode badge, activity log. Both asserted
+by explicit `data-mode` selectors so the specs fail loudly if a surface
+leaks rather than silently passing on markup drift.
+
+**10.2.7 Mode-flip transition & race tests.**
+- Autonomous→Director mid-`SCRIPTING`: the in-flight invocation finishes
+  its stage body, lands on the gate status, and nothing further runs;
+  pending build-run videos become inert; an **active** Autopilot run blocks
+  the flip (typed error) until stopped.
+- Director→Autonomous: the re-arm pass resumes every working-status video
+  exactly once (idempotency: running re-arm twice causes no double stage
+  execution — assert via spend/ledger count); pre-flip per-gate autonomy
+  values are restored unchanged.
+- Race: simulate a sweep that read the project as autonomous, then the
+  mode flips before it writes — the guard must re-check `pipeline_mode`
+  at write time (per-video, inside the mutation path, not just at query
+  time) and refuse. Fuzz: N random flips against randomized pipeline
+  states never yields a double-advance or a stuck video lacking a visible
+  "awaiting direction"/`paused_reason` state.
+
+**10.2.8 Learning-loop scoping.** Disagreement mining reads only director
+projects' `operator_decisions`; lessons it writes carry evidence citing
+those rows; running the miner against autonomous-only fixtures writes
+nothing. Shared memory reads (prompt-prefix lessons) remain mode-agnostic
+by design and are asserted available in both modes.
 
 ---
 
