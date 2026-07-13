@@ -14,6 +14,7 @@ import { ScoutChat } from "@/components/dashboard/scout-chat";
 import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-button";
 import { RunDemoButton } from "@/components/dashboard/run-demo-button";
 import { NewAsset } from "./new-asset";
+import { DirectorIdeaGenerator } from "./director-idea-generator";
 import {
   GateQuickActions,
   IdeaCardActions,
@@ -109,10 +110,14 @@ export default async function LibraryPage({
         autopilot={directorMode ? undefined : library.operatorState}
       />
 
-      <div className="space-y-3">
-        <NewAsset projectId={project.id} />
-        <RunIntelligenceButton projectId={project.id} />
-      </div>
+      {directorMode ? (
+        <DirectorIdeaGenerator projectId={project.id} />
+      ) : (
+        <div className="space-y-3">
+          <NewAsset projectId={project.id} />
+          <RunIntelligenceButton projectId={project.id} />
+        </div>
+      )}
 
       {empty && (
         <div className="space-y-3 rounded-card bg-card p-8 text-center shadow-card">

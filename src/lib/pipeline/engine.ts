@@ -318,6 +318,94 @@ async function arriveAtGate(
   }
 }
 
+/** Director stage → the ApprovalGate whose rubric reviewGate should apply. */
+const GATE_FOR_DIRECTOR_STAGE: Record<
+  "idea" | "script" | "visuals" | "edit" | "publish",
+  ApprovalGate
+> = { idea: "IDEA", script: "SCRIPT", visuals: "ASSETS", edit: "FINAL", publish: "FINAL" };
+
+export type StageReviewResult = {
+  ok: boolean;
+  error?: string;
+  score: number | null;
+  verdict: "pass" | "fail" | null;
+  degraded: boolean;
+  costUsd: number;
+};
+
+/**
+ * Director Mode advisory review (spec §5 "Review action"). Runs the QC judge
+ * for the video's current stage, stores the result on `qc_reviews` exactly like
+ * an autonomous gate arrival — but it is purely advisory: the caller records
+ * the score and NOTHING advances or holds on it. The verdict is computed
+ * against the stage's floor only to annotate pass/fail; it never gates.
+ *
+ * Director-only. Best-effort cost accounting (the judge call is ledgered).
+ */
+export async function runStageReview(
+  videoId: string,
+  dbArg?: Db,
+): Promise<StageReviewResult> {
+  const db = dbArg ?? (await createClient());
+  const base: StageReviewResult = { ok: false, score: null, verdict: null, degraded: false, costUsd: 0 };
+  const video = await getVideo(db, videoId);
+  if (!video) return { ...base, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ...base, error: "Project not found" };
+  if (!isDirectorMode(project)) return { ...base, error: "runStageReview is Director-Mode only" };
+
+  const stage = ((): "idea" | "script" | "visuals" | "edit" | "publish" => {
+    const s = video.status;
+    if (s === "IDEA" || s === "IDEA_APPROVED") return "idea";
+    if (s === "SCRIPTING" || s === "SCRIPT_READY") return "script";
+    if (s === "GENERATING_ASSETS" || s === "ASSETS_READY") return "visuals";
+    if (s === "ASSEMBLING" || s === "FINAL_REVIEW") return "edit";
+    return "publish";
+  })();
+  const gate = GATE_FOR_DIRECTOR_STAGE[stage];
+
+  try {
+    const review = await reviewGate({
+      gate,
+      context: await qcContext(db, video, project, gate),
+      // Advisory only — no escalateNear, since no auto-advance decision rides on it.
+    });
+    await db.from("qc_reviews").insert({
+      video_id: video.id,
+      gate,
+      score: review.score,
+      verdict: review.verdict,
+      issues: review.issues,
+      strengths: review.strengths,
+      criteria: review.criteria,
+      judge_model: review.judgeModel,
+      escalated: review.escalated,
+      auto_approved: false, // Director never auto-approves off a review
+    });
+    if (review.costUsd > 0) {
+      await recordCost(
+        db,
+        video,
+        { provider: "anthropic", usd: review.costUsd, description: "QC review" },
+        `${GATE_LABELS[gate]} review (Director)`,
+      );
+    }
+    // Advisory verdict against the idea/run floor purely to annotate the badge.
+    const qg = await getQualityGateConfig(db);
+    const floor = gate === "IDEA" ? qg.ideaFloor : qg.runFloor;
+    const verdict: "pass" | "fail" = review.score >= floor ? "pass" : "fail";
+    return {
+      ok: true,
+      score: review.score,
+      verdict,
+      degraded: Boolean(review.degraded),
+      costUsd: review.costUsd ?? 0,
+    };
+  } catch (err) {
+    return { ...base, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /**
  * Run the prose fact-check for a script about to auto-advance. Stores the
  * verdict on the video, ledgers the cost, and pauses the video (returns true)
@@ -1703,6 +1791,19 @@ export async function runDirectedStage(
     video.status,
   );
   if (paidStage) {
+    // Fail-closed money rail (kept in both modes): when a paid asset provider is
+    // live but the QC/grading model is not, we'd be paying to generate visuals
+    // we cannot judge. Block that spend before the asset stage rather than wave
+    // it through (spec §2 principle 3 / §4.1.5).
+    if (video.status === "GENERATING_ASSETS") {
+      const qg = await getQualityGateConfig(db);
+      if (failClosedBlocksSpend(qg)) {
+        const reason =
+          "Asset generation blocked — a paid image/video provider is live but the QC model has no key, so generated visuals can't be judged. Add ANTHROPIC_API_KEY (or run visuals in mock) to proceed.";
+        await db.from("videos").update({ paused_reason: reason }).eq("id", videoId);
+        return { ok: false, error: reason };
+      }
+    }
     const pause = await budgetPause(db, video, project);
     if (pause) {
       await db.from("videos").update({ paused_reason: pause }).eq("id", videoId);

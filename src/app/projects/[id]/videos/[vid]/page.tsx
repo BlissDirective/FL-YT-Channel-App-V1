@@ -24,6 +24,7 @@ import type { QcReview } from "@/lib/db/queries";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { CheckpointPanel } from "./checkpoint-panel";
 import { CanvasControls } from "./canvas-controls";
+import { DirectorControls } from "./director-controls";
 import { ScriptReview } from "./script-review";
 import { HighlightsEditor } from "./highlights-editor";
 import { StepBackStage } from "./step-back";
@@ -83,6 +84,7 @@ export default async function VideoDetailPage({
 
   const v = video as Video;
   const s = (script as Script) ?? null;
+  const directorMode = (project.pipeline_mode ?? "autonomous") === "director";
   const beats = (s?.beats ?? []) as ScriptBeat[];
   const allAssets = (assets as Asset[]) ?? [];
 
@@ -239,12 +241,14 @@ export default async function VideoDetailPage({
         </Link>
         <div className="mt-1 flex flex-wrap items-start justify-between gap-2">
           <h1 className="text-2xl font-bold tracking-tight">{v.title}</h1>
-          <CanvasControls
-            projectId={id}
-            videoId={vid}
-            paused={Boolean(v.paused_reason)}
-            killed={v.status === "KILLED"}
-          />
+          {!directorMode && (
+            <CanvasControls
+              projectId={id}
+              videoId={vid}
+              paused={Boolean(v.paused_reason)}
+              killed={v.status === "KILLED"}
+            />
+          )}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <StatusChip tone={gate ? "warning" : isPublishStage ? "success" : "neutral"}>
@@ -270,7 +274,16 @@ export default async function VideoDetailPage({
         <ProgressRail steps={RAIL_STEPS} current={railIndexFor(v)} className="mt-4" />
       </div>
 
-      {gate && (
+      {directorMode && (
+        <DirectorControls
+          projectId={id}
+          videoId={vid}
+          status={v.status}
+          pausedReason={v.paused_reason}
+        />
+      )}
+
+      {gate && !directorMode && (
         <CheckpointPanel
           projectId={id}
           videoId={vid}

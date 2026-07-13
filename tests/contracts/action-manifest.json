@@ -20,6 +20,17 @@
   "diagnostics": [
     "testCredentialAction(service: string)"
   ],
+  "director": [
+    "directorGenerateIdeasAction(projectId: string, opts: { count: number; format: \"short\" | \"long\"; bracket: string; topic?: string },)",
+    "directorRunStageAction(projectId: string, videoId: string,)",
+    "directorReviewStageAction(projectId: string, videoId: string,)",
+    "directorAdvanceAction(projectId: string, videoId: string,)",
+    "directorReviseAction(projectId: string, videoId: string, opts: { notes?: string; findings?: unknown } = {},)",
+    "directorRerenderAction(projectId: string, videoId: string, opts: { notes?: string } = {},)",
+    "directorStepBackAction(projectId: string, videoId: string,)",
+    "directorKillAction(projectId: string, videoId: string,)",
+    "directorPublishAction(projectId: string, videoId: string,)"
+  ],
   "edit": [
     "saveEddAction(projectId: string, videoId: string, rawDoc: EditDocument, parentVersion: number, note: string,)",
     "revertEddAction(projectId: string, videoId: string, toVersion: number,)",
