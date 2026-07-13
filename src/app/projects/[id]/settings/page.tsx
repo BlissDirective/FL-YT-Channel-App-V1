@@ -7,6 +7,7 @@ import { getVoices } from "@/lib/adapters/voice";
 import { DEFAULT_SCRIPT_TEMPLATE } from "@/lib/pipeline/templates";
 import { SettingsForm } from "./settings-form";
 import { TemplateEditor } from "./template-editor";
+import { PipelineModeCard } from "./pipeline-mode-card";
 
 export default async function ProjectSettingsPage({
   params,
@@ -41,10 +42,12 @@ export default async function ProjectSettingsPage({
         <h1 className="text-2xl font-bold tracking-tight">Project settings</h1>
         <p className="mt-1 text-sm text-muted">{project.name}</p>
       </div>
+      <PipelineModeCard projectId={id} mode={project.pipeline_mode ?? "autonomous"} />
       <SettingsForm
         project={{ ...project, youtube_refresh_token: null }}
         hasYoutubeToken={Boolean(project.youtube_refresh_token)}
         voices={voices}
+        directorMode={(project.pipeline_mode ?? "autonomous") === "director"}
       />
       <TemplateEditor
         projectId={id}

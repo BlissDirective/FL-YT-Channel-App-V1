@@ -1,4 +1,6 @@
-import type { ApprovalGate, AutonomyMode, VideoStatus } from "@studio/core";
+import type { ApprovalGate, AutonomyMode, PipelineMode, VideoStatus } from "@studio/core";
+
+export type { PipelineMode };
 import type { FrameCritique, StickCast } from "@/lib/stick-types";
 
 export type BrandKit = {
@@ -36,6 +38,15 @@ export type Project = {
   voice_id: string | null;
   voice_name: string | null;
   autonomy: Record<ApprovalGate, AutonomyMode>;
+  /** Director Mode (Fable-5-Director-Mode-Build-Spec.md). 'autonomous' (default)
+      is today's engine-driven behavior; 'director' hands every stage transition
+      to the operator — the engine never self-advances, sweeps skip the project,
+      QC floors become advisory, and revision caps/auto-approve are disabled.
+      Money rails (budget, fail-closed, kill switch) stay enforced in both. */
+  pipeline_mode: PipelineMode;
+  /** Director Mode: run in-stage quality micro-loops (seed/variety re-roll)
+      inside a single operator button press (§4.4). Ignored in autonomous mode. */
+  director_micro_loops: boolean;
   /** MVDA: this channel's videos get an agent cut session (Phase C). */
   mvda_enabled: boolean;
   /** C2 — the CUT gate's copilot auto-approve floor (default 7.0; deliberately
@@ -185,6 +196,17 @@ export type VideoKind = "long" | "short";
 export const SHORT_LENGTHS = [30, 60, 120, 180] as const;
 export type ShortLength = (typeof SHORT_LENGTHS)[number];
 
+/** Director Mode length target (spec §4.5): the format + exact bracket the
+    operator picks at idea time. The script agent targets [minSec, maxSec] and
+    the post-voiceover duration check flags (advisory) if it lands outside. */
+export type LengthTarget = {
+  format: "short" | "long";
+  /** Bracket key, e.g. "60-90s" or "3-4min" — must be a DIRECTOR_LENGTH_BRACKETS id. */
+  bracket: string;
+  minSec: number;
+  maxSec: number;
+};
+
 /** Which parent beats a repurposed short was cut from. */
 export type ShortSegment = {
   /** Parent ScriptBeat.idx values, contiguous and in order. */
@@ -210,6 +232,9 @@ export type Video = {
   source_segment: ShortSegment | null;
   format: string;
   target_length_sec: number;
+  /** Director Mode length bracket (null in autonomous mode / pre-D4 videos).
+      When present it wins over tier/target defaults in scripting + VO. */
+  length_target: LengthTarget | null;
   scheduled_at: string | null;
   youtube_video_id: string | null;
   published_at: string | null;

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Radar, Settings } from "lucide-react";
+import { Clapperboard, Radar, Settings } from "lucide-react";
 import { getProject } from "@/lib/db/queries";
 import { getLibrary, type LibraryItem } from "@/lib/db/library-data";
 import { LIBRARY_SECTIONS, RAIL_STEPS } from "@/lib/db/library";
@@ -37,6 +37,7 @@ export default async function LibraryPage({
   const project = await getProject(id);
   if (!project) notFound();
   const library = await getLibrary(id);
+  const directorMode = (project.pipeline_mode ?? "autonomous") === "director";
 
   const monthlyBudget = Number(
     (project.budget as { monthlyUsd?: number })?.monthlyUsd ?? 0,
@@ -57,7 +58,18 @@ export default async function LibraryPage({
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">
             <Link href="/" className="hover:text-ink">Projects</Link> / Library
           </p>
-          <h1 className="truncate text-2xl font-bold tracking-tight">{project.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="truncate text-2xl font-bold tracking-tight">{project.name}</h1>
+            {directorMode && (
+              <span
+                data-mode="director"
+                className="flex shrink-0 items-center gap-1 rounded-full bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-accent"
+                title="You direct every stage. Nothing advances on its own."
+              >
+                <Clapperboard className="size-3" /> Director Mode
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -76,11 +88,25 @@ export default async function LibraryPage({
         </div>
       </div>
 
+      {directorMode && (
+        <div
+          data-mode="director"
+          className="flex items-start gap-2 rounded-card bg-accent-soft p-4 text-sm shadow-card"
+        >
+          <Clapperboard className="mt-0.5 size-4 shrink-0 text-ink" />
+          <p className="text-ink">
+            <strong>You&apos;re directing this channel.</strong> Assets wait for you at
+            every stage — nothing generates, revises, or publishes on its own. Open any
+            asset to run its stage agents and advance it. QC notes are advisory.
+          </p>
+        </div>
+      )}
+
       <ProjectSignalStrip
         spendUsd={library.monthSpendUsd}
         budgetUsd={monthlyBudget}
         attentionCount={library.attentionCount}
-        autopilot={library.operatorState}
+        autopilot={directorMode ? undefined : library.operatorState}
       />
 
       <div className="space-y-3">

@@ -50,6 +50,7 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
 
   const [palette, setPalette] = useState(PALETTES[0]);
   const [voiceId, setVoiceId] = useState(voices[0]?.id ?? "");
+  const [pipelineMode, setPipelineMode] = useState<"autonomous" | "director">("autonomous");
   const [autonomy, setAutonomy] = useState<Record<string, string>>({
     IDEA: "assist",
     SCRIPT: "assist",
@@ -67,6 +68,7 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
       <input type="hidden" name="brand_secondary" value={palette.secondary} />
       <input type="hidden" name="voice_id" value={voiceId} />
       <input type="hidden" name="voice_name" value={selectedVoice?.name ?? ""} />
+      <input type="hidden" name="pipeline_mode" value={pipelineMode} />
       {GATES.map((g) => (
         <input
           key={g.key}
@@ -282,8 +284,47 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
 
         {/* Step 4 — Autonomy & budget */}
         <div className={cn("space-y-5", step !== 3 && "hidden")}>
+          <Field label="Pipeline mode" hint="Who drives work from idea to publish?">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {[
+                {
+                  value: "autonomous" as const,
+                  label: "Autonomous",
+                  blurb: "The studio drives the pipeline and auto-advances gates per your settings below.",
+                },
+                {
+                  value: "director" as const,
+                  label: "Director",
+                  blurb: "You direct every stage. Nothing advances on its own; QC is advisory. (Per-gate autonomy below won't apply.)",
+                },
+              ].map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => setPipelineMode(o.value)}
+                  aria-pressed={pipelineMode === o.value}
+                  className={cn(
+                    "flex flex-col gap-1 rounded-card border p-3 text-left transition-colors",
+                    pipelineMode === o.value
+                      ? "border-accent bg-accent-soft"
+                      : "border-line bg-card-warm hover:border-accent/50",
+                  )}
+                >
+                  <span className="text-sm font-semibold">{o.label}</span>
+                  <span className="text-xs leading-relaxed text-muted">{o.blurb}</span>
+                </button>
+              ))}
+            </div>
+          </Field>
+
           <Field label="Autonomy per gate" hint="How much should the studio decide on its own?">
-            <div className="space-y-2">
+            {pipelineMode === "director" && (
+              <p className="mb-2 rounded-lg bg-card-warm p-3 text-xs leading-relaxed text-muted">
+                Director Mode ignores per-gate autonomy — you approve every stage yourself.
+                These are saved for if you switch to Autonomous later.
+              </p>
+            )}
+            <div className={cn("space-y-2", pipelineMode === "director" && "pointer-events-none opacity-50")}>
               {GATES.map((g) => (
                 <div
                   key={g.key}

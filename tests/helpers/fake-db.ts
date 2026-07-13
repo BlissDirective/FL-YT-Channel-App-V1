@@ -112,6 +112,43 @@ class QueryBuilder implements PromiseLike<{
     return this;
   }
 
+  /**
+   * PostgREST `.or("a.is.null,a.lte.2026-…")` — a disjunction of `col.op.value`
+   * terms. Value may contain dots (ISO timestamps), so only the first two dots
+   * split col/op; the rest is the value. Supports the ops the engine uses:
+   * is.null, eq, lte, gte, lt, in.
+   */
+  or(expr: string) {
+    const terms = expr.split(",").map((t) => {
+      const first = t.indexOf(".");
+      const second = t.indexOf(".", first + 1);
+      const col = t.slice(0, first);
+      const op = t.slice(first + 1, second);
+      const raw = t.slice(second + 1);
+      return { col, op, raw };
+    });
+    this.filters.push((r) =>
+      terms.some(({ col, op, raw }) => {
+        const v = r[col];
+        switch (op) {
+          case "is":
+            return raw === "null" ? v == null : String(v) === raw;
+          case "eq":
+            return String(v ?? "") === raw;
+          case "lte":
+            return v != null && String(v) <= raw;
+          case "gte":
+            return v != null && String(v) >= raw;
+          case "lt":
+            return v != null && Number(v) < Number(raw);
+          default:
+            return false;
+        }
+      }),
+    );
+    return this;
+  }
+
   order(_col: string, _opts?: { ascending?: boolean }) {
     return this;
   }

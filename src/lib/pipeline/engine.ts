@@ -4,6 +4,7 @@ import {
   checkPublicHttpUrl,
   GATE_FOR_STATUS,
   GATE_LABELS,
+  isDirectorMode,
   ON_APPROVE,
   PREVIOUS_STAGE,
   REVISION_TARGET,
@@ -124,6 +125,17 @@ async function getProject(db: Db, id: string): Promise<Project | null> {
   return (data as Project) ?? null;
 }
 
+/** Ids of every Director-Mode project — the belt-and-suspenders exclusion set
+    for sweeps that select videos without loading each project. Cheap: the
+    partial index `projects_pipeline_mode_idx` covers this exact predicate. */
+export async function directorProjectIds(db: Db): Promise<Set<string>> {
+  const { data } = await db
+    .from("projects")
+    .select("id")
+    .eq("pipeline_mode", "director");
+  return new Set(((data ?? []) as { id: string }[]).map((r) => r.id));
+}
+
 export async function isKillSwitchOn(db?: Db): Promise<boolean> {
   const supabase = db ?? (await createClient());
   const { data } = await supabase
@@ -205,7 +217,12 @@ async function arriveAtGate(
 ): Promise<void> {
   // QC agent reviews every arrival; failures degrade to a neutral verdict
   // and never block the gate.
-  const mode: AutonomyMode = project.autonomy?.[gate] ?? "assist";
+  // Director Mode: gates never auto-advance — force 'assist' so the arrival
+  // lands and holds for the operator, while the QC review below still runs and
+  // records an ADVISORY score. No auto-approve, no fact-check/watch holds fire.
+  const mode: AutonomyMode = isDirectorMode(project)
+    ? "assist"
+    : project.autonomy?.[gate] ?? "assist";
   // C2 — the CUT gate (ASSETS slot with an active EDD) auto-approves at the
   // per-project cut floor (default 7.0), not the app-wide 7.5.
   const isCutGate = gate === "ASSETS" && video.edit_document_version != null;
@@ -1561,6 +1578,15 @@ export async function runPipeline(videoId: string, dbArg?: Db): Promise<EngineRe
     const project = await getProject(db, video.project_id);
     if (!project) return { ok: false, error: "Project not found" };
 
+    // Director Mode master guard (spec §4.1): the engine never self-advances a
+    // director project. Because every autonomous caller — crons, sweeps,
+    // gate-approve chaining, Telegram, MCP, build-runner — ultimately reaches a
+    // video through this loop, this single early return neutralizes all of
+    // them at once. The operator advances a director video ONLY via
+    // runDirectedStage (one press = one stage). Re-checked here (not just at
+    // the sweep query) so a mode flip mid-sweep can't drag the video along.
+    if (isDirectorMode(project)) return { ok: true };
+
     if (await isKillSwitchOn(db)) {
       await db
         .from("videos")
@@ -1627,6 +1653,92 @@ export async function runPipeline(videoId: string, dbArg?: Db): Promise<EngineRe
       console.error(`pipeline stage ${video.status} failed for ${videoId}:`, err);
       return { ok: false, error: msg };
     }
+  }
+  return { ok: true };
+}
+
+/**
+ * Director Mode single-step executor (spec §4.1). Runs EXACTLY ONE working-stage
+ * body for a director-project video, then stops — one operator press = one
+ * stage, no hop loop, no chaining, no gate auto-resolution. This is the only
+ * path allowed to advance a director video; `runPipeline` no-ops for them.
+ *
+ * Money rails apply identically to autonomous mode: the global kill switch, the
+ * paused-project check, and the paid-stage budget guard all run before any
+ * spend. QC floors do NOT block here — advisory reviews are a separate operator
+ * action (D2), and gate arrivals hold rather than advance.
+ *
+ * Callable only from a working (non-gate) status. At a gate status there is no
+ * stage body to run — the operator uses decideGate (Advance) or a D2 stage
+ * action instead — so this returns a no-op result.
+ */
+export async function runDirectedStage(
+  videoId: string,
+  dbArg?: Db,
+): Promise<EngineResult> {
+  const db = dbArg ?? (await createClient());
+  const video = await getVideo(db, videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+  if (!isDirectorMode(project)) {
+    return { ok: false, error: "runDirectedStage is Director-Mode only" };
+  }
+
+  // Money + safety rails (shared with autonomous mode by design).
+  if (await isKillSwitchOn(db)) {
+    await db.from("videos").update({ paused_reason: "Global kill switch is on" }).eq("id", videoId);
+    return { ok: false, error: "Global kill switch is on" };
+  }
+  if (project.status !== "active") {
+    await db.from("videos").update({ paused_reason: "Project is paused" }).eq("id", videoId);
+    return { ok: false, error: "Project is paused" };
+  }
+
+  // At a gate status there is no stage body — hold for an explicit gate/stage
+  // action rather than doing anything implicit.
+  if (GATE_FOR_STATUS[video.status]) return { ok: true };
+
+  const paidStage = ["IDEA_APPROVED", "SCRIPTING", "GENERATING_ASSETS", "ASSEMBLING"].includes(
+    video.status,
+  );
+  if (paidStage) {
+    const pause = await budgetPause(db, video, project);
+    if (pause) {
+      await db.from("videos").update({ paused_reason: pause }).eq("id", videoId);
+      return { ok: false, error: pause };
+    }
+    if (video.paused_reason) {
+      await db.from("videos").update({ paused_reason: null }).eq("id", videoId);
+    }
+  }
+
+  try {
+    switch (video.status) {
+      case "IDEA_APPROVED":
+        await setStatus(db, videoId, "SCRIPTING");
+        break;
+      case "SCRIPTING":
+        await runScripting(db, video, project);
+        break;
+      case "GENERATING_ASSETS":
+        await runAssetGeneration(db, video, project);
+        break;
+      case "ASSEMBLING":
+        await runAssembly(db, video); // 'external' → render farm takes over
+        break;
+      default:
+        return { ok: true }; // APPROVED / TRACKING / KILLED / NEEDS_REVISION
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const stage = video.status.replace(/_/g, " ").toLowerCase();
+    await db
+      .from("videos")
+      .update({ paused_reason: `${stage} paused — ${humanizeProviderError(msg)}` })
+      .eq("id", videoId);
+    console.error(`directed stage ${video.status} failed for ${videoId}:`, err);
+    return { ok: false, error: msg };
   }
   return { ok: true };
 }
@@ -2521,6 +2633,11 @@ export async function startBuildRun(
   const db = dbArg ?? (await createClient());
   const project = await getProject(db, projectId);
   if (!project) return { ok: false, error: "Project not found" };
+  // Director Mode: Build & Post (batch autonomous production) is not available.
+  // The operator directs one video at a time via the Director Console.
+  if (isDirectorMode(project)) {
+    return { ok: false, error: "Build & Post is unavailable in Director Mode — direct videos individually from the Console." };
+  }
 
   const count = Math.max(1, Math.min(6, Math.round(cfg.count)));
   const lo = Math.max(15, Math.min(cfg.lengthMinSec, cfg.lengthMaxSec));
@@ -2674,6 +2791,11 @@ export async function processPendingBuildVideos(
     try {
       const project = await getProject(db, row.project_id);
       if (!project) throw new Error("Project not found");
+      // Director Mode: Build & Post is an autonomous-only feature. Never claim
+      // or drive a director project's seed (spec §4.3). The Build UI is hidden
+      // for director projects and startBuildRun rejects them, so this is the
+      // race backstop (e.g. a run seeded before a mode flip).
+      if (isDirectorMode(project)) continue;
       // ATOMIC claim (Phase 3): conditional update — only the runner that
       // flips IDEA_APPROVED→SCRIPTING owns the seed. A concurrent cron pass
       // or "Run now" click matches zero rows and skips instead of running the
@@ -2970,6 +3092,9 @@ export async function finalizeAutoPilotVideos(
       const project = await getProject(db, row.project_id);
       const video = await getVideo(db, row.id);
       if (!project || !video) continue;
+      // Director Mode: the finalizer never publishes for a director project —
+      // publish is always an explicit operator action (spec §4.3, §6.5).
+      if (isDirectorMode(project)) continue;
       // Auto Pilot Operator owns its videos' approval — they hold at
       // FINAL_REVIEW for one-tap approval (or auto-approve) rather than the
       // build-runner auto-publishing them here.
@@ -3061,6 +3186,10 @@ export async function releaseScheduledVideos(
     .order("scheduled_publish_at", { ascending: true, nullsFirst: true })
     .limit(limit + blocked.size + 5);
 
+  // Director Mode: scheduled auto-release never fires for a director project —
+  // publish is always manual (spec §4.3, §6.5). Exclude their videos up front.
+  const directorProjects = await directorProjectIds(db);
+
   let released = 0;
   for (const v of ((due ?? []) as {
     id: string;
@@ -3069,6 +3198,7 @@ export async function releaseScheduledVideos(
     build_run_id: string | null;
   }[])
     .filter((r) => !(r.build_run_id && blocked.has(r.build_run_id)))
+    .filter((r) => !directorProjects.has(r.project_id))
     .slice(0, limit)) {
     await db.from("videos").update({ publish_requested: true }).eq("id", v.id);
     released++;
@@ -4054,15 +4184,18 @@ export async function decideGate(
   const db = dbArg ?? (await createClient());
   const video = await getVideo(db, opts.videoId);
   if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  const director = isDirectorMode(project);
 
   const gate = GATE_FOR_STATUS[video.status];
   if (!gate) return { ok: false, error: `No open gate for status ${video.status}` };
 
   // Cost-aware revision cap (hybrid): count prior human/MCP revisions on this
   // video; hard-block beyond the cap, warn as it approaches. Auto-pilot's own
-  // single revision (decided_by 'autopilot') is exempt.
+  // single revision (decided_by 'autopilot') is exempt. Director Mode has NO
+  // revision caps (spec §1 decision 7): the operator revises unlimited times.
   let revisionWarning: string | undefined;
-  if (opts.decision === "revision" && decidedBy !== "autopilot") {
+  if (opts.decision === "revision" && decidedBy !== "autopilot" && !director) {
     const { count } = await db
       .from("approvals")
       .select("id", { count: "exact", head: true })
@@ -4125,5 +4258,10 @@ export async function decideGate(
     .from("videos")
     .update({ status: next, paused_reason: null })
     .eq("id", video.id);
+  // Director Mode: advancing a gate moves the status only — it never chains
+  // into the next stage body. The operator triggers the next stage explicitly
+  // via runDirectedStage (one press = one action). runPipeline would no-op for
+  // a director project anyway; returning here keeps the intent explicit.
+  if (director) return { ok: true };
   return runPipeline(video.id, db);
 }

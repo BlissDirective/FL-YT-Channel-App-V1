@@ -84,6 +84,10 @@ export async function createProject(
       voice_id: String(formData.get("voice_id") ?? "") || null,
       voice_name: String(formData.get("voice_name") ?? "") || null,
       autonomy: parseAutonomy(formData),
+      pipeline_mode:
+        String(formData.get("pipeline_mode") ?? "autonomous") === "director"
+          ? "director"
+          : "autonomous",
       budget: parseBudget(formData),
       rpm_usd: Number(formData.get("rpm_usd") ?? 2),
     })
@@ -347,4 +351,84 @@ export async function deleteProject(formData: FormData): Promise<void> {
     revalidatePath("/");
   }
   redirect("/");
+}
+
+/**
+ * Flip a project's pipeline mode (Director Mode spec §4.2). Freeze-in-place /
+ * re-arm semantics:
+ *  - → director: an active Autopilot run blocks the flip (stop it first). Once
+ *    flipped, the engine's master guard freezes every in-flight video where it
+ *    sits — no data changes, no stage runs. The operator drives from here.
+ *  - → autonomous: re-arm every video parked in a working (non-gate) status by
+ *    running one pipeline pass so nothing stays stranded; gate-status videos
+ *    resume their configured per-gate autonomy on their own. Per-gate autonomy
+ *    settings were preserved across the director stint, so they're restored
+ *    unchanged.
+ */
+export async function setPipelineMode(
+  projectId: string,
+  mode: "autonomous" | "director",
+): Promise<ProjectResult> {
+  if (!projectId) return { error: "Missing project id." };
+  if (mode !== "autonomous" && mode !== "director") return { error: "Invalid mode." };
+  const supabase = await createClient();
+
+  const { data: proj } = await supabase
+    .from("projects")
+    .select("id, pipeline_mode")
+    .eq("id", projectId)
+    .maybeSingle();
+  if (!proj) return { error: "Project not found." };
+  const current = (proj as { pipeline_mode?: string }).pipeline_mode ?? "autonomous";
+  if (current === mode) return {}; // no-op
+
+  if (mode === "director") {
+    // Block the flip while an Autopilot run is live — its calendar/finalizer
+    // would otherwise be orphaned. The operator stops it explicitly first.
+    const { data: run } = await supabase
+      .from("operator_runs")
+      .select("id")
+      .eq("project_id", projectId)
+      .in("status", ["active", "paused"])
+      .maybeSingle();
+    if (run) {
+      return {
+        error:
+          "Stop Auto Pilot before switching to Director Mode — an active run can't be handed to manual control.",
+      };
+    }
+  }
+
+  const { error } = await supabase
+    .from("projects")
+    .update({ pipeline_mode: mode })
+    .eq("id", projectId);
+  if (error) return { error: error.message };
+
+  // → autonomous: re-arm working-status videos so none are left frozen. Uses
+  // the admin client + the engine so a single pass advances each exactly once
+  // (idempotent — a video already at a gate just arrives and holds).
+  if (mode === "autonomous") {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const { runPipeline } = await import("@/lib/pipeline/engine");
+    const admin = createAdminClient();
+    const { data: parked } = await admin
+      .from("videos")
+      .select("id")
+      .eq("project_id", projectId)
+      .in("status", ["IDEA_APPROVED", "SCRIPTING", "GENERATING_ASSETS", "ASSEMBLING"]);
+    for (const v of (parked ?? []) as { id: string }[]) {
+      try {
+        await runPipeline(v.id, admin);
+      } catch (err) {
+        console.error(`re-arm ${v.id} failed:`, err);
+      }
+    }
+  }
+
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/projects/${projectId}/settings`);
+  revalidatePath(`/projects/${projectId}/library`);
+  revalidatePath("/");
+  return {};
 }

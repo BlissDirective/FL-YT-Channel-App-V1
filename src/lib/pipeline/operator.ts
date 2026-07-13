@@ -1,4 +1,5 @@
 import "server-only";
+import { isDirectorMode } from "@studio/core";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { startBuildRun, decideGate, isKillSwitchOn, zonedTimeToUtc, ymdInTz, type BuildRunConfig } from "@/lib/pipeline/engine";
 import { reviewGate, isQcLive } from "@/lib/adapters/qc";
@@ -114,6 +115,16 @@ export async function startOperator(
   projectId: string,
   config?: OperatorConfig,
 ): Promise<{ ok: boolean; run?: OperatorRun; error?: string }> {
+  // Director Mode: the Autopilot Operator is an autonomous-only supervisor and
+  // cannot run on a director project (spec §4.3).
+  const { data: proj } = await db
+    .from("projects")
+    .select("pipeline_mode")
+    .eq("id", projectId)
+    .maybeSingle();
+  if (isDirectorMode(proj as { pipeline_mode?: string } | null)) {
+    return { ok: false, error: "Auto Pilot is unavailable in Director Mode — you direct each video from the Console." };
+  }
   const existing = await liveRun(db, projectId);
   if (existing) {
     if (existing.status === "paused") {
@@ -1097,6 +1108,10 @@ export async function sweepOperator(
     const { data: p } = await db.from("projects").select("*").eq("id", run.project_id).maybeSingle();
     const project = p as Project | null;
     if (!project) continue;
+    // Director Mode: the Autopilot Operator never ticks a director project
+    // (spec §4.3). A project can't be flipped to Director while a run is active
+    // (the flip action blocks it), so this is the defense-in-depth backstop.
+    if (isDirectorMode(project)) continue;
     try {
       const out = await tickOperator(db, run, project);
       ticked += 1;

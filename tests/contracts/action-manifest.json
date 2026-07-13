@@ -101,7 +101,8 @@
     "updateProject(_prev: ProjectResult, formData: FormData,)",
     "createDemoProject()",
     "purgeDemoDataAction()",
-    "deleteProject(formData: FormData)"
+    "deleteProject(formData: FormData)",
+    "setPipelineMode(projectId: string, mode: \"autonomous\" | \"director\",)"
   ],
   "publish": [
     "markUploadedAction(projectId: string, videoId: string, youtubeUrl: string,)",

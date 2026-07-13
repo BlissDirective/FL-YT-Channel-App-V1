@@ -36,12 +36,16 @@ export function SettingsForm({
   project,
   voices,
   hasYoutubeToken = false,
+  directorMode = false,
 }: {
   project: Project;
   voices: Voice[];
   /** Whether a channel refresh token is already stored (the value itself is
       never sent to the client). */
   hasYoutubeToken?: boolean;
+  /** Director Mode: per-gate autonomy is inert (gates never auto-advance), so
+      the control renders as an advisory reference rather than an active input. */
+  directorMode?: boolean;
 }) {
   const [state, action, pending] = useActionState(updateProject, INITIAL);
   const [saved, setSaved] = useState(false);
@@ -377,7 +381,15 @@ export function SettingsForm({
         </Field>
 
         <Field label="Autonomy per gate">
-          <div className="space-y-2">
+          {directorMode && (
+            <p className="mb-2 rounded-lg bg-card-warm p-3 text-xs leading-relaxed text-muted">
+              Advisory reference only. In Director Mode gates never auto-advance —
+              you approve every stage from the Console — so these settings have no
+              effect. They&apos;re preserved and take over again if you switch back
+              to Autonomous.
+            </p>
+          )}
+          <div className={cn("space-y-2", directorMode && "pointer-events-none opacity-50")}>
             {GATES.map((g) => (
               <div
                 key={g.key}
@@ -389,6 +401,7 @@ export function SettingsForm({
                     <button
                       key={m.value}
                       type="button"
+                      disabled={directorMode}
                       onClick={() =>
                         setAutonomy((a) => ({ ...a, [g.key]: m.value }))
                       }

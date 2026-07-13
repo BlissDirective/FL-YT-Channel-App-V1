@@ -1,4 +1,5 @@
 import "server-only";
+import { isDirectorMode } from "@studio/core";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { reviewGate } from "@/lib/adapters/qc";
@@ -967,6 +968,10 @@ export async function sweepAutofix(
     }
     const project = projects.get(video.project_id);
     if (!project) continue;
+    // Director Mode: the auto-fix sweep never runs on its own for a director
+    // project (spec §4.3) — the operator triggers an Auto-Fix pass per asset
+    // (D5 button). processAutofixForVideo stays callable directly for that.
+    if (isDirectorMode(project)) continue;
     if (!resolveAutofix(project, video).on) continue;
     scanned += 1;
     try {

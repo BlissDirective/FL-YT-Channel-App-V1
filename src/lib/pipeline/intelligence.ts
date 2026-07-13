@@ -126,11 +126,14 @@ export async function runIntelligence(
 export async function runIntelligenceAllProjects(): Promise<{ created: number; projects: number }> {
   const db = createAdminClient();
   // Opt-in only: the nightly cron runs for projects that enabled auto-ideas.
+  // Director Mode: idea generation is always operator-triggered — the nightly
+  // auto-idea cron never seeds ideas for a director project (spec §4.3, §5).
   const { data: projects } = await db
     .from("projects")
     .select("id")
     .eq("status", "active")
-    .eq("auto_intelligence", true);
+    .eq("auto_intelligence", true)
+    .neq("pipeline_mode", "director");
   let created = 0;
   for (const p of projects ?? []) {
     const r = await runIntelligence(p.id);

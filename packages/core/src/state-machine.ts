@@ -89,3 +89,19 @@ export const PIPELINE_STAGES = [
 ] as const;
 
 export type AutonomyMode = "assist" | "copilot" | "autopilot";
+
+/** Per-project orchestration mode (Director Mode spec §3.1). 'autonomous' is
+    the engine-driven default; 'director' hands every transition to the
+    operator. Kept in core so the engine, actions, and UI share one source. */
+export type PipelineMode = "autonomous" | "director";
+
+export const DEFAULT_PIPELINE_MODE: PipelineMode = "autonomous";
+
+/** The single predicate every guard branches on. Treats a missing/unknown
+    value as autonomous so a pre-migration row can never accidentally read as
+    director (fail-safe toward today's behavior). */
+export function isDirectorMode(
+  project: { pipeline_mode?: string | null } | null | undefined,
+): boolean {
+  return project?.pipeline_mode === "director";
+}

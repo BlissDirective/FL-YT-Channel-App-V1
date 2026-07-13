@@ -1,0 +1,66 @@
+/**
+ * Director Mode length brackets (Fable-5-Director-Mode-Build-Spec.md §4.5).
+ *
+ * At idea time the operator picks a format (Short/Long) and an exact bracket.
+ * The script agent targets [minSec, maxSec] by word budget; after voiceover
+ * synthesis the actual duration is checked against the bracket and flagged
+ * (advisory only — never a block) if it lands outside.
+ *
+ * These are a SUPERSET of the autonomous-mode `SHORT_LENGTHS` and never replace
+ * them: autonomous videos keep their tier/target behavior untouched.
+ */
+
+export type DirectorFormat = "short" | "long";
+
+export type LengthBracket = {
+  /** Stable id, stored on videos.length_target.bracket. */
+  id: string;
+  format: DirectorFormat;
+  label: string;
+  minSec: number;
+  maxSec: number;
+};
+
+export const DIRECTOR_LENGTH_BRACKETS: readonly LengthBracket[] = [
+  { id: "15-30s", format: "short", label: "15–30 sec", minSec: 15, maxSec: 30 },
+  { id: "30-60s", format: "short", label: "30–60 sec", minSec: 30, maxSec: 60 },
+  { id: "60-90s", format: "short", label: "60–90 sec", minSec: 60, maxSec: 90 },
+  { id: "90-180s", format: "short", label: "90–180 sec", minSec: 90, maxSec: 180 },
+  { id: "1-2min", format: "long", label: "1–2 min", minSec: 60, maxSec: 120 },
+  { id: "2-3min", format: "long", label: "2–3 min", minSec: 120, maxSec: 180 },
+  { id: "3-4min", format: "long", label: "3–4 min", minSec: 180, maxSec: 240 },
+  { id: "4-5min", format: "long", label: "4–5 min", minSec: 240, maxSec: 300 },
+  { id: "5-6min", format: "long", label: "5–6 min", minSec: 300, maxSec: 360 },
+  { id: "6-8min", format: "long", label: "6–8 min", minSec: 360, maxSec: 480 },
+] as const;
+
+export function bracketById(id: string): LengthBracket | undefined {
+  return DIRECTOR_LENGTH_BRACKETS.find((b) => b.id === id);
+}
+
+export function bracketsForFormat(format: DirectorFormat): LengthBracket[] {
+  return DIRECTOR_LENGTH_BRACKETS.filter((b) => b.format === format);
+}
+
+/** Bracket midpoint (seconds) — the target the script word-budget aims for. */
+export function bracketMidpointSec(b: Pick<LengthBracket, "minSec" | "maxSec">): number {
+  return Math.round((b.minSec + b.maxSec) / 2);
+}
+
+/**
+ * Classify an actual (post-VO) duration against a bracket. Pure — used by the
+ * duration-check advisory flag and its unit tests.
+ *  - "in": within [minSec, maxSec]
+ *  - "under" / "over": outside, with the signed delta in seconds and percent.
+ */
+export function classifyDuration(
+  actualSec: number,
+  b: Pick<LengthBracket, "minSec" | "maxSec">,
+): { verdict: "in" | "under" | "over"; deltaSec: number; deltaPct: number } {
+  const mid = bracketMidpointSec(b);
+  const deltaSec = Math.round(actualSec - mid);
+  const deltaPct = mid > 0 ? Math.round(((actualSec - mid) / mid) * 100) : 0;
+  if (actualSec < b.minSec) return { verdict: "under", deltaSec, deltaPct };
+  if (actualSec > b.maxSec) return { verdict: "over", deltaSec, deltaPct };
+  return { verdict: "in", deltaSec, deltaPct };
+}
