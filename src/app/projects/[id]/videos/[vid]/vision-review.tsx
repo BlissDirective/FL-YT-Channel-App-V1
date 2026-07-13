@@ -2,6 +2,7 @@ import { Eye } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
 import type { FrameCritique } from "@/lib/stick-types";
+import { VisionFixButton } from "./vision-fix-button";
 
 const SEVERITY_TONE: Record<string, "warning" | "coral" | "neutral"> = {
   high: "coral",
@@ -9,8 +10,20 @@ const SEVERITY_TONE: Record<string, "warning" | "coral" | "neutral"> = {
   low: "neutral",
 };
 
-/** Tier-1 vision critique of the rendered keyframes (see Vision Optimizer Loop). */
-export function VisionReview({ review }: { review: FrameCritique }) {
+/** Tier-1 vision critique of the rendered keyframes (see Vision Optimizer Loop).
+    When the video is at Final Review, a "Fix these issues" button hands the
+    critique straight to the fix agent (projectId/videoId supplied). */
+export function VisionReview({
+  review,
+  projectId,
+  videoId,
+  canFix = false,
+}: {
+  review: FrameCritique;
+  projectId?: string;
+  videoId?: string;
+  canFix?: boolean;
+}) {
   const score = Number(review.score ?? 0);
   const scores = review.scores ?? { readability: 0, composition: 0, captions: 0, consistency: 0 };
   const strengths = review.strengths ?? [];
@@ -53,9 +66,14 @@ export function VisionReview({ review }: { review: FrameCritique }) {
 
         {issues.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-              {issues.length} issue{issues.length === 1 ? "" : "s"} — edit the beat below or re-roll it
-            </p>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                {issues.length} issue{issues.length === 1 ? "" : "s"} — fix them automatically, or edit the beat below
+              </p>
+              {canFix && projectId && videoId && (
+                <VisionFixButton projectId={projectId} videoId={videoId} />
+              )}
+            </div>
             <ul className="space-y-2">
               {issues.map((iss, i) => (
                 <li key={i} className="rounded-xl bg-canvas px-3 py-2">

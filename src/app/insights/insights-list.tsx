@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Check, Loader2, Sparkles, Wand2, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";
+import { insightIsApplicable } from "@/lib/insights-kinds";
 import {
   applyInsightAction,
   dismissInsightAction,
@@ -42,6 +43,10 @@ export function InsightCard({ insight }: { insight: InsightWithProject }) {
   const [showDiff, setShowDiff] = useState(false);
   const applied = insight.status === "applied";
   const hasTemplate = Boolean(insight.proposed_template_kind && insight.proposed_template_body);
+  // Only "script" templates are actually read by generation today — apply on any
+  // other proposed kind is advisory (a "Mark done" acknowledgement), never a
+  // dead template write.
+  const applicable = insightIsApplicable(insight.proposed_template_kind, insight.proposed_template_body);
   const metric = (insight.evidence as { metric?: string })?.metric;
 
   const act = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
@@ -75,6 +80,7 @@ export function InsightCard({ insight }: { insight: InsightWithProject }) {
         {hasTemplate && (
           <StatusChip tone="lavender">
             proposes a {insight.proposed_template_kind} template change
+            {!applicable && " (advisory)"}
           </StatusChip>
         )}
         {applied && insight.applied_template_version != null && (
@@ -110,7 +116,7 @@ export function InsightCard({ insight }: { insight: InsightWithProject }) {
             className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
           >
             {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-            {hasTemplate ? "Apply suggestion" : "Mark done"}
+            {applicable ? "Apply suggestion" : "Mark done"}
           </button>
           <button
             type="button"

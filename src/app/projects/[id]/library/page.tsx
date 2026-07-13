@@ -17,6 +17,7 @@ import { NewAsset } from "./new-asset";
 import {
   GateQuickActions,
   IdeaCardActions,
+  NudgeQuickAction,
   ResumeQuickAction,
 } from "./quick-actions";
 
@@ -198,15 +199,17 @@ function VideoTile({ projectId, item }: { projectId: string; item: LibraryItem }
       railTotal={RAIL_STEPS.length}
       stageLabel={stageLabel}
       qcScore={item.qcScore}
-      awaitingYou={tile.awaitingYou}
+      awaitingYou={tile.awaitingYou || Boolean(item.stalled)}
       awaitingLabel={item.awaitingLabel ?? undefined}
-      failed={tile.failed}
+      failed={tile.failed || Boolean(item.stalled)}
       autopilot={tile.autopilot}
       spendUsd={Number(video.total_cost_usd)}
       views={item.views}
       actions={
         atGate ? (
           <GateQuickActions projectId={projectId} videoId={video.id} />
+        ) : item.stalled ? (
+          <NudgeQuickAction projectId={projectId} videoId={video.id} />
         ) : paused ? (
           <ResumeQuickAction
             projectId={projectId}

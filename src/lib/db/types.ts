@@ -101,6 +101,12 @@ export type AutofixConfig = {
   maxRenders: number;
   /** Hard per-video spend cap (USD) for the whole loop (vision + re-renders). */
   spendCapUsd: number;
+  /** "Good enough" floor: when the loop runs out of attempts/budget, a cut whose
+      best score is at/above this is ACCEPTED (settles, flows forward) instead of
+      latched as "held — manual review". Only genuinely low cuts (below this)
+      hold. Default = threshold − 1, clamped to ≥ 5. Stops usable 6–7/10 cuts
+      from stranding the pipeline. */
+  acceptFloor?: number;
   /** How many mid-beat keyframes the vision critic analyses. "auto" =
       length-scaled (shorts capped lower than long-form); a number forces a fixed
       count. Default "auto". */

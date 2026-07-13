@@ -42,11 +42,16 @@ const DEFAULT_CONFIG: AutofixConfig = { threshold: 7, maxRenders: 3, spendCapUsd
 
 function configOf(project: Project, gateThreshold?: number): AutofixConfig {
   const c = project.autofix_config ?? DEFAULT_CONFIG;
+  const threshold = Number(c.threshold ?? gateThreshold ?? DEFAULT_CONFIG.threshold);
   return {
     // Per-project pin wins; else the Settings-tunable quality-gates value.
-    threshold: Number(c.threshold ?? gateThreshold ?? DEFAULT_CONFIG.threshold),
+    threshold,
     maxRenders: Number(c.maxRenders ?? DEFAULT_CONFIG.maxRenders),
     spendCapUsd: Number(c.spendCapUsd ?? DEFAULT_CONFIG.spendCapUsd),
+    // Accept floor: a cut this good is settled (not latched) when the loop runs
+    // out of attempts. Default = threshold − 1, never below 5 — a usable 6–7/10
+    // cut flows forward instead of stranding as "held".
+    acceptFloor: c.acceptFloor != null ? Number(c.acceptFloor) : Math.max(5, threshold - 1),
   };
 }
 
@@ -578,13 +583,23 @@ export async function processAutofixForVideo(
   db: Db,
   video: Video,
   project: Project,
+  opts: { force?: boolean } = {},
 ): Promise<AutofixOutcome> {
   const { autofixThreshold } = await getQualityGateConfig(db);
   const { on, loop, config } = resolveAutofix(project, video, autofixThreshold);
-  if (!on) return { acted: false, reason: "disabled" };
+  // `force` = an operator-initiated one-shot from the Vision review card:
+  // run even when the channel loop is off/disabled, and clear any prior
+  // held/done latch so a deliberate retry gets a fresh, still-budget-capped
+  // pass (the loop strategy is inferred from visual_style — aiclip/animation).
+  if (!on && !opts.force) return { acted: false, reason: "disabled" };
   if (video.status !== "FINAL_REVIEW") return { acted: false, reason: "not-at-final-review" };
 
   const state: AutofixState = { ...(video.autofix_state ?? {}) };
+  if (opts.force) {
+    state.status = "idle";
+    state.attempts = 0;
+    state.spentUsd = 0;
+  }
   if (state.status === "done" || state.status === "held") return { acted: false, reason: state.status };
 
   // ATOMIC claim (Phase 3): both the auto-fix cron and the build-runner cron
@@ -714,18 +729,47 @@ export async function processAutofixForVideo(
     }
   }
 
-  // Out of attempts or budget — hold for a human.
+  // Out of attempts or budget. A usable cut (best score at/above the accept
+  // floor) SETTLES and flows forward instead of latching as "held — manual
+  // review"; only a genuinely weak cut holds. This stops a fixable-but-fine
+  // 6–7/10 from stranding the pipeline behind an over-strict target threshold.
   const spent = Number(state.spentUsd ?? 0);
   if (attempts >= config.maxRenders || spent >= config.spendCapUsd) {
-    state.status = "held";
-    await setState(db, video.id, state);
+    const acceptFloor = Number(config.acceptFloor ?? Math.max(5, config.threshold - 1));
+    const best = Number(state.bestScore ?? score);
     const why =
       attempts >= config.maxRenders
         ? `${score.toFixed(1)}/10 after ${attempts} re-render${attempts === 1 ? "" : "s"}`
         : `spend cap $${config.spendCapUsd.toFixed(2)} reached`;
+    if (best >= acceptFloor) {
+      // Accepted, not held — settle so normal flow (gate/auto-pilot) continues.
+      state.status = "done";
+      await setState(db, video.id, state);
+      await db
+        .from("videos")
+        .update({
+          paused_reason: null,
+          autofix_state: { ...state, note: `Accepted at ${best.toFixed(1)}/10 (target ${config.threshold}, ${why}).` },
+        })
+        .eq("id", video.id);
+      await db.from("autofix_runs").insert({
+        project_id: project.id,
+        video_id: video.id,
+        loop,
+        attempt: attempts + 1,
+        tier: "tier1",
+        from_score: score,
+        changes: [],
+        status: "accepted",
+        note: `accepted at ${best.toFixed(1)}/10 (${why})`,
+      });
+      return { acted: true, kind: "done", score: best };
+    }
+    state.status = "held";
+    await setState(db, video.id, state);
     await db
       .from("videos")
-      .update({ paused_reason: `Auto-fix held — ${why}. Manual review.` })
+      .update({ paused_reason: `Auto-fix held — ${why}, best ${best.toFixed(1)}/10 below accept floor ${acceptFloor.toFixed(1)}. Manual review.` })
       .eq("id", video.id);
     await db.from("autofix_runs").insert({
       project_id: project.id,

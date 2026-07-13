@@ -47,6 +47,12 @@ function parseAutofix(formData: FormData) {
   const threshold = Math.min(10, Math.max(0, Number(formData.get("autofix_threshold") ?? 7)));
   const maxRenders = Math.min(3, Math.max(0, Math.round(Number(formData.get("autofix_max_renders") ?? 2))));
   const spendCapUsd = Math.min(5, Math.max(0, Number(formData.get("autofix_spend_cap") ?? 1)));
+  // Accept floor: a cut at/above this settles (flows forward) when the loop runs
+  // out of attempts, instead of latching as "held". Default = threshold − 1.
+  const acceptFloor = Math.min(
+    threshold,
+    Math.max(0, Number(formData.get("autofix_accept_floor") ?? Math.max(5, threshold - 1))),
+  );
   // Keyframe count: "auto" (length-scaled) or a fixed number, clamped 1..30.
   const framesRaw = String(formData.get("autofix_critique_frames") ?? "auto");
   const critiqueFrames: number | "auto" =
@@ -54,7 +60,7 @@ function parseAutofix(formData: FormData) {
   return {
     loop,
     enabled: formData.get("autofix_enabled") === "on",
-    config: { threshold, maxRenders, spendCapUsd, critiqueFrames },
+    config: { threshold, maxRenders, spendCapUsd, acceptFloor, critiqueFrames },
   };
 }
 

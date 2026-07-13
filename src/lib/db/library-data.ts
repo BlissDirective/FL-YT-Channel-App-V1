@@ -23,6 +23,11 @@ export type LibraryItem = {
   views: number | null;
   /** Why the tile is flagged (paused_reason / gate / publish diagnosis). */
   awaitingLabel: string | null;
+  /** Set when a video is silently frozen in a worker-dependent status (no
+      paused_reason, no gate) for longer than expected — the render/clip/agent
+      cron likely hasn't run. Surfaces a label + a "Nudge worker" action so an
+      invisible stall becomes visible and actionable. */
+  stalled: { label: string } | null;
 };
 
 export type LibraryData = {
@@ -115,6 +120,14 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
     published: [],
   };
   let attentionCount = 0;
+  const now = Date.now();
+  // How long a video may sit in a worker-dependent status before we call it a
+  // stall (the render/clip cron cadence is ~30 min; renders may legitimately run
+  // to their 45-min wall-clock budget, so ASSEMBLING gets a wider window).
+  const STALL_MINUTES: Partial<Record<string, number>> = {
+    GENERATING_ASSETS: 30,
+    ASSEMBLING: 60,
+  };
 
   for (const video of videos) {
     const tile = tileState(video);
@@ -139,6 +152,16 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
           (diagnosis && diagnosis.state !== "live" && diagnosis.message
             ? diagnosis.message
             : null));
+    // Invisible-stall detection: a non-gate worker-dependent status with no
+    // paused_reason that hasn't moved within its window means the driving cron
+    // (render/clips/agent) likely hasn't run. Gate statuses are excluded — those
+    // already show quick actions.
+    const stallWindow = STALL_MINUTES[video.status];
+    const ageMin = (now - new Date(video.updated_at).getTime()) / 60000;
+    const stalled =
+      !published && gate === undefined && !video.paused_reason && stallWindow != null && ageMin >= stallWindow
+        ? { label: `Stalled — no worker activity for ${Math.round(ageMin)}m` }
+        : null;
     const item: LibraryItem = {
       video,
       tile,
@@ -146,8 +169,10 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
       gateLabel: gate ? `${GATE_LABELS[gate]} gate` : null,
       thumbUrl: thumbUrls.get(video.id) ?? null,
       views: published ? (latestViews.get(video.id) ?? null) : null,
-      awaitingLabel,
+      awaitingLabel: stalled ? stalled.label : awaitingLabel,
+      stalled,
     };
+    if (stalled) attentionCount += 1;
     if (tile.awaitingYou) attentionCount += 1;
     sections[tile.section].push(item);
   }

@@ -39,6 +39,7 @@ import {
   type VideoGenResult,
 } from "@/lib/pipeline/engine";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
+import { dispatchWorkflow, ghDispatchConfigured } from "@/lib/adapters/gh-dispatch";
 import { invalidateQualityGateCache, mergeQualityGates } from "@/lib/pipeline/quality-gates";
 import { getKillSwitch } from "@/lib/db/queries";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
@@ -133,6 +134,48 @@ export async function resetRenderAttemptsAction(
     if (error) return { ok: false, error: error.message };
     refresh(projectId);
     return { ok: true };
+  });
+}
+
+/** Nudge a video that's silently stalled in a worker-dependent status (waiting
+    on the render / clip / agent cron, which may not have run). Re-dispatches
+    the matching GitHub Actions workflow so the worker picks it up within a
+    minute instead of the next scheduled sweep. No-op-safe when GH dispatch
+    isn't configured (the cron still runs on schedule). */
+export async function nudgeStalledVideoAction(
+  projectId: string,
+  videoId: string,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const supabase = await createClient();
+    const { data: video } = await supabase
+      .from("videos")
+      .select("status, auto_finish, edit_session_requested")
+      .eq("id", videoId)
+      .maybeSingle();
+    if (!video) return { ok: false, error: "Video not found." };
+    const wf =
+      video.status === "ASSEMBLING"
+        ? "render.yml"
+        : video.status === "ASSETS_READY" && video.edit_session_requested
+          ? "agent.yml"
+          : video.status === "GENERATING_ASSETS" || video.status === "ASSETS_READY"
+            ? "clips.yml"
+            : null;
+    if (!wf) {
+      // Engine-driven stage (script/idea) — just re-run the pipeline in-process.
+      const result = await runPipeline(videoId);
+      refresh(projectId);
+      return { ok: result.ok, error: result.error };
+    }
+    if (!ghDispatchConfigured()) {
+      return { ok: false, error: "Worker dispatch isn't configured — the scheduled cron will pick it up." };
+    }
+    const dispatched = await dispatchWorkflow(wf);
+    refresh(projectId);
+    return dispatched
+      ? { ok: true }
+      : { ok: false, error: `Couldn't reach the ${wf} worker — it will still run on schedule.` };
   });
 }
 

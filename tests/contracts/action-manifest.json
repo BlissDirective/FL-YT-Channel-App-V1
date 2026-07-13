@@ -6,7 +6,8 @@
   ],
   "autofix": [
     "setVideoAutofixAction(projectId: string, videoId: string, mode: \"inherit\" | \"on\" | \"off\",)",
-    "runAutofixNowAction(projectId: string, videoId: string,)"
+    "runAutofixNowAction(projectId: string, videoId: string,)",
+    "fixFromVisionReviewAction(projectId: string, videoId: string,)"
   ],
   "build": [
     "estimateBuildRunAction(projectId: string, config: BuildRunConfig,)",
@@ -55,6 +56,7 @@
     "killVideoAction(projectId: string, videoId: string,)",
     "resumeVideoAction(projectId: string, videoId: string,)",
     "resetRenderAttemptsAction(projectId: string, videoId: string,)",
+    "nudgeStalledVideoAction(projectId: string, videoId: string,)",
     "startBuildRunAction(projectId: string, config: BuildRunConfig,)",
     "stepBackStageAction(projectId: string, videoId: string, deleteAssets: boolean,)",
     "runDemoPipelineAction(projectId: string)",

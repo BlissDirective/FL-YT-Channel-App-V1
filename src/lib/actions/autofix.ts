@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertOperator } from "@/lib/auth-guard";
 import { processAutofixForVideo } from "@/lib/pipeline/autofix";
+import { isKillSwitchOn } from "@/lib/pipeline/engine";
+import type { FrameCritique } from "@/lib/stick-types";
 import type { Project, Video } from "@/lib/db/types";
 
 function refresh(projectId: string, videoId: string) {
@@ -52,6 +54,51 @@ export async function runAutofixNowAction(
     const project = p as Project | null;
     if (!project) return { ok: false, error: "Project not found" };
     const out = await processAutofixForVideo(db, video, project);
+    refresh(projectId, videoId);
+    if (!out.acted) return { ok: true, reason: out.reason };
+    return { ok: true, kind: out.kind, score: out.score, changes: out.changes };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * One-shot "Fix these issues" from the Vision review card. Runs the SAME
+ * fix agent as the auto-fix loop (reads the vision critique's per-beat issues,
+ * re-rolls / re-choreographs the flagged beats, re-renders) but as a deliberate
+ * operator-initiated pass — it runs even when the channel auto-fix loop is off
+ * and clears any prior "held" latch. Bounded by the kill switch and the
+ * per-video / monthly budget caps.
+ */
+export async function fixFromVisionReviewAction(
+  projectId: string,
+  videoId: string,
+): Promise<{ ok: boolean; reason?: string; kind?: string; score?: number; changes?: string[]; error?: string }> {
+  try {
+    await assertOperator(); // service-role path — verify the caller
+  } catch {
+    return { ok: false, error: "Not authenticated." };
+  }
+  let db: ReturnType<typeof createAdminClient>;
+  try {
+    db = createAdminClient();
+  } catch {
+    return { ok: false, error: "Service role not configured — enable the auto-fix loop instead." };
+  }
+  try {
+    if (await isKillSwitchOn(db)) return { ok: false, error: "The global kill switch is on." };
+    const { data: v } = await db.from("videos").select("*").eq("id", videoId).maybeSingle();
+    const video = v as Video | null;
+    if (!video) return { ok: false, error: "Video not found" };
+    if (video.status !== "FINAL_REVIEW") {
+      return { ok: false, error: "The fix agent runs once the video reaches Final Review." };
+    }
+    const issues = (video.vision_review as FrameCritique | null)?.issues ?? [];
+    if (issues.length === 0) return { ok: false, error: "No vision-review issues to fix." };
+    const { data: p } = await db.from("projects").select("*").eq("id", video.project_id).maybeSingle();
+    const project = p as Project | null;
+    if (!project) return { ok: false, error: "Project not found" };
+    const out = await processAutofixForVideo(db, video, project, { force: true });
     refresh(projectId, videoId);
     if (!out.acted) return { ok: true, reason: out.reason };
     return { ok: true, kind: out.kind, score: out.score, changes: out.changes };

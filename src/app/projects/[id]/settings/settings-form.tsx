@@ -220,6 +220,17 @@ export function SettingsForm({
                   className="input"
                 />
               </Field>
+              <Field label="Accept floor (settle at)">
+                <input
+                  name="autofix_accept_floor"
+                  type="number"
+                  min={0}
+                  max={10}
+                  step={0.5}
+                  defaultValue={autofixCfg.acceptFloor ?? Math.max(5, autofixCfg.threshold - 1)}
+                  className="input"
+                />
+              </Field>
               <Field label="Keyframes analysed">
                 <select
                   name="autofix_critique_frames"
@@ -237,9 +248,10 @@ export function SettingsForm({
             </div>
             <p className="text-[11px] text-muted">
               The loop critiques the render (Claude vision; TwelveLabs on motion/timing
-              flags), applies one fix, re-renders, and re-critiques — up to the max — then
-              holds for manual review. Every fix is remembered per-channel so quality
-              compounds over time. Turn it off per-asset on any video page.
+              flags), applies one fix, re-renders, and re-critiques — up to the max. A cut
+              that reaches the <strong>accept floor</strong> then settles and flows forward;
+              only a cut below it holds for manual review. Every fix is remembered
+              per-channel so quality compounds over time. Turn it off per-asset on any video page.
             </p>
           </div>
         )}

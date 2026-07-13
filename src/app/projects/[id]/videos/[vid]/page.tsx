@@ -377,7 +377,14 @@ export default async function VideoDetailPage({
         />
       )}
 
-      {v.vision_review && <VisionReview review={v.vision_review} />}
+      {v.vision_review && (
+        <VisionReview
+          review={v.vision_review}
+          projectId={id}
+          videoId={vid}
+          canFix={v.status === "FINAL_REVIEW"}
+        />
+      )}
 
       {project.autofix_loop && project.autofix_loop !== "off" && (
         <AutofixPanel

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { insightIsApplicable } from "@/lib/insights-kinds";
 import { runIntelligence } from "@/lib/pipeline/intelligence";
 import { runOptimizer, runOptimizerAllProjects } from "@/lib/pipeline/optimizer";
 import { scoutChat, type ScoutMessage } from "@/lib/adapters/scout";
@@ -209,8 +210,11 @@ export async function applyInsightAction(insightId: string): Promise<Result> {
       .eq("id", insightId)
       .maybeSingle();
     if (!insight) return { ok: false, error: "Insight not found." };
-    if (!insight.proposed_template_kind || !insight.proposed_template_body) {
-      // Insight with no template change — applying just acknowledges it.
+    // Advisory insight — no template change, OR a proposed template of a kind
+    // the pipeline doesn't consume yet (scoring/thumbnail/metadata): don't write
+    // a dead template row nothing reads; just acknowledge it. Keeps the "Applied"
+    // badge honest (a template version is only stamped when it's really used).
+    if (!insightIsApplicable(insight.proposed_template_kind, insight.proposed_template_body)) {
       await supabase.from("insights").update({ status: "applied" }).eq("id", insightId);
       revalidatePath("/insights");
       return { ok: true };

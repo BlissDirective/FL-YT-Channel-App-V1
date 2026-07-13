@@ -6,6 +6,7 @@ import { Check, Loader2, Play, RefreshCw, X } from "lucide-react";
 import {
   approveGateAction,
   killVideoAction,
+  nudgeStalledVideoAction,
   requestRevisionAction,
   resetRenderAttemptsAction,
   resumeVideoAction,
@@ -164,6 +165,40 @@ export function ResumeQuickAction({
       >
         {isPending ? <Loader2 className="size-3 animate-spin" /> : <Play className="size-3" />}
         {renderFailed ? "Reset & retry" : "Resume"}
+      </button>
+      {error && <p className="w-full text-xs font-medium text-coral">{error}</p>}
+    </div>
+  );
+}
+
+/** Nudge a silently-stalled video (worker cron hasn't run) — re-dispatches the
+    render/clip/agent workflow so it's picked up promptly. */
+export function NudgeQuickAction({
+  projectId,
+  videoId,
+}: {
+  projectId: string;
+  videoId: string;
+}) {
+  const { isPending, error, act } = useAct();
+  const [done, setDone] = useState(false);
+  return (
+    <div className="flex w-full flex-wrap items-center gap-1.5">
+      <button
+        type="button"
+        disabled={isPending || done}
+        onClick={() =>
+          act(async () => {
+            const r = await nudgeStalledVideoAction(projectId, videoId);
+            if (r.ok) setDone(true);
+            return r;
+          })
+        }
+        className={btn.approve}
+        title="Re-trigger the worker that should be processing this video"
+      >
+        {isPending ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
+        {done ? "Nudged" : "Nudge worker"}
       </button>
       {error && <p className="w-full text-xs font-medium text-coral">{error}</p>}
     </div>
