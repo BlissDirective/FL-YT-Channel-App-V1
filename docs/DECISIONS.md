@@ -362,3 +362,16 @@ standing rules (Full-App-Development-plan.md §5).
   push to main + weekly + dispatch; `lighthouse.yml` on push to main + weekly
   + dispatch. Both pin pnpm via `packageManager` (no `version:` on
   action-setup, matching CI/render).
+
+## Director Mode — consultation & spec (2026-07-13)
+
+- **A per-project `pipeline_mode` ('autonomous' | 'director') is adopted** to
+  counter over-automation: in Director Mode the operator triggers every
+  stage/agent action; nothing advances, revises, or publishes on its own.
+  QC/judges become advisory (annotate, never block); money rails (budget
+  caps, fail-closed spend guard, kill switch) stay enforced. Sweeps/crons
+  skip director projects and their capabilities become per-asset buttons.
+  Mode is switchable anytime with freeze-in-place / re-arm semantics.
+  Operator decisions are logged (`operator_decisions`) and mined as a new
+  learning signal so judges calibrate to operator taste. Full spec:
+  Fable-5-Director-Mode-Build-Spec.md (consultation Q&A recorded in §1).
