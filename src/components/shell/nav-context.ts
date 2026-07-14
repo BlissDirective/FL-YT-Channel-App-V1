@@ -36,15 +36,18 @@ export function globalNavV2(): NavItem[] {
   ];
 }
 
-export function projectNavV2(projectId: string): NavItem[] {
+export function projectNavV2(projectId: string, pipelineMode?: string | null): NavItem[] {
   const base = `/projects/${projectId}`;
-  return [
+  const items: NavItem[] = [
     // The Asset Canvas (…/videos/…) is the Library's detail view.
     { label: "Library", href: `${base}/library`, icon: ListVideo, activeAlso: [`${base}/videos/`] },
     { label: "Autopilot", href: `${base}/autopilot`, icon: Bot },
     { label: "Feed", href: `${base}/feed`, icon: Newspaper },
     { label: "Settings", href: `${base}/settings`, icon: Settings },
   ];
+  // Director Mode has no Autopilot (the batch/calendar autonomy surfaces don't
+  // apply). Hide the tab; the page itself also redirects as a backstop.
+  return pipelineMode === "director" ? items.filter((i) => i.label !== "Autopilot") : items;
 }
 
 export function navIsActive(item: NavItem, pathname: string): boolean {

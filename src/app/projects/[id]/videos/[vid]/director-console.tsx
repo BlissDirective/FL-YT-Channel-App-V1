@@ -288,6 +288,12 @@ export function DirectorConsole({
               kill switch still apply.
             </p>
           )}
+          {(currentStage === "script" || currentStage === "visuals" || currentStage === "edit") && (
+            <p className="text-[11px] text-muted">
+              ↓ Your {STAGES[currentIdx].label.toLowerCase()} artifact and its fine-grained
+              tools are in the <strong>Stage workspace</strong> below.
+            </p>
+          )}
           {msg && (
             <p className={cn(
               "text-xs font-medium",

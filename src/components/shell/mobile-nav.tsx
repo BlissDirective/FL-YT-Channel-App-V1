@@ -11,6 +11,7 @@ import {
   projectNavV2,
   type NavItem,
 } from "./nav-context";
+import { usePipelineMode } from "./use-pipeline-mode";
 
 /** Bottom tab bar for phones — the top nav pills are hidden below `sm`,
     so this is the only mobile route to everything. UI v2 (Phase 6): the tab
@@ -18,13 +19,14 @@ import {
     exit), global tabs elsewhere; the same IA as the desktop pills. */
 export function MobileNav() {
   const pathname = usePathname();
+  const projectId = projectIdFromPath(pathname);
+  const pipelineMode = usePipelineMode(projectId);
 
   // The login screen renders its own centered layout; no nav chrome there.
   if (pathname === "/login") return null;
 
-  const projectId = projectIdFromPath(pathname);
   const tabs: NavItem[] = projectId
-    ? [{ label: "Home", href: "/", icon: Home }, ...projectNavV2(projectId)]
+    ? [{ label: "Home", href: "/", icon: Home }, ...projectNavV2(projectId, pipelineMode)]
     : globalNavV2();
 
   return (

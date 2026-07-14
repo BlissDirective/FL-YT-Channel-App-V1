@@ -341,6 +341,21 @@ export default async function VideoDetailPage({
         />
       )}
 
+      {directorMode &&
+        v.status !== "IDEA" &&
+        v.status !== "IDEA_APPROVED" &&
+        v.status !== "KILLED" && (
+          <div className="flex items-center gap-2 pt-1" data-mode="director">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Stage workspace
+            </span>
+            <span className="h-px flex-1 bg-line" />
+            <span className="text-[11px] text-muted">
+              The artifact + fine-grained tools for the current stage
+            </span>
+          </div>
+        )}
+
       {gate && !directorMode && (
         <CheckpointPanel
           projectId={id}

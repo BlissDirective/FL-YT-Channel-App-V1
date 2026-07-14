@@ -12,17 +12,19 @@ import {
   projectIdFromPath,
   projectNavV2,
 } from "./nav-context";
+import { usePipelineMode } from "./use-pipeline-mode";
 
 export function TopNav() {
   const pathname = usePathname();
+  const projectId = projectIdFromPath(pathname);
+  const pipelineMode = usePipelineMode(projectId);
 
   // The login screen renders its own centered layout; no nav chrome there.
   if (pathname === "/login") return null;
 
   // Two-level IA (Phase 6/7): project tabs inside a project, global tabs
   // elsewhere; the same sets the mobile bottom bar uses.
-  const projectId = projectIdFromPath(pathname);
-  const items = projectId ? projectNavV2(projectId) : globalNavV2();
+  const items = projectId ? projectNavV2(projectId, pipelineMode) : globalNavV2();
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 py-5 sm:px-8">
