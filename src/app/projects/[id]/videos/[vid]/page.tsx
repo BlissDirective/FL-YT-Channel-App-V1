@@ -25,6 +25,8 @@ import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { CheckpointPanel } from "./checkpoint-panel";
 import { CanvasControls } from "./canvas-controls";
 import { DirectorConsole, type ConsoleReview, type ConsoleDecision } from "./director-console";
+import { directorStageForStatus } from "@/lib/pipeline/decisions";
+import { tasteThreshold, type DirectorStageKey } from "@/lib/pipeline/operator-signal";
 import { ScriptReview } from "./script-review";
 import { HighlightsEditor } from "./highlights-editor";
 import { StepBackStage } from "./step-back";
@@ -172,6 +174,18 @@ export default async function VideoDetailPage({
           .limit(50),
       ])
     : [{ data: null }, { data: null }];
+
+  // Taste calibration (spec §7.3): the operator's empirical acceptance threshold
+  // for the current stage, once there are ≥5 scored advances. Pure display.
+  const tasteLine = (() => {
+    if (!directorMode) return null;
+    const stage = directorStageForStatus(v.status);
+    const t = tasteThreshold(
+      ((decisions as { stage: DirectorStageKey; action: string; agent_score: number | null; agent_verdict: "pass" | "fail" | null }[]) ?? []),
+      stage,
+    );
+    return t ? `You typically advance ${stage} at ≥${t.threshold}/10 (${t.count} decisions).` : null;
+  })();
 
   const thumbCandidates =
     gate === "ASSETS"
@@ -321,6 +335,7 @@ export default async function VideoDetailPage({
           pausedReason={v.paused_reason}
           lengthTargetLabel={lengthTargetLabel}
           lengthAdvisory={lengthAdvisory}
+          tasteLine={tasteLine}
           reviews={(allReviews as ConsoleReview[]) ?? []}
           decisions={(decisions as ConsoleDecision[]) ?? []}
         />

@@ -106,6 +106,7 @@ export function DirectorConsole({
   pausedReason,
   lengthTargetLabel,
   lengthAdvisory,
+  tasteLine,
   reviews,
   decisions,
 }: {
@@ -115,6 +116,7 @@ export function DirectorConsole({
   pausedReason?: string | null;
   lengthTargetLabel?: string | null;
   lengthAdvisory?: ConsoleLengthAdvisory | null;
+  tasteLine?: string | null;
   reviews: ConsoleReview[];
   decisions: ConsoleDecision[];
 }) {
@@ -299,7 +301,7 @@ export function DirectorConsole({
         </div>
 
         {/* Advisory panel */}
-        <AdvisoryPanel reviews={stageReviews} />
+        <AdvisoryPanel reviews={stageReviews} tasteLine={tasteLine} />
       </div>
 
       {/* Activity log */}
@@ -359,13 +361,14 @@ function StageRail({ currentIdx, status }: { currentIdx: number; status: string 
 }
 
 // ── Advisory panel ─────────────────────────────────────────────────────
-function AdvisoryPanel({ reviews }: { reviews: ConsoleReview[] }) {
+function AdvisoryPanel({ reviews, tasteLine }: { reviews: ConsoleReview[]; tasteLine?: string | null }) {
   if (reviews.length === 0) {
     return (
       <div className="rounded-xl bg-card p-4 text-xs text-muted shadow-card">
         <p className="font-semibold text-ink">Advisory</p>
         <p className="mt-1">No review yet for this stage. Press <strong>Run review</strong> for an
           advisory score — it never blocks your decision.</p>
+        {tasteLine && <p className="mt-2 italic text-accent">{tasteLine}</p>}
       </div>
     );
   }
@@ -411,6 +414,7 @@ function AdvisoryPanel({ reviews }: { reviews: ConsoleReview[] }) {
       {reviews.length > 1 && (
         <p className="text-[11px] text-muted">{reviews.length - 1} earlier review{reviews.length > 2 ? "s" : ""} on this stage.</p>
       )}
+      {tasteLine && <p className="border-t border-line pt-2 text-[11px] italic text-accent">{tasteLine}</p>}
     </div>
   );
 }
