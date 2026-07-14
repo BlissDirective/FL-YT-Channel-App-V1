@@ -87,12 +87,22 @@ const GATE_FOR_STAGE: Record<Stage, string> = {
   publish: "FINAL",
 };
 
+export type ConsoleLengthAdvisory = {
+  actualLabel: string;
+  targetLabel: string;
+  verdict: "in" | "under" | "over";
+  deltaPct: number;
+  estimated: boolean;
+  message: string;
+};
+
 export function DirectorConsole({
   projectId,
   videoId,
   status,
   pausedReason,
   lengthTargetLabel,
+  lengthAdvisory,
   reviews,
   decisions,
 }: {
@@ -101,6 +111,7 @@ export function DirectorConsole({
   status: string;
   pausedReason?: string | null;
   lengthTargetLabel?: string | null;
+  lengthAdvisory?: ConsoleLengthAdvisory | null;
   reviews: ConsoleReview[];
   decisions: ConsoleDecision[];
 }) {
@@ -174,6 +185,34 @@ export function DirectorConsole({
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">
             {STAGES[currentIdx].label} stage
           </p>
+          {lengthAdvisory && (
+            <div
+              className={cn(
+                "flex flex-wrap items-center gap-2 rounded-lg p-2.5 text-xs",
+                lengthAdvisory.verdict === "in"
+                  ? "bg-emerald-50 text-emerald-800"
+                  : "bg-amber-50 text-amber-800",
+              )}
+            >
+              <span className="font-medium">
+                {lengthAdvisory.verdict === "in" ? "✓" : "⚠"} {lengthAdvisory.message}
+              </span>
+              {lengthAdvisory.verdict !== "in" && !terminal && (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    run("Revise to length", () =>
+                      directorReviseAction(projectId, videoId, { notes: lengthAdvisory.message }),
+                    )
+                  }
+                  className="ml-auto rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-accent hover:bg-ink/90 disabled:opacity-50"
+                >
+                  {busy === "Revise to length" ? "Working…" : "Revise to length"}
+                </button>
+              )}
+            </div>
+          )}
           {pausedReason && (
             <p className="flex items-start gap-1.5 rounded-lg bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
               <AlertTriangle className="mt-0.5 size-3.5 shrink-0" /> {pausedReason}

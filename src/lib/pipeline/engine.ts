@@ -533,6 +533,13 @@ async function runScripting(db: Db, video: Video, project: Project) {
   const template = await getActiveTemplate(db, project.id);
   const lessons = await qcLessons(db, project.id);
 
+  // Director length targeting (spec §4.5): when the operator picked a bracket at
+  // idea time, its midpoint is the authoritative script target — the word budget
+  // (scriptWordBudget) derives from it. Falls back to the video's target length.
+  const effectiveTargetSec = video.length_target
+    ? Math.round((video.length_target.minSec + video.length_target.maxSec) / 2)
+    : video.target_length_sec;
+
   const draft = await generateScript({
     title: video.title,
     topic: video.topic,
@@ -541,7 +548,7 @@ async function runScripting(db: Db, video: Video, project: Project) {
     angle: project.angle,
     tone: project.tone,
     format: video.format,
-    targetLengthSec: video.target_length_sec,
+    targetLengthSec: effectiveTargetSec,
     template,
     revisionNotes: notes,
     qcLessons: lessons,

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Clapperboard, Radar } from "lucide-react";
-import { GATE_FOR_STATUS, bracketById } from "@studio/core";
+import { GATE_FOR_STATUS, bracketById, buildLengthAdvisory } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import {
   getClipJobs,
@@ -104,6 +104,23 @@ export default async function VideoDetailPage({
             .words ?? []),
       })),
   );
+
+  // Director length advisory (spec §4.5): compare the actual VO duration (or a
+  // word-count estimate before VO exists) to the chosen bracket. Advisory only.
+  const lengthAdvisory =
+    directorMode && v.length_target && s
+      ? (() => {
+          const voSec = beatAudio.reduce((n, a) => n + a.durationSec, 0);
+          const estimated = voSec <= 0;
+          const words = beats.reduce(
+            (n, b) => n + b.text.trim().split(/\s+/).filter(Boolean).length,
+            0,
+          );
+          // 2.5 words/sec ≈ 150 wpm — the same rate mock VO reads at.
+          const actualSec = estimated ? Math.round(words / 2.5) : voSec;
+          return buildLengthAdvisory({ actualSec, bracketId: v.length_target!.bracket, estimated });
+        })()
+      : null;
 
   const clipAssets = allAssets.filter((a) => a.kind === "clip" && a.beat_index !== null);
   const clips = await Promise.all(
@@ -303,6 +320,7 @@ export default async function VideoDetailPage({
           status={v.status}
           pausedReason={v.paused_reason}
           lengthTargetLabel={lengthTargetLabel}
+          lengthAdvisory={lengthAdvisory}
           reviews={(allReviews as ConsoleReview[]) ?? []}
           decisions={(decisions as ConsoleDecision[]) ?? []}
         />

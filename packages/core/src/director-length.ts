@@ -64,3 +64,59 @@ export function classifyDuration(
   if (actualSec > b.maxSec) return { verdict: "over", deltaSec, deltaPct };
   return { verdict: "in", deltaSec, deltaPct };
 }
+
+/** Format seconds as m:ss (e.g. 277 → "4:37"). */
+export function formatDuration(sec: number): string {
+  const s = Math.max(0, Math.round(sec));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+export type LengthAdvisory = {
+  actualSec: number;
+  actualLabel: string;
+  targetLabel: string;
+  verdict: "in" | "under" | "over";
+  deltaSec: number;
+  deltaPct: number;
+  /** true when derived from a word-count estimate (no VO synthesized yet). */
+  estimated: boolean;
+  /** Human sentence for the advisory chip + the Revise-to-length note. */
+  message: string;
+};
+
+/**
+ * Build the length advisory for a Director video (spec §4.5 step 3). Pure so it
+ * is unit-tested and reusable server- and client-side. `actualSec` is the summed
+ * VO duration when available, else a word-count estimate (pass `estimated:true`).
+ * Returns null when there's nothing meaningful to compare yet.
+ */
+export function buildLengthAdvisory(opts: {
+  actualSec: number;
+  bracketId: string;
+  estimated: boolean;
+}): LengthAdvisory | null {
+  const b = bracketById(opts.bracketId);
+  if (!b || opts.actualSec <= 0) return null;
+  const c = classifyDuration(opts.actualSec, b);
+  const actualLabel = formatDuration(opts.actualSec);
+  const sign = c.deltaPct > 0 ? "+" : "";
+  const base = `${opts.estimated ? "Estimated " : "Ran "}${actualLabel} against a ${b.label} target`;
+  const message =
+    c.verdict === "in"
+      ? `${base} — on target.`
+      : `${base} (${sign}${c.deltaPct}%). ${
+          c.verdict === "over"
+            ? "Tighten the script — cut filler and merge beats — to land in-window."
+            : "Expand the script — add depth or an example — to land in-window."
+        }`;
+  return {
+    actualSec: opts.actualSec,
+    actualLabel,
+    targetLabel: b.label,
+    verdict: c.verdict,
+    deltaSec: c.deltaSec,
+    deltaPct: c.deltaPct,
+    estimated: opts.estimated,
+    message,
+  };
+}
