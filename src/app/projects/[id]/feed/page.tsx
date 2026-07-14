@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { Radar } from "lucide-react";
 import { getInsights, getProject, getVideoIntelList } from "@/lib/db/queries";
 import { getFeedEntries } from "@/lib/db/feed";
+import { getProjectTriage } from "@/lib/db/triage";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { FeedList, type IntelRow } from "./feed-list";
+import { TriageList } from "./triage-list";
 
 export const dynamic = "force-dynamic";
 
@@ -23,10 +25,11 @@ export default async function FeedPage({
   const project = await getProject(id);
   if (!project) notFound();
 
-  const [entries, allInsights, intelRows] = await Promise.all([
+  const [entries, allInsights, intelRows, triage] = await Promise.all([
     getFeedEntries(id),
     getInsights(),
     getVideoIntelList({ projectId: id, limit: 10 }),
+    getProjectTriage(id),
   ]);
   const insights = allInsights.filter((i) => i.project_id === id || i.project_id === null);
   const intel: IntelRow[] = intelRows.map((r) => ({
@@ -61,6 +64,20 @@ export default async function FeedPage({
           <Radar className="size-3.5" /> Intel workspace
         </Link>
       </div>
+
+      {triage.needsYouCount > 0 && (
+        <section className="space-y-3 rounded-card bg-accent-soft/40 p-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-bold tracking-tight">
+              Needs you · {triage.needsYouCount}
+            </h2>
+            <span className="text-xs text-muted">
+              Process assets without leaving the Feed
+            </span>
+          </div>
+          <TriageList projectId={id} triage={triage} />
+        </section>
+      )}
 
       <FeedList projectId={id} entries={entries} insights={insights} intel={intel} />
     </div>

@@ -12,6 +12,7 @@ import {
   type NavItem,
 } from "./nav-context";
 import { usePipelineMode } from "./use-pipeline-mode";
+import { useNeedsYouCount } from "./use-needs-you";
 
 /** Bottom tab bar for phones — the top nav pills are hidden below `sm`,
     so this is the only mobile route to everything. UI v2 (Phase 6): the tab
@@ -21,12 +22,13 @@ export function MobileNav() {
   const pathname = usePathname();
   const projectId = projectIdFromPath(pathname);
   const pipelineMode = usePipelineMode(projectId);
+  const needsYou = useNeedsYouCount(projectId);
 
   // The login screen renders its own centered layout; no nav chrome there.
   if (pathname === "/login") return null;
 
   const tabs: NavItem[] = projectId
-    ? [{ label: "Home", href: "/", icon: Home }, ...projectNavV2(projectId, pipelineMode)]
+    ? [{ label: "Home", href: "/", icon: Home }, ...projectNavV2(projectId, pipelineMode, needsYou)]
     : globalNavV2();
 
   return (
@@ -58,11 +60,16 @@ export function MobileNav() {
             >
               <span
                 className={cn(
-                  "grid place-items-center rounded-full px-3 py-1 transition-colors",
+                  "relative grid place-items-center rounded-full px-3 py-1 transition-colors",
                   active && "bg-accent-soft",
                 )}
               >
                 <tab.icon className="size-4" />
+                {tab.badge ? (
+                  <span className="absolute -right-0.5 -top-0.5 grid min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] font-bold text-ink">
+                    {tab.badge}
+                  </span>
+                ) : null}
               </span>
               {tab.label}
             </Link>

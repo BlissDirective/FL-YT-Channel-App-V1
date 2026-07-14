@@ -13,18 +13,20 @@ import {
   projectNavV2,
 } from "./nav-context";
 import { usePipelineMode } from "./use-pipeline-mode";
+import { useNeedsYouCount } from "./use-needs-you";
 
 export function TopNav() {
   const pathname = usePathname();
   const projectId = projectIdFromPath(pathname);
   const pipelineMode = usePipelineMode(projectId);
+  const needsYou = useNeedsYouCount(projectId);
 
   // The login screen renders its own centered layout; no nav chrome there.
   if (pathname === "/login") return null;
 
   // Two-level IA (Phase 6/7): project tabs inside a project, global tabs
   // elsewhere; the same sets the mobile bottom bar uses.
-  const items = projectId ? projectNavV2(projectId, pipelineMode) : globalNavV2();
+  const items = projectId ? projectNavV2(projectId, pipelineMode, needsYou) : globalNavV2();
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 py-5 sm:px-8">
@@ -48,13 +50,18 @@ export function TopNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors",
                 active
                   ? "bg-card text-ink shadow-card"
                   : "text-muted hover:text-ink",
               )}
             >
               {item.label}
+              {item.badge ? (
+                <span className="grid min-w-5 place-items-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-ink">
+                  {item.badge}
+                </span>
+              ) : null}
             </Link>
           );
         })}

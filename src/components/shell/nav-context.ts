@@ -26,6 +26,8 @@ export type NavItem = {
   icon: typeof LayoutDashboard;
   /** Extra path fragments that count as active (e.g. the Canvas → Library). */
   activeAlso?: string[];
+  /** Optional live count badge (e.g. Feed's "needs you"). 0/undefined = none. */
+  badge?: number;
 };
 
 export function globalNavV2(): NavItem[] {
@@ -36,13 +38,17 @@ export function globalNavV2(): NavItem[] {
   ];
 }
 
-export function projectNavV2(projectId: string, pipelineMode?: string | null): NavItem[] {
+export function projectNavV2(
+  projectId: string,
+  pipelineMode?: string | null,
+  needsYou = 0,
+): NavItem[] {
   const base = `/projects/${projectId}`;
   const items: NavItem[] = [
     // The Asset Canvas (…/videos/…) is the Library's detail view.
     { label: "Library", href: `${base}/library`, icon: ListVideo, activeAlso: [`${base}/videos/`] },
     { label: "Autopilot", href: `${base}/autopilot`, icon: Bot },
-    { label: "Feed", href: `${base}/feed`, icon: Newspaper },
+    { label: "Feed", href: `${base}/feed`, icon: Newspaper, badge: needsYou > 0 ? needsYou : undefined },
     { label: "Settings", href: `${base}/settings`, icon: Settings },
   ];
   // Director Mode has no Autopilot (the batch/calendar autonomy surfaces don't

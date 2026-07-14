@@ -127,5 +127,10 @@
   "shorts": [
     "deriveShortsAction(projectId: string, parentVideoId: string, opts: { count: number; smart: boolean },)",
     "publishShortAction(projectId: string, shortVideoId: string,)"
+  ],
+  "triage": [
+    "batchApproveAction(projectId: string, videoIds: string[], minScore = 0,)",
+    "batchPublishAction(projectId: string, videoIds: string[],)",
+    "batchReReviewAction(projectId: string, videoIds: string[],)"
   ]
 }
