@@ -29,7 +29,10 @@
     "directorRerenderAction(projectId: string, videoId: string, opts: { notes?: string } = {},)",
     "directorStepBackAction(projectId: string, videoId: string,)",
     "directorKillAction(projectId: string, videoId: string,)",
-    "directorPublishAction(projectId: string, videoId: string,)"
+    "directorPublishAction(projectId: string, videoId: string,)",
+    "directorRunAutofixAction(projectId: string, videoId: string,)",
+    "directorRunSelfWatchAction(projectId: string, videoId: string,)",
+    "directorAutoRescriptProposalAction(projectId: string, videoId: string,)"
   ],
   "edit": [
     "saveEddAction(projectId: string, videoId: string, rawDoc: EditDocument, parentVersion: number, note: string,)",

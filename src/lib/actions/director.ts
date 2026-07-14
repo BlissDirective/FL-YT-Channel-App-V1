@@ -12,6 +12,9 @@ import {
   stepBackStage,
 } from "@/lib/pipeline/engine";
 import { planNextTopic, taxonomyFor } from "@/lib/adapters/guardrails";
+import { processAutofixForVideo } from "@/lib/pipeline/autofix";
+import { runWatchGate } from "@/lib/pipeline/watch-runner";
+import { composeRevisionBrief } from "@/lib/adapters/fix-planner";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 import {
   directorStageForStatus,
@@ -405,6 +408,117 @@ export async function directorPublishAction(
     });
     refresh(projectId, videoId);
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+// ── On-demand agent passes (spec §6.4) ──────────────────────────────────
+// Each runs exactly ONE bounded pass when the operator presses it — the
+// autonomous sweeps that would run these on a schedule skip director projects
+// (D1). Results land in the advisory panel / activity log.
+
+/** Run one Auto-Fix pass on the current cut (spec §6.4). */
+export async function directorRunAutofixAction(
+  projectId: string,
+  videoId: string,
+): Promise<DirectorResult & { changed?: boolean; kind?: string; score?: number }> {
+  try {
+    const db = await createClient();
+    const ctx = await directorCtx(db, projectId, videoId);
+    if ("error" in ctx) return { ok: false, error: ctx.error };
+    const before = await videoSpendUsd(db, videoId);
+    // `force`: the operator opted into this pass, so ignore the project's
+    // autofix on/off toggle (that only governs the autonomous sweep).
+    const out = await processAutofixForVideo(db, ctx.video!, ctx.project, { force: true });
+    const after = await videoSpendUsd(db, videoId);
+    await recordOperatorDecision(db, {
+      projectId,
+      videoId,
+      stage: "edit",
+      action: "review",
+      agentScore: out.acted ? out.score : null,
+      operatorNotes: `Auto-Fix pass: ${out.acted ? out.kind : out.reason}`,
+      costUsd: Math.max(0, after - before),
+    });
+    refresh(projectId, videoId);
+    if (!out.acted) return { ok: true, changed: false, error: undefined, warning: `No change — ${out.reason}.` };
+    return { ok: true, changed: out.kind === "fixed", kind: out.kind, score: out.score };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Run a full Self-Watch analysis (spec §6.4). Stores the verdict on the video;
+    advisory only. */
+export async function directorRunSelfWatchAction(
+  projectId: string,
+  videoId: string,
+): Promise<DirectorResult & { score?: number | null }> {
+  try {
+    const db = await createClient();
+    const ctx = await directorCtx(db, projectId, videoId);
+    if ("error" in ctx) return { ok: false, error: ctx.error };
+    const verdict = await runWatchGate(db, ctx.video!, ctx.project, { competitive: true });
+    await recordOperatorDecision(db, {
+      projectId,
+      videoId,
+      stage: "edit",
+      action: "review",
+      agentScore: verdict?.overall ?? null,
+      operatorNotes: "Self-Watch analysis",
+    });
+    refresh(projectId, videoId);
+    if (!verdict) return { ok: true, score: null, warning: "Self-Watch needs a rendered cut with a script to analyze." };
+    return { ok: true, score: verdict.overall };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Generate an Auto-Rescript PROPOSAL (spec §6.4) — a directed revision brief
+ * built from the recorded findings. Returns the brief for the operator to
+ * review; it is NOT applied. The operator then presses Revise with it (or
+ * discards). Needs a live QC model + recorded findings; returns a null proposal
+ * otherwise (mock mode).
+ */
+export async function directorAutoRescriptProposalAction(
+  projectId: string,
+  videoId: string,
+): Promise<DirectorResult & { proposal?: string | null }> {
+  try {
+    const db = await createClient();
+    const ctx = await directorCtx(db, projectId, videoId);
+    if ("error" in ctx) return { ok: false, error: ctx.error };
+    // Gather the latest recorded findings across gates.
+    const { data: revs } = await db
+      .from("qc_reviews")
+      .select("issues, verdict, score")
+      .eq("video_id", videoId)
+      .order("created_at", { ascending: false })
+      .limit(3);
+    const issues = [
+      ...new Set(
+        ((revs ?? []) as { issues: string[] }[]).flatMap((r) => r.issues ?? []).map((s) => String(s).trim()),
+      ),
+    ].filter(Boolean);
+    const model = process.env.QC_JUDGE_MODEL?.trim() || "claude-opus-4-8";
+    const out = await composeRevisionBrief({ model, qcNotes: issues.join("\n"), issues });
+    await recordOperatorDecision(db, {
+      projectId,
+      videoId,
+      stage: "edit",
+      action: "review",
+      operatorNotes: out?.brief ? `Auto-Rescript proposal generated` : "Auto-Rescript: no proposal",
+      costUsd: out?.costUsd ?? 0,
+    });
+    refresh(projectId, videoId);
+    return {
+      ok: true,
+      proposal: out?.brief ?? null,
+      warning: out?.brief ? undefined : "No proposal — needs a live QC model and recorded findings.",
+    };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }

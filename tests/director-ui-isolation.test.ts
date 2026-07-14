@@ -19,6 +19,7 @@ const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
 const CANVAS = "src/app/projects/[id]/videos/[vid]/page.tsx";
 const LIBRARY = "src/app/projects/[id]/library/page.tsx";
 const CONSOLE = "src/app/projects/[id]/videos/[vid]/director-console.tsx";
+const AUTOPILOT = "src/app/projects/[id]/autopilot/page.tsx";
 
 describe("§10.2.6 canvas page mode isolation", () => {
   const src = read(CANVAS);
@@ -73,8 +74,18 @@ describe("§10.2.6 director console is tagged for mode assertions", () => {
       "directorStepBackAction",
       "directorKillAction",
       "directorPublishAction",
+      "directorRunAutofixAction",
+      "directorRunSelfWatchAction",
+      "directorAutoRescriptProposalAction",
     ]) {
       expect(src).toContain(action);
     }
+  });
+});
+
+describe("§10.2.6 D5 — autonomous batch surfaces hidden in Director Mode", () => {
+  it("the Autopilot page redirects director projects to the Library", () => {
+    const src = read(AUTOPILOT);
+    expect(src).toMatch(/=== "director"\)\s*\{\s*redirect\(`\/projects\/\$\{id\}\/library`\)/s);
   });
 });

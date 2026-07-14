@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Rocket } from "lucide-react";
 import {
   getBuildRuns,
@@ -36,6 +36,12 @@ export default async function AutopilotPage({
   const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
+  // Director Mode has no Autopilot — the batch/calendar autonomy surfaces don't
+  // apply (spec §10.2.6). Bounce to the Library where the operator directs each
+  // asset from the Console.
+  if ((project.pipeline_mode ?? "autonomous") === "director") {
+    redirect(`/projects/${id}/library`);
+  }
 
   const [killSwitch, buildRuns, ideas, operator, operatorEvents] = await Promise.all([
     getKillSwitch(),

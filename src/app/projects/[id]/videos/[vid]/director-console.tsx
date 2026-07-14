@@ -27,6 +27,9 @@ import {
   directorStepBackAction,
   directorKillAction,
   directorPublishAction,
+  directorRunAutofixAction,
+  directorRunSelfWatchAction,
+  directorAutoRescriptProposalAction,
 } from "@/lib/actions/director";
 import { cn } from "@/lib/cn";
 
@@ -120,6 +123,7 @@ export function DirectorConsole({
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ text: string; kind: "success" | "info" | "danger" } | null>(null);
   const [dialog, setDialog] = useState<null | "revise" | "rerender">(null);
+  const [proposal, setProposal] = useState<string | null>(null);
 
   const currentStage = stageForStatus(status);
   const currentIdx = STAGES.findIndex((s) => s.key === currentStage);
@@ -248,6 +252,34 @@ export function DirectorConsole({
                 onClick={() => run("Step back", () => directorStepBackAction(projectId, videoId))} />
             )}
           </div>
+          {/* On-demand agent passes (spec §6.4) — Edit stage only. */}
+          {currentStage === "edit" && (
+            <div className="space-y-2 border-t border-line pt-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Agent passes</p>
+              <div className="flex flex-wrap gap-2">
+                <ActBtn label="Run Auto-Fix" icon={RefreshCw} busy={busy} pending={pending}
+                  onClick={() => run("Run Auto-Fix", () => directorRunAutofixAction(projectId, videoId))} />
+                <ActBtn label="Run Self-Watch" icon={ScanSearch} busy={busy} pending={pending}
+                  onClick={() => run("Run Self-Watch", () => directorRunSelfWatchAction(projectId, videoId))} />
+                <ActBtn label="Auto-Rescript proposal" icon={Pencil} busy={busy} pending={pending}
+                  onClick={() =>
+                    run("Auto-Rescript proposal", async () => {
+                      const r = await directorAutoRescriptProposalAction(projectId, videoId);
+                      if (r.ok) setProposal(r.proposal ?? null);
+                      return r;
+                    })
+                  } />
+              </div>
+              {proposal && (
+                <div className="space-y-1 rounded-lg bg-canvas p-3 text-xs">
+                  <p className="font-semibold text-ink">Rescript proposal (not applied)</p>
+                  <p className="whitespace-pre-wrap text-muted">{proposal}</p>
+                  <button type="button" onClick={() => setProposal(null)}
+                    className="text-[11px] font-semibold text-muted hover:text-ink">Dismiss</button>
+                </div>
+              )}
+            </div>
+          )}
           {paidNext && (
             <p className="text-[11px] text-muted">
               Generate spends against your budget (VO + visuals). Budget caps and the
