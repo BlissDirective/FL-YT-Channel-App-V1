@@ -32,6 +32,9 @@ export const DIRECTOR_LENGTH_BRACKETS: readonly LengthBracket[] = [
   { id: "4-5min", format: "long", label: "4–5 min", minSec: 240, maxSec: 300 },
   { id: "5-6min", format: "long", label: "5–6 min", minSec: 300, maxSec: 360 },
   { id: "6-8min", format: "long", label: "6–8 min", minSec: 360, maxSec: 480 },
+  { id: "8-10min", format: "long", label: "8–10 min", minSec: 480, maxSec: 600 },
+  { id: "10-12min", format: "long", label: "10–12 min", minSec: 600, maxSec: 720 },
+  { id: "12-15min", format: "long", label: "12–15 min", minSec: 720, maxSec: 900 },
 ] as const;
 
 export function bracketById(id: string): LengthBracket | undefined {
