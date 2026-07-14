@@ -32,6 +32,13 @@ import {
   directorAutoRescriptProposalAction,
 } from "@/lib/actions/director";
 import { cn } from "@/lib/cn";
+import { GATE_RUBRICS } from "@/lib/pipeline/rubrics";
+
+/** criterion id → the plain-English question it checks (from the QC rubric),
+    so a bare "Duration band: failed" gains "— is the duration within ±25% …". */
+const CRITERION_TEST: Record<string, string> = Object.fromEntries(
+  Object.values(GATE_RUBRICS).flat().map((c) => [c.id, c.test]),
+);
 
 /**
  * The Director Console (Fable-5-Director-Mode-Build-Spec.md §6.3). Mounted on
@@ -49,6 +56,10 @@ export type ConsoleReview = {
   verdict: string;
   issues: string[];
   strengths: string[];
+  /** Per-criterion pass/fail (Harness C1). null on older rows. */
+  criteria:
+    | { id: string; label: string; pass: boolean; note?: string; weight?: number }[]
+    | null;
   created_at: string;
 };
 
@@ -393,17 +404,48 @@ function AdvisoryPanel({ reviews, tasteLine }: { reviews: ConsoleReview[]; taste
           {latest.score.toFixed(1)}/10 {below ? "· advisory" : "· strong"}
         </span>
       </div>
-      {latest.issues.length > 0 && (
+      {/* Structured criteria (label + what it checks + why it failed) when the
+          review carries them; otherwise the raw issue notes. */}
+      {latest.criteria && latest.criteria.length > 0 ? (
         <div>
-          <p className="text-[11px] font-semibold text-ink">Findings</p>
-          <ul className="mt-1 space-y-1">
-            {latest.issues.map((it, i) => (
-              <li key={i} className="flex items-start gap-1.5 text-xs text-muted">
-                <AlertTriangle className="mt-0.5 size-3 shrink-0 text-amber-500" /> {it}
-              </li>
-            ))}
+          <p className="text-[11px] font-semibold text-ink">Checks</p>
+          <ul className="mt-1 space-y-1.5">
+            {[...latest.criteria]
+              .sort((a, b) => Number(a.pass) - Number(b.pass)) // failures first
+              .map((c, i) => {
+                const note = (c.note ?? "").trim();
+                const test = CRITERION_TEST[c.id];
+                return (
+                  <li key={i} className="flex items-start gap-1.5 text-xs">
+                    {c.pass ? (
+                      <Check className="mt-0.5 size-3 shrink-0 text-emerald-500" />
+                    ) : (
+                      <AlertTriangle className="mt-0.5 size-3 shrink-0 text-amber-500" />
+                    )}
+                    <span className={c.pass ? "text-muted" : "text-ink/90"}>
+                      <span className="font-semibold">{c.label}</span>
+                      {!c.pass && <span className="text-amber-600"> — needs work</span>}
+                      {test && <span className="block text-muted">Checks: {test}</span>}
+                      {note && <span className="block text-muted">{note}</span>}
+                    </span>
+                  </li>
+                );
+              })}
           </ul>
         </div>
+      ) : (
+        latest.issues.length > 0 && (
+          <div>
+            <p className="text-[11px] font-semibold text-ink">Findings</p>
+            <ul className="mt-1 space-y-1">
+              {latest.issues.map((it, i) => (
+                <li key={i} className="flex items-start gap-1.5 text-xs text-muted">
+                  <AlertTriangle className="mt-0.5 size-3 shrink-0 text-amber-500" /> {it}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
       )}
       {latest.strengths.length > 0 && (
         <div>

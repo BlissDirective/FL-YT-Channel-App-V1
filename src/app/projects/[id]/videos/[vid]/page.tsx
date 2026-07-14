@@ -87,6 +87,12 @@ export default async function VideoDetailPage({
   const v = video as Video;
   const s = (script as Script) ?? null;
   const directorMode = (project.pipeline_mode ?? "autonomous") === "director";
+  // The AI Video Generation card belongs to the visuals/edit development stages
+  // only. In Director Mode it's hidden at idea/script/publish so each stage
+  // shows just its own tools; autonomous keeps the script-gate setup entry.
+  const showVideoGen =
+    !directorMode ||
+    ["GENERATING_ASSETS", "ASSETS_READY", "ASSEMBLING", "FINAL_REVIEW"].includes(v.status);
   const lengthTargetLabel = v.length_target
     ? bracketById(v.length_target.bracket)?.label ??
       `${Math.round(v.length_target.minSec / 60)}–${Math.round(v.length_target.maxSec / 60)} min`
@@ -163,7 +169,7 @@ export default async function VideoDetailPage({
     ? await Promise.all([
         supabase
           .from("qc_reviews")
-          .select("id, gate, score, verdict, issues, strengths, created_at")
+          .select("id, gate, score, verdict, issues, strengths, criteria, created_at")
           .eq("video_id", vid)
           .order("created_at", { ascending: false }),
         supabase
@@ -519,7 +525,7 @@ export default async function VideoDetailPage({
         <StepBackStage projectId={id} videoId={vid} backToLabel="script" />
       )}
 
-      {s && beats.length > 0 && (
+      {s && beats.length > 0 && showVideoGen && (
         <div id="videogen">
         <VideoGen
           projectId={id}
