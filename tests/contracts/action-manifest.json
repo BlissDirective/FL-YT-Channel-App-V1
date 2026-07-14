@@ -7,7 +7,8 @@
   "autofix": [
     "setVideoAutofixAction(projectId: string, videoId: string, mode: \"inherit\" | \"on\" | \"off\",)",
     "runAutofixNowAction(projectId: string, videoId: string,)",
-    "fixFromVisionReviewAction(projectId: string, videoId: string,)"
+    "fixFromVisionReviewAction(projectId: string, videoId: string,)",
+    "reReviewVisionAction(projectId: string, videoId: string,)"
   ],
   "build": [
     "estimateBuildRunAction(projectId: string, config: BuildRunConfig,)",

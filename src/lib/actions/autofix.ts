@@ -106,3 +106,72 @@ export async function fixFromVisionReviewAction(
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
+
+/**
+ * Re-review the CURRENT cut on demand (operator-triggered). Runs the in-app
+ * Self-Watch judge — which scores timing, script-match, transitions, and
+ * competitive fit from the script + beats + assets — so the operator gets an
+ * immediate second opinion WITHOUT waiting on the render farm. (The farm's
+ * rendered-frame vision critique refreshes automatically after the next render;
+ * this is the always-available in-app judge.) Advisory only: it records the
+ * fresh watch verdict on the video but never advances or holds.
+ */
+export async function reReviewVisionAction(
+  projectId: string,
+  videoId: string,
+): Promise<{
+  ok: boolean;
+  error?: string;
+  overall?: number;
+  dimensions?: { label: string; score: number }[];
+  issues?: string[];
+}> {
+  try {
+    await assertOperator();
+  } catch {
+    return { ok: false, error: "Not authenticated." };
+  }
+  let db: ReturnType<typeof createAdminClient>;
+  try {
+    db = createAdminClient();
+  } catch {
+    return { ok: false, error: "Service role not configured." };
+  }
+  try {
+    const { data: v } = await db.from("videos").select("*").eq("id", videoId).maybeSingle();
+    const video = v as Video | null;
+    if (!video) return { ok: false, error: "Video not found" };
+    const { data: p } = await db.from("projects").select("*").eq("id", video.project_id).maybeSingle();
+    const project = p as Project | null;
+    if (!project) return { ok: false, error: "Project not found" };
+
+    const { runWatchGate } = await import("@/lib/pipeline/watch-runner");
+    const verdict = await runWatchGate(db, video, project, { competitive: true });
+    refresh(projectId, videoId);
+    if (!verdict) {
+      return { ok: false, error: "Re-review needs a script and rendered beats to analyze." };
+    }
+    const issues = [
+      ...verdict.timing.issues,
+      ...verdict.scriptMatch.issues,
+      ...verdict.transitions.issues,
+      ...verdict.competitive.issues,
+    ]
+      .map((i) => i.detail)
+      .filter(Boolean)
+      .slice(0, 8);
+    return {
+      ok: true,
+      overall: verdict.overall,
+      dimensions: [
+        { label: "Timing", score: verdict.timing.score },
+        { label: "Script match", score: verdict.scriptMatch.score },
+        { label: "Transitions", score: verdict.transitions.score },
+        { label: "Competitive", score: verdict.competitive.score },
+      ],
+      issues,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
