@@ -42,6 +42,7 @@ import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import { dispatchWorkflow, ghDispatchConfigured } from "@/lib/adapters/gh-dispatch";
 import { invalidateQualityGateCache, mergeQualityGates } from "@/lib/pipeline/quality-gates";
 import { getKillSwitch } from "@/lib/db/queries";
+import { assertAdmin } from "@/lib/admin-guard";
 import { rankCandidates, searchSources, type SourceCandidate } from "@/lib/adapters/sources";
 import type { RemixSettings, ScriptRemix } from "@/lib/adapters/script";
 import type { CuratedHighlight, CustomSpec, ScriptBeat } from "@/lib/db/types";
@@ -863,6 +864,7 @@ export async function saveQualityGatesAction(
 export async function setKillSwitchAction(
   enabled: boolean,
 ): Promise<{ ok: boolean; error?: string }> {
+  await assertAdmin();
   const supabase = await createClient();
   const { error } = await supabase
     .from("app_settings")
@@ -882,6 +884,7 @@ export async function setKillSwitchAction(
 export async function setVceFlagsAction(
   flags: Partial<Record<"bible" | "router" | "refine" | "grounding" | "compositor", boolean>>,
 ): Promise<{ ok: boolean; error?: string }> {
+  await assertAdmin();
   const supabase = await createClient();
   const { data } = await supabase.from("app_settings").select("value").eq("key", "vce").maybeSingle();
   const existing = (data?.value ?? {}) as Record<string, boolean>;

@@ -7,6 +7,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { KillSwitch } from "./kill-switch";
 import { VceSystemsCard } from "./vce-systems-card";
 import { getVceFlags, VCE_DEFAULTS } from "@/lib/pipeline/vce";
+import { getIsAdmin } from "@/lib/admin-guard";
 import { NotificationsCard } from "./notifications-card";
 import { CredentialHealthList } from "./credential-health";
 import { QualityGatesCard } from "./quality-gates-card";
@@ -33,6 +34,7 @@ export default async function SettingsPage() {
     ? await Promise.all([getKillSwitch(), getCostLedger(12), getQcAgreement(), getQualityGates()])
     : [false, [], { total: 0, agree: 0, rate: 0 }, {}];
   const vceFlags = configured ? await getVceFlags() : VCE_DEFAULTS;
+  const isAdmin = configured ? await getIsAdmin() : false;
   const shownTotal = ledger.reduce((s, e) => s + Number(e.usd), 0);
 
   return (
@@ -44,7 +46,7 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      {configured && (
+      {configured && isAdmin && (
         <Card>
           <CardTitle>Pipeline control</CardTitle>
           <KillSwitch enabled={killSwitch} />
@@ -57,11 +59,11 @@ export default async function SettingsPage() {
 
       {configured && <QualityGatesCard initial={qualityGates} />}
 
-      {configured && <VceSystemsCard initial={vceFlags} />}
+      {configured && isAdmin && <VceSystemsCard initial={vceFlags} />}
 
       {configured && <JudgeCalibration />}
 
-      {configured && <MvdaScoreboard />}
+      {configured && isAdmin && <MvdaScoreboard />}
 
       {configured && (
         <Card>
@@ -144,7 +146,7 @@ export default async function SettingsPage() {
         )}
       </Card>
 
-      {configured && (
+      {configured && isAdmin && (
         <Card>
           <CardTitle>Danger zone</CardTitle>
           <PurgeDemoData />

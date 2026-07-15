@@ -32,7 +32,6 @@ const beat = (over: Partial<ScriptBeat> = {}): ScriptBeat => ({
   text: "A quiet lab at dawn",
   visualPrompt: "a quiet research lab at dawn",
   shotType: "broll",
-  motion: false,
   ...over,
 });
 
@@ -41,7 +40,7 @@ const script: ScriptBeat[] = [
   beat({ idx: 1, text: "Growth hit 40 percent", visualPrompt: "a rising line", shotType: "broll" }),
   beat({ idx: 2, text: "Imagine two futures compared", visualPrompt: "a fork in the road" }),
   beat({ idx: 3, text: "The hero moment", visualPrompt: "a lone figure on a ridge", shotType: "hero" }),
-  beat({ idx: 4, text: "A tight detail", visualPrompt: "hands on a keyboard", motion: true }),
+  beat({ idx: 4, text: "A tight detail", visualPrompt: "hands on a keyboard", motion: "pan-left" }),
 ];
 
 describe("VCE §6.1 — flag-off invariance", () => {

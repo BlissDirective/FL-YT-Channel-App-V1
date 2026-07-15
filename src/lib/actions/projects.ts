@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { assertAdmin } from "@/lib/admin-guard";
 import { mockScript } from "@/lib/pipeline/mock-content";
 import { DEFAULT_SCRIPT_TEMPLATE } from "@/lib/pipeline/templates";
 import type { BrandKit, Budget } from "@/lib/db/types";
@@ -323,6 +324,11 @@ export async function createDemoProject(): Promise<void> {
  * projects are never touched.
  */
 export async function purgeDemoDataAction(): Promise<{ ok: boolean; deleted: number; error?: string }> {
+  try {
+    await assertAdmin();
+  } catch {
+    return { ok: false, deleted: 0, error: "Admin access required." };
+  }
   const supabase = await createClient();
   const { data: demos, error: selErr } = await supabase
     .from("projects")
