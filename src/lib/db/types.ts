@@ -238,6 +238,9 @@ export type Video = {
   /** Visual Craft Engine V1 — per-video visual continuity bible (null until
       derived / when the vce.bible flag is off). Conditions every beat's prompt. */
   visual_bible: import("@studio/core").VisualBible | null;
+  /** Visual Craft Engine V2 — per-beat shot plan + Medium Router decisions
+      (null when the vce.router flag is off). */
+  shot_plan: import("@studio/core").ShotPlan | null;
   scheduled_at: string | null;
   youtube_video_id: string | null;
   published_at: string | null;

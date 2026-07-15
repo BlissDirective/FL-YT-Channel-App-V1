@@ -35,6 +35,8 @@ import { playbookForStage } from "@/lib/pipeline/playbook";
 import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { getVceFlags } from "@/lib/pipeline/vce";
 import { buildVisualBible } from "@/lib/adapters/visual-bible";
+import { planShots } from "@/lib/adapters/shot-planner";
+import { mediumToShotType } from "@studio/core";
 import { autofixSettled, resolveWatchVerdict, watchBlocksPublish, watchHoldReason } from "@/lib/pipeline/settle";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
 import { keywords } from "@/lib/pipeline/dedup";
@@ -761,6 +763,36 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   const beats = (script?.beats ?? []) as ScriptBeat[];
   const scriptMeta = (script?.metadata ?? {}) as { thumbPhrase?: string };
   const stick = project.visual_style === "stick";
+
+  // VCE V2 — the Medium Router (flagged). Plan each beat's cheapest satisfying
+  // medium within budget, store the plan, and downshift beat shotTypes so
+  // premium generative video is reserved for hero beats. Conservative: only
+  // remap to concrete executable shotTypes (i2v/still/stock); free-graphics
+  // mediums (chart/remotion/stick) keep their original shotType until V5
+  // executes them, so this never regresses today's output. Best-effort.
+  try {
+    const flags = await getVceFlags();
+    if (flags.router && beats.length > 0) {
+      const budgetUsd = Number(project.max_video_usd ?? 8);
+      const shotPlan = await planShots({
+        beats,
+        bible: video.visual_bible ?? null,
+        budgetUsd,
+        ctx: { budgetRemainingUsd: budgetUsd, stickAllowed: stick, dataVizAllowed: true },
+      });
+      await db.from("videos").update({ shot_plan: shotPlan }).eq("id", video.id);
+      for (const b of beats) {
+        const shot = shotPlan.beats.find((x) => x.beatIdx === b.idx)?.shots[0];
+        if (!shot) continue;
+        // Only apply executable remaps; leave chart/remotion/stick beats as-is.
+        if (["i2v", "t2v", "still", "stock"].includes(shot.medium)) {
+          b.shotType = mediumToShotType(shot.medium);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("shot planning failed (non-fatal):", err);
+  }
 
   // Tier 9 #4 — multi-image context: the auto tier (FREE stock extras for all;
   // economy may top up with cheap FLUX schnell) and which beats are AI-video
