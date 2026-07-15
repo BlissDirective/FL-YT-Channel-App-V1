@@ -33,6 +33,8 @@ import { pickBestVariant } from "@/lib/adapters/variant-judge";
 import { verifyBeatVisual, isBeatRelevanceLive, type BeatRelevance } from "@/lib/adapters/beat-relevance";
 import { playbookForStage } from "@/lib/pipeline/playbook";
 import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
+import { getVceFlags } from "@/lib/pipeline/vce";
+import { buildVisualBible } from "@/lib/adapters/visual-bible";
 import { autofixSettled, resolveWatchVerdict, watchBlocksPublish, watchHoldReason } from "@/lib/pipeline/settle";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
 import { keywords } from "@/lib/pipeline/dedup";
@@ -572,6 +574,30 @@ async function runScripting(db: Db, video: Video, project: Project) {
     },
     `“${video.title}”`,
   );
+
+  // VCE V1 — derive the Visual Bible from the fresh script (flagged). Conditions
+  // every beat's visual prompt for relevance + consistency. Best-effort: a
+  // failure never blocks the script gate, and with the flag off it never runs.
+  try {
+    const flags = await getVceFlags();
+    if (flags.bible && !video.visual_bible) {
+      const scriptText = (draft.beats ?? []).map((b) => `${b.text}\n[visual: ${b.visualPrompt}]`).join("\n\n");
+      const { bible, costUsd } = await buildVisualBible({
+        title: video.title,
+        niche: project.niche,
+        angle: project.angle,
+        tone: project.tone,
+        scriptText,
+        brandPalette: project.brand_kit?.primary ? [project.brand_kit.primary, project.brand_kit.secondary].filter(Boolean) : undefined,
+      });
+      await db.from("videos").update({ visual_bible: bible }).eq("id", video.id);
+      if (costUsd > 0) {
+        await recordCost(db, video, { provider: "anthropic", usd: costUsd, description: "Visual bible" }, `“${video.title}”`);
+      }
+    }
+  } catch (err) {
+    console.error("visual bible build failed (non-fatal):", err);
+  }
 
   // Opt-in: curate kinetic highlights off the fresh script (auto when enabled).
   if (video.enable_highlights) {
@@ -1157,7 +1183,9 @@ export async function makeBeatClip(
   opts?: { db?: Db; qualityGate?: QualityGateConfig; forceRegen?: boolean },
 ): Promise<AssetDraft> {
   let scene = beat.visualPrompt;
-  let prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle);
+  // VCE V1 — condition the prompt on the video's Visual Bible (null → unchanged).
+  const bible = video.visual_bible ?? null;
+  let prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle, bible);
   // Secondary costs (prompt refine, discarded blank renders) are returned to the
   // caller and recorded sequentially (parallel recordCost would race the total).
   const extraCosts: NonNullable<AssetDraft["extraCosts"]> = [];
@@ -1210,7 +1238,7 @@ export async function makeBeatClip(
           });
           if (refined?.prompt) {
             scene = refined.prompt;
-            prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle);
+            prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle, bible);
             if (refined.costUsd > 0) {
               extraCosts.push({ provider: "anthropic", usd: refined.costUsd, description: "Prompt pre-check refine" });
             }

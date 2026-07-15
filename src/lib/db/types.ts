@@ -235,6 +235,9 @@ export type Video = {
   /** Director Mode length bracket (null in autonomous mode / pre-D4 videos).
       When present it wins over tier/target defaults in scripting + VO. */
   length_target: LengthTarget | null;
+  /** Visual Craft Engine V1 — per-video visual continuity bible (null until
+      derived / when the vce.bible flag is off). Conditions every beat's prompt. */
+  visual_bible: import("@studio/core").VisualBible | null;
   scheduled_at: string | null;
   youtube_video_id: string | null;
   published_at: string | null;
