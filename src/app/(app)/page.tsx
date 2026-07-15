@@ -25,7 +25,7 @@ import { ProjectCard } from "@/components/dashboard/project-card";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { SystemPulse } from "@/components/dashboard/system-pulse";
 import { AwaitingYouRow } from "@/components/dashboard/awaiting-you";
-import { GenerateInsightsButton } from "@/app/insights/insights-list";
+import { GenerateInsightsButton } from "@/app/(app)/insights/insights-list";
 import { tileState } from "@/lib/db/library";
 
 export const dynamic = "force-dynamic";

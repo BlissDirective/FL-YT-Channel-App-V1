@@ -16,10 +16,10 @@ import { describe, expect, it } from "vitest";
 const ROOT = join(__dirname, "..");
 const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
 
-const CANVAS = "src/app/projects/[id]/videos/[vid]/page.tsx";
-const LIBRARY = "src/app/projects/[id]/library/page.tsx";
-const CONSOLE = "src/app/projects/[id]/videos/[vid]/director-console.tsx";
-const AUTOPILOT = "src/app/projects/[id]/autopilot/page.tsx";
+const CANVAS = "src/app/(app)/projects/[id]/videos/[vid]/page.tsx";
+const LIBRARY = "src/app/(app)/projects/[id]/library/page.tsx";
+const CONSOLE = "src/app/(app)/projects/[id]/videos/[vid]/director-console.tsx";
+const AUTOPILOT = "src/app/(app)/projects/[id]/autopilot/page.tsx";
 
 describe("§10.2.6 canvas page mode isolation", () => {
   const src = read(CANVAS);

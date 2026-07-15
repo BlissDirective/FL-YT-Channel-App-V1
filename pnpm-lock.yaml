@@ -11,6 +11,12 @@ importers:
       '@fontsource-variable/plus-jakarta-sans':
         specifier: ^5.2.8
         version: 5.2.8
+      '@fontsource-variable/sora':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource-variable/space-grotesk':
+        specifier: ^5.2.10
+        version: 5.2.10
       '@remotion/player':
         specifier: 4.0.290
         version: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -113,7 +119,7 @@ importers:
         version: 0.3.207(@anthropic-ai/sdk@0.111.0(zod@4.4.3))(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(zod@4.4.3)
       '@remotion/bundler':
         specifier: 4.0.290
-        version: 4.0.290(postcss@8.5.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@remotion/renderer':
         specifier: 4.0.290
         version: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -185,7 +191,7 @@ importers:
     dependencies:
       '@remotion/bundler':
         specifier: 4.0.290
-        version: 4.0.290(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 4.0.290(postcss@8.5.16)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@remotion/lottie':
         specifier: 4.0.290
         version: 4.0.290(lottie-web@5.13.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -815,6 +821,12 @@ packages:
 
   '@fontsource-variable/plus-jakarta-sans@5.2.8':
     resolution: {integrity: sha512-iQecBizIdZxezODNHzOn4SvvRMrZL/S8k4MEXGDynCmUrImVW0VmX+tIAMqnADwH4haXlHSXqMgU6+kcfBQJdw==}
+
+  '@fontsource-variable/sora@5.2.8':
+    resolution: {integrity: sha512-sP+ILTfi5r3cqmMBntI4ooQNxFI+LyHyD5hcPbWwwL4uh4kKFAkOz0w2veCXjz18fKRdva6OG0dY+5yQ02f30w==}
+
+  '@fontsource-variable/space-grotesk@5.2.10':
+    resolution: {integrity: sha512-yJQO/o35/hAP3CFnpdFTwQku2yzJOae2HIpBmqkOVoxhhXJaQP3g+b6Jrz7u+eI7A5ZdCIf88uMWpBJdFiGr5w==}
 
   '@hono/node-server@1.19.14':
     resolution: {integrity: sha512-GwtvgtXxnWsucXvbQXkRgqksiH2Qed37H9xHZocE5sA3N8O8O8/8FA3uclQXxXVzc9XBZuEOMK7+r02FmSpHtw==}
@@ -4584,6 +4596,10 @@ snapshots:
       levn: 0.4.1
 
   '@fontsource-variable/plus-jakarta-sans@5.2.8': {}
+
+  '@fontsource-variable/sora@5.2.8': {}
+
+  '@fontsource-variable/space-grotesk@5.2.10': {}
 
   '@hono/node-server@1.19.14(hono@4.12.29)':
     dependencies:

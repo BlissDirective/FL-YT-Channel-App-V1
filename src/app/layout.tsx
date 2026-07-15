@@ -1,8 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { TopNav } from "@/components/shell/top-nav";
-import { MobileNav } from "@/components/shell/mobile-nav";
 import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
+
+/**
+ * Root layout — the minimal HTML/body shell shared by every route group.
+ * Deliberately carries NO app chrome: the authenticated control panel lives in
+ * the (app) group's layout, and the public marketing pages live in the
+ * (marketing) group with their own full-bleed layout. Keeping the root minimal
+ * is what lets /launch render without the app nav.
+ */
 
 export const metadata: Metadata = {
   title: "Faceless Studio",
@@ -26,19 +32,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen font-sans antialiased">
-        {/* Top safe-area inset keeps the header clear of the mobile status
-            bar / notch when installed as a PWA or viewed in a browser whose
-            chrome overlays the viewport. */}
-        <div className="mx-auto min-h-screen max-w-[1440px] p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-5">
-          <div className="min-h-[calc(100vh-2.5rem)] rounded-panel bg-surface shadow-card">
-            <TopNav />
-            {/* Bottom padding below `sm` keeps content clear of the tab bar. */}
-            <main className="px-4 pb-24 sm:px-8 sm:pb-8">{children}</main>
-          </div>
-        </div>
-        <MobileNav />
-      </body>
+      <body className="min-h-screen font-sans antialiased">{children}</body>
     </html>
   );
 }

@@ -57,6 +57,9 @@
     "applyInsightAction(insightId: string)",
     "dismissInsightAction(insightId: string)"
   ],
+  "launch": [
+    "joinLaunchList(input: JoinInput)"
+  ],
   "operator": [
     "startOperatorAction(projectId: string)",
     "pauseOperatorAction(projectId: string)",

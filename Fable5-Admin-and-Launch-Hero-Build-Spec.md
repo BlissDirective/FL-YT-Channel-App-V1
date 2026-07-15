@@ -92,6 +92,38 @@ asset. Paywall/billing and multi-tenancy are explicitly **out of scope** here.
 
 ---
 
+## Part B.0 — Locked hero content (operator sign-off)
+
+- **Taglines under the H1 (two, different fonts):**
+  - **Primary (slightly larger), display font:** *"Full automation. Zero blind
+    trust."*
+  - **Secondary (below, a different font, smaller):** *"Script, voice, visuals,
+    effects, and the final cut — one brief, one crew, your call on every gate."*
+- **Feature showcase — each gets its own accurate, unique, react-bits-animated
+  highlight** (no generic copy):
+  1. **QC gates** — the full stack (IDEA / SCRIPT / CUT / FINAL + vision QC +
+     frame-critic judge).
+  2. **Cost / asset-creation tiers** — the medium router: free motion
+     graphics/charts → premium generative video, reserved for hero beats.
+  3. **Automated agentic systems** — the end-to-end pipeline on autopilot with a
+     kill switch.
+  4. **Multi-agent orchestration** — MVDA cut agent, art director, seed-vision
+     critic, beat-relevance, the librarian, etc.
+  5. **Editing** — the /edit versioned timeline; human + agent are peers on one
+     document.
+  6. **Voice** — word-timestamped narration driving caption/cut timing.
+  7. **VFX / special-effects generation** — Remotion compositor: kinetic
+     captions, quote cards, stat tickers, scene vocabulary.
+  8. **Learning loops** — retention → attributed dips → lessons that must earn
+     their way in.
+- **Compliance (locked):** keep **exact costs vague/soft** (tiers/ranges, not
+  hard per-unit prices) on the public page; include a clear **"not affiliated
+  with YouTube / Google"** disclaimer (footer + explicit line). Draft legal
+  pages marked DRAFT per Part D.
+- **Styling:** react-bits (copied into `src/components/bits/`) with entrance +
+  demo animations; cinema-dark design system per hero doc §2; reduced-motion +
+  mobile fallbacks required.
+
 ## Part B — `/launch` hero page *(Phase 2)*
 
 - **Route group** `src/app/(marketing)/launch/page.tsx` with a dedicated

@@ -6,7 +6,17 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
 // webhook's secret-token + chat-id lock; register's CRON_SECRET) all carry their
 // own auth, so they bypass the session gate. (Telegram must be able to POST the
 // webhook without a logged-in session.)
-const PUBLIC_PATHS = ["/login", "/api/cron", "/api/mcp", "/api/telegram"];
+// Public marketing surfaces (/launch, /legal/*) are reachable without a
+// session; the waitlist action runs anon and is fenced by RLS. Everything else
+// stays gated. /login and the token-authed API routes carry their own auth.
+const PUBLIC_PATHS = [
+  "/launch",
+  "/legal",
+  "/login",
+  "/api/cron",
+  "/api/mcp",
+  "/api/telegram",
+];
 
 export async function middleware(request: NextRequest) {
   const url = SUPABASE_URL;

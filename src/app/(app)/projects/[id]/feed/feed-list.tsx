@@ -7,7 +7,7 @@ import { ArrowUpRight, Loader2, Radar, Sparkles } from "lucide-react";
 import type { FeedEntry } from "@/lib/db/feed";
 import type { InsightWithProject } from "@/lib/db/queries";
 import { runOptimizerNowAction } from "@/lib/actions/intelligence";
-import { InsightCard } from "@/app/insights/insights-list";
+import { InsightCard } from "@/app/(app)/insights/insights-list";
 import { PillTabs } from "@/components/ui/pill-tabs";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/ui/status-chip";

@@ -18,6 +18,10 @@
   --color-line: #eeeae2;
 
   --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  /* Marketing display faces (self-hosted via fontsource, loaded in the
+     (marketing) layout). Two distinct techy grotesks for the hero taglines. */
+  --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display-alt: "Sora Variable", ui-sans-serif, system-ui, sans-serif;
 
   --radius-card: 1.25rem;
   --radius-panel: 1.75rem;
