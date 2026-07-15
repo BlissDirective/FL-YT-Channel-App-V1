@@ -36,6 +36,7 @@ import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type Qual
 import { getVceFlags } from "@/lib/pipeline/vce";
 import { buildVisualBible } from "@/lib/adapters/visual-bible";
 import { planShots } from "@/lib/adapters/shot-planner";
+import { nextPrompt } from "@/lib/pipeline/beat-refine";
 import { mediumToShotType } from "@studio/core";
 import { autofixSettled, resolveWatchVerdict, watchBlocksPublish, watchHoldReason } from "@/lib/pipeline/settle";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
@@ -1469,13 +1470,25 @@ async function vetSeedStillForBeat(db: Db, video: Video, project: Project, beat:
     const relevanceWeak = relevance != null && relevance.relevance < qg.beatRelevanceFloor;
     if (!qualityWeak && !relevanceWeak) return; // seed passes both → animate it
 
+    // VCE V3 — the targeted refine. Instead of a generic steer, feed the critic's
+    // SPECIFIC complaint into the prompt via nextPrompt (keeps the Visual-Bible
+    // conditioning) and log the attempt. Flag off → the legacy single steer.
+    const refineOn = (await getVceFlags()).refine;
+    const criticNote =
+      relevanceWeak && relevance?.betterQuery
+        ? `It MUST clearly depict: ${relevance.betterQuery}.`
+        : critique?.issues?.[0] ?? "Improve clarity and match the narration precisely.";
+    const beforeScore = Math.min(critique?.score ?? 10, relevance?.relevance ?? 10);
+
     // Re-roll a fresh still (forceRegen overwrites the cache so the rejected
-    // image is never re-served). When RELEVANCE is the problem, steer the new
-    // still toward the subject the model named; replace the asset.
+    // image is never re-served); replace the asset.
     fresh = (await getVideo(db, video.id)) ?? fresh;
-    const steeredBeat = relevanceWeak && relevance?.betterQuery
-      ? { ...beat, visualPrompt: `${beat.visualPrompt}. It MUST clearly depict: ${relevance.betterQuery}.` }
-      : beat;
+    const steeredPrompt = refineOn
+      ? nextPrompt(beat.visualPrompt, criticNote)
+      : relevanceWeak && relevance?.betterQuery
+        ? `${beat.visualPrompt}. It MUST clearly depict: ${relevance.betterQuery}.`
+        : beat.visualPrompt;
+    const steeredBeat = steeredPrompt === beat.visualPrompt ? beat : { ...beat, visualPrompt: steeredPrompt };
     const draft = await makeBeatClip(fresh, project, steeredBeat, { db, qualityGate: qg, forceRegen: true });
     if (String(draft.row.provider).startsWith("mock:")) return; // re-roll failed → keep the original
     draft.row.meta = { ...draft.row.meta, beatHash: beatContentHash(beat), seedRerolled: true };
@@ -1484,6 +1497,35 @@ async function vetSeedStillForBeat(db: Db, video: Video, project: Project, beat:
     fresh = (await getVideo(db, video.id)) ?? fresh;
     await recordCost(db, fresh, draft.cost, `beat ${beat.idx + 1} (seed re-roll)`);
     for (const ec of draft.extraCosts ?? []) await recordCost(db, fresh, ec, `beat ${beat.idx + 1}`);
+
+    if (refineOn) {
+      // Re-critique the fresh still and audit the targeted attempt. Cheap-first:
+      // this vets the still before any paid animation, and the DI orchestrator
+      // (pipeline/beat-refine.ts) is the reference for extending to N attempts.
+      let toScore = beforeScore;
+      try {
+        const newUrl = await getSignedMediaUrl(draft.row.storage_path as string);
+        const recrit = newUrl ? await critiqueSeedStill({ imageUrl: newUrl, visualPrompt: steeredPrompt, beatText: beat.text }) : null;
+        if (recrit) {
+          toScore = recrit.score;
+          if (recrit.costUsd) await recordCost(db, fresh, { provider: "anthropic", usd: recrit.costUsd, description: "Seed-still re-critique" }, `beat ${beat.idx + 1}`);
+        }
+      } catch { /* re-critique is best-effort */ }
+      try {
+        await db.from("beat_refine_runs").insert({
+          video_id: video.id,
+          beat_idx: beat.idx,
+          attempt: 1,
+          from_score: beforeScore,
+          to_score: toScore,
+          critic_note: criticNote,
+          prompt_before: beat.visualPrompt,
+          prompt_after: steeredPrompt,
+          medium: "still",
+          cost_usd: Number(draft.cost.usd ?? 0),
+        });
+      } catch { /* audit is best-effort */ }
+    }
   } catch (err) {
     console.error(`seed-still vision gate failed (beat ${beat.idx}):`, err);
   }
