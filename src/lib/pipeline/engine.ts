@@ -35,9 +35,10 @@ import { playbookForStage } from "@/lib/pipeline/playbook";
 import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { getVceFlags } from "@/lib/pipeline/vce";
 import { buildVisualBible } from "@/lib/adapters/visual-bible";
-import { planShots } from "@/lib/adapters/shot-planner";
+import { planShots, mockBeatIntents } from "@/lib/adapters/shot-planner";
 import { nextPrompt } from "@/lib/pipeline/beat-refine";
-import { mediumToShotType } from "@studio/core";
+import { findReference } from "@/lib/adapters/visual-grounding";
+import { mediumToShotType, wantsGrounding } from "@studio/core";
 import { autofixSettled, resolveWatchVerdict, watchBlocksPublish, watchHoldReason } from "@/lib/pipeline/settle";
 import { recordCost, monthSpend, checkBudget } from "@/lib/pipeline/ledger";
 import { keywords } from "@/lib/pipeline/dedup";
@@ -793,6 +794,37 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     }
   } catch (err) {
     console.error("shot planning failed (non-fatal):", err);
+  }
+
+  // VCE V4 — grounded generation (flagged). For factual beats (a named entity /
+  // place / statistic), find a REAL licensed reference and store it so the beat
+  // is grounded in reality; attribution flows to the publish-kit credits.
+  // Best-effort; never blocks generation.
+  try {
+    const flags = await getVceFlags();
+    if (flags.grounding && beats.length > 0) {
+      const intents = mockBeatIntents(beats);
+      const planned = new Map((video.shot_plan?.beats ?? []).map((b) => [b.beatIdx, b.shots[0]?.intent]));
+      for (const it of intents) {
+        const intent = planned.get(it.beatIdx) ?? it.intent;
+        if (!wantsGrounding(intent)) continue;
+        const beat = beats.find((b) => b.idx === it.beatIdx);
+        if (!beat) continue;
+        const ref = await findReference({ beatText: beat.text, visualPrompt: beat.visualPrompt, niche: project.niche });
+        if (!ref) continue;
+        await db.from("visual_refs").insert({
+          project_id: project.id,
+          video_id: video.id,
+          beat_idx: beat.idx,
+          source: ref.source,
+          url: ref.url,
+          license: ref.license,
+          attribution: ref.attribution,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("visual grounding failed (non-fatal):", err);
   }
 
   // Tier 9 #4 — multi-image context: the auto tier (FREE stock extras for all;
