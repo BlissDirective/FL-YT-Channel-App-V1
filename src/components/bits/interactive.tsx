@@ -28,6 +28,61 @@ export function SpotlightCard({
   );
 }
 
+/** Subtle 3D tilt toward the cursor (max ~5°, desktop pointer only). */
+export function TiltedCard({
+  children,
+  max = 5,
+  className = "",
+}: {
+  children: React.ReactNode;
+  max?: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(pointer: coarse)").matches) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    el.style.transform = `perspective(1000px) rotateX(${-py * max * 2}deg) rotateY(${px * max * 2}deg)`;
+  };
+  const reset = () => {
+    if (ref.current) ref.current.style.transform = "perspective(1000px) rotateX(0) rotateY(0)";
+  };
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={reset}
+      className={className}
+      style={{ transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1)", transformStyle: "preserve-3d" }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Vertically auto-scrolling, seamless list (pauses on hover/focus). Renders
+    the items twice so the -50% keyframe loops without a visible seam. */
+export function InfiniteScrollY({
+  items,
+  className = "",
+}: {
+  items: React.ReactNode[];
+  className?: string;
+}) {
+  return (
+    <div className={`m-vscroll-wrap ${className}`}>
+      <ul className="m-vtrack space-y-2" tabIndex={0} aria-label="Recent version notes">
+        {[...items, ...items].map((it, i) => (
+          <li key={i}>{it}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /** Element that nudges slightly toward the cursor (desktop pointer only). */
 export function Magnetic({
   children,

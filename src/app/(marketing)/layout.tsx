@@ -9,7 +9,12 @@ import "./marketing.css";
  * system via the `.marketing` wrapper so none of it leaks into the app.
  */
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://faceless.studio");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Faceless Studio — Full automation. Zero blind trust.",
   description:
     "Script, voice, visuals, effects, and the final cut — one brief, one crew, your call on every gate. An autonomous studio for faceless YouTube channels.",

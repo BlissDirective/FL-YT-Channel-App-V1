@@ -14,6 +14,7 @@ import { Reveal, WordReveal, CountUp, Aurora } from "@/components/bits/motion";
 import { SpotlightCard, Magnetic } from "@/components/bits/interactive";
 import { CaptureForm } from "./capture-form";
 import { MvdaDemo } from "./mvda-demo";
+import { EditorTour } from "./editor-tour";
 
 export const dynamic = "force-static";
 
@@ -217,6 +218,13 @@ export default function LaunchPage() {
             <MvdaDemo />
           </Reveal>
         </div>
+      </section>
+
+      {/* ── 2c. The editor — human + agent are peers (§3.5) ──────────────── */}
+      <section className="mx-auto max-w-6xl px-5 py-20">
+        <Reveal>
+          <EditorTour />
+        </Reveal>
       </section>
 
       <div className="m-ticks mx-auto max-w-5xl" />

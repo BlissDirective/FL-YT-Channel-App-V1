@@ -197,6 +197,31 @@
     transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* ── Editor tour: hotspot ping + vertical version-note ticker ───────────── */
+.m-ping {
+  animation: m-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes m-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  70%, 100% { transform: scale(2.6); opacity: 0; }
+}
+.m-vscroll-wrap {
+  position: relative;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+}
+.m-vtrack {
+  animation: m-vscroll 22s linear infinite;
+}
+.m-vscroll-wrap:hover .m-vtrack,
+.m-vscroll-wrap:focus-within .m-vtrack {
+  animation-play-state: paused;
+}
+@keyframes m-vscroll {
+  to { transform: translateY(-50%); }
+}
+
 /* ── Timeline-tick divider motif ────────────────────────────────────────── */
 .m-ticks {
   height: 1px;
