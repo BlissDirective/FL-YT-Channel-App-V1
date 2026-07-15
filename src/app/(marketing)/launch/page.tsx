@@ -13,6 +13,7 @@ import {
 import { Reveal, WordReveal, CountUp, Aurora } from "@/components/bits/motion";
 import { SpotlightCard, Magnetic } from "@/components/bits/interactive";
 import { CaptureForm } from "./capture-form";
+import { MvdaDemo } from "./mvda-demo";
 
 export const dynamic = "force-static";
 
@@ -182,6 +183,43 @@ export default function LaunchPage() {
           ))}
         </div>
       </section>
+
+      {/* ── 2b. The agent cuts — MVDA demo (centerpiece) ─────────────────── */}
+      <section className="mx-auto max-w-6xl px-5 py-20">
+        <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.35fr]">
+          <Reveal>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--m-amber)]">
+              Watch it work
+            </p>
+            <h2 className="mt-3 font-[family-name:var(--font-display)] text-[clamp(1.8rem,4vw,2.6rem)] font-bold leading-tight text-[var(--m-ink)]">
+              The agent cuts a real timeline
+            </h2>
+            <p className="mt-4 leading-relaxed text-[var(--m-muted)]">
+              Every edit is a versioned, validated change to an explicit timeline —
+              the same document you can open and override. The agent is capped:
+              about $0.80 a session, and it can&apos;t ship anything the judge
+              scores under your floor.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3 text-xs">
+              <span className="inline-flex items-center gap-1.5 text-[var(--m-muted)]">
+                <span className="size-2.5 rounded-full bg-[var(--m-amber)]" /> agent action
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[var(--m-muted)]">
+                <span className="size-2.5 rounded-full bg-[var(--m-sky)]" /> you
+              </span>
+            </div>
+            <div className="mt-6 max-w-sm">
+              <CaptureForm source="demo" />
+            </div>
+          </Reveal>
+
+          <Reveal delay={120}>
+            <MvdaDemo />
+          </Reveal>
+        </div>
+      </section>
+
+      <div className="m-ticks mx-auto max-w-5xl" />
 
       {/* ── 3. Stat band ────────────────────────────────────────────────── */}
       <section className="border-y border-[var(--m-line)] bg-black/30 px-5 py-16">

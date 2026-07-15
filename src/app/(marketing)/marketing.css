@@ -165,6 +165,38 @@
   pointer-events: none;
 }
 
+/* ── MVDA demo: terminal log lines + cursor + clip reflow ───────────────── */
+.m-logline {
+  animation: m-logline-in 0.35s ease both;
+}
+@keyframes m-logline-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.m-cursor {
+  display: inline-block;
+  width: 0.5rem;
+  height: 1rem;
+  background: var(--m-amber);
+  animation: m-blink 1s steps(2) infinite;
+  vertical-align: text-bottom;
+}
+@keyframes m-blink {
+  50% { opacity: 0; }
+}
+.m-clip {
+  transition:
+    width 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+.m-token {
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* ── Timeline-tick divider motif ────────────────────────────────────────── */
 .m-ticks {
   height: 1px;
