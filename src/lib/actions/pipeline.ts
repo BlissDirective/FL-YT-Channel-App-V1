@@ -874,6 +874,26 @@ export async function setKillSwitchAction(
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
+/**
+ * Visual Craft Engine flags (app_settings key 'vce'). Merges the provided flag
+ * changes onto the stored blob and busts the runtime cache so a toggle takes
+ * effect within the next generation, not up to a minute later.
+ */
+export async function setVceFlagsAction(
+  flags: Partial<Record<"bible" | "router" | "refine" | "grounding" | "compositor", boolean>>,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("app_settings").select("value").eq("key", "vce").maybeSingle();
+  const existing = (data?.value ?? {}) as Record<string, boolean>;
+  const merged = { ...existing } as Record<string, boolean>;
+  for (const [k, v] of Object.entries(flags)) if (typeof v === "boolean") merged[k] = v;
+  const { error } = await supabase.from("app_settings").upsert({ key: "vce", value: merged });
+  const { invalidateVceCache } = await import("@/lib/pipeline/vce");
+  invalidateVceCache();
+  revalidatePath("/settings");
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
 export async function savePushSubscriptionAction(subscription: {
   endpoint: string;
   keys: { p256dh: string; auth: string };

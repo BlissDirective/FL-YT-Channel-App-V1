@@ -106,6 +106,7 @@
     "saveTemplateAction(projectId: string, kind: string, body: string,)",
     "saveQualityGatesAction(gates: QualityGates,)",
     "setKillSwitchAction(enabled: boolean,)",
+    "setVceFlagsAction(flags: Partial<Record<\"bible\" | \"router\" | \"refine\" | \"grounding\" | \"compositor\", boolean>>,)",
     "savePushSubscriptionAction(subscription: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string; })",
     "removePushSubscriptionAction(endpoint: string)",
     "labelQcReviewAction(opts: { qcReviewId: string; videoId: string; gate: string; agree: boolean; criterionId?: string; note?: string; })",

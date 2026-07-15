@@ -33,6 +33,7 @@ import {
 } from "@/lib/actions/director";
 import { cn } from "@/lib/cn";
 import { GATE_RUBRICS } from "@/lib/pipeline/rubrics";
+import type { VisualBible, ShotPlan } from "@studio/core";
 
 /** criterion id → the plain-English question it checks (from the QC rubric),
     so a bare "Duration band: failed" gains "— is the duration within ±25% …". */
@@ -118,6 +119,8 @@ export function DirectorConsole({
   lengthTargetLabel,
   lengthAdvisory,
   tasteLine,
+  visualBible,
+  shotPlan,
   reviews,
   decisions,
 }: {
@@ -128,6 +131,8 @@ export function DirectorConsole({
   lengthTargetLabel?: string | null;
   lengthAdvisory?: ConsoleLengthAdvisory | null;
   tasteLine?: string | null;
+  visualBible?: VisualBible | null;
+  shotPlan?: ShotPlan | null;
   reviews: ConsoleReview[];
   decisions: ConsoleDecision[];
 }) {
@@ -321,6 +326,9 @@ export function DirectorConsole({
         <AdvisoryPanel reviews={stageReviews} tasteLine={tasteLine} />
       </div>
 
+      {/* Visual plan (VCE V6) — bible + shot plan when present */}
+      {(visualBible || shotPlan) && <VisualPlanPanel bible={visualBible} plan={shotPlan} />}
+
       {/* Activity log */}
       <ActivityLog decisions={decisions} />
 
@@ -464,6 +472,69 @@ function AdvisoryPanel({ reviews, tasteLine }: { reviews: ConsoleReview[]; taste
       )}
       {tasteLine && <p className="border-t border-line pt-2 text-[11px] italic text-accent">{tasteLine}</p>}
     </div>
+  );
+}
+
+// ── Visual plan (VCE V6) ────────────────────────────────────────────────
+function VisualPlanPanel({ bible, plan }: { bible?: VisualBible | null; plan?: ShotPlan | null }) {
+  // Cost mix across mediums for the readout.
+  const mix = new Map<string, { count: number; usd: number }>();
+  for (const b of plan?.beats ?? []) {
+    for (const s of b.shots) {
+      const cur = mix.get(s.medium) ?? { count: 0, usd: 0 };
+      cur.count += 1;
+      cur.usd += s.estCostUsd;
+      mix.set(s.medium, cur);
+    }
+  }
+  return (
+    <details className="rounded-xl bg-card p-4 shadow-card">
+      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-muted">
+        Visual plan{plan ? ` · est $${plan.planCostUsd.toFixed(2)}` : ""}
+      </summary>
+      <div className="mt-3 space-y-3 text-xs">
+        {bible && (
+          <div>
+            <p className="font-semibold text-ink">Visual bible</p>
+            {bible.styleContract && <p className="mt-0.5 text-muted">Style: {bible.styleContract}</p>}
+            {bible.subjects?.length > 0 && (
+              <p className="mt-0.5 text-muted">Subjects: {bible.subjects.map((s) => s.label).join(", ")}</p>
+            )}
+            {bible.avoid && bible.avoid.length > 0 && (
+              <p className="mt-0.5 text-muted">Avoid: {bible.avoid.join(", ")}</p>
+            )}
+          </div>
+        )}
+        {mix.size > 0 && (
+          <div>
+            <p className="font-semibold text-ink">Cost mix</p>
+            <ul className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-muted">
+              {[...mix.entries()].map(([m, v]) => (
+                <li key={m}>
+                  {m} ×{v.count}{v.usd > 0 ? ` ($${v.usd.toFixed(2)})` : " (free)"}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {plan && plan.beats.length > 0 && (
+          <div>
+            <p className="font-semibold text-ink">Per-beat plan</p>
+            <ul className="mt-0.5 space-y-0.5 text-muted">
+              {plan.beats.map((b) => {
+                const s = b.shots[0];
+                return (
+                  <li key={b.beatIdx}>
+                    Beat {b.beatIdx + 1}: <span className="font-medium text-ink">{s?.medium}</span> — {s?.reason}
+                    {s && s.estCostUsd > 0 ? ` ($${s.estCostUsd.toFixed(2)})` : ""}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
+    </details>
   );
 }
 

@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { QualityGates } from "@/lib/actions/pipeline";
 import { Card, CardTitle } from "@/components/ui/card";
 import { KillSwitch } from "./kill-switch";
+import { VceSystemsCard } from "./vce-systems-card";
+import { getVceFlags, VCE_DEFAULTS } from "@/lib/pipeline/vce";
 import { NotificationsCard } from "./notifications-card";
 import { CredentialHealthList } from "./credential-health";
 import { QualityGatesCard } from "./quality-gates-card";
@@ -30,6 +32,7 @@ export default async function SettingsPage() {
   const [killSwitch, ledger, qc, qualityGates] = configured
     ? await Promise.all([getKillSwitch(), getCostLedger(12), getQcAgreement(), getQualityGates()])
     : [false, [], { total: 0, agree: 0, rate: 0 }, {}];
+  const vceFlags = configured ? await getVceFlags() : VCE_DEFAULTS;
   const shownTotal = ledger.reduce((s, e) => s + Number(e.usd), 0);
 
   return (
@@ -53,6 +56,8 @@ export default async function SettingsPage() {
       />
 
       {configured && <QualityGatesCard initial={qualityGates} />}
+
+      {configured && <VceSystemsCard initial={vceFlags} />}
 
       {configured && <JudgeCalibration />}
 

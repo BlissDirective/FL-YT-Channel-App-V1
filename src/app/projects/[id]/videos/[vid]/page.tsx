@@ -342,6 +342,8 @@ export default async function VideoDetailPage({
           lengthTargetLabel={lengthTargetLabel}
           lengthAdvisory={lengthAdvisory}
           tasteLine={tasteLine}
+          visualBible={v.visual_bible}
+          shotPlan={v.shot_plan}
           reviews={(allReviews as ConsoleReview[]) ?? []}
           decisions={(decisions as ConsoleDecision[]) ?? []}
         />
