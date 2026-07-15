@@ -375,3 +375,17 @@ standing rules (Full-App-Development-plan.md §5).
   Operator decisions are logged (`operator_decisions`) and mined as a new
   learning signal so judges calibrate to operator taste. Full spec:
   Fable-5-Director-Mode-Build-Spec.md (consultation Q&A recorded in §1).
+
+## Visual Craft Engine — spec (2026-07-15)
+
+- **Five-system visual engine adopted** to make asset images/videos more
+  script-relevant, more striking, and cheaper: (1) Visual Bible (continuity
+  conditioning from the whole script), (2) Medium Router (cost-aware per-shot
+  medium selection: Remotion vs FLUX still vs Seedance/Kling/Veo i2v), (3)
+  Grounded Generation (seed factual beats from real licensed refs), (4) Per-Beat
+  Refine Loop (critic-driven targeted rewrites, cheap-first), (5) Remotion
+  Compositor (expanded scene vocabulary + overlay layer over generative clips).
+  Orchestrates EXISTING adapters (FLUX text→image; Seedance/Kling/Veo/LTX/Wan
+  t2v+i2v via fal; Remotion render farm) — no new providers. Feature-flagged,
+  flag-off byte-identical to today, money rails + Director isolation unchanged.
+  Full phased spec w/ per-phase testing: Fable-5-Visual-Craft-Engine-Build-Spec.md.
