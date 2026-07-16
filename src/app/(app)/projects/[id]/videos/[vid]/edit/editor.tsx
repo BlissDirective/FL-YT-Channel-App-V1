@@ -28,6 +28,7 @@ import {
   DEFAULT_CAPTION_STYLES,
   DEFAULT_OVERLAY_STYLES,
   DEFAULT_TRANSITIONS,
+  craftCritique,
   introOutroRuntime,
   lintEdd,
   validateEdd,
@@ -195,6 +196,8 @@ export function EddEditor(props: {
   const validation = useMemo(() => validateEdd(doc, ctx), [doc, ctx]);
   // Craft lint (Phase D) — advisory only; a warned document still saves.
   const lint = useMemo(() => lintEdd(doc), [doc]);
+  // R6 craft critics (pacing + caption rhythm) — advisory, pro-editor only.
+  const critics = useMemo(() => (pro ? craftCritique(doc) : []), [doc, pro]);
 
   const runtime = introOutroRuntime(doc);
   const vertical = doc.meta.aspect === "9:16";
@@ -343,6 +346,13 @@ export function EddEditor(props: {
         <div className="rounded-xl bg-accent-soft px-3 py-2 text-xs font-medium text-ink">
           {lint.slice(0, 3).map((w) => `${w.rule}: ${w.msg}`).join(" · ")}
           {lint.length > 3 && ` · +${lint.length - 3} more`}
+        </div>
+      )}
+      {validation.ok && critics.length > 0 && (
+        <div className="rounded-xl bg-canvas px-3 py-2 text-xs text-muted">
+          <span className="font-semibold text-ink">Craft notes:</span>{" "}
+          {critics.slice(0, 3).map((c) => `${c.msg} — ${c.suggestion}`).join(" · ")}
+          {critics.length > 3 && ` · +${critics.length - 3} more`}
         </div>
       )}
       {props.versions[0]?.inputsStale && (

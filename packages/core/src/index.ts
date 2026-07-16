@@ -14,6 +14,7 @@ export * from "./edd-ops";
 export * from "./edd-attribution";
 export * from "./edd-db";
 export * from "./edd-lint";
+export * from "./edd-critics";
 export * from "./emphasis";
 export * from "./highlight-timing";
 export * from "./safe-url";

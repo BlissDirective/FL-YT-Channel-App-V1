@@ -8,6 +8,7 @@ import {
   insertEddVersion,
   introOutroRuntime,
   lintEdd,
+  craftCritique,
   lintSummary,
   retimeClip,
   setTrim,
@@ -149,6 +150,7 @@ export function makeTools(ctx: SessionCtx): Record<string, ToolDef> {
           judge: ctx.state.judgeScore,
           cutFloor: ctx.state.floor,
           lint: lintSummary(lintEdd(ctx.doc)),
+          craft: craftCritique(ctx.doc).slice(0, 6).map((c) => `${c.rule}: ${c.msg} → ${c.suggestion}`),
         });
       },
     },
