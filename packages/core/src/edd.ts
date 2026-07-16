@@ -85,6 +85,10 @@ export type VideoClip = {
       (a dramatic pause). validateEdd errors on a narrated beat lacking VO
       UNLESS its clip is flagged silent. */
   silent?: boolean;
+  /** R5 — footage playback speed (speed ramp). undefined/1 = normal; the
+      renderer sets playbackRate on video clips and loops the trim window to
+      fill the clip. No effect on stills. Bounded 0.25–4×. */
+  speed?: number;
 };
 
 export type AudioCue =
@@ -241,6 +245,11 @@ export function validateEdd(doc: EditDocument, ctx: EddContext): EddValidation {
 
     // motion (D5)
     validateMotion(c, w, add);
+
+    // speed ramp (R5) — bounded; undefined = normal 1×
+    if (c.speed != null && !(c.speed >= 0.25 && c.speed <= 4)) {
+      add("clip.speed", w, "speed must be between 0.25 and 4");
+    }
 
     // transitions (D6)
     const isLast = i === video.length - 1;

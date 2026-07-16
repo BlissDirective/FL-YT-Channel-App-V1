@@ -7,6 +7,7 @@ import {
   type EddSource,
   type EditDocument,
   type Emphasis,
+  type MotionKeyframe,
   type MotionSpec,
   type Overlay,
   type Transition,
@@ -208,6 +209,96 @@ export function setMotion(doc: EditDocument, clipId: string, motion: MotionSpec)
     m.points[m.points.length - 1].t = clip.duration;
   }
   clip.motion = m;
+  return d;
+}
+
+/** R5 — set a clip's footage playback speed (0.25–4×). ~1 clears the field
+    (back to normal). No effect on stills at render time. */
+export function setClipSpeed(doc: EditDocument, clipId: string, speed: number): EditDocument {
+  const d = clone(doc);
+  const i = clipIndex(d, clipId);
+  if (i < 0) return d;
+  const s = Math.max(0.25, Math.min(4, speed));
+  if (Math.abs(s - 1) < 1e-6) delete d.tracks.video[i].speed;
+  else d.tracks.video[i].speed = Math.round(s * 100) / 100;
+  return d;
+}
+
+/** Coerce a clip's motion to a keyframe track (from a preset or empty), so the
+    keyframe editor / agent can add points. Endpoints stay pinned to the clip. */
+function asKeyframes(clip: EditDocument["tracks"]["video"][number]): MotionKeyframe[] {
+  if (clip.motion.kind === "keyframes" && clip.motion.points.length >= 2) {
+    return clip.motion.points.map((p) => ({ ...p }));
+  }
+  // Seed from the current preset's endpoints (scale-only), spanning the clip.
+  const dur = clip.duration;
+  if (clip.motion.kind === "kenburns") {
+    return [
+      { t: 0, scale: clip.motion.fromScale, x: 0, y: 0, ease: "linear" },
+      { t: dur, scale: clip.motion.toScale, x: 0, y: 0, ease: "easeInOut" },
+    ];
+  }
+  return [
+    { t: 0, scale: 1, x: 0, y: 0, ease: "linear" },
+    { t: dur, scale: 1, x: 0, y: 0, ease: "linear" },
+  ];
+}
+
+/** Normalize a keyframe list onto a clip: sort by t, pin the endpoints to the
+    clip window, guarantee ≥2 points. */
+function pinKeyframes(points: MotionKeyframe[], duration: number): MotionKeyframe[] {
+  const pts = points.map((p) => ({ ...p, t: Math.max(0, Math.min(duration, p.t)) })).sort((a, b) => a.t - b.t);
+  if (pts.length < 2) {
+    return [
+      { t: 0, scale: pts[0]?.scale ?? 1, x: pts[0]?.x ?? 0, y: pts[0]?.y ?? 0, ease: "linear" },
+      { t: duration, scale: pts[0]?.scale ?? 1, x: pts[0]?.x ?? 0, y: pts[0]?.y ?? 0, ease: "linear" },
+    ];
+  }
+  pts[0].t = 0;
+  pts[pts.length - 1].t = duration;
+  return pts;
+}
+
+/** R5 — add a motion keyframe to a clip (converting to a keyframe track if
+    needed). Points are kept sorted with pinned endpoints. */
+export function addMotionKeyframe(doc: EditDocument, clipId: string, point: MotionKeyframe): EditDocument {
+  const d = clone(doc);
+  const i = clipIndex(d, clipId);
+  if (i < 0) return d;
+  const clip = d.tracks.video[i];
+  const pts = asKeyframes(clip);
+  pts.push({ ...point });
+  clip.motion = { kind: "keyframes", points: pinKeyframes(pts, clip.duration) };
+  return d;
+}
+
+/** R5 — update a keyframe point (only meaningful for a keyframe track). */
+export function updateMotionKeyframe(
+  doc: EditDocument,
+  clipId: string,
+  index: number,
+  patch: Partial<MotionKeyframe>,
+): EditDocument {
+  const d = clone(doc);
+  const i = clipIndex(d, clipId);
+  if (i < 0) return d;
+  const clip = d.tracks.video[i];
+  if (clip.motion.kind !== "keyframes" || index < 0 || index >= clip.motion.points.length) return d;
+  const pts = clip.motion.points.map((p) => ({ ...p }));
+  pts[index] = { ...pts[index], ...patch };
+  clip.motion = { kind: "keyframes", points: pinKeyframes(pts, clip.duration) };
+  return d;
+}
+
+/** R5 — remove a keyframe (keeps ≥2 points; endpoints stay pinned). */
+export function removeMotionKeyframe(doc: EditDocument, clipId: string, index: number): EditDocument {
+  const d = clone(doc);
+  const i = clipIndex(d, clipId);
+  if (i < 0) return d;
+  const clip = d.tracks.video[i];
+  if (clip.motion.kind !== "keyframes" || clip.motion.points.length <= 2) return d;
+  const pts = clip.motion.points.filter((_, j) => j !== index);
+  clip.motion = { kind: "keyframes", points: pinKeyframes(pts, clip.duration) };
   return d;
 }
 

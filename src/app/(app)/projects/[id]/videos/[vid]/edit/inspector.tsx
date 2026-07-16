@@ -13,15 +13,19 @@ import {
 } from "@studio/core";
 import {
   addAudioCue,
+  addMotionKeyframe,
   addOverlay,
   heroHoldPreset,
   kenBurnsPreset,
   removeAudioCue,
+  removeMotionKeyframe,
   removeOverlay,
   retimeClip,
   setAudioGain,
   setClipSilent,
+  setClipSpeed,
   setMotion,
+  updateMotionKeyframe,
   setPageStyle,
   setTokenEmphasis,
   setTransition,
@@ -89,6 +93,7 @@ export function EddInspector({
   seekTo,
   sfxOptions,
   sfxLive,
+  keyframesEnabled,
 }: {
   doc: EditDocument;
   selection: Selection;
@@ -102,6 +107,7 @@ export function EddInspector({
   seekTo: (sec: number) => void;
   sfxOptions: SfxOption[];
   sfxLive: boolean;
+  keyframesEnabled?: boolean;
 }) {
   return (
     <Card className="max-h-[560px] space-y-3 overflow-y-auto" data-testid="edd-inspector">
@@ -115,6 +121,7 @@ export function EddInspector({
           beats={beats}
           projectId={projectId}
           videoId={videoId}
+          keyframesEnabled={keyframesEnabled}
         />
       )}
       {selection?.type === "page" && (
@@ -156,6 +163,7 @@ function ClipPanel({
   beats,
   projectId,
   videoId,
+  keyframesEnabled,
 }: {
   doc: EditDocument;
   clipId: string;
@@ -164,6 +172,7 @@ function ClipPanel({
   beats: { idx: number; text: string }[];
   projectId: string;
   videoId: string;
+  keyframesEnabled?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [rerollMsg, setRerollMsg] = useState<string>();
@@ -318,8 +327,64 @@ function ClipPanel({
                   />
                 </label>
               ))}
+              {/* R5 keyframe editor: per-point ease + delete (flag-gated) */}
+              {keyframesEnabled && (
+                <>
+                  <select
+                    value={p.ease}
+                    onChange={(e) => onChange(updateMotionKeyframe(doc, clipId, i, { ease: e.target.value as typeof p.ease }))}
+                    className="rounded-lg border border-line bg-canvas px-1 py-0.5 text-[10px]"
+                    aria-label="ease"
+                  >
+                    {["linear", "easeIn", "easeOut", "easeInOut"].map((ez) => (
+                      <option key={ez} value={ez}>{ez}</option>
+                    ))}
+                  </select>
+                  {clip.motion.kind === "keyframes" && clip.motion.points.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => onChange(removeMotionKeyframe(doc, clipId, i))}
+                      className="text-muted hover:text-coral"
+                      aria-label="remove keyframe"
+                    >
+                      ×
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           ))}
+          {keyframesEnabled && (
+            <button
+              type="button"
+              className={btnCls}
+              onClick={() => {
+                if (clip.motion.kind !== "keyframes") return;
+                const pts = clip.motion.points;
+                const scale = (pts[0].scale + pts[pts.length - 1].scale) / 2;
+                onChange(addMotionKeyframe(doc, clipId, { t: clip.duration / 2, scale, x: 0, y: 0, ease: "easeInOut" }));
+              }}
+            >
+              ＋ keyframe
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* R5 speed ramp — footage only (flag-gated) */}
+      {keyframesEnabled && (clip.source === "ai-clip" || clip.source === "stock") && (
+        <div className={rowCls}>
+          <span className={labelCls}>Speed</span>
+          <select
+            value={clip.speed ?? 1}
+            onChange={(e) => onChange(setClipSpeed(doc, clipId, Number(e.target.value)))}
+            className={selectCls}
+          >
+            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((s) => (
+              <option key={s} value={s}>{s}×</option>
+            ))}
+          </select>
+          <span className="text-[11px] text-muted">footage playback</span>
         </div>
       )}
 

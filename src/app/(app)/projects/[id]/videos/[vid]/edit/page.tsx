@@ -178,6 +178,7 @@ export default async function EditPage({
   );
 
   const gate = GATE_FOR_STATUS[v.status];
+  const editorFlags = await getEditorFlags();
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -219,7 +220,8 @@ export default async function EditPage({
         captionsEnabled={v.enable_captions ?? true}
         sfxOptions={sfxOptions}
         sfxLive={Boolean(process.env.ELEVENLABS_API_KEY)}
-        proEditor={(await getEditorFlags()).proEditor}
+        proEditor={editorFlags.proEditor}
+        keyframesEnabled={editorFlags.keyframes}
       />
     </div>
   );

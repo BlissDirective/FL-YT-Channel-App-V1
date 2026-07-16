@@ -101,6 +101,8 @@ export function EddEditor(props: {
   /** Editor & Assembly R4 — pro-editor upgrades (undo/redo, retime snapping,
       frame transport). Off → the editor is byte-identical to before. */
   proEditor?: boolean;
+  /** R5 — keyframe editor UI + speed ramps in the inspector. */
+  keyframesEnabled?: boolean;
 }) {
   const router = useRouter();
   const pro = Boolean(props.proEditor);
@@ -394,6 +396,7 @@ export function EddEditor(props: {
           seekTo={(sec) => playerRef.current?.seekTo(Math.round(sec * FPS))}
           sfxOptions={props.sfxOptions}
           sfxLive={props.sfxLive}
+          keyframesEnabled={props.keyframesEnabled}
         />
       </div>
 

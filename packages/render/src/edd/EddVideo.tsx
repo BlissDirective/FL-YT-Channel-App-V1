@@ -162,6 +162,8 @@ const EddClipScene: React.FC<{
   const trimOut = Math.max(trimIn + 1 / FPS, clip.trim.out);
   const windowFrames = Math.max(1, Math.round((trimOut - trimIn) * FPS));
   const heroRate = clip.motion.kind === "heroHold" ? Math.max(0.05, clip.motion.rate) : null;
+  // R5 speed ramp (footage only). undefined/1 → normal playback + loop.
+  const clipSpeed = Math.max(0.25, Math.min(4, clip.speed ?? 1));
 
   return (
     <AbsoluteFill style={exitStyle}>
@@ -187,12 +189,15 @@ const EddClipScene: React.FC<{
         </AbsoluteFill>
       ) : media?.videoUrl ? (
         // The trim window is the source segment; shorter than the clip → loop
-        // (legacy behavior, pinned by audit A10).
+        // (legacy behavior, pinned by audit A10). R5: an optional speed ramp
+        // sets playbackRate and shrinks/stretches the loop so the trim window
+        // fills the clip at the chosen speed (speed undefined/1 → identical).
         <AbsoluteFill style={motion}>
-          <Loop durationInFrames={windowFrames}>
+          <Loop durationInFrames={Math.max(1, Math.round(windowFrames / clipSpeed))}>
             <OffthreadVideo
               src={media.videoUrl}
               muted
+              playbackRate={clipSpeed}
               startFrom={Math.round(trimIn * FPS)}
               endAt={Math.round(trimOut * FPS)}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}

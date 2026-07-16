@@ -13,6 +13,8 @@ import {
   setTrim,
   setTransition,
   setMotion,
+  setClipSpeed,
+  addMotionKeyframe,
   setTokenEmphasis,
   setPageStyle,
   setClipSilent,
@@ -174,6 +176,20 @@ export function makeTools(ctx: SessionCtx): Record<string, ToolDef> {
       description: "Set a clip's camera motion (none/kenburns/heroHold/keyframes; x/y are % of frame).",
       schema: z.object({ clipId: z.string(), motion: motionSchema, note: z.string().default("") }),
       run: (a) => persist(ctx, setMotion(ctx.doc, a.clipId, a.motion as MotionSpec), a.note || `motion ${a.clipId} → ${a.motion.kind}`),
+    },
+    set_speed: {
+      description: "Set a footage clip's playback speed / ramp (0.25–4×; 1 = normal). No effect on stills.",
+      schema: z.object({ clipId: z.string(), speed: z.number().min(0.25).max(4), note: z.string().default("") }),
+      run: (a) => persist(ctx, setClipSpeed(ctx.doc, a.clipId, a.speed), a.note || `speed ${a.clipId} → ${a.speed}×`),
+    },
+    add_keyframe: {
+      description: "Add a motion keyframe to a clip (converts it to a keyframe track; x/y are % of frame).",
+      schema: z.object({
+        clipId: z.string(),
+        point: z.object({ t: z.number().min(0), scale: z.number().min(0.1), x: z.number(), y: z.number(), ease: z.enum(["linear", "easeIn", "easeOut", "easeInOut"]).default("easeInOut") }),
+        note: z.string().default(""),
+      }),
+      run: (a) => persist(ctx, addMotionKeyframe(ctx.doc, a.clipId, a.point), a.note || `keyframe ${a.clipId} @${a.point.t}s`),
     },
     set_emphasis: {
       description: "Set a caption token's kinetic emphasis (none|pop|color|shake|scale).",
