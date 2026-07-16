@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Player, type PlayerRef } from "@remotion/player";
 import {
@@ -8,9 +8,22 @@ import {
   Clapperboard,
   History,
   Loader2,
+  Redo2,
   RotateCcw,
   Save,
+  Undo2,
 } from "lucide-react";
+import {
+  initHistory,
+  pushHistory,
+  setPresent,
+  undoHistory,
+  redoHistory,
+  canUndo,
+  canRedo,
+  snapRetime,
+  type History as HistoryStack,
+} from "@/lib/editor-pro";
 import {
   DEFAULT_CAPTION_STYLES,
   DEFAULT_OVERLAY_STYLES,
@@ -85,21 +98,81 @@ export function EddEditor(props: {
   captionsEnabled: boolean;
   sfxOptions: SfxOption[];
   sfxLive: boolean;
+  /** Editor & Assembly R4 — pro-editor upgrades (undo/redo, retime snapping,
+      frame transport). Off → the editor is byte-identical to before. */
+  proEditor?: boolean;
 }) {
   const router = useRouter();
+  const pro = Boolean(props.proEditor);
   const playerRef = useRef<PlayerRef>(null);
-  const [doc, setDoc] = useState<EditDocument>(props.initialDoc);
+  const [hist, setHist] = useState<HistoryStack<EditDocument>>(() => initHistory(props.initialDoc));
+  const doc = hist.present;
+  const histRef = useRef(hist);
+  histRef.current = hist;
   const [dirty, setDirty] = useState(false);
   const [selection, setSelection] = useState<Selection>(null);
   const [note, setNote] = useState("");
   const [banner, setBanner] = useState<{ tone: "error" | "ok"; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const applyDoc = useCallback((next: EditDocument) => {
-    setDoc(next);
+  const applyDoc = useCallback(
+    (next: EditDocument) => {
+      setHist((h) => (pro ? pushHistory(h, next) : setPresent(h, next)));
+      setDirty(true);
+      setBanner(null);
+    },
+    [pro],
+  );
+
+  const undo = useCallback(() => {
+    const h = histRef.current;
+    if (!canUndo(h)) return;
+    setHist(undoHistory(h));
     setDirty(true);
     setBanner(null);
   }, []);
+  const redo = useCallback(() => {
+    const h = histRef.current;
+    if (!canRedo(h)) return;
+    setHist(redoHistory(h));
+    setDirty(true);
+    setBanner(null);
+  }, []);
+
+  // Keyboard: undo/redo + frame-accurate transport (pro only). Ignores typing
+  // in form fields so version notes/inputs behave normally.
+  useEffect(() => {
+    if (!pro) return;
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      const mod = e.metaKey || e.ctrlKey;
+      const key = e.key.toLowerCase();
+      if (mod && key === "z") {
+        e.preventDefault();
+        e.shiftKey ? redo() : undo();
+        return;
+      }
+      if (mod && key === "y") {
+        e.preventDefault();
+        redo();
+        return;
+      }
+      const p = playerRef.current;
+      if (!p || mod) return;
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        const frames = e.shiftKey ? 30 : 1;
+        p.seekTo(Math.max(0, p.getCurrentFrame() + (e.key === "ArrowRight" ? frames : -frames)));
+      } else if (key === "k") {
+        p.pause();
+      } else if (key === "j" || key === "l") {
+        p.seekTo(Math.max(0, p.getCurrentFrame() + (key === "l" ? 15 : -15)));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pro, undo, redo]);
 
   // Live validation with the exact production validator.
   const ctx: EddContext = useMemo(
@@ -171,6 +244,30 @@ export function EddEditor(props: {
           </p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
+          {pro && (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={undo}
+                disabled={!canUndo(hist)}
+                title="Undo (⌘Z)"
+                aria-label="Undo"
+                className="rounded-full bg-canvas p-2 shadow-card disabled:opacity-40"
+              >
+                <Undo2 className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={!canRedo(hist)}
+                title="Redo (⇧⌘Z)"
+                aria-label="Redo"
+                className="rounded-full bg-canvas p-2 shadow-card disabled:opacity-40"
+              >
+                <Redo2 className="size-3.5" />
+              </button>
+            </div>
+          )}
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -310,6 +407,7 @@ export function EddEditor(props: {
         }}
         onRetime={applyDoc}
         brand={props.brand}
+        snapDurationSec={pro ? (start, dur) => snapRetime(doc, start, dur) : undefined}
       />
 
       {/* ── Version history ── */}

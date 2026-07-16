@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getProject } from "@/lib/db/queries";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { compileEddFromLegacy, cutBeatsToSegment } from "@/lib/pipeline/edd-service";
+import { getEditorFlags } from "@/lib/pipeline/editor-flags";
 import { buildPlayerMaps } from "@/lib/edd-player-data";
 import { diffSummary } from "@/lib/edd-editor";
 import type { Asset, ScriptBeat, ShortSegment, Video } from "@/lib/db/types";
@@ -218,6 +219,7 @@ export default async function EditPage({
         captionsEnabled={v.enable_captions ?? true}
         sfxOptions={sfxOptions}
         sfxLive={Boolean(process.env.ELEVENLABS_API_KEY)}
+        proEditor={(await getEditorFlags()).proEditor}
       />
     </div>
   );

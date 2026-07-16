@@ -38,12 +38,16 @@ export function EddTimeline({
   onSelect,
   onRetime,
   brand,
+  snapDurationSec,
 }: {
   doc: EditDocument;
   selection: Selection;
   onSelect: (sel: Selection, atSec?: number) => void;
   onRetime: (doc: EditDocument) => void;
   brand: { primary: string; secondary: string };
+  /** Pro-editor (R4): snap a dragged clip's new duration to nearby boundaries.
+      Undefined (flag off) → no snapping, identical to before. */
+  snapDurationSec?: (clipStart: number, durationSec: number) => number;
 }) {
   const laneRef = useRef<HTMLDivElement>(null);
   const runtime = introOutroRuntime(doc);
@@ -52,7 +56,7 @@ export function EddTimeline({
   const pct = (sec: number) => `${Math.max(0, Math.min(100, (sec / runtime) * 100))}%`;
   const widthPct = (sec: number) => `${Math.max(0.4, (sec / runtime) * 100)}%`;
 
-  const startDrag = (e: React.PointerEvent, clipId: string, origDuration: number) => {
+  const startDrag = (e: React.PointerEvent, clipId: string, origDuration: number, clipStart: number) => {
     e.preventDefault();
     e.stopPropagation();
     const lane = laneRef.current;
@@ -68,7 +72,8 @@ export function EddTimeline({
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       setDrag(null);
-      if (Math.abs(next - origDuration) > 1 / 30) onRetime(retimeClip(doc, clipId, next));
+      const finalDur = snapDurationSec ? snapDurationSec(clipStart, next) : next;
+      if (Math.abs(finalDur - origDuration) > 1 / 30) onRetime(retimeClip(doc, clipId, finalDur));
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -149,7 +154,7 @@ export function EddTimeline({
                 )}
                 {/* right-edge retime handle */}
                 <span
-                  onPointerDown={(e) => startDrag(e, clip.id, clip.duration)}
+                  onPointerDown={(e) => startDrag(e, clip.id, clip.duration, clip.start)}
                   className="absolute inset-y-0 right-0 w-1.5 cursor-ew-resize rounded-r-md bg-ink/30 hover:bg-ink/60"
                 />
               </div>
