@@ -49,9 +49,12 @@ export async function saveAssemblyPlanAction(videoId: string, plan: SegmentPlan)
   return { ok: true, plan: normalized };
 }
 
-/** AUTO: build a plan from the script beats. Uses the V2 router when it can
-    (budget-aware medium choices), else a plain one-segment-per-beat default. */
-export async function autoAssemblyPlanAction(videoId: string, budgetUsd = 8): Promise<AssemblyResult> {
+/** AUTO (suggestion-diff mode): PROPOSE a plan from the script beats without
+    persisting — the human reviews the diff and applies (Save). Mode-safe: in
+    director mode nothing changes until the operator applies; in autonomous mode
+    a tier could apply it. Uses the V2 router when it can (budget-aware medium
+    choices), else a plain one-segment-per-beat default. */
+export async function proposeAssemblyPlanAction(videoId: string, budgetUsd = 8): Promise<AssemblyResult> {
   await assertOperator();
   const beats = await loadBeats(videoId);
   if (beats.length === 0) return { ok: false, error: "This video has no script beats yet." };
@@ -67,11 +70,6 @@ export async function autoAssemblyPlanAction(videoId: string, budgetUsd = 8): Pr
   } catch {
     plan = initialPlanFromBeats(beats.map((b) => ({ idx: b.idx, shotType: b.shotType })));
   }
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("videos").update({ assembly_plan: plan }).eq("id", videoId);
-  if (error) return { ok: false, error: error.message };
-  revalidatePath(`/projects`);
   return { ok: true, plan };
 }
 

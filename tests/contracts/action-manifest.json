@@ -1,7 +1,7 @@
 {
   "assembly": [
     "saveAssemblyPlanAction(videoId: string, plan: SegmentPlan)",
-    "autoAssemblyPlanAction(videoId: string, budgetUsd = 8)",
+    "proposeAssemblyPlanAction(videoId: string, budgetUsd = 8)",
     "clearAssemblyPlanAction(videoId: string)"
   ],
   "auth": [

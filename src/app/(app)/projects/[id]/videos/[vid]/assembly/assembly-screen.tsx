@@ -2,27 +2,35 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { Wand2, Save, Scissors, Trash2, Plus, Layers, Film } from "lucide-react";
+import { Wand2, Save, Scissors, Trash2, Plus, Layers, Film, Check, X } from "lucide-react";
 import {
   type Segment,
   type SegmentMedium,
   type SegmentPlan,
-  type MotionSpec,
   segmentPlanCost,
   validateSegmentPlan,
-  splitSegment,
   segDuration,
-  SEGMENT_COST,
-  panZoomKeyframes,
+  // shared ops (the same vocabulary the MVDA uses — R3 parity)
+  splitSegmentInHalf,
+  assignSegmentMedium,
+  setSegmentMotion,
+  setSegmentPrompt,
+  removeSegment,
+  makeSequence,
+  addSequenceChild,
+  removeSequenceChild,
+  motionFromPreset,
+  presetOfMotion,
+  segmentPlanDiff,
+  SEGMENT_MOTION_PRESETS,
+  type SegmentMotionPreset,
 } from "@studio/core";
 import { Card } from "@/components/ui/card";
 import {
   saveAssemblyPlanAction,
-  autoAssemblyPlanAction,
+  proposeAssemblyPlanAction,
   clearAssemblyPlanAction,
 } from "@/lib/actions/assembly";
-
-const FRAME = 1 / 30;
 
 const MEDIA: { value: SegmentMedium; label: string }[] = [
   { value: "still", label: "Still (FLUX)" },
@@ -42,67 +50,6 @@ const MODELS: Record<SegmentMedium, string[]> = {
   scene: ["quote-card", "stat-ticker", "comparison"],
 };
 
-const MOTIONS = ["auto", "zoom-in", "zoom-out", "pan-left", "pan-right", "static", "hero-hold", "none"] as const;
-type MotionPreset = (typeof MOTIONS)[number];
-
-function motionFromPreset(preset: MotionPreset, durationSec: number): MotionSpec | undefined {
-  switch (preset) {
-    case "auto":
-      return undefined;
-    case "none":
-      return { kind: "none" };
-    case "hero-hold":
-      return { kind: "heroHold", rate: 0.5 };
-    case "zoom-in":
-      return { kind: "kenburns", fromScale: 1.02, toScale: 1.12, anchor: "center" };
-    case "zoom-out":
-      return { kind: "kenburns", fromScale: 1.12, toScale: 1.02, anchor: "center" };
-    case "static":
-      return { kind: "kenburns", fromScale: 1.04, toScale: 1.06, anchor: "center" };
-    case "pan-left":
-      return { kind: "keyframes", points: panZoomKeyframes({ durationSec, fromScale: 1.12, toScale: 1.12, from: { x: 3, y: 0 }, to: { x: -3, y: 0 }, ease: "linear" }) };
-    case "pan-right":
-      return { kind: "keyframes", points: panZoomKeyframes({ durationSec, fromScale: 1.12, toScale: 1.12, from: { x: -3, y: 0 }, to: { x: 3, y: 0 }, ease: "linear" }) };
-  }
-}
-
-function presetOfMotion(m: MotionSpec | undefined): MotionPreset {
-  if (!m) return "auto";
-  if (m.kind === "none") return "none";
-  if (m.kind === "heroHold") return "hero-hold";
-  if (m.kind === "kenburns") {
-    if (m.fromScale < m.toScale && m.fromScale <= 1.03) return "zoom-in";
-    if (m.fromScale > m.toScale) return "zoom-out";
-    return "static";
-  }
-  if (m.kind === "keyframes") {
-    const [a, b] = [m.points[0], m.points[m.points.length - 1]];
-    if (a && b) return b.x < a.x ? "pan-left" : "pan-right";
-  }
-  return "auto";
-}
-
-/** Re-lay a beat's segments gaplessly, preserving each duration, from a start. */
-function reflow(segments: Segment[], startAt = 0): Segment[] {
-  let cursor = startAt;
-  return segments.map((s) => {
-    const dur = Math.max(FRAME, segDuration(s));
-    const next = { ...s, startSec: cursor, endSec: cursor + dur };
-    cursor += dur;
-    // sequence children re-tile within the new bounds
-    if (next.kind === "sequence" && next.children && next.children.length > 0) {
-      next.children = retile(next.children, next.startSec, next.endSec);
-    }
-    return next;
-  });
-}
-
-/** Lay children equally across [start, end]. */
-function retile(children: Segment[], start: number, end: number): Segment[] {
-  const each = Math.max(FRAME, (end - start) / children.length);
-  return children.map((c, i) => ({ ...c, startSec: start + i * each, endSec: start + (i + 1) * each }));
-}
-
 export function AssemblyScreen({
   projectId,
   videoId,
@@ -119,6 +66,7 @@ export function AssemblyScreen({
   hasStored: boolean;
 }) {
   const [plan, setPlan] = useState<SegmentPlan>(initialPlan);
+  const [proposal, setProposal] = useState<SegmentPlan | null>(null);
   const [dirty, setDirty] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -128,89 +76,28 @@ export function AssemblyScreen({
   const overBudget = cost > budgetUsd + 1e-9;
   const invalid = !validateSegmentPlan(plan).ok;
 
-  const mutateBeat = (beatIdx: number, fn: (segs: Segment[]) => Segment[]) => {
-    setPlan((p) => {
-      const startAt = p.beats.find((b) => b.beatIdx === beatIdx)?.segments[0]?.startSec ?? 0;
-      const beats2 = p.beats.map((b) =>
-        b.beatIdx === beatIdx ? { ...b, segments: reflow(fn(b.segments), startAt) } : b,
-      );
-      const next = { ...p, beats: beats2 };
-      next.planCostUsd = segmentPlanCost(next);
-      return next;
-    });
+  // Every mutation goes through a shared core op → UI and agent stay identical.
+  const apply = (fn: (p: SegmentPlan) => SegmentPlan) => {
+    setPlan((p) => fn(p));
     setDirty(true);
     setMsg(null);
   };
 
-  const updateSeg = (beatIdx: number, segId: string, patch: Partial<Segment>) =>
-    mutateBeat(beatIdx, (segs) => segs.map((s) => (s.id === segId ? { ...s, ...patch } : s)));
-
-  const splitAt = (beatIdx: number, segId: string) =>
-    mutateBeat(beatIdx, (segs) =>
-      segs.flatMap((s) => (s.id === segId ? splitSegment(s, (s.startSec + s.endSec) / 2) : [s])),
-    );
-
-  const removeSeg = (beatIdx: number, segId: string) =>
-    mutateBeat(beatIdx, (segs) => (segs.length <= 1 ? segs : segs.filter((s) => s.id !== segId)));
-
-  const toSequence = (beatIdx: number, segId: string) =>
-    mutateBeat(beatIdx, (segs) =>
-      segs.map((s) => {
-        if (s.id !== segId || s.kind === "sequence") return s;
-        const kids: Segment[] = retile(
-          [0, 1].map((i) => ({
-            ...s,
-            id: `${s.id}-k${i}`,
-            kind: "clip" as const,
-            transitionIn: i === 0 ? undefined : ({ kind: "crossfade", sec: 0.4 } as const),
-          })),
-          s.startSec,
-          s.endSec,
-        );
-        return { ...s, kind: "sequence" as const, children: kids, estCostUsd: 0 };
-      }),
-    );
-
-  const addChild = (beatIdx: number, seqId: string) =>
-    mutateBeat(beatIdx, (segs) =>
-      segs.map((s) => {
-        if (s.id !== seqId || s.kind !== "sequence" || !s.children) return s;
-        const kid: Segment = {
-          ...s.children[s.children.length - 1],
-          id: `${seqId}-k${s.children.length}`,
-          transitionIn: { kind: "crossfade", sec: 0.4 },
-        };
-        return { ...s, children: retile([...s.children, kid], s.startSec, s.endSec) };
-      }),
-    );
-
-  const removeChild = (beatIdx: number, seqId: string, childId: string) =>
-    mutateBeat(beatIdx, (segs) =>
-      segs.map((s) => {
-        if (s.id !== seqId || s.kind !== "sequence" || !s.children || s.children.length <= 2) return s;
-        return { ...s, children: retile(s.children.filter((c) => c.id !== childId), s.startSec, s.endSec) };
-      }),
-    );
-
-  const updateChild = (beatIdx: number, seqId: string, childId: string, patch: Partial<Segment>) =>
-    mutateBeat(beatIdx, (segs) =>
-      segs.map((s) =>
-        s.id === seqId && s.kind === "sequence" && s.children
-          ? { ...s, children: s.children.map((c) => (c.id === childId ? { ...c, ...patch } : c)) }
-          : s,
-      ),
-    );
-
-  const runAuto = () =>
+  const runPropose = () =>
     start(async () => {
       setMsg(null);
-      const res = await autoAssemblyPlanAction(videoId, budgetUsd).catch(() => ({ ok: false as const, error: "Failed" }));
-      if (res.ok && res.plan) {
-        setPlan(res.plan);
-        setDirty(false);
-        setMsg("Auto-planned from the script.");
-      } else setMsg(res.error ?? "Auto-plan failed.");
+      const res = await proposeAssemblyPlanAction(videoId, budgetUsd).catch(() => ({ ok: false as const, error: "Failed" }));
+      if (res.ok && res.plan) setProposal(res.plan);
+      else setMsg(res.error ?? "Auto-plan failed.");
     });
+
+  const acceptProposal = () => {
+    if (!proposal) return;
+    setPlan(proposal);
+    setProposal(null);
+    setDirty(true);
+    setMsg("Applied the proposed plan — review and Save.");
+  };
 
   const save = () =>
     start(async () => {
@@ -231,7 +118,6 @@ export function AssemblyScreen({
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
       <Card className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold">Assembly</h1>
@@ -243,7 +129,7 @@ export function AssemblyScreen({
           <span className={`rounded-full px-3 py-1 text-sm font-semibold ${overBudget ? "bg-coral/10 text-coral" : "bg-success-soft text-success"}`}>
             ${cost.toFixed(2)} / ${budgetUsd.toFixed(0)} plan cost
           </span>
-          <button onClick={runAuto} disabled={pending} className="flex items-center gap-1.5 rounded-full bg-card-warm px-4 py-2 text-sm font-semibold shadow-card hover:bg-accent-soft disabled:opacity-50">
+          <button onClick={runPropose} disabled={pending} className="flex items-center gap-1.5 rounded-full bg-card-warm px-4 py-2 text-sm font-semibold shadow-card hover:bg-accent-soft disabled:opacity-50">
             <Wand2 className="size-4" /> Auto
           </button>
           <button onClick={save} disabled={pending || invalid} className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card hover:scale-[1.01] disabled:opacity-50">
@@ -255,13 +141,36 @@ export function AssemblyScreen({
         </div>
       </Card>
 
+      {/* Suggestion-diff review (mode-safe: nothing applies until you accept) */}
+      {proposal && (
+        <Card className="border border-accent/40 bg-accent-soft/30">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">Proposed plan</p>
+              <ul className="mt-1 space-y-0.5 text-xs text-muted">
+                {segmentPlanDiff(plan, proposal).map((d, i) => (
+                  <li key={i}>· {d}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <button onClick={acceptProposal} className="flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-ink shadow-card">
+                <Check className="size-3.5" /> Apply
+              </button>
+              <button onClick={() => setProposal(null)} className="flex items-center gap-1 rounded-full bg-card px-3 py-1.5 text-xs font-medium text-muted shadow-card hover:text-ink">
+                <X className="size-3.5" /> Discard
+              </button>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {(msg || invalid) && (
         <p className={`text-sm font-medium ${invalid ? "text-coral" : "text-muted"}`} role="status">
           {invalid ? "Plan has gaps/overlaps — fix before saving." : msg}
         </p>
       )}
 
-      {/* Beats */}
       {plan.beats.map((b) => (
         <Card key={b.beatIdx} className="space-y-3">
           <div className="flex items-baseline justify-between gap-3">
@@ -273,17 +182,17 @@ export function AssemblyScreen({
               <SegmentCard
                 key={s.id}
                 seg={s}
-                onMedium={(m) => updateSeg(b.beatIdx, s.id, { medium: m, model: MODELS[m][0], estCostUsd: SEGMENT_COST[m] })}
-                onModel={(model) => updateSeg(b.beatIdx, s.id, { model })}
-                onPrompt={(prompt) => updateSeg(b.beatIdx, s.id, { prompt })}
-                onMotion={(preset) => updateSeg(b.beatIdx, s.id, { motion: motionFromPreset(preset, segDuration(s)) })}
-                onSplit={() => splitAt(b.beatIdx, s.id)}
-                onRemove={() => removeSeg(b.beatIdx, s.id)}
-                onToSequence={() => toSequence(b.beatIdx, s.id)}
-                onAddChild={() => addChild(b.beatIdx, s.id)}
-                onRemoveChild={(cid) => removeChild(b.beatIdx, s.id, cid)}
-                onChildMedium={(cid, m) => updateChild(b.beatIdx, s.id, cid, { medium: m, model: MODELS[m][0] })}
-                onChildMotion={(cid, preset) => updateChild(b.beatIdx, s.id, cid, { motion: motionFromPreset(preset, 3) })}
+                onMedium={(m) => apply((p) => assignSegmentMedium(p, b.beatIdx, s.id, m, MODELS[m][0]))}
+                onModel={(model) => apply((p) => ({ ...p, beats: p.beats.map((bb) => (bb.beatIdx === b.beatIdx ? { ...bb, segments: bb.segments.map((x) => (x.id === s.id ? { ...x, model } : x)) } : bb)) }))}
+                onPrompt={(prompt) => apply((p) => setSegmentPrompt(p, b.beatIdx, s.id, prompt))}
+                onMotion={(preset) => apply((p) => setSegmentMotion(p, b.beatIdx, s.id, motionFromPreset(preset, segDuration(s))))}
+                onSplit={() => apply((p) => splitSegmentInHalf(p, b.beatIdx, s.id))}
+                onRemove={() => apply((p) => removeSegment(p, b.beatIdx, s.id))}
+                onToSequence={() => apply((p) => makeSequence(p, b.beatIdx, s.id, 3))}
+                onAddChild={() => apply((p) => addSequenceChild(p, b.beatIdx, s.id))}
+                onRemoveChild={(cid) => apply((p) => removeSequenceChild(p, b.beatIdx, s.id, cid))}
+                onChildMedium={(cid, m) => apply((p) => ({ ...p, beats: p.beats.map((bb) => bb.beatIdx === b.beatIdx ? { ...bb, segments: bb.segments.map((x) => x.id === s.id && x.kind === "sequence" && x.children ? { ...x, children: x.children.map((c) => c.id === cid ? { ...c, medium: m, model: MODELS[m][0] } : c) } : x) } : bb) }))}
+                onChildMotion={(cid, preset) => apply((p) => ({ ...p, beats: p.beats.map((bb) => bb.beatIdx === b.beatIdx ? { ...bb, segments: bb.segments.map((x) => x.id === s.id && x.kind === "sequence" && x.children ? { ...x, children: x.children.map((c) => c.id === cid ? { ...c, motion: motionFromPreset(preset, segDuration(c)) } : c) } : x) } : bb) }))}
                 canRemove={b.segments.length > 1}
               />
             ))}
@@ -319,14 +228,14 @@ function SegmentCard({
   onMedium: (m: SegmentMedium) => void;
   onModel: (m: string) => void;
   onPrompt: (p: string) => void;
-  onMotion: (p: MotionPreset) => void;
+  onMotion: (p: SegmentMotionPreset) => void;
   onSplit: () => void;
   onRemove: () => void;
   onToSequence: () => void;
   onAddChild: () => void;
   onRemoveChild: (childId: string) => void;
   onChildMedium: (childId: string, m: SegmentMedium) => void;
-  onChildMotion: (childId: string, p: MotionPreset) => void;
+  onChildMotion: (childId: string, p: SegmentMotionPreset) => void;
   canRemove: boolean;
 }) {
   const dur = segDuration(seg);
@@ -348,8 +257,8 @@ function SegmentCard({
           <select value={seg.model ?? MODELS[seg.medium][0]} onChange={(e) => onModel(e.target.value)} className="mb-1 w-full rounded-lg bg-card px-2 py-1 text-xs">
             {MODELS[seg.medium].map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
-          <select value={presetOfMotion(seg.motion)} onChange={(e) => onMotion(e.target.value as MotionPreset)} className="mb-1 w-full rounded-lg bg-card px-2 py-1 text-xs">
-            {MOTIONS.map((m) => <option key={m} value={m}>motion: {m}</option>)}
+          <select value={presetOfMotion(seg.motion)} onChange={(e) => onMotion(e.target.value as SegmentMotionPreset)} className="mb-1 w-full rounded-lg bg-card px-2 py-1 text-xs">
+            {SEGMENT_MOTION_PRESETS.map((m) => <option key={m} value={m}>motion: {m}</option>)}
           </select>
           <textarea
             value={seg.prompt ?? ""}
@@ -375,8 +284,8 @@ function SegmentCard({
                 <select value={c.medium} onChange={(e) => onChildMedium(c.id, e.target.value as SegmentMedium)} className="w-1/2 rounded bg-card-warm px-1 py-0.5 text-[10px]">
                   {MEDIA.map((m) => <option key={m.value} value={m.value}>{m.value}</option>)}
                 </select>
-                <select value={presetOfMotion(c.motion)} onChange={(e) => onChildMotion(c.id, e.target.value as MotionPreset)} className="w-1/2 rounded bg-card-warm px-1 py-0.5 text-[10px]">
-                  {MOTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
+                <select value={presetOfMotion(c.motion)} onChange={(e) => onChildMotion(c.id, e.target.value as SegmentMotionPreset)} className="w-1/2 rounded bg-card-warm px-1 py-0.5 text-[10px]">
+                  {SEGMENT_MOTION_PRESETS.map((m) => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
             </div>
