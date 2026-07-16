@@ -40,6 +40,39 @@ body {
   background: var(--color-accent-soft);
 }
 
+/* Library "actively processing" glow — an illuminated, animated amber star
+   border around an asset a human or an agent is working right now. Pairs with
+   the static rings (awaiting/failed/stalled) so live work reads at a glance. */
+.tile-active {
+  position: relative;
+  animation: tile-glow 1.8s ease-in-out infinite;
+}
+.tile-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(120deg, var(--color-accent), #ffe4a3, var(--color-accent), #ffd066);
+  background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: tile-border 3s linear infinite;
+  pointer-events: none;
+}
+@keyframes tile-glow {
+  0%, 100% { box-shadow: 0 0 10px -2px rgb(245 184 41 / 0.45); }
+  50% { box-shadow: 0 0 22px 2px rgb(245 184 41 / 0.7); }
+}
+@keyframes tile-border {
+  to { background-position: 200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-active { animation: none; box-shadow: 0 0 0 2px var(--color-accent); }
+  .tile-active::after { animation: none; background-position: 0 0; }
+}
+
 @utility input {
   width: 100%;
   border-radius: 0.75rem;

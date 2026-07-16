@@ -210,13 +210,21 @@ function realJudge(ctx: Omit<SessionCtx, "state" | "renderPreview" | "judgeDoc" 
 
 /** The curated house rubric — the human-approved layer (PR-gated, KD1). */
 function craftSkill(): string {
-  try {
-    const path = new URL("../../../.claude/skills/editing-craft/SKILL.md", import.meta.url).pathname;
-    const text = readFileSync(path, "utf8").trim();
-    return text ? `\n\n=== HOUSE EDITING RUBRIC ===\n${text.slice(0, 6000)}` : "";
-  } catch {
-    return ""; // skill file is an enhancement, never a dependency
+  // Prefer a local .claude override (operator-tuned), else the tracked default
+  // shipped with the agent package. Either is an enhancement, never a hard dep.
+  const candidates = [
+    new URL("../../../.claude/skills/editing-craft/SKILL.md", import.meta.url).pathname,
+    new URL("../editing-craft.md", import.meta.url).pathname,
+  ];
+  for (const path of candidates) {
+    try {
+      const text = readFileSync(path, "utf8").trim();
+      if (text) return `\n\n=== HOUSE EDITING RUBRIC ===\n${text.slice(0, 6000)}`;
+    } catch {
+      /* try the next candidate */
+    }
   }
+  return "";
 }
 
 /** Authoring context (KD2: full weight day one, shadow included; KD3: the
@@ -339,9 +347,11 @@ async function runSession(videoRow: Record<string, unknown>, selftest = false): 
         `(${introOutroRuntime(ctx.doc).toFixed(0)}s ${video.kind}). Work the loop: get_context → ` +
         `make targeted edits (pacing first: tighten slow beats, vary transitions where the topic shifts, ` +
         `auto_emphasis for the baseline then set_emphasis to hand-tune the 2-4 words that carry the hook, ` +
-        `prefer hero holds on premium clips; add_sfx sparingly if generated sfx assets exist) → ` +
-        `judge_preview → adjust → when the judge clears the floor, mark_ready with a one-line rationale. ` +
-        `Heed the lint field in get_context — it flags caption walls, emphasis spam, and dead stills. ` +
+        `prefer hero holds on premium clips; add_keyframe for granular Ken Burns when a preset is too blunt; ` +
+        `set_speed for a footage speed ramp on a reveal or through filler; add_sfx sparingly if generated ` +
+        `sfx assets exist) → judge_preview → adjust → when the judge clears the floor, mark_ready with a ` +
+        `one-line rationale. Heed BOTH the lint and craft fields in get_context — lint flags caption walls, ` +
+        `emphasis spam, and dead stills; craft flags cut rhythm, medium monotony, and caption reading speed. ` +
         `House rules: never exceed ±5% of the target runtime; keep every narrated beat covered; ` +
         `small number of strong edits beats many weak ones.` +
         craftSkill() +

@@ -110,6 +110,26 @@ export default async function LibraryPage({
         autopilot={directorMode ? undefined : library.operatorState}
       />
 
+      {!empty && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted" aria-hidden>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block size-2 animate-pulse rounded-full bg-accent shadow-[0_0_6px_1px_rgb(245_184_41/0.7)]" /> working now
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block size-2 rounded-full bg-accent" /> your turn
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block size-2 rounded-full bg-accent/50" /> stalled
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block size-2 rounded-full bg-ink/50" /> paused
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block size-2 rounded-full bg-coral" /> failed
+          </span>
+        </div>
+      )}
+
       {directorMode ? (
         <DirectorIdeaGenerator projectId={project.id} />
       ) : (
@@ -229,9 +249,15 @@ function VideoTile({
     Boolean(video.paused_reason);
   const atGate = item.gateLabel != null;
   const terminal = ["TRACKING", "KILLED"].includes(video.status);
+  // Actively being generated/processed RIGHT NOW (an agent or a director-
+  // triggered stage agent is running) — the tile glows. A stalled/paused
+  // in-progress asset is NOT active (it has stopped and needs attention).
+  const processing = ["SCRIPTING", "GENERATING_ASSETS", "ASSEMBLING", "NEEDS_REVISION"].includes(video.status);
+  const active = !terminal && !paused && !atGate && !item.stalled && processing;
   // Director Mode: the whole tile links to the Console (its click target). No
-  // autonomous quick-actions/chips; the label reads as awaiting direction.
-  const directorAwaiting = directorMode && !terminal;
+  // autonomous quick-actions/chips; the label reads as awaiting direction —
+  // unless it's actively processing (then it glows instead).
+  const directorAwaiting = directorMode && !terminal && !active;
   return (
     <AssetTile
       href={`/projects/${projectId}/videos/${video.id}`}
@@ -242,7 +268,7 @@ function VideoTile({
       railTotal={RAIL_STEPS.length}
       stageLabel={stageLabel}
       qcScore={item.qcScore}
-      awaitingYou={directorMode ? directorAwaiting : tile.awaitingYou || Boolean(item.stalled)}
+      awaitingYou={directorMode ? directorAwaiting : Boolean(tile.awaitingYou) && !active}
       awaitingLabel={
         directorMode
           ? directorAwaiting
@@ -250,7 +276,10 @@ function VideoTile({
             : undefined
           : item.awaitingLabel ?? undefined
       }
-      failed={directorMode ? false : tile.failed || Boolean(item.stalled)}
+      failed={directorMode ? false : Boolean(tile.failed)}
+      stalled={directorMode ? false : Boolean(item.stalled)}
+      paused={paused && !active}
+      active={active}
       autopilot={directorMode ? undefined : tile.autopilot}
       spendUsd={Number(video.total_cost_usd)}
       views={item.views}

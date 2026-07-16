@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Bot, CircleDollarSign, Eye } from "lucide-react";
+import { AlertTriangle, Bot, CircleDollarSign, Eye, Loader2, PauseCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { StageProgressBar } from "./progress-rail";
 import { StatusChip } from "./status-chip";
@@ -23,6 +23,9 @@ export function AssetTile({
   awaitingYou,
   awaitingLabel,
   failed,
+  stalled,
+  paused,
+  active,
   autopilot,
   spendUsd,
   views,
@@ -40,6 +43,12 @@ export function AssetTile({
   /** e.g. the paused_reason or "Script gate" — shown under the badge row. */
   awaitingLabel?: string;
   failed?: boolean;
+  /** In-progress but not moving (needs a nudge) — amber, distinct from failed. */
+  stalled?: boolean;
+  /** Held (paused_reason) — resumable. */
+  paused?: boolean;
+  /** Actively being generated/processed right now (agent or director) — glows. */
+  active?: boolean;
   autopilot?: boolean;
   spendUsd?: number;
   views?: number | null;
@@ -48,10 +57,13 @@ export function AssetTile({
   return (
     <div
       data-testid="asset-tile"
+      data-active={active ? "" : undefined}
       className={cn(
         "flex flex-col gap-2 rounded-card bg-card p-3 shadow-card transition-shadow hover:shadow-lg",
-        failed && "ring-2 ring-coral/60",
-        !failed && awaitingYou && "ring-2 ring-accent/60",
+        active && "tile-active",
+        !active && failed && "ring-2 ring-coral/60",
+        !active && !failed && stalled && "ring-2 ring-accent/50",
+        !active && !failed && !stalled && awaitingYou && "ring-2 ring-accent/60",
       )}
     >
       <Link href={href} className="block">
@@ -68,14 +80,26 @@ export function AssetTile({
             </span>
           )}
           <span className="absolute left-1.5 right-1.5 top-1.5 flex flex-wrap gap-1">
-            {failed ? (
+            {active ? (
+              <StatusChip tone="warning" className="gap-1 whitespace-nowrap">
+                <Loader2 className="size-3 animate-spin" /> working
+              </StatusChip>
+            ) : failed ? (
               <StatusChip tone="coral" className="gap-1 whitespace-nowrap">
                 <AlertTriangle className="size-3" /> failed
+              </StatusChip>
+            ) : stalled ? (
+              <StatusChip tone="warning" className="gap-1 whitespace-nowrap">
+                <AlertTriangle className="size-3" /> stalled
+              </StatusChip>
+            ) : paused ? (
+              <StatusChip tone="neutral" className="gap-1 whitespace-nowrap bg-ink/70 text-white">
+                <PauseCircle className="size-3" /> paused
               </StatusChip>
             ) : awaitingYou ? (
               <StatusChip tone="warning" className="gap-1 whitespace-nowrap">● your turn</StatusChip>
             ) : null}
-            {autopilot && (
+            {autopilot && !active && (
               <StatusChip tone="lavender" className="gap-1 whitespace-nowrap">
                 <Bot className="size-3" /> auto
               </StatusChip>
