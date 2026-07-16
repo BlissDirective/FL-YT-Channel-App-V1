@@ -7,6 +7,8 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { KillSwitch } from "./kill-switch";
 import { VceSystemsCard } from "./vce-systems-card";
 import { getVceFlags, VCE_DEFAULTS } from "@/lib/pipeline/vce";
+import { EditorSystemsCard } from "./editor-systems-card";
+import { getEditorFlags, EDITOR_DEFAULTS } from "@/lib/pipeline/editor-flags";
 import { getIsAdmin } from "@/lib/admin-guard";
 import { NotificationsCard } from "./notifications-card";
 import { CredentialHealthList } from "./credential-health";
@@ -34,6 +36,7 @@ export default async function SettingsPage() {
     ? await Promise.all([getKillSwitch(), getCostLedger(12), getQcAgreement(), getQualityGates()])
     : [false, [], { total: 0, agree: 0, rate: 0 }, {}];
   const vceFlags = configured ? await getVceFlags() : VCE_DEFAULTS;
+  const editorFlags = configured ? await getEditorFlags() : EDITOR_DEFAULTS;
   const isAdmin = configured ? await getIsAdmin() : false;
   const shownTotal = ledger.reduce((s, e) => s + Number(e.usd), 0);
 
@@ -60,6 +63,8 @@ export default async function SettingsPage() {
       {configured && <QualityGatesCard initial={qualityGates} />}
 
       {configured && isAdmin && <VceSystemsCard initial={vceFlags} />}
+
+      {configured && isAdmin && <EditorSystemsCard initial={editorFlags} />}
 
       {configured && <JudgeCalibration />}
 

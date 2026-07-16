@@ -238,6 +238,45 @@ export function segmentsFromShotPlan(plan: ShotPlan): SegmentPlan {
   return seg;
 }
 
+// ── Initial plan from script beats (the Assembly screen's starting point) ──
+export type PlanBeatInput = {
+  idx: number;
+  /** Estimated screen seconds for the beat (VO length isn't known pre-gen). */
+  durationSec?: number;
+  shotType?: "hero" | "broll" | "stock";
+};
+
+/** Default segment medium for a beat's coarse shotType. */
+export function shotTypeToSegmentMedium(shotType: "hero" | "broll" | "stock" | undefined): SegmentMedium {
+  if (shotType === "hero") return "ai-clip";
+  if (shotType === "stock") return "stock";
+  return "still";
+}
+
+/** Build a default one-segment-per-beat plan (the Assembly screen opens on this
+    when no plan is stored yet). Pure + deterministic. */
+export function initialPlanFromBeats(beats: PlanBeatInput[], opts?: { defaultBeatSec?: number }): SegmentPlan {
+  const def = Math.max(FRAME, opts?.defaultBeatSec ?? 5);
+  const planBeats = beats.map((b) => {
+    const medium = shotTypeToSegmentMedium(b.shotType);
+    const dur = Math.max(FRAME, b.durationSec ?? def);
+    const seg: Segment = {
+      id: `${b.idx}-0`,
+      beatIdx: b.idx,
+      startSec: 0,
+      endSec: dur,
+      kind: "clip",
+      medium,
+      estCostUsd: SEGMENT_COST[medium],
+      status: "planned",
+    };
+    return { beatIdx: b.idx, segments: [seg] };
+  });
+  const plan: SegmentPlan = { beats: planBeats, version: 1, planCostUsd: 0 };
+  plan.planCostUsd = segmentPlanCost(plan);
+  return plan;
+}
+
 // ── Compile: segments → a valid EditDocument skeleton ─────────────────
 export type SegmentsToDocOpts = {
   format: EddFormat;

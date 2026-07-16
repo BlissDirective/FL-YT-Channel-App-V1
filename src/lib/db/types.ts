@@ -241,6 +241,9 @@ export type Video = {
   /** Visual Craft Engine V2 — per-beat shot plan + Medium Router decisions
       (null when the vce.router flag is off). */
   shot_plan: import("@studio/core").ShotPlan | null;
+  /** Editor & Assembly R2 — the granular segment plan authored on the
+      Assembly/Storyboard screen (null until authored). */
+  assembly_plan: import("@studio/core").SegmentPlan | null;
   scheduled_at: string | null;
   youtube_video_id: string | null;
   published_at: string | null;

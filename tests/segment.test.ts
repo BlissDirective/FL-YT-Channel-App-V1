@@ -9,6 +9,8 @@ import {
   type Segment,
   type SegmentPlan,
   splitSegment,
+  initialPlanFromBeats,
+  shotTypeToSegmentMedium,
   segDuration,
   segmentPlanCost,
   leafSegments,
@@ -222,5 +224,32 @@ describe("segmentsFromShotPlan (AUTO bridge)", () => {
     expect(seg.beats[1].segments[0].medium).toBe("still");
     // 0.2 + 0.025 = 0.225, rounded to cents for display (matches V2 planCost).
     expect(seg.planCostUsd).toBe(0.23);
+  });
+});
+
+describe("initialPlanFromBeats (Assembly starting point)", () => {
+  it("maps shotType to a default medium", () => {
+    expect(shotTypeToSegmentMedium("hero")).toBe("ai-clip");
+    expect(shotTypeToSegmentMedium("stock")).toBe("stock");
+    expect(shotTypeToSegmentMedium("broll")).toBe("still");
+    expect(shotTypeToSegmentMedium(undefined)).toBe("still");
+  });
+
+  it("builds one clip segment per beat with cost + valid structure", () => {
+    const plan = initialPlanFromBeats([
+      { idx: 0, shotType: "hero" },
+      { idx: 1, shotType: "broll" },
+      { idx: 2, shotType: "stock" },
+    ]);
+    expect(plan.beats).toHaveLength(3);
+    expect(plan.beats.every((b) => b.segments.length === 1)).toBe(true);
+    expect(plan.beats[0].segments[0].medium).toBe("ai-clip");
+    expect(validateSegmentPlan(plan).ok).toBe(true);
+    expect(plan.planCostUsd).toBe(segmentPlanCost(plan));
+  });
+
+  it("is deterministic", () => {
+    const beats = [{ idx: 0, shotType: "broll" as const }, { idx: 1, shotType: "hero" as const }];
+    expect(initialPlanFromBeats(beats)).toEqual(initialPlanFromBeats(beats));
   });
 });

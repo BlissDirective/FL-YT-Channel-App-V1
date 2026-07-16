@@ -1,4 +1,9 @@
 {
+  "assembly": [
+    "saveAssemblyPlanAction(videoId: string, plan: SegmentPlan)",
+    "autoAssemblyPlanAction(videoId: string, budgetUsd = 8)",
+    "clearAssemblyPlanAction(videoId: string)"
+  ],
   "auth": [
     "signIn(_prev: AuthResult, formData: FormData,)",
     "bootstrapAccount(_prev: AuthResult, formData: FormData,)",
@@ -42,6 +47,9 @@
     "approveCutAction(projectId: string, videoId: string)",
     "generateSfxAction(projectId: string, videoId: string, prompt: string, durationSec?: number,)",
     "deactivateEddAction(projectId: string, videoId: string)"
+  ],
+  "editor": [
+    "setEditorFlagsAction(flags: Partial<Record<\"assembly\" | \"proEditor\" | \"keyframes\" | \"segmentAgent\", boolean>>,)"
   ],
   "intel": [
     "runVideoIntelAction(input: { projectId: string; videoId?: string | null; topic: string; competitorUrls?: string[]; transcript?: string; depth?: \"quick\" | \"deep\"; sourceUrl?: string; vouched?: boolean; /** Deep + precise frame sampling → enqueue for the Actions worker. */ frames?: boolean; })"

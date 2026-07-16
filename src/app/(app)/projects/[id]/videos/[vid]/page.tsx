@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, Clapperboard, Radar } from "lucide-react";
+import { ArrowUpRight, Clapperboard, LayoutGrid, Radar } from "lucide-react";
 import { GATE_FOR_STATUS, bracketById, buildLengthAdvisory } from "@studio/core";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -21,6 +21,7 @@ import { StatusChip } from "@/components/ui/status-chip";
 import { ProgressRail } from "@/components/ui/progress-rail";
 import { RAIL_STEPS, railIndexFor } from "@/lib/db/library";
 import type { QcReview } from "@/lib/db/queries";
+import { getEditorFlags } from "@/lib/pipeline/editor-flags";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { CheckpointPanel } from "./checkpoint-panel";
 import { CanvasControls } from "./canvas-controls";
@@ -145,6 +146,7 @@ export default async function VideoDetailPage({
   const clipJobs = s && beats.length > 0 ? await getClipJobs(vid) : [];
 
   const gate = GATE_FOR_STATUS[v.status];
+  const assemblyEnabled = (await getEditorFlags()).assembly;
 
   // Checkpoint context (UI v2 Phase 3): the latest QC verdict for the open
   // gate, the linked idea card at IDEA, and thumbnail candidates at ASSETS.
@@ -327,6 +329,15 @@ export default async function VideoDetailPage({
               Open editor
               {(v as { edit_document_version?: number | null }).edit_document_version != null &&
                 ` · cut v${(v as { edit_document_version?: number | null }).edit_document_version}`}
+            </Link>
+          )}
+          {assemblyEnabled && s && (
+            <Link
+              href={`/projects/${id}/videos/${vid}/assembly`}
+              className="flex items-center gap-1 rounded-full bg-canvas px-3 py-1 text-xs font-semibold shadow-card hover:bg-accent-soft"
+            >
+              <LayoutGrid className="size-3.5" />
+              Assembly
             </Link>
           )}
         </div>
