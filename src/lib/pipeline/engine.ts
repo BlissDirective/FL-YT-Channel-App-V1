@@ -64,6 +64,7 @@ import {
   videoModelHealth,
   type ModelHealth,
 } from "@/lib/adapters/provider-selector";
+import { recordDecisions } from "@/lib/pipeline/decisions";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { directShots, assessVisualPrompt, assessPromptRelevance, refineOneShot, isArtDirectorLive } from "@/lib/adapters/art-director";
 import { inspectStill, perceptualHash, hammingDistance } from "@/lib/adapters/image-check";
@@ -2560,6 +2561,40 @@ export async function fullAutoGenerate(
       };
     });
     await db.from("clip_jobs").insert(rows);
+    // Decision audit trail (#9): log each beat's scored model pick — choice,
+    // alternatives, confidence, reasoning, cost + the exact request params (C2).
+    await recordDecisions(
+      db,
+      rows.map((r) => {
+        const sel = r.selection;
+        return {
+          projectId: video.project_id,
+          videoId: opts.videoId,
+          beatIdx: r.beat_idx,
+          kind: "model" as const,
+          choice: sel.model,
+          alternatives: sel.alternatives.map((a) => ({
+            id: a.id,
+            label: a.label,
+            score: a.total,
+            costUsd: a.estCostUsd,
+          })),
+          confidence: sel.score,
+          reasoning: sel.rationale,
+          costUsd: sel.estCostUsd,
+          params: {
+            model: r.model,
+            targetSec: r.target_sec,
+            method: r.method,
+            heroHold: r.hero_hold,
+            tier: opts.tier,
+            dims: sel.dims,
+            weights: sel.weights,
+            operatorLocked: sel.operatorLocked ?? false,
+          },
+        };
+      }),
+    );
   }
   return { ok: true, enqueued: clips.length, estCostUsd };
 }
