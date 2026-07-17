@@ -104,6 +104,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 7.	Registry-driven tool discovery (never hardcode providers). Tools self-declare capability/provider/runtime/fallback/skills/install-steps; selectors auto-discover. Remix: a provider registry so adding a model becomes config, not code — your adapters become registry entries.
 
+> ✅ **SIGNED OFF — Batch 3: list2 #7/#9/#10/#11/#29.** Declarative `capability-registry.ts` (`@studio/core`): each capability self-declares its required services, setup **effort** (env / install / hardware, #11), **stability** tier (production / beta / test, #29), and exact **unlock** steps — adding a capability is config, not code (#7). `computeCapabilities(present)` resolves available vs. locked; `capabilitySummary` gives "X of Y". UI: a **Capability menu** on Settings (#10) — "what you can do now / could unlock", grouped by effort, locked items showing their unlock commands, stability badges throughout. Verified: `tsc`, `eslint`, **869/869 vitest** (+3), `next build`, visual QA.
+
 	9.	Per-tool agent_skills (Layer-3 vendor knowledge) the agent must read before calling. Remix: attach a per-model prompting skill (e.g. “seedance-2-0”, “flux-best-practices”) your generation adapters inject — “usable” vs “cinematic” prompts.
 
 	10.	Capability menu preflight (“X of Y configured”, grouped by setup effort). Remix: upgrade your Settings credential-health into a “here’s what you can do now / could unlock” menu.

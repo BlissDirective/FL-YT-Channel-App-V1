@@ -1,4 +1,6 @@
+import { computeCapabilities } from "@studio/core";
 import { getServiceHealth, TESTABLE_SERVICES } from "@/lib/adapters/health";
+import { CapabilityMenu } from "./capability-menu";
 import { getCostLedger, getKillSwitch, getQcAgreement } from "@/lib/db/queries";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -31,6 +33,12 @@ export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const services = getServiceHealth();
+  // Capability menu (list2 #10): resolve what's unlockable from present services.
+  const present: Record<string, boolean> = Object.fromEntries(services.map((s) => [s.key, s.present]));
+  present.youtube_oauth = Boolean(
+    process.env.YOUTUBE_OAUTH_CLIENT_ID && process.env.YOUTUBE_OAUTH_REFRESH_TOKEN,
+  );
+  const capabilities = computeCapabilities(present);
   const configured = isSupabaseConfigured();
   const [killSwitch, ledger, qc, qualityGates] = configured
     ? await Promise.all([getKillSwitch(), getCostLedger(12), getQcAgreement(), getQualityGates()])
@@ -115,6 +123,8 @@ export default async function SettingsPage() {
           }))}
         />
       </Card>
+
+      <CapabilityMenu statuses={capabilities} />
 
       <Card>
         <CardTitle>Cost ledger</CardTitle>
