@@ -95,6 +95,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 	23.	Three-layer knowledge architecture (tools → skills → deep tech knowledge). Remix: formalize a per-stage skill file set (you now have the editing-craft one) so each agent has a house rubric.
 	24.	HyperFrames-style kinetic typography / SVG character animation. Remix: you already have programmatic “stick” scenes — borrow their GSAP kinetic-typography patterns for punchier text moments.
+
+> ✅ **SIGNED OFF — Batch 11: list1 #24, list2 #15/#16/#30.** Core `motion-craft.ts` (`@studio/core`) — one codified craft codex the MVDA reads instead of hand-tuning: `DISNEY_PRINCIPLES` (all 12) + `critiqueMotion(params)` scoring motion against the relevant principles (#15); `KINETIC_TYPE` GSAP-style presets (typewriter, word-cascade, blur-in, highlight-sweep, count-up) + `kineticRevealMs` timing (#24); `SCENE_MECHANICS` composable enter/emphasize/transition/exit primitives + `composeScene` validating the phase chain (#16); and `WHITEBOARD_MOVES` — a curated named-mocap library the agent PICKS from via `pickWhiteboardMove`, never free-keyframing (#30 Ink Theater). Verified: `tsc`, `eslint`, **925/925 vitest** (+7).
 	25.	Reviewer/checkpoint “meta” skills — explicit reviewer protocols at gates. Remix: codify your QC-gate reviewer behavior as a skill the judge reads.
 	26.	Resumable checkpoints with cost snapshot. Remix: enrich build_runs with a decision + cost snapshot so a failed run resumes cleanly.
 	27.	Audio mixing / ducking / noise-reduction / enhance. Remix: activate your gated audio-ducking path + a cleanup pass on VO.
