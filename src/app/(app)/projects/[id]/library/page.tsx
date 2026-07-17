@@ -280,6 +280,12 @@ function VideoTile({
       stalled={directorMode ? false : Boolean(item.stalled)}
       paused={paused && !active}
       active={active}
+      progressLabel={active ? item.progress?.label : undefined}
+      progressPct={
+        active && item.progress?.total
+          ? (item.progress.done ?? 0) / item.progress.total
+          : null
+      }
       autopilot={directorMode ? undefined : tile.autopilot}
       spendUsd={Number(video.total_cost_usd)}
       views={item.views}

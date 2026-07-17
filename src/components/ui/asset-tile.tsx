@@ -26,6 +26,8 @@ export function AssetTile({
   stalled,
   paused,
   active,
+  progressLabel,
+  progressPct,
   autopilot,
   spendUsd,
   views,
@@ -49,6 +51,10 @@ export function AssetTile({
   paused?: boolean;
   /** Actively being generated/processed right now (agent or director) — glows. */
   active?: boolean;
+  /** Live progress label while active, e.g. "Generating 3/8 clips" (#3). */
+  progressLabel?: string;
+  /** 0–1 fraction for a determinate progress bar (asset generation). */
+  progressPct?: number | null;
   autopilot?: boolean;
   spendUsd?: number;
   views?: number | null;
@@ -122,8 +128,19 @@ export function AssetTile({
 
       <StageProgressBar total={railTotal} current={railIndex} />
 
+      {active && progressPct != null && (
+        <div className="h-1 overflow-hidden rounded-full bg-canvas" aria-hidden>
+          <div
+            className="h-full rounded-full bg-accent transition-[width] duration-500"
+            style={{ width: `${Math.round(Math.max(0, Math.min(1, progressPct)) * 100)}%` }}
+          />
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-2 text-xs text-muted">
-        <span className="truncate font-medium">{stageLabel}</span>
+        <span className={cn("truncate font-medium", active && "text-ink")}>
+          {active && progressLabel ? progressLabel : stageLabel}
+        </span>
         <span className="flex shrink-0 items-center gap-2">
           {qcScore != null && (
             <span

@@ -132,3 +132,27 @@ export function tileState(v: LibraryVideo): TileState {
     autopilot: Boolean(v.auto_pilot_run || v.build_run_id || v.auto_finish),
   };
 }
+
+/** Live progress label (+ optional fraction) for an actively-processing video
+    (#3). Asset generation carries a real "N/M clips" fraction; other worker
+    stages carry a descriptive label. Null for non-processing statuses. Pure. */
+export function liveProgress(
+  status: string,
+  done: number,
+  total: number | undefined,
+): { label: string; done?: number; total?: number } | null {
+  switch (status) {
+    case "SCRIPTING":
+      return { label: "Writing script…" };
+    case "GENERATING_ASSETS":
+      return total && total > 0
+        ? { label: `Generating ${Math.min(done, total)}/${total} clips`, done: Math.min(done, total), total }
+        : { label: "Generating assets…" };
+    case "ASSEMBLING":
+      return { label: "Rendering…" };
+    case "NEEDS_REVISION":
+      return { label: "Revising…" };
+    default:
+      return null;
+  }
+}

@@ -5,7 +5,7 @@ import { getSignedMediaUrl } from "@/lib/storage";
 import type { Idea, Video } from "./types";
 import { getVideos } from "./queries";
 import { publishDiagnosis } from "./pipeline";
-import { tileState, type LibrarySectionKey, type TileState } from "./library";
+import { liveProgress, tileState, type LibrarySectionKey, type TileState } from "./library";
 
 /**
  * Server assembly for the per-project Library (UI v2 Phase 2, D-2..D-5,
@@ -28,6 +28,10 @@ export type LibraryItem = {
       cron likely hasn't run. Surfaces a label + a "Nudge worker" action so an
       invisible stall becomes visible and actionable. */
   stalled: { label: string } | null;
+  /** Live progress while an agent is actively working the asset (#3). `done`/
+      `total` are set for asset generation ("3/8 clips"); other stages carry a
+      label only. Null when the asset isn't actively processing. */
+  progress: { label: string; done?: number; total?: number } | null;
 };
 
 export type LibraryData = {
@@ -44,9 +48,21 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
   const supabase = await createClient();
   const videos = await getVideos(projectId);
   const ids = videos.map((v) => v.id);
+  // Videos an agent (or a director-triggered stage agent) is working right now.
+  // We fetch their clip counts + beat counts to show live progress on the tile.
+  const PROCESSING = new Set(["SCRIPTING", "GENERATING_ASSETS", "ASSEMBLING", "NEEDS_REVISION"]);
+  const activeIds = videos.filter((v) => PROCESSING.has(v.status)).map((v) => v.id);
 
-  const [{ data: qcRows }, { data: thumbs }, { data: snapshots }, { data: ideas }, { data: ledger }, { data: operator }] =
-    await Promise.all([
+  const [
+    { data: qcRows },
+    { data: thumbs },
+    { data: snapshots },
+    { data: ideas },
+    { data: ledger },
+    { data: operator },
+    { data: clipRows },
+    { data: scriptRows },
+  ] = await Promise.all([
       ids.length
         ? supabase
             .from("qc_reviews")
@@ -87,6 +103,14 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
         .eq("status", "active")
         .limit(1)
         .maybeSingle(),
+      // Generated clips per actively-processing video (for "N/M clips" progress).
+      activeIds.length
+        ? supabase.from("assets").select("video_id, kind").in("video_id", activeIds).eq("kind", "clip")
+        : Promise.resolve({ data: [] }),
+      // The latest script's beats (M) per active video — newest version first.
+      activeIds.length
+        ? supabase.from("scripts").select("video_id, beats, version").in("video_id", activeIds).order("version", { ascending: false })
+        : Promise.resolve({ data: [] }),
     ]);
 
   const latestQc = new Map<string, number>();
@@ -96,6 +120,16 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
   const latestViews = new Map<string, number>();
   for (const s of (snapshots ?? []) as { video_id: string; views: number }[]) {
     if (!latestViews.has(s.video_id)) latestViews.set(s.video_id, Number(s.views));
+  }
+
+  // Live-progress inputs: generated clips (N) and beats (M) per active video.
+  const clipCount = new Map<string, number>();
+  for (const a of (clipRows ?? []) as { video_id: string }[]) {
+    clipCount.set(a.video_id, (clipCount.get(a.video_id) ?? 0) + 1);
+  }
+  const beatCount = new Map<string, number>();
+  for (const s of (scriptRows ?? []) as { video_id: string; beats: unknown[] | null }[]) {
+    if (!beatCount.has(s.video_id)) beatCount.set(s.video_id, (s.beats ?? []).length);
   }
 
   // One thumb per video: prefer the operator-selected one, else the newest.
@@ -171,6 +205,11 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
       views: published ? (latestViews.get(video.id) ?? null) : null,
       awaitingLabel: stalled ? stalled.label : awaitingLabel,
       stalled,
+      // Live progress only when genuinely working (not stalled/paused/at a gate).
+      progress:
+        stalled || video.paused_reason || gate !== undefined
+          ? null
+          : liveProgress(video.status, clipCount.get(video.id) ?? 0, beatCount.get(video.id)),
     };
     if (stalled) attentionCount += 1;
     if (tile.awaitingYou) attentionCount += 1;
