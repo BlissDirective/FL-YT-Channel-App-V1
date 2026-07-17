@@ -87,6 +87,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 	22.	Web-research-first brief — structured research (YouTube/Reddit/HN/news/academic) with citations before scripting. Remix: upgrade Scout into a cited research brief feeding runScripting.
 
+> ✅ **SIGNED OFF — Batch 8: list1 #22.** Core `research-brief.ts` (`@studio/core`): a `ResearchBrief` (topic/angle/audience + findings tied to sources across youtube/reddit/hn/news/academic), `findingConfidence` scored from citation credibility + breadth, `citedFindings` (only cited, above-floor findings feed scripting — no uncited hunches), and `briefToScriptContext` rendering a citation-annotated block for the scripting prompt. Mock-first `research.ts` adapter (isResearchLive) upgrades Scout into this brief with zero credentials. Verified: `tsc`, `eslint`, **906/906 vitest** (+6).
+
 	23.	Three-layer knowledge architecture (tools → skills → deep tech knowledge). Remix: formalize a per-stage skill file set (you now have the editing-craft one) so each agent has a house rubric.
 	24.	HyperFrames-style kinetic typography / SVG character animation. Remix: you already have programmatic “stick” scenes — borrow their GSAP kinetic-typography patterns for punchier text moments.
 	25.	Reviewer/checkpoint “meta” skills — explicit reviewer protocols at gates. Remix: codify your QC-gate reviewer behavior as a skill the judge reads.
