@@ -215,3 +215,29 @@ A **run report** summarizes: X ready · Y flagged · Z skipped · total spent vs
 > _Follow-ups (noted): per-tile subset selection for triage; a cron hook so an
 > approved run auto-advances async render/clip work without a manual "Advance
 > now"; Clean House progress on the Backlot board._
+>
+> ✅ **Follow-up — subset triage + hands-off auto-advance (shipped).** `0064`
+> adds the run lock + rail/stall state (`locked_at`, `tick_count`,
+> `no_progress_ticks`, `last_progress`, `paused_reason`; item `inflight_since`,
+> `nudges`).
+> - **Subset triage.** The Clean House panel now has **Select assets** → a
+>   checklist (per-asset status chips) with **select-all/clear-all** and a live
+>   count → **Triage N selected**, wiring `startCleanHouseTriage(projectId,
+>   "selected", ids)`. "Triage library" (all) is unchanged.
+> - **Auto-advance.** A CRON_SECRET-guarded `/api/cron/clean-house` route (+
+>   `clean-house.yml`, every 15 min) calls `driveAllCleanHouseRuns()` which ticks
+>   every `running` run through the shared `advanceCleanHouseRun` path. Guardrails
+>   folded into the tick, in order: **atomic lock claim** (idempotency / double-run
+>   — a 5-min-leased `locked_at`, reclaimable after a crash, mirrors the operator's
+>   `last_seed_key`); the **kill switch**; **termination rails**
+>   (`CLEAN_HOUSE_MAX_TICKS` / `MAX_NO_PROGRESS_TICKS` → auto-pause + record reason
+>   + Telegram escalation); the **real-ledger hard budget stop**
+>   (`cleanHouseLedgerStop` reconciles `cost_ledger` for the run's assets since it
+>   began — the authoritative ceiling, not the estimate); a **per-tick concurrency
+>   throttle** (`CLEAN_HOUSE_MAX_ADVANCES_PER_TICK = 3`); and **stall handling**
+>   (`cleanHouseStallAction` — an in-flight asset waits, then nudges its worker
+>   (bounded), then is flagged). **Completion + pause/failure notifications** go
+>   out via Telegram; the panel surfaces the auto-pause reason. Still stops at
+>   Ready; still never publishes; still never auto-kills (flags only).
+> - Verified: `tsc`, `eslint`, **968/968 vitest** (+7 guardrail tests),
+>   `next build` (route registered), visual QA of the subset picker.

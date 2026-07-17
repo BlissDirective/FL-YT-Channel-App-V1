@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Play, Pause, X, ShieldCheck } from "lucide-react";
+import { Sparkles, Play, Pause, X, ShieldCheck, ListChecks, AlertTriangle } from "lucide-react";
 import {
   approveCleanHouse,
   cancelCleanHouse,
@@ -13,8 +13,9 @@ import {
 import { cn } from "@/lib/cn";
 
 type Plan = { advance: number; flag: number; skip: number; estCostUsd: number };
+type Candidate = { id: string; title: string; status: string };
 type RunState = {
-  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; budget_ceiling_usd: number } | null;
+  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; budget_ceiling_usd: number; paused_reason: string | null } | null;
   counts: { advance: number; flag: number; skip: number; ready: number; flagged: number; pending: number };
 };
 
@@ -23,25 +24,49 @@ type RunState = {
  * the run advances tick-by-tick, driving salvageable assets to Ready-to-publish
  * and flagging the unfixable. Never publishes, never auto-kills.
  */
-export function CleanHousePanel({ projectId, active }: { projectId: string; active: RunState }) {
+export function CleanHousePanel({
+  projectId,
+  active,
+  candidates = [],
+}: {
+  projectId: string;
+  active: RunState;
+  candidates?: Candidate[];
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [plan, setPlan] = useState<{ runId: string; plan: Plan } | null>(null);
   const [ceiling, setCeiling] = useState(20);
   const [error, setError] = useState<string | null>(null);
+  const [picking, setPicking] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const run = active.run;
   const c = active.counts;
 
-  const triage = () =>
+  const runTriage = (mode: "all" | "selected", ids: string[] = []) =>
     start(async () => {
       setError(null);
-      const res = await startCleanHouseTriage(projectId, "all");
+      const res = await startCleanHouseTriage(projectId, mode, ids);
       if (!res.ok || !res.result) { setError(res.error ?? "Failed"); return; }
       setPlan({ runId: res.result.runId, plan: res.result.plan });
       setCeiling(Math.max(5, Math.ceil(res.result.plan.estCostUsd)));
+      setPicking(false);
+      setSelected(new Set());
       router.refresh();
     });
+
+  const triage = () => runTriage("all");
+
+  const toggle = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  const allSelected = candidates.length > 0 && selected.size === candidates.length;
+  const toggleAll = () =>
+    setSelected(allSelected ? new Set() : new Set(candidates.map((v) => v.id)));
 
   const approve = (runId: string) =>
     start(async () => {
@@ -73,18 +98,70 @@ export function CleanHousePanel({ projectId, active }: { projectId: string; acti
           </div>
         </div>
         {!run && !awaitingPlan && (
-          <button
-            type="button"
-            onClick={triage}
-            disabled={pending}
-            className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02] disabled:opacity-60"
-          >
-            {pending ? "Triaging…" : "Triage library"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPicking((p) => !p)}
+              disabled={pending || candidates.length === 0}
+              className="rounded-full bg-card-warm px-3 py-2 text-xs font-semibold text-muted shadow-card transition-colors hover:text-ink disabled:opacity-60"
+            >
+              <ListChecks className="mr-1 inline size-3" /> {picking ? "Cancel" : "Select assets"}
+            </button>
+            <button
+              type="button"
+              onClick={triage}
+              disabled={pending}
+              className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02] disabled:opacity-60"
+            >
+              {pending ? "Triaging…" : "Triage library"}
+            </button>
+          </div>
         )}
       </div>
 
       {error && <p className="text-xs font-semibold text-coral">{error}</p>}
+
+      {run?.status === "paused" && run.paused_reason && (
+        <p className="flex items-start gap-1.5 rounded-xl bg-coral/10 px-3 py-2 text-xs font-semibold text-coral">
+          <AlertTriangle className="mt-0.5 size-3.5 shrink-0" /> Auto-paused — {run.paused_reason}
+        </p>
+      )}
+
+      {/* Subset picker → triage a chosen set */}
+      {!run && !awaitingPlan && picking && (
+        <div className="space-y-2 rounded-xl border border-line bg-card p-3">
+          <div className="flex items-center justify-between">
+            <button type="button" onClick={toggleAll} className="text-[11px] font-semibold text-accent hover:underline">
+              {allSelected ? "Clear all" : "Select all"}
+            </button>
+            <span className="text-[11px] text-muted">{selected.size} of {candidates.length} selected</span>
+          </div>
+          <ul className="max-h-52 space-y-1 overflow-y-auto">
+            {candidates.map((v) => (
+              <li key={v.id}>
+                <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-raised">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(v.id)}
+                    onChange={() => toggle(v.id)}
+                    className="size-3.5 accent-[var(--color-accent)]"
+                  />
+                  <span className="min-w-0 flex-1 truncate">{v.title}</span>
+                  <span className="shrink-0 rounded-full bg-raised px-1.5 py-0.5 text-[9px] font-bold uppercase text-muted">{v.status}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => runTriage("selected", [...selected])}
+            disabled={pending || selected.size === 0}
+            className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-on-accent shadow-card hover:scale-[1.02] disabled:opacity-60"
+          >
+            {pending ? "Triaging…" : `Triage ${selected.size} selected`}
+          </button>
+        </div>
+      )}
 
       {/* Plan → approve */}
       {awaitingPlan && (

@@ -5,6 +5,11 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanHouseBudgetStop,
+  cleanHouseLedgerStop,
+  cleanHouseStallAction,
+  cleanHouseTerminationStop,
+  CLEAN_HOUSE_MAX_NO_PROGRESS_TICKS,
+  CLEAN_HOUSE_MAX_TICKS,
   planCleanHouse,
   triageAsset,
   type AssetSignals,
@@ -67,5 +72,43 @@ describe("cleanHouseBudgetStop", () => {
     expect(cleanHouseBudgetStop(9, 10, 2)).toBe(true);
     expect(cleanHouseBudgetStop(7, 10, 2)).toBe(false);
     expect(cleanHouseBudgetStop(100, 0, 5)).toBe(false); // 0 = no ceiling
+  });
+});
+
+describe("cleanHouseLedgerStop", () => {
+  it("hard-stops once real ledger spend reaches the ceiling", () => {
+    expect(cleanHouseLedgerStop(10, 10)).toBe(true);
+    expect(cleanHouseLedgerStop(12, 10)).toBe(true);
+    expect(cleanHouseLedgerStop(9.99, 10)).toBe(false);
+    expect(cleanHouseLedgerStop(1000, 0)).toBe(false); // 0 = no ceiling
+  });
+});
+
+describe("cleanHouseTerminationStop", () => {
+  it("auto-pauses at the tick ceiling", () => {
+    const r = cleanHouseTerminationStop({ tickCount: CLEAN_HOUSE_MAX_TICKS, noProgressTicks: 0 });
+    expect(r.stop).toBe(true);
+    expect(r.reason).toMatch(/tick ceiling/);
+  });
+  it("auto-pauses after too many no-progress ticks", () => {
+    const r = cleanHouseTerminationStop({ tickCount: 3, noProgressTicks: CLEAN_HOUSE_MAX_NO_PROGRESS_TICKS });
+    expect(r.stop).toBe(true);
+    expect(r.reason).toMatch(/no progress/);
+  });
+  it("keeps running while inside the rails", () => {
+    expect(cleanHouseTerminationStop({ tickCount: 5, noProgressTicks: 1 }).stop).toBe(false);
+  });
+});
+
+describe("cleanHouseStallAction", () => {
+  it("waits inside the stall window", () => {
+    expect(cleanHouseStallAction(5, 0)).toBe("wait");
+  });
+  it("nudges past the window with nudges left", () => {
+    expect(cleanHouseStallAction(45, 0)).toBe("nudge");
+    expect(cleanHouseStallAction(90, 1)).toBe("nudge");
+  });
+  it("flags once nudges are exhausted", () => {
+    expect(cleanHouseStallAction(120, 2)).toBe("flag");
   });
 });
