@@ -1,0 +1,182 @@
+# Clean House — Build Spec
+
+A single admin-driven system that triages an entire project library and drives
+every salvageable asset to **Ready-to-publish** (passing final score), flags the
+truly-unfixable in red for manual handling, and — with two supporting features
+(an **archive** state and a **library-size guardrail**) — lets the operator
+clear the working library back to a small, controlled set.
+
+Motivation: experimentation with autonomous generation, the full-auto calendar,
+and a long-running idea generator can bloat a project library with stalled and
+stagnant assets. Clean House resolves every asset to a terminal state
+(ready → publish/download/archive, or flagged → kill/recreate) in one governed
+sweep.
+
+---
+
+## 1. Principles (locked with the operator)
+
+- **Admin-only.** Gated by the existing `getIsAdmin` / admin allowlist. The
+  launcher and all Clean House actions are hidden for non-admins.
+- **Available in both director and autonomous modes.**
+- **Triage-first.** No paid generation runs until the operator approves a plan
+  with a per-asset verdict and a total cost estimate.
+- **Stops at Ready-to-publish (APPROVED).** Clean House never uploads to
+  YouTube. The operator makes every go-live decision.
+- **Flag, don't kill.** Assets deemed unfixable get a red border + a structured
+  "kill or recreate" card. Killing is always a manual, human action.
+- **Per-run budget ceiling.** The operator sets a hard $ cap; the run shows an
+  estimate before starting and stops enqueuing when the projected spend would
+  exceed the ceiling.
+- **Director-mode authorization:** approving the triage plan authorizes
+  autonomous execution *for that run* (per-gate approval is waived within the
+  run) — but the run still stops at Ready and never publishes.
+- **Interruptible + resumable.** Pause/Cancel stops new work and lets in-flight
+  assets finish; a crashed run resumes from persisted item state.
+
+---
+
+## 2. Data model (new)
+
+### 2.1 `clean_house_runs`
+One row per sweep (mirrors `build_runs`; enables audit + resume).
+
+| column | type | notes |
+|---|---|---|
+| `id` | uuid pk | |
+| `project_id` | uuid → projects (cascade) | |
+| `status` | text | `planning` → `awaiting_approval` → `running` → `paused` → `done` / `cancelled` |
+| `scope` | jsonb | `{ mode: "all" \| "selected", videoIds: [...] }` |
+| `budget_ceiling_usd` | numeric | operator-set hard cap |
+| `est_cost_usd` | numeric | triage estimate |
+| `spent_usd` | numeric | live-summed as it runs |
+| `created_by` | uuid | the admin who launched it |
+| `created_at` | timestamptz | |
+
+### 2.2 `clean_house_items`
+Per asset in the run (powers the live board + the final report).
+
+| column | type | notes |
+|---|---|---|
+| `id` | uuid pk | |
+| `run_id` | uuid → clean_house_runs (cascade) | |
+| `video_id` | uuid → videos (cascade) | |
+| `salvageability` | numeric | 0..1 |
+| `verdict` | text | `advance` \| `flag` \| `skip` (post-approval, operator-overridable) |
+| `est_cost_usd` | numeric | |
+| `actions` | jsonb | the specific steps to advance (rescript / regen N / rerender / autofix) |
+| `outcome` | text | null → `ready` \| `flagged` \| `skipped` |
+| `spent_usd` | numeric | actual, per asset (feeds cost reconciliation) |
+
+### 2.3 `videos` additions
+- `archived` boolean default false, `archived_at` timestamptz — orthogonal to
+  pipeline status. Archived items leave the active library.
+- `flagged_unfixable` boolean default false + `flag_reason` text — drives the
+  red border + the structured blocker card.
+
+### 2.4 `projects` additions
+- `library_size_limit` int default **5** — the guardrail, editable anytime in
+  Project Settings.
+
+---
+
+## 3. Flow
+
+### Phase 1 — Select & Triage (cheap; NO paid generation)
+1. Admin opens the Clean House launcher on the Library / Backlot board.
+2. **Scope:** a **Select all** button + per-tile checkboxes for a subset.
+3. For each selected asset the MVDA + critics compute a **salvageability score**
+   and a proposed **verdict**, using data already on hand — latest QC score,
+   `watch_review`, media/technical QC, `paused_reason`, prior autofix attempts,
+   current stage — plus at most one light, bounded LLM judgment per asset:
+   - **advance** — feasible to reach a passing final score; carries the concrete
+     `actions` (rewrite/new script, regen N assets, re-render, autofix) and a
+     per-asset **cost estimate** (reuse `estimateTierCost` / `estimateBuildCost`).
+   - **flag** — unlikely fixable (already failed autofix, fundamentally weak);
+     red border, manual.
+4. The operator sees the full plan + total estimate, can **override any verdict**
+   (force-advance / force-flag / exclude), sets the **per-run $ ceiling**, and
+   **Approves**. Approval flips the run to `running`.
+
+### Phase 2 — Execute (after approval)
+- Each `advance` asset is walked forward from its current status through the
+  existing stage runners:
+  `scripting → assets (provider fallback #11 + source inspection #7) → render →
+  technical QC #6 + watch gate → autofix (max 2 rounds, B7) → APPROVED (Ready)`.
+- Fails after the 2-round cap → **auto-converts to `flag`** (red) with a
+  structured blocker card explaining why. Never killed.
+- **Budget ceiling** enforced: stop enqueuing when projected spend would exceed
+  the ceiling; unreached assets become `skipped` (logged).
+- **Throttled concurrency** (default ~2–3 assets in flight) to avoid render-farm
+  / provider rate-limit pressure; provider fallback chains add resilience.
+- Respects the global **kill switch**. Every action logs to the **decision
+  trail (#9)** + the item row. Live on the **Backlot board (#8)** with
+  `partial_progress`. **Pause/Cancel** stops new work, lets in-flight finish.
+  Resumable from item state on crash.
+
+### Terminal outcomes (per asset)
+- **Ready-to-publish** (APPROVED, passing QC) → awaits the operator's upload/download.
+- **Flagged-unfixable** (red) → structured "kill or recreate" card; manual only.
+- **Skipped** (at cap / excluded) → untouched, logged.
+
+A **run report** summarizes: X ready · Y flagged · Z skipped · total spent vs ceiling.
+
+---
+
+## 4. Archive state
+
+- New `videos.archived` flag + a one-click **Archive** action on ready/published
+  tiles, plus a bulk **"archive all published."**
+- Archived assets drop out of the active library sections into a collapsible
+  **Archive** filter/section (still reachable, never deleted).
+- This is the mechanism that shrinks the working library after Clean House.
+
+---
+
+## 5. Library-size guardrail
+
+- `projects.library_size_limit` (default **5**, editable anytime in Project
+  Settings).
+- **Counts toward the limit:** every asset in the working pipeline
+  (Ideas → Ready) **except** Published/Tracking, Killed, and Archived.
+- When the count reaches the limit, **autonomous seeding pauses** (operator,
+  full-auto calendar, idea generator stop creating *new* assets) and a banner
+  shows "Library N/N — clear or raise the limit." Manual creation is still
+  allowed, with a warning. Directly prevents the runaway-idea-generator situation.
+
+---
+
+## 6. UI (dark / on-brand with the redesign)
+
+- **Launcher + triage panel** (admin-only): Select all + per-tile checkboxes;
+  plan table with salvageability bars, per-asset actions + cost, total estimate,
+  and the ceiling input; Approve / Cancel.
+- **Live run view** on the Backlot board: stages lighting up, per-asset progress,
+  running spend vs ceiling, Pause/Cancel.
+- **Red-flag** blocker cards (reuse the B5 structured blocker component).
+- **Archive** action + Archive section/filter.
+- **Settings:** library-size limit control in Project Settings.
+
+---
+
+## 7. Testing
+
+- Pure logic (unit): salvageability scoring, per-asset + run cost estimate,
+  budget-ceiling stop, guardrail counting, verdict overrides.
+- A **mock-mode dry run** of the whole sweep (no spend) — a smoke-style gate.
+- Visual QA: triage/approval panel, live run, flagged cards, archive flow,
+  settings control.
+
+---
+
+## 8. Recommended build order
+
+1. **Archive state + library-size guardrail** — small, cheap, immediately useful
+   (stops further bloat during experimentation).
+2. **Clean House** — the triage + execution orchestrator, built on top and on the
+   existing QC / provider-fallback / decision-trail / structured-blocker systems.
+
+---
+
+## Completion log
+_(Sign-offs appended here as each piece merges to main, per the repo convention.)_
