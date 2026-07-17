@@ -16,7 +16,7 @@ import { createClient } from "@supabase/supabase-js";
 import { bundle } from "@remotion/bundler";
 import { ensureBrowser, renderMedia, renderStill, selectComposition } from "@remotion/renderer";
 import { isR2Path, r2Configured, r2Get, r2Put, r2SignedGetUrl, stripR2, toR2Path } from "@studio/storage";
-import { DEFAULT_SFX_LIBRARY, resolveHighlightTiming, type EditDocument } from "@studio/core";
+import { DEFAULT_SFX_LIBRARY, resolveHighlightTiming, validateStageArtifact, type EditDocument } from "@studio/core";
 import { resolveClipMedia } from "./clip-media";
 import {
   FPS,
@@ -804,6 +804,41 @@ async function renderOne(
     console.log(
       `✅ ${video.title}: rendered ${isShort ? "vertical short" : "long + short"} → FINAL_REVIEW`,
     );
+  }
+
+  // Canonical render_report artifact (Batch 2 / list2-#1): the schema-validated
+  // record of what this stage produced, upserted for the audit + smoke gate.
+  try {
+    const { data: rr } = await db
+      .from("assets")
+      .select("meta")
+      .eq("video_id", videoId)
+      .eq("kind", "render")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const report = {
+      durationSec: Number((rr?.meta as { durationSec?: number } | null)?.durationSec ?? 0),
+      variant: primaryRenderVariant,
+      beatCount: props.beats.length,
+      held: mediaQcHardFail,
+      renderedAt: new Date().toISOString(),
+    };
+    const v = validateStageArtifact("render_report", report);
+    await db.from("stage_artifacts").upsert(
+      {
+        project_id: built.project.id,
+        video_id: videoId,
+        kind: "render_report",
+        status: mediaQcHardFail ? "awaiting_human" : "completed",
+        data: report,
+        valid: v.ok,
+        errors: v.errors,
+      },
+      { onConflict: "video_id,kind" },
+    );
+  } catch (err) {
+    console.error(`render_report artifact skipped (non-fatal): ${String(err).slice(0, 120)}`);
   }
 
   // Tier-1 vision critique: only for stick shorts (programmatic, so issues map

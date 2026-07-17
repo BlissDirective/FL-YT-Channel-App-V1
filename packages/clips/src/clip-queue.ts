@@ -366,9 +366,44 @@ async function processJob(job: Job) {
       .eq("id", job.video_id);
     await db.from("clip_jobs").update({ status: "done", result_path: path, cost_usd: costUsd, error: null }).eq("id", job.id);
     console.log(`✅ ${job.id}: ${job.method} ${job.target_sec}s → $${costUsd.toFixed(2)}`);
+    await updateClipProgress(job.video_id);
     await maybeFinish(job.video_id);
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/** Persist the video's clip-stage progress (C10 / #4): "N of M clips" with the
+    checkpoint status, so a crashed render resumes at N and the Backlot board
+    reads real, durable progress. Best-effort. */
+async function updateClipProgress(videoId: string): Promise<void> {
+  try {
+    const { count: total } = await db
+      .from("clip_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("video_id", videoId);
+    const { count: done } = await db
+      .from("clip_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("video_id", videoId)
+      .eq("status", "done");
+    const t = total ?? 0;
+    const d = done ?? 0;
+    await db
+      .from("videos")
+      .update({
+        partial_progress: {
+          stage: "asset_manifest",
+          status: d >= t ? "completed" : "in_progress",
+          done: d,
+          total: t,
+          label: "clips",
+          updatedAt: new Date().toISOString(),
+        },
+      })
+      .eq("id", videoId);
+  } catch {
+    /* progress is best-effort */
   }
 }
 
