@@ -9,6 +9,8 @@ import { SettingsForm } from "./settings-form";
 import { TemplateEditor } from "./template-editor";
 import { PipelineModeCard } from "./pipeline-mode-card";
 import { ProviderScoreboard } from "@/components/dashboard/provider-scoreboard";
+import { TasteStyleCard } from "./taste-style-card";
+import type { TasteProfile } from "@studio/core";
 
 export default async function ProjectSettingsPage({
   params,
@@ -56,6 +58,12 @@ export default async function ProjectSettingsPage({
         version={template?.version ?? 0}
         defaultBody={DEFAULT_SCRIPT_TEMPLATE}
       />
+      <TasteStyleCard
+        projectId={id}
+        initial={(project.taste_profile as TasteProfile | null) ?? null}
+        initialPlaybook={(project.style_playbook as string | null) ?? null}
+      />
+
       <div>
         <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">
           How your studio picks video models

@@ -114,6 +114,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 	13.	Taste dials / taste_profile — design read, visual variance, motion intensity, information density, anti-patterns — carried from proposal through every stage. Remix: a taste_profile on the project that conditions the Visual Bible, compositor, and critics. Big consistency lever.
 
+> ✅ **SIGNED OFF — Batch 4: list2 #13/#14/#24, A6, C9, list1 #16.** Core `taste.ts` (`@studio/core`): a per-project `TasteProfile` (design read / visual variance / motion intensity / information density dials + editable anti-patterns + machine-checkable quality rules), reusable `STYLE_PLAYBOOKS` (Clean Explainer / Cinematic Documentary / Kinetic Short — palette + dials + rules), `checkQualityRules(rules, measured)` that enforces constraints as violations with 3-tier severity (C9/#24/#26), `applyPlaybook`, and `scoreDistinctness` (#14 — a pure "could this be any other product's video?" pre-gate). Persisted on `projects.taste_profile` + `style_playbook` (`0061`); a playbook merges into the stored effective profile every stage reads. UI: a **Taste & style** card on project Settings — playbook picker w/ palette swatches, taste dials, and the editable **anti-patterns panel** (A6). Verified: `tsc`, `eslint`, **879/879 vitest** (+8, action manifest updated), visual QA.
+
 	14.	Distinctness review: “Could this be any other product’s video?” Remix: a distinctness critic/gate that rejects generic output — a direct antidote to AI sameness.
 
 	15.	Disney’s 12 principles of animation as the motion rubric. Remix: bake the 12 principles into the MVDA’s motion/keyframe skill — smarter than preset picking.

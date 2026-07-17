@@ -81,6 +81,9 @@ export type Project = {
   visual_style: "footage" | "stick";
   /** Recurring stick-figure character identity (null → default cast). */
   stick_cast: StickCast | null;
+  /** Taste profile + chosen style playbook (Batch 4 — carried through stages). */
+  taste_profile?: unknown;
+  style_playbook?: string | null;
   /** Optimizer proposals auto-apply as a canary template version (Phase 4.3). */
   auto_apply_insights: boolean;
   /** Which auto-fix strategy runs for this channel (off until chosen). */

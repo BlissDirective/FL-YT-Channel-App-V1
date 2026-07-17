@@ -141,6 +141,9 @@
     "deriveShortsAction(projectId: string, parentVideoId: string, opts: { count: number; smart: boolean },)",
     "publishShortAction(projectId: string, shortVideoId: string,)"
   ],
+  "taste": [
+    "saveTasteProfile(projectId: string, profile: TasteProfile, playbookId: string | null,)"
+  ],
   "triage": [
     "batchApproveAction(projectId: string, videoIds: string[], minScore = 0,)",
     "batchPublishAction(projectId: string, videoIds: string[],)",

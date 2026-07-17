@@ -7,6 +7,7 @@ export * from "./provider-fallback";
 export * from "./stage-artifacts";
 export * from "./cost-reconcile";
 export * from "./capability-registry";
+export * from "./taste";
 export * from "./segment";
 export * from "./segment-ops";
 export * from "./grounding";
