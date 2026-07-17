@@ -150,3 +150,61 @@ export function cleanHouseBudgetStop(spentUsd: number, ceilingUsd: number, nextC
   if (ceilingUsd <= 0) return false; // 0 = no ceiling
   return spentUsd + nextCostUsd > ceilingUsd + 1e-9;
 }
+
+// ── Auto-advance guardrails (Clean-House-Build-Spec.md §3 follow-up) ─────────
+// A Clean House run advances hands-off across many cron ticks. These pure
+// helpers bound that autonomy: a hard stop on REAL ledger spend, a per-tick
+// concurrency cap on paid work, stall handling for in-flight assets, and
+// termination rails so a wedged run auto-pauses instead of looping forever.
+
+/** Max paid gate advances a single tick may trigger (concurrency throttle).
+    Keeps one sweep from firing a burst of expensive stage workers at once. */
+export const CLEAN_HOUSE_MAX_ADVANCES_PER_TICK = 3;
+
+/** Hard ceiling on ticks for one run before the rails auto-pause it. */
+export const CLEAN_HOUSE_MAX_TICKS = 60;
+
+/** Consecutive no-progress ticks tolerated before the rails auto-pause. */
+export const CLEAN_HOUSE_MAX_NO_PROGRESS_TICKS = 6;
+
+/** Minutes an asset may sit in a worker stage before a nudge, then a flag. */
+export const CLEAN_HOUSE_STALL_MINUTES = 30;
+/** How many nudges an in-flight asset gets before it's flagged as stalled. */
+export const CLEAN_HOUSE_MAX_NUDGES = 2;
+
+/**
+ * The AUTHORITATIVE budget stop: real reconciled spend from the cost ledger vs
+ * the run's ceiling. Unlike cleanHouseBudgetStop (which works off estimates
+ * before a step), this gates on money actually recorded — the hard stop that
+ * makes the ceiling a true ceiling even if estimates were low. Pure.
+ */
+export function cleanHouseLedgerStop(ledgerSpentUsd: number, ceilingUsd: number): boolean {
+  if (ceilingUsd <= 0) return false; // 0 = no ceiling
+  return ledgerSpentUsd >= ceilingUsd - 1e-9;
+}
+
+export type CleanHouseRailState = { tickCount: number; noProgressTicks: number };
+
+/** Termination rails: should the run auto-pause (and why)? Pure. */
+export function cleanHouseTerminationStop(s: CleanHouseRailState): { stop: boolean; reason?: string } {
+  if (s.tickCount >= CLEAN_HOUSE_MAX_TICKS) {
+    return { stop: true, reason: `reached the ${CLEAN_HOUSE_MAX_TICKS}-tick ceiling without finishing` };
+  }
+  if (s.noProgressTicks >= CLEAN_HOUSE_MAX_NO_PROGRESS_TICKS) {
+    return { stop: true, reason: `no progress for ${CLEAN_HOUSE_MAX_NO_PROGRESS_TICKS} consecutive ticks` };
+  }
+  return { stop: false };
+}
+
+export type CleanHouseStallVerdict = "wait" | "nudge" | "flag";
+
+/**
+ * What to do with an asset sitting in a worker stage. Under the stall window →
+ * wait. Past it, with nudges left → nudge (re-trigger the worker). Out of
+ * nudges → flag it as stalled (manual only — never auto-killed). Pure.
+ */
+export function cleanHouseStallAction(inflightMinutes: number, nudges: number): CleanHouseStallVerdict {
+  if (inflightMinutes < CLEAN_HOUSE_STALL_MINUTES) return "wait";
+  if (nudges >= CLEAN_HOUSE_MAX_NUDGES) return "flag";
+  return "nudge";
+}

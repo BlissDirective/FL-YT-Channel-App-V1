@@ -155,7 +155,13 @@ export default async function LibraryPage({
       </section>
 
       {isAdmin && cleanHouse && (
-        <CleanHousePanel projectId={project.id} active={cleanHouse} />
+        <CleanHousePanel
+          projectId={project.id}
+          active={cleanHouse}
+          candidates={videos
+            .filter((v) => !v.parent_video_id && v.status !== "KILLED" && !v.archived)
+            .map((v) => ({ id: v.id, title: v.title, status: v.status }))}
+        />
       )}
 
       <LibraryGuardrailBanner
