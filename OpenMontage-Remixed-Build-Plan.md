@@ -47,6 +47,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 	7.	Source-media inspection. Probe every generated asset (resolution, codec, duration, audio channels) before using it. Remix: an asset-spec validator in runAssetGeneration — reject a malformed Seedance clip before it reaches compile.
 
+> ✅ **SIGNED OFF — Task #7 complete.** Pure `validateMediaSpec(spec, expect)` in `@studio/core` rejects a clearly-broken generated clip — no video stream, zero-length, truncated to under half its target duration, or below the resolution floor — while never false-rejecting a healthy asset. Wired into the clip worker (`clip-queue.ts`): each generated clip is `ffprobe`-probed and validated BEFORE upload/compile; a malformed clip throws → the beat re-rolls instead of poisoning the cut. The probed spec is stored on `assets.meta.sourceSpec` (provenance for #9/C2). ffprobe-absent → validation skipped (no false reject). Verified: `tsc`, `eslint`, **848/848 vitest** (+9 new).
+
 	9.	Decision audit trail. Every creative/technical choice (provider, style, voice, music, fallbacks) logged with alternatives + confidence + reasoning. Remix: extend operator_decisions / cost ledger into a per-video decision log — improves explainability and feeds your operator-signal learning.
 
 > ✅ **SIGNED OFF — Tasks #9 + C2 complete (built together, branch `claude/openmontage-build-plan-be7rb9`).**

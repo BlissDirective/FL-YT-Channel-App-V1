@@ -13,7 +13,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { buildVisualPrompt } from "@studio/core";
+import { buildVisualPrompt, validateMediaSpec, type MediaSpec } from "@studio/core";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -171,6 +171,35 @@ type Job = {
   selection?: unknown;
 };
 
+/** Probe a local media file with ffprobe → a normalised MediaSpec (#7). Returns
+    null when ffprobe is unavailable or errors, so validation is simply skipped
+    (never a false reject). Synchronous — the worker processes one job at a time. */
+function ffprobeSpec(file: string): MediaSpec | null {
+  try {
+    const out = execFileSync(
+      "ffprobe",
+      ["-hide_banner", "-loglevel", "error", "-show_format", "-show_streams", "-print_format", "json", file],
+      { encoding: "utf8", timeout: 30_000 },
+    );
+    const doc = JSON.parse(out) as { format?: { duration?: string }; streams?: Record<string, unknown>[] };
+    const streams = Array.isArray(doc.streams) ? doc.streams : [];
+    const video = streams.find((s) => s.codec_type === "video");
+    const audio = streams.find((s) => s.codec_type === "audio");
+    const dur = Number(doc.format?.duration);
+    return {
+      hasVideo: Boolean(video),
+      hasAudio: Boolean(audio),
+      width: video ? Number(video.width) || null : null,
+      height: video ? Number(video.height) || null : null,
+      durationSec: Number.isFinite(dur) ? dur : null,
+      videoCodec: video ? ((video.codec_name as string) ?? null) : null,
+      audioChannels: audio ? Number(audio.channels) || null : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /** Veo-3.1: base 8s i2v, then chained extends (+7s) until >= target (<=30s). */
 async function makeVeoExtend(prompt: string, imageUrl: string | null, target: number, dir: string): Promise<string> {
   let url = await falOnce(ENDPOINT_I2V["veo-3-1"], {
@@ -286,6 +315,21 @@ async function processJob(job: Job) {
         ? await makeVeoExtend(prompt, imageUrl, job.target_sec, dir)
         : await makeStitch(job, prompt, job.model, imageUrl, job.target_sec, job.method === "stitch-seamless", dir);
 
+    // Source-media inspection (#7): probe the generated clip and REJECT a
+    // malformed/truncated render (no video stream, zero-length, cut to under
+    // half its target) BEFORE it reaches compile — throwing re-queues the beat
+    // to re-roll, rather than compiling a broken cut. Skips when ffprobe is
+    // absent (spec == null) so it never false-rejects.
+    const spec = ffprobeSpec(file);
+    if (spec) {
+      const verdict = validateMediaSpec(spec, { kind: "clip", targetSec: job.target_sec });
+      if (!verdict.ok) {
+        throw new Error(
+          `malformed clip (${verdict.issues.map((i) => i.code).join(", ")}): ${verdict.issues[0]?.note ?? ""}`,
+        );
+      }
+    }
+
     const path = `videos/${job.video_id}/beat-${job.beat_idx}-long.mp4`;
     await db.storage.from(BUCKET).upload(path, readFileSync(file), { contentType: "video/mp4", upsert: true });
 
@@ -297,7 +341,7 @@ async function processJob(job: Job) {
       provider: VIDEO_PROVIDER,
       storage_path: path,
       beat_index: job.beat_idx,
-      meta: { isVideo: true, longClip: true, heroHold: job.hero_hold, method: job.method, model: job.model, durationSec: job.target_sec, ...(job.selection ? { selection: job.selection } : {}) },
+      meta: { isVideo: true, longClip: true, heroHold: job.hero_hold, method: job.method, model: job.model, durationSec: job.target_sec, ...(spec ? { sourceSpec: spec } : {}), ...(job.selection ? { selection: job.selection } : {}) },
       cost_usd: costUsd,
     });
     await db.from("cost_ledger").insert({
