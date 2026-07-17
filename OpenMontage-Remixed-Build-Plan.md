@@ -69,6 +69,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 	11.	Provider fallback chains. Scored primary → automatic fallback on failure, logged. Remix: thread a fallback list through your mock-first adapters (isXLive) for reliability.
 
+> ✅ **SIGNED OFF — Task #11 + B1 complete (Batch 1).** The #1 scored ranking IS the fallback chain: pure `buildFallbackChain(selection)` → `[winner, ...alternatives]`, and `fallbackForAttempt(chain, attempt)` walks it (`@studio/core/provider-fallback.ts`, 8 tests). Wired into the clip worker: a failed clip now **re-queues** (previously it just errored) and on each retry walks to the **next-best scored model** instead of hammering the one that failed, logging the substitution as a `kind:"fallback"` decision (#9 trail). Past the chain it flags `exhausted` with a terminal cross-medium edge to a still (B1's tool-graph fallback). Verified: `tsc`, `eslint`, **856/856 vitest** (+8).
+
 	14.	Free-corpus documentary retrieval (CLIP-indexed). Build b-roll from Archive.org/Wikimedia/Pexels via CLIP retrieval, no paid video API. Remix: a new “free footage” medium in your router + a boost to V4 grounding (retrieve real motion, not just stills).
 
 15.	Music generation + bed. Suno / ElevenLabs Music for a soundtrack with ducking. Remix: turn on your D8 music (currently schema-present, gated off) via an ElevenLabs-Music adapter + your existing DuckSpec.

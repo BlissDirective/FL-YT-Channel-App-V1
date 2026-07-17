@@ -3,6 +3,7 @@ export * from "./director-length";
 export * from "./shot-router";
 export * from "./provider-score";
 export * from "./media-spec";
+export * from "./provider-fallback";
 export * from "./segment";
 export * from "./segment-ops";
 export * from "./grounding";

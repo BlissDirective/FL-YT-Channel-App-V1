@@ -13,7 +13,14 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { buildVisualPrompt, validateMediaSpec, type MediaSpec } from "@studio/core";
+import {
+  buildFallbackChain,
+  buildVisualPrompt,
+  fallbackForAttempt,
+  validateMediaSpec,
+  type FallbackSelection,
+  type MediaSpec,
+} from "@studio/core";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -460,14 +467,62 @@ async function main() {
       .eq("status", "queued")
       .select("id");
     if (!claimed || claimed.length === 0) continue;
+
+    // Provider fallback chain (#11 / B1): on a RETRY (attempts ≥ 2), walk the
+    // scored selection chain to the next-best model instead of hammering the
+    // one that just failed. The substitution is logged as a fallback decision.
+    let runJob = { ...(job as Job), attempts };
+    if (attempts >= 2) {
+      const chain = buildFallbackChain(job.selection as FallbackSelection | null);
+      const step = fallbackForAttempt(chain, attempts);
+      if (step && step.model && step.model !== job.model) {
+        await db.from("clip_jobs").update({ model: step.model }).eq("id", job.id);
+        await logFallbackDecision(job, job.model, step.model, attempts);
+        console.log(`↪️  ${job.id}: fallback ${job.model} → ${step.model} (attempt ${attempts})`);
+        runJob = { ...runJob, model: step.model };
+      }
+    }
+
     try {
-      await processJob({ ...(job as Job), attempts });
+      await processJob(runJob);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      const capped = attempts >= MAX_ATTEMPTS ? ` (gave up after ${MAX_ATTEMPTS} attempts)` : "";
-      console.error(`❌ ${job.id}: ${msg}${capped}`);
-      await db.from("clip_jobs").update({ status: "error", error: `${msg}${capped}` }).eq("id", job.id);
+      if (attempts < MAX_ATTEMPTS) {
+        // Re-queue so the next pass walks to the next model in the chain.
+        console.error(`❌ ${job.id}: ${msg} — re-queuing for fallback (attempt ${attempts}/${MAX_ATTEMPTS})`);
+        await db.from("clip_jobs").update({ status: "queued", error: msg }).eq("id", job.id);
+      } else {
+        console.error(`❌ ${job.id}: ${msg} (gave up after ${MAX_ATTEMPTS} attempts)`);
+        await db
+          .from("clip_jobs")
+          .update({ status: "error", error: `${msg} (gave up after ${MAX_ATTEMPTS} attempts)` })
+          .eq("id", job.id);
+      }
     }
+  }
+}
+
+/** Log a model substitution to the decision audit trail (#9) from the worker. */
+async function logFallbackDecision(
+  job: Job,
+  fromModel: string,
+  toModel: string,
+  attempt: number,
+): Promise<void> {
+  try {
+    await db.from("decisions").insert({
+      project_id: job.project_id,
+      video_id: job.video_id,
+      beat_idx: job.beat_idx,
+      kind: "fallback",
+      choice: toModel,
+      alternatives: [{ id: fromModel, label: fromModel }],
+      confidence: null,
+      reasoning: `Primary model ${fromModel} failed — fell back to ${toModel} (attempt ${attempt}).`,
+      params: { fromModel, toModel, attempt },
+    });
+  } catch {
+    /* decision log is best-effort */
   }
 }
 
