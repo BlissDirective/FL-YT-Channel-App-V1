@@ -166,6 +166,9 @@ type Job = {
   attempts: number;
   fal_request_id: string | null;
   fal_response_url: string | null;
+  /** Scored provider-selection log (#1) — carried onto the landed asset for
+      regenerable-asset provenance. */
+  selection?: unknown;
 };
 
 /** Veo-3.1: base 8s i2v, then chained extends (+7s) until >= target (<=30s). */
@@ -294,14 +297,14 @@ async function processJob(job: Job) {
       provider: VIDEO_PROVIDER,
       storage_path: path,
       beat_index: job.beat_idx,
-      meta: { isVideo: true, longClip: true, heroHold: job.hero_hold, method: job.method, model: job.model, durationSec: job.target_sec },
+      meta: { isVideo: true, longClip: true, heroHold: job.hero_hold, method: job.method, model: job.model, durationSec: job.target_sec, ...(job.selection ? { selection: job.selection } : {}) },
       cost_usd: costUsd,
     });
     await db.from("cost_ledger").insert({
       project_id: job.project_id,
       video_id: job.video_id,
       provider: VIDEO_PROVIDER,
-      description: `Long clip (${job.method}) — section ${job.beat_idx + 1}`,
+      description: `Long clip (${job.method}, ${job.model}) — section ${job.beat_idx + 1}`,
       usd: costUsd,
     });
     // Keep the video's running total in sync so the dashboard reflects true

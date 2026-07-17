@@ -59,6 +59,11 @@ import {
   VIDEO_PROVIDER,
 } from "@/lib/adapters/video-models";
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
+import {
+  selectBeatModel,
+  videoModelHealth,
+  type ModelHealth,
+} from "@/lib/adapters/provider-selector";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { directShots, assessVisualPrompt, assessPromptRelevance, refineOneShot, isArtDirectorLive } from "@/lib/adapters/art-director";
 import { inspectStill, perceptualHash, hammingDistance } from "@/lib/adapters/image-check";
@@ -2519,18 +2524,42 @@ export async function fullAutoGenerate(
       const beat = beats.find((b) => b.idx === c.idx);
       if (beat) await vetSeedStillForBeat(db, video, project, beat);
     }
-    await db.from("clip_jobs").insert(
-      clips.map((c) => ({
+    // Scored provider selection (#1): the tier picked a default model per beat;
+    // now score the tier's candidate pool per beat (task-fit / quality / control
+    // / reliability / cost / latency / continuity) and enqueue the WINNER, with
+    // the full rationale + alternatives logged to clip_jobs.selection. Heroes
+    // come first in `clips`, so the first pick sets the family the rest prefer
+    // (continuity), and a per-beat budget keeps the scored plan within the cap.
+    const health: ModelHealth = await videoModelHealth(db);
+    let remainingUsd = maxUsd;
+    let preferredFamily: string | undefined;
+    const rows = clips.map((c) => {
+      const choice = selectBeatModel({
+        tier: opts.tier,
+        shot: c.shotType === "hero" ? "hero" : "broll",
+        targetSec: c.job.targetSec,
+        budgetRemainingUsd: remainingUsd,
+        fallbackModel: c.job.model,
+        preferredFamily,
+        needsAudio: c.shotType === "hero" && opts.tier !== "economy",
+        custom,
+        health,
+      });
+      remainingUsd = Math.max(0, remainingUsd - choice.selection.estCostUsd);
+      preferredFamily ??= choice.family;
+      return {
         video_id: opts.videoId,
         project_id: video.project_id,
         beat_idx: c.idx,
         method: "stitch" as const,
-        model: c.job.model,
-        target_sec: c.job.targetSec,
+        model: choice.modelId,
+        target_sec: choice.targetSec,
         hero_hold: c.job.heroHold,
         status: "queued" as const,
-      })),
-    );
+        selection: choice.selection,
+      };
+    });
+    await db.from("clip_jobs").insert(rows);
   }
   return { ok: true, enqueued: clips.length, estCostUsd };
 }

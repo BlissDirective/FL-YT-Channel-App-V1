@@ -8,6 +8,7 @@ import { DEFAULT_SCRIPT_TEMPLATE } from "@/lib/pipeline/templates";
 import { SettingsForm } from "./settings-form";
 import { TemplateEditor } from "./template-editor";
 import { PipelineModeCard } from "./pipeline-mode-card";
+import { ProviderScoreboard } from "@/components/dashboard/provider-scoreboard";
 
 export default async function ProjectSettingsPage({
   params,
@@ -55,6 +56,17 @@ export default async function ProjectSettingsPage({
         version={template?.version ?? 0}
         defaultBody={DEFAULT_SCRIPT_TEMPLATE}
       />
+      <div>
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">
+          How your studio picks video models
+        </h2>
+        <p className="mb-3 text-xs text-muted">
+          Every AI-video beat is scored across seven dimensions and the winner is
+          logged with its alternatives. Live provider health is folded in at
+          generation time.
+        </p>
+        <ProviderScoreboard defaultTier="premium" />
+      </div>
     </div>
   );
 }

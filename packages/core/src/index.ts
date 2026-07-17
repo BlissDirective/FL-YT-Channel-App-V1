@@ -1,6 +1,7 @@
 export * from "./state-machine";
 export * from "./director-length";
 export * from "./shot-router";
+export * from "./provider-score";
 export * from "./segment";
 export * from "./segment-ops";
 export * from "./grounding";
