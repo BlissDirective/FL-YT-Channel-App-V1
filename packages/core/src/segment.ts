@@ -87,6 +87,7 @@ export function mediumToSegmentMedium(m: Medium): SegmentMedium {
     case "stick":
       return "stick";
     case "stock":
+    case "free_footage":
       return "stock";
     case "still":
       return "still";

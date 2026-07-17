@@ -24,6 +24,7 @@ export type Medium =
   | "chart" // verified data-viz (≈ free)
   | "stick" // programmatic stick-figure scene (≈ free)
   | "stock" // licensed stock (≈ free)
+  | "free_footage" // CLIP-retrieved Archive.org/Wikimedia/Pexels motion (≈ free, #14)
   | "still" // FLUX text→image + Ken Burns
   | "i2v" // image→video (Seedance/Kling/Veo) from a still seed
   | "t2v"; // text→video direct
@@ -35,6 +36,7 @@ export const MEDIUM_COST: Record<Medium, number> = {
   chart: 0,
   stick: 0,
   stock: 0,
+  free_footage: 0,
   still: 0.025,
   t2v: 0.15,
   i2v: 0.2,
@@ -59,6 +61,9 @@ export type RouteContext = {
   stickAllowed?: boolean;
   /** Verified data-viz available for this channel/niche. */
   dataVizAllowed?: boolean;
+  /** Free CLIP-retrieved documentary footage available (#14). When set, real
+      motion for establish/motion beats comes free before any paid i2v. */
+  freeFootageAllowed?: boolean;
 };
 
 export type Shot = {
@@ -82,6 +87,7 @@ export function mediumToShotType(medium: Medium): "hero" | "broll" | "stock" {
     case "still":
       return "broll";
     case "stock":
+    case "free_footage":
     case "chart":
     case "remotion":
     case "stick":
@@ -112,7 +118,14 @@ export function routeMedium(shot: ShotInput, ctx: RouteContext): Shot {
     return ctx.stickAllowed ? mk("stick", "concept → programmatic scene (free)") : mk("remotion", "concept → motion graphic (free)");
   }
   if (shot.intent === "establish" && !shot.wantsMotion) {
+    if (ctx.freeFootageAllowed) return mk("free_footage", "establish → free documentary footage (CLIP)");
     return affordable("still") ? mk("still", "establish → still + Ken Burns") : mk("stock", "establish → stock (budget)");
+  }
+
+  // Real motion for a non-hero motion beat comes FREE from the corpus first,
+  // before spending on i2v (#14) — a big cost + grounding win.
+  if (ctx.freeFootageAllowed && (shot.intent === "motion" || shot.wantsMotion) && !shot.hero && shot.intent !== "hero") {
+    return mk("free_footage", "motion → free documentary footage (CLIP)");
   }
 
   // Hero / cinematic: premium i2v when affordable, else step down the ladder.

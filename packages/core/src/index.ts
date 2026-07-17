@@ -12,6 +12,7 @@ export * from "./review-protocol";
 export * from "./audio-plan";
 export * from "./platform-profiles";
 export * from "./research-brief";
+export * from "./free-footage";
 export * from "./segment";
 export * from "./segment-ops";
 export * from "./grounding";
