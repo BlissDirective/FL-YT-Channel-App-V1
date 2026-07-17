@@ -66,6 +66,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 	10.	Localization & dub pipeline. Subtitle/dub/translate an existing video into other languages. Remix: a new repurpose path over your EDD (swap the VO track + captions per language) — a real monetization multiplier on content you already made.
 
+> ✅ **SIGNED OFF — Batch 12 (list1 #10).** Core `localization.ts` (`@studio/core`): `LANGUAGES` (incl. RTL flag), `planDub(input)` — a repurpose over a finished EDD that swaps VO and/or caption tracks per language while the visuals/timeline/cut stay identical (`subtitle` / `dub` / `both`), `estimateDubCostUsd`, and `localizeCaptions` (applies translations, keeps timings). Mock-first `translate.ts` adapter (isTranslateLive, batched, Claude-backed when a key is present). Verified: `tsc`, `eslint`, **932/932 vitest** (+7).
+
 
 	11.	Provider fallback chains. Scored primary → automatic fallback on failure, logged. Remix: thread a fallback list through your mock-first adapters (isXLive) for reliability.
 
