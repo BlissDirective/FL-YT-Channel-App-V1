@@ -83,6 +83,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 	17.	Scene detection on generated clips. Detect cut points inside footage. Remix: feed into the MVDA’s retime/trim decisions for tighter cuts.
 
+> ✅ **SIGNED OFF — Batch 10 (list1 #17).** Core `scene-detection.ts` (`@studio/core`): `scenesFromCuts(cuts, duration)` turns ffmpeg scene-change scores into contiguous sub-scenes, `sceneTrimSuggestion(scenes, targetSec)` picks a trim window inside a single scene so a cut never crosses an internal jump (falling back to the longest scene, flagged), and `trimCrossesCut` is a retime/QC signal — feeding the MVDA's trim decisions for tighter cuts. Verified: `tsc`, `eslint`, **918/918 vitest** (+7).
+
 	20.	Platform output profiles. 16:9 / 9:16 / Reels / TikTok / LinkedIn / 21:9 render presets. Remix: your model already has 9:16/short — formalize platform profiles (ties into your TikTok/IG expansion).
 
 > ✅ **SIGNED OFF — Batch 7: list1 #20/#29.** Core `platform-profiles.ts` (`@studio/core`): named `PLATFORM_PROFILES` (YouTube 16:9 + Short 9:16, TikTok, Reels, IG Feed 4:5, LinkedIn 1:1, Cinema 21:9) each with dimensions, platform duration ceiling, and caption safe-area; `defaultProfilesFor(kind)`, `fitsProfileDuration`, and `multiAspectTargets(ids)` which dedupes a profile set to the distinct aspects one assembly plan compiles to (#29 — TikTok+Reels+Short = one 9:16 render). UI: a **Platform profiles** reference card on project Settings (grouped by aspect with proportional glyphs, dims, limits). Verified: `tsc`, `eslint`, **901/901 vitest** (+6), `next build`.
