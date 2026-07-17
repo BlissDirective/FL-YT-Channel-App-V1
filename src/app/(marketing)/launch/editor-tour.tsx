@@ -45,7 +45,7 @@ export function EditorTour() {
             {/* preview */}
             <div className="relative flex-1 rounded-md bg-gradient-to-br from-white/[0.06] to-transparent ring-1 ring-white/5">
               <div className="absolute inset-0 grid place-items-center">
-                <span className="grid size-9 place-items-center rounded-full bg-[var(--m-amber)]/90 text-[#17150f]">
+                <span className="grid size-9 place-items-center rounded-full bg-[var(--m-amber)]/90 text-[#04140e]">
                   <Play className="size-4" fill="currentColor" />
                 </span>
               </div>
@@ -57,7 +57,7 @@ export function EditorTour() {
                     className="rounded px-1.5 py-0.5 text-[9px] font-semibold"
                     style={
                       i === 3
-                        ? { background: "var(--m-amber)", color: "#17150f" }
+                        ? { background: "var(--m-amber)", color: "#04140e" }
                         : { background: "rgba(255,255,255,0.08)", color: "var(--m-muted)" }
                     }
                   >
@@ -84,7 +84,7 @@ export function EditorTour() {
               <div
                 key={i}
                 className="rounded"
-                style={{ width: `${w}%`, background: i === 3 ? "rgba(245,184,41,0.3)" : "rgba(125,211,252,0.14)" }}
+                style={{ width: `${w}%`, background: i === 3 ? "rgba(16, 212, 142,0.3)" : "rgba(125,211,252,0.14)" }}
               />
             ))}
           </div>
@@ -99,7 +99,7 @@ export function EditorTour() {
               aria-label={h.label}
             >
               <span className="absolute inline-flex size-5 rounded-full bg-[var(--m-amber)]/50 m-ping" />
-              <span className="relative grid size-4 place-items-center rounded-full bg-[var(--m-amber)] text-[9px] font-bold text-[#17150f]">
+              <span className="relative grid size-4 place-items-center rounded-full bg-[var(--m-amber)] text-[9px] font-bold text-[#04140e]">
                 {h.n}
               </span>
             </button>

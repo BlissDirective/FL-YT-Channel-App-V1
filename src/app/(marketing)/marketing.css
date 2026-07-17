@@ -6,13 +6,18 @@
  */
 
 .marketing {
-  --m-bg: #0b0a08;
-  --m-bg-2: #17150f;
-  --m-ink: #f7f4ee;
-  --m-muted: #a49e8f;
-  --m-line: rgba(245, 184, 41, 0.14);
-  --m-amber: #f5b829; /* agent / CTA — reserved */
-  --m-sky: #7dd3fc; /* human / "you" */
+  /* Matches the app colourway v2 — navy neutral, emerald action, deep purple
+     support. `--m-amber` keeps its name (used across the hero markup) but now
+     carries the emerald accent. */
+  --m-bg: #0a0d16;
+  --m-bg-2: #151b29;
+  --m-ink: #f5f7fc;
+  --m-muted: #9da7bd;
+  --m-line: rgba(180, 196, 224, 0.14);
+  --m-amber: #10d48e; /* action / CTA — shining emerald */
+  --m-on-accent: #04140e; /* dark text on emerald */
+  --m-violet: #7c5cff; /* deep purple — secondary structure */
+  --m-sky: #38bdf8; /* human / "you" / info */
   --m-card: rgba(255, 255, 255, 0.03);
 
   background-color: var(--m-bg);
@@ -22,7 +27,7 @@
 }
 
 .marketing ::selection {
-  background: rgba(245, 184, 41, 0.3);
+  background: rgba(16, 212, 142, 0.3);
   color: #fff;
 }
 
@@ -59,7 +64,7 @@
 
 /* ── Animated gradient text ─────────────────────────────────────────────── */
 .m-gradient-text {
-  background: linear-gradient(100deg, var(--m-amber), #ffd97a, var(--m-sky), var(--m-amber));
+  background: linear-gradient(100deg, var(--m-amber), #7cf5c8, var(--m-violet), var(--m-amber));
   background-size: 300% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -73,7 +78,7 @@
 
 /* ── Shiny sweep (CTA text) ─────────────────────────────────────────────── */
 .m-shiny {
-  background: linear-gradient(110deg, #17150f 40%, #4a4433 50%, #17150f 60%);
+  background: linear-gradient(110deg, #04140e 40%, #2f7d63 50%, #04140e 60%);
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -102,15 +107,16 @@
   opacity: 0.22;
 }
 .m-aurora::before {
-  background: radial-gradient(circle, var(--m-amber), transparent 60%);
+  background: radial-gradient(circle, var(--m-violet), transparent 60%);
   top: -20%;
   left: -10%;
   animation: m-drift-a 18s ease-in-out infinite alternate;
 }
 .m-aurora::after {
-  background: radial-gradient(circle, var(--m-sky), transparent 60%);
+  background: radial-gradient(circle, var(--m-amber), transparent 60%);
   top: -10%;
   right: -10%;
+  opacity: 0.16;
   animation: m-drift-b 22s ease-in-out infinite alternate;
 }
 @keyframes m-drift-a {
@@ -136,7 +142,7 @@
   transition: opacity 0.3s;
   background: radial-gradient(
     240px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(245, 184, 41, 0.14),
+    rgba(16, 212, 142, 0.14),
     transparent 70%
   );
 }
@@ -156,7 +162,7 @@
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(120deg, var(--m-amber), transparent 40%, var(--m-sky), transparent 80%, var(--m-amber));
+  background: linear-gradient(120deg, var(--m-amber), transparent 40%, var(--m-violet), transparent 80%, var(--m-amber));
   background-size: 300% 100%;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;

@@ -22,8 +22,8 @@ export default function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "center",
           padding: "80px",
-          backgroundColor: "#0b0a08",
-          color: "#f7f4ee",
+          backgroundColor: "#0a0d16",
+          color: "#f5f7fc",
           position: "relative",
         }}
       >
@@ -36,7 +36,7 @@ export default function OpengraphImage() {
             width: 620,
             height: 620,
             borderRadius: 9999,
-            backgroundImage: "radial-gradient(circle, rgba(245,184,41,0.30), rgba(245,184,41,0) 60%)",
+            backgroundImage: "radial-gradient(circle, rgba(16, 212, 142,0.30), rgba(16, 212, 142,0) 60%)",
             display: "flex",
           }}
         />
@@ -55,8 +55,8 @@ export default function OpengraphImage() {
 
         {/* eyebrow */}
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
-          <div style={{ width: 12, height: 12, borderRadius: 9999, backgroundColor: "#f5b829", display: "flex" }} />
-          <div style={{ fontSize: 22, letterSpacing: 6, color: "#a49e8f" }}>
+          <div style={{ width: 12, height: 12, borderRadius: 9999, backgroundColor: "#10d48e", display: "flex" }} />
+          <div style={{ fontSize: 22, letterSpacing: 6, color: "#9da7bd" }}>
             FACELESS STUDIO — PRE-LAUNCH
           </div>
         </div>
@@ -64,11 +64,11 @@ export default function OpengraphImage() {
         {/* headline */}
         <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.02 }}>
           <div style={{ fontSize: 96, fontWeight: 700 }}>Full automation.</div>
-          <div style={{ fontSize: 96, fontWeight: 700, color: "#f5b829" }}>Zero blind trust.</div>
+          <div style={{ fontSize: 96, fontWeight: 700, color: "#10d48e" }}>Zero blind trust.</div>
         </div>
 
         {/* sub */}
-        <div style={{ marginTop: 34, fontSize: 30, color: "#a49e8f", maxWidth: 940 }}>
+        <div style={{ marginTop: 34, fontSize: 30, color: "#9da7bd", maxWidth: 940 }}>
           Script, voice, visuals, effects, and the final cut — one brief, one crew,
           your call on every gate.
         </div>

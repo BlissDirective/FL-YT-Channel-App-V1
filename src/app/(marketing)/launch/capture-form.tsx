@@ -105,7 +105,7 @@ export function CaptureForm({ source, size = "md" }: { source: string; size?: "m
         <button
           type="submit"
           disabled={pending}
-          className={`rounded-full bg-[var(--m-amber)] px-6 font-semibold text-[#17150f] shadow-[0_0_30px_-8px_var(--m-amber)] transition-transform hover:scale-[1.02] disabled:opacity-60 ${
+          className={`rounded-full bg-[var(--m-amber)] px-6 font-semibold text-[#04140e] shadow-[0_0_30px_-8px_var(--m-amber)] transition-transform hover:scale-[1.02] disabled:opacity-60 ${
             size === "lg" ? "py-3.5 text-base" : "py-3 text-sm"
           }`}
         >

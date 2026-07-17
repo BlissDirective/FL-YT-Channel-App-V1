@@ -4,28 +4,36 @@
  * src/app/globals.css must stay in sync with these values.
  */
 export const tokens = {
-  bgCanvas: "#08070D",
-  bgSurface: "#100E18",
-  bgCard: "#17151F",
-  bgCardWarm: "#201D2B",
-  raised: "#262230",
-  accent: "#F5B829",
-  accentSoft: "rgba(245, 184, 41, 0.14)",
-  onAccent: "#17150F",
-  sky: "#7DD3FC",
-  coral: "#F0876C",
-  lavender: "#A78BFA",
-  success: "#57C98A",
-  ink: "#F4F1EA",
-  muted: "#9C96A8",
-  line: "rgba(244, 241, 234, 0.09)",
+  // 60% neutral — navy → slate-grey surfaces.
+  bgCanvas: "#0A0D16",
+  bgSurface: "#0F1420",
+  bgCard: "#151B29",
+  bgCardWarm: "#1C2333",
+  raised: "#262E40",
+  // 10% action — shining emerald.
+  accent: "#10D48E",
+  accentSoft: "rgba(16, 212, 142, 0.14)",
+  onAccent: "#04140E",
+  // 30% structure — deep purple + supporting hues.
+  violet: "#7C5CFF",
+  violetSoft: "rgba(124, 92, 255, 0.16)",
+  sky: "#38BDF8",
+  coral: "#FF6B6B",
+  lavender: "#9B7CFF",
+  success: "#10D48E",
+  warn: "#F5B829",
+  ink: "#F5F7FC",
+  muted: "#9DA7BD",
+  line: "rgba(180, 196, 224, 0.10)",
+  edge: "rgba(165, 185, 220, 0.28)",
 } as const;
 
-/** Categorical series palette — bright hues that read on the dark surfaces. */
+/** Categorical series palette — distinct, bright hues that read on the dark
+    navy surfaces (emerald action, deep purple, cyan, rose, amber). */
 export const chartPalette = [
   tokens.accent,
+  tokens.violet,
   tokens.sky,
-  tokens.lavender,
   tokens.coral,
-  tokens.success,
+  tokens.warn,
 ] as const;

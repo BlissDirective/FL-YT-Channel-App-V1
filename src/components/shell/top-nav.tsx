@@ -33,10 +33,10 @@ export function TopNav() {
       <div className="flex items-center gap-2">
         <BackButton />
         <Link href="/" className="group flex items-center gap-3">
-          <span className="relative grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-accent to-[#c98a00] text-on-accent shadow-[0_0_18px_-4px_rgb(245_184_41/0.7)] transition-transform group-hover:scale-105">
+          <span className="relative grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-accent to-[#08b478] text-on-accent shadow-[0_0_18px_-4px_rgb(16_212_142/0.7)] transition-transform group-hover:scale-105">
             <Sparkles className="size-5" fill="currentColor" />
           </span>
-          <span className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">
+          <span className="shiny-text font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">
             Faceless Studio
           </span>
         </Link>

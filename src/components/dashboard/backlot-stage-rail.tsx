@@ -119,7 +119,7 @@ export function BacklotStageRail({
                   />
                   {nextLive && (
                     <span
-                      className="flow-spark absolute left-0 size-1.5 rounded-full bg-accent shadow-[0_0_6px_1px_rgb(245_184_41/0.8)]"
+                      className="flow-spark absolute left-0 size-1.5 rounded-full bg-accent shadow-[0_0_6px_1px_rgb(16_212_142/0.8)]"
                       style={{ ["--spark-dist" as string]: "24px" }}
                     />
                   )}

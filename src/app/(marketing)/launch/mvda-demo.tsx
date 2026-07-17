@@ -135,9 +135,9 @@ export function MvdaDemo() {
                     className="m-clip relative grid place-items-center overflow-hidden rounded text-[10px] font-medium"
                     style={{
                       width: `${w}%`,
-                      backgroundColor: touched ? "rgba(245,184,41,0.25)" : "rgba(125,211,252,0.14)",
+                      backgroundColor: touched ? "rgba(16, 212, 142,0.25)" : "rgba(125,211,252,0.14)",
                       color: touched ? "var(--m-amber)" : "var(--m-muted)",
-                      boxShadow: touched ? "inset 0 0 0 1px rgba(245,184,41,0.5)" : "inset 0 0 0 1px rgba(255,255,255,0.06)",
+                      boxShadow: touched ? "inset 0 0 0 1px rgba(16, 212, 142,0.5)" : "inset 0 0 0 1px rgba(255,255,255,0.06)",
                     }}
                   >
                     {c.label}
@@ -164,7 +164,7 @@ export function MvdaDemo() {
                     key={t}
                     className="m-token rounded px-1.5 py-0.5 text-[11px] font-medium"
                     style={{
-                      color: hot ? "#17150f" : "var(--m-muted)",
+                      color: hot ? "#04140e" : "var(--m-muted)",
                       backgroundColor: hot ? "var(--m-amber)" : "rgba(255,255,255,0.05)",
                       transform: hot ? "scale(1.08)" : "none",
                     }}

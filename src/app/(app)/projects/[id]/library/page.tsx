@@ -145,7 +145,7 @@ export default async function LibraryPage({
       )}
 
       {/* ── Backlot live production board (#8) ─────────────────────────── */}
-      <section className="relative overflow-hidden rounded-panel border border-line bg-gradient-to-br from-card/80 via-surface/60 to-card/80 p-4 shadow-float sm:p-5">
+      <section className="glass-shine relative overflow-hidden rounded-panel border border-line bg-gradient-to-br from-card/80 via-surface/60 to-card/80 p-4 shadow-float sm:p-5">
         <span className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-accent/10 blur-3xl" aria-hidden />
         <span className="pointer-events-none absolute -bottom-20 -left-10 size-48 rounded-full bg-sky/10 blur-3xl" aria-hidden />
         <div className="relative space-y-4">
@@ -179,7 +179,7 @@ export default async function LibraryPage({
       {!empty && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted" aria-hidden>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block size-2 animate-pulse rounded-full bg-accent shadow-[0_0_6px_1px_rgb(245_184_41/0.7)]" /> working now
+            <span className="inline-block size-2 animate-pulse rounded-full bg-accent shadow-[0_0_6px_1px_rgb(16_212_142/0.7)]" /> working now
           </span>
           <span className="flex items-center gap-1.5">
             <span className="inline-block size-2 rounded-full bg-accent" /> your turn

@@ -11,6 +11,7 @@ import {
   tickCleanHouse,
 } from "@/lib/actions/cleanhouse";
 import { cn } from "@/lib/cn";
+import { StarBorder } from "@/components/ui/star-border";
 
 type Plan = { advance: number; flag: number; skip: number; estCostUsd: number };
 type Candidate = { id: string; title: string; status: string };
@@ -81,7 +82,8 @@ export function CleanHousePanel({
   const awaitingPlan = plan ?? (run?.status === "awaiting_approval" ? { runId: run.id, plan: { advance: c.advance, flag: c.flag, skip: c.skip, estCostUsd: run.est_cost_usd } } : null);
 
   return (
-    <div className="space-y-3 rounded-card border border-accent/30 bg-gradient-to-br from-accent/[0.06] to-card p-4 shadow-card">
+    <StarBorder color="var(--color-accent)" speed="7s" className="block w-full">
+      <div className="glass glass-shine space-y-3 rounded-card border border-accent/25 bg-gradient-to-br from-accent/[0.05] to-card/60 p-4 shadow-card">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="grid size-8 place-items-center rounded-xl bg-accent text-on-accent">
@@ -245,7 +247,8 @@ export function CleanHousePanel({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </StarBorder>
   );
 }
 
