@@ -9,6 +9,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit && pnpm -r typecheck",
     "test": "vitest run",
+    "smoke": "vitest run tests/framework-smoke.test.ts",
     "test:e2e": "playwright test",
     "lint": "eslint src e2e tests"
   },

@@ -18,6 +18,7 @@ export * from "./motion-craft";
 export * from "./localization";
 export * from "./decision-contract";
 export * from "./onboarding";
+export * from "./framework-smoke";
 export * from "./segment";
 export * from "./segment-ops";
 export * from "./grounding";

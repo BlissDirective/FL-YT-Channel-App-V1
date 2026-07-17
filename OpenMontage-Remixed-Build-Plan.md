@@ -181,6 +181,8 @@ C1. framework-smoke minimal end-to-end pipeline
 Seed: OpenMontage ships a tiny smoke-test pipeline that exercises every stage with stubs.
 Remix: A --smoke mode that runs research→…→render on mock adapters in seconds, asserting each stage produces a schema-valid artifact. Becomes a CI gate that catches contract breaks before deploy — complements your action-manifest test.
 
+> ✅ **SIGNED OFF — Batch 14 (C1).** Core `framework-smoke.ts` (`@studio/core`): `runSmokePipeline(topic)` runs the whole chain — research → brief → script → scene_plan → asset_manifest → edit_decisions → render_report — on **mock data in sub-millisecond**, validating each stage against its canonical schema (Batch 2's `validateStageArtifact`) and returning a structured pass/fail report. A stage-contract drift now fails HERE before a real run breaks in production — a CI gate complementing the action-manifest test. Exposed as `pnpm smoke`. Verified: `tsc`, `eslint`, **940/940 vitest** (+3).
+
 C2. Kebab-case regenerable-workspace convention
 Seed: OpenMontage uses a kebab-case project workspace where assets are regenerable by convention.
 Remix: Formalize “every asset is reproducible from its artifact + provider params” — store the exact request alongside each generated asset so any single asset can be re-rolled without re-running the stage. Provenance you’re already partly capturing; make regeneration a first-class action.
