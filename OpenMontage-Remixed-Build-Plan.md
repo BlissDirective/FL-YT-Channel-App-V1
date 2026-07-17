@@ -83,6 +83,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 	20.	Platform output profiles. 16:9 / 9:16 / Reels / TikTok / LinkedIn / 21:9 render presets. Remix: your model already has 9:16/short — formalize platform profiles (ties into your TikTok/IG expansion).
 
+> ✅ **SIGNED OFF — Batch 7: list1 #20/#29.** Core `platform-profiles.ts` (`@studio/core`): named `PLATFORM_PROFILES` (YouTube 16:9 + Short 9:16, TikTok, Reels, IG Feed 4:5, LinkedIn 1:1, Cinema 21:9) each with dimensions, platform duration ceiling, and caption safe-area; `defaultProfilesFor(kind)`, `fitsProfileDuration`, and `multiAspectTargets(ids)` which dedupes a profile set to the distinct aspects one assembly plan compiles to (#29 — TikTok+Reels+Short = one 9:16 render). UI: a **Platform profiles** reference card on project Settings (grouped by aspect with proportional glyphs, dims, limits). Verified: `tsc`, `eslint`, **901/901 vitest** (+6), `next build`.
+
 	22.	Web-research-first brief — structured research (YouTube/Reddit/HN/news/academic) with citations before scripting. Remix: upgrade Scout into a cited research brief feeding runScripting.
 
 	23.	Three-layer knowledge architecture (tools → skills → deep tech knowledge). Remix: formalize a per-stage skill file set (you now have the editing-craft one) so each agent has a house rubric.
