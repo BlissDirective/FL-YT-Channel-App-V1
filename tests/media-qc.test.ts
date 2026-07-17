@@ -5,11 +5,14 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  evaluateFrame,
   evaluateMediaQc,
   parseBlackSeconds,
   parseFreezeSeconds,
   parseLoudness,
+  parseProbe,
   parseSilenceSeconds,
+  type ParsedProbe,
 } from "../packages/render/src/media-qc";
 
 describe("parsers", () => {
@@ -87,5 +90,124 @@ describe("evaluateMediaQc", () => {
     const r = evaluateMediaQc({ ...clean, freeze: [3.0] });
     expect(r.checks.find((c) => c.id === "freeze")?.pass).toBe(false);
     expect(r.hardFail).toBe(false);
+  });
+
+  it("adds no new checks when frames/probe/captions are absent (legacy)", () => {
+    const r = evaluateMediaQc(clean);
+    const ids = r.checks.map((c) => c.id);
+    expect(ids).not.toContain("frames");
+    expect(ids).not.toContain("audio");
+    expect(ids).not.toContain("subtitles");
+  });
+});
+
+// ── #6 additions: ffprobe structural + 4-position frames + subtitles ──────
+
+describe("parseProbe", () => {
+  const doc = JSON.stringify({
+    format: { duration: "63.5" },
+    streams: [
+      { codec_type: "video", codec_name: "h264", width: 1920, height: 1080 },
+      { codec_type: "audio", codec_name: "aac", channels: 2 },
+    ],
+  });
+
+  it("summarises duration, resolution, and streams", () => {
+    const p = parseProbe(doc);
+    expect(p.durationSec).toBeCloseTo(63.5, 5);
+    expect(p.width).toBe(1920);
+    expect(p.height).toBe(1080);
+    expect(p.hasVideo).toBe(true);
+    expect(p.hasAudio).toBe(true);
+    expect(p.audioChannels).toBe(2);
+    expect(p.subtitleStreams).toBe(0);
+  });
+
+  it("counts soft subtitle streams and detects a missing audio track", () => {
+    const p = parseProbe(
+      JSON.stringify({
+        format: { duration: "10" },
+        streams: [
+          { codec_type: "video", width: 1080, height: 1920 },
+          { codec_type: "subtitle" },
+        ],
+      }),
+    );
+    expect(p.hasAudio).toBe(false);
+    expect(p.subtitleStreams).toBe(1);
+  });
+
+  it("returns a benign summary on malformed json", () => {
+    const p = parseProbe("not json");
+    expect(p.hasVideo).toBe(false);
+    expect(p.durationSec).toBeNull();
+  });
+});
+
+describe("evaluateFrame", () => {
+  it("flags a near-uniform frame as blank", () => {
+    expect(evaluateFrame(0.35, 2, 1).blank).toBe(true); // near-black solid
+    expect(evaluateFrame(0.62, 128, 3).blank).toBe(true); // solid mid-grey
+  });
+  it("passes a textured frame with real content", () => {
+    expect(evaluateFrame(0.08, 120, 900).blank).toBe(false);
+  });
+});
+
+describe("evaluateMediaQc — #6 checks", () => {
+  const clean = { black: [], silence: [], freeze: [], lufs: -14.5, truePeakDb: -1.5 };
+  const probe = (over: Partial<ParsedProbe> = {}): ParsedProbe => ({
+    durationSec: 60, width: 1920, height: 1080, hasVideo: true, hasAudio: true,
+    subtitleStreams: 0, videoCodec: "h264", audioChannels: 2, ...over,
+  });
+
+  it("hard-fails when 2+ sampled frames are blank", () => {
+    const r = evaluateMediaQc({
+      ...clean,
+      frames: [
+        evaluateFrame(0.08, 120, 800),
+        evaluateFrame(0.35, 2, 1),
+        evaluateFrame(0.62, 128, 2),
+        evaluateFrame(0.9, 110, 700),
+      ],
+    });
+    const f = r.checks.find((c) => c.id === "frames");
+    expect(f?.pass).toBe(false);
+    expect(r.hardFail).toBe(true);
+  });
+
+  it("does not hard-fail a single stylistic blank frame", () => {
+    const r = evaluateMediaQc({
+      ...clean,
+      frames: [
+        evaluateFrame(0.08, 120, 800),
+        evaluateFrame(0.35, 2, 1),
+        evaluateFrame(0.62, 128, 600),
+        evaluateFrame(0.9, 110, 700),
+      ],
+    });
+    expect(r.checks.find((c) => c.id === "frames")?.pass).toBe(false);
+    expect(r.hardFail).toBe(false);
+  });
+
+  it("hard-fails a render with no audio track", () => {
+    const r = evaluateMediaQc({ ...clean, probe: probe({ hasAudio: false }) });
+    const a = r.checks.find((c) => c.id === "audio");
+    expect(a?.pass).toBe(false);
+    expect(r.hardFail).toBe(true);
+  });
+
+  it("reports caption intent as an advisory (never hard)", () => {
+    const r = evaluateMediaQc({ ...clean, probe: probe(), captions: { expected: true } });
+    const s = r.checks.find((c) => c.id === "subtitles");
+    expect(s?.pass).toBe(true);
+    expect(s?.hard).toBe(false);
+    expect(s?.note).toMatch(/burned into the frames/i);
+    expect(r.hardFail).toBe(false);
+  });
+
+  it("notes soft subtitle streams when present", () => {
+    const r = evaluateMediaQc({ ...clean, probe: probe({ subtitleStreams: 1 }), captions: { expected: false } });
+    expect(r.checks.find((c) => c.id === "subtitles")?.note).toMatch(/subtitle stream/i);
   });
 });

@@ -748,9 +748,12 @@ async function renderOne(
   //    auto-publishing a broken cut; the verdict is stored on the render
   //    asset and gates whether the paid vision critic needs to run.
   let mediaQcHardFail = false;
+  let mediaQcHardReason = "black frames or a long silence gap";
   if (primaryRenderPath) {
     try {
-      const qc = await runMediaQc(primaryRenderPath);
+      const qc = await runMediaQc(primaryRenderPath, {
+        captionsExpected: props.captions,
+      });
       if (qc.ran) {
         // Merge onto the stored render meta (keep durationSec/beats/resolution).
         const { data: renderAsset } = await db
@@ -775,6 +778,8 @@ async function renderOne(
             (qc.lufs != null ? ` · ${qc.lufs.toFixed(1)} LUFS` : ""),
         );
         mediaQcHardFail = qc.hardFail;
+        const firstHard = qc.checks.find((c) => c.hard);
+        if (firstHard) mediaQcHardReason = firstHard.note;
       }
     } catch (err) {
       console.error(`⚠️  media QC skipped (non-fatal): ${String(err).slice(0, 140)}`);
@@ -790,7 +795,7 @@ async function renderOne(
       .update({
         status: "FINAL_REVIEW",
         auto_publish: false,
-        paused_reason: "Held — media QC found a structural defect (black frames or a long silence gap). Check the render.",
+        paused_reason: `Held — technical QC found a structural defect: ${mediaQcHardReason}. Check the render.`,
       })
       .eq("id", videoId);
     console.log(`⛔ ${video.title}: rendered but HELD by media QC → FINAL_REVIEW`);

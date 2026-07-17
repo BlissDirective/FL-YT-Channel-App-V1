@@ -25,6 +25,7 @@ import { getEditorFlags } from "@/lib/pipeline/editor-flags";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { CollapsibleSection } from "@/components/ui/section-header";
 import { DecisionTrail } from "@/components/dashboard/decision-trail";
+import { TechnicalQc, type MediaQc } from "@/components/dashboard/technical-qc";
 import { getDecisions } from "@/lib/db/decisions-data";
 import { CheckpointPanel } from "./checkpoint-panel";
 import { CanvasControls } from "./canvas-controls";
@@ -91,6 +92,12 @@ export default async function VideoDetailPage({
 
   const v = video as Video;
   const s = (script as Script) ?? null;
+  // Post-render technical self-review (#6): the latest render's QC verdict.
+  const mediaQc: MediaQc | null =
+    ((assets ?? []) as Asset[])
+      .filter((a) => a.kind === "render")
+      .map((a) => (a.meta as { mediaQc?: MediaQc } | null)?.mediaQc)
+      .find((m): m is MediaQc => Boolean(m?.ran)) ?? null;
   const directorMode = (project.pipeline_mode ?? "autonomous") === "director";
   // The AI Video Generation card belongs to the visuals/edit development stages
   // only. In Director Mode it's hidden at idea/script/publish so each stage
@@ -578,6 +585,8 @@ export default async function VideoDetailPage({
         />
         </div>
       )}
+
+      {mediaQc && <TechnicalQc qc={mediaQc} />}
 
       {decisionTrail.length > 0 && (
         <CollapsibleSection

@@ -34,6 +34,17 @@ Please proceed to elaborate upon and build the following concepts:
 
 	6.	Post-render technical self-review. ffprobe the output: frames at 4 positions, audio levels, black-frame/silence detection, subtitle presence. Remix: extend your Self-Watch watch-gate with a technical QC pass (your frame-critic judges content; this catches broken renders).
 
+> ✅ **SIGNED OFF — Task #6 complete (branch `claude/openmontage-build-plan-be7rb9`).**
+> **Post-render technical self-review — extended the existing media-QC into a full ffprobe + frame-sampling pass.**
+> - The app already ran a free ffmpeg pass (black / freeze / silence / loudness) that holds a broken render at Final review. #6 adds the missing dimensions, all in `packages/render/src/media-qc.ts`:
+>   - **ffprobe structural probe** (`parseProbe`): duration, resolution, video codec, and — the new hard check — **audio-track presence** (a silent narration render is held).
+>   - **Frames at four positions** (`sampleFrameBlanks` + `evaluateFrame`): extracts a 16×16 grayscale frame at 8/35/62/90% via ffmpeg (no image lib) and flags **blank** frames by luma variance; **≥2 blank positions hard-holds** (a broken/truncated render the black-*stretch* detector misses), a single stylistic solid frame does not.
+>   - **Subtitle / caption presence**: reports soft subtitle streams from ffprobe and reconciles against the caption intent (burned-in captions carry no stream) — advisory.
+> - All new inputs to `evaluateMediaQc` are **optional**, so the existing black/silence/loudness behaviour and its tests are unchanged; the driver `runMediaQc(filePath, { captionsExpected })` orchestrates ffmpeg + ffprobe + frame sampling and degrades gracefully when a binary is absent.
+> - **Wired** into the render worker (`render-queue.ts`): the verdict stores on the render asset's `meta.mediaQc`, a hard defect holds the video with a **specific reason** (which check failed), and the Self-Watch gate already consumes this meta.
+> - **UI:** a **Technical QC panel** on the video page (`technical-qc.tsx`) — probe summary, per-check pass/warn/fail with notes, and a four-segment frame strip. Dark/on-brand.
+> - Verified: `tsc` clean, `eslint` clean, **839/839 vitest** (+11 new: parseProbe, frame eval, frames/audio/subtitle checks), `next build` clean, and visual QA of the clean + held panels.
+
 	7.	Source-media inspection. Probe every generated asset (resolution, codec, duration, audio channels) before using it. Remix: an asset-spec validator in runAssetGeneration — reject a malformed Seedance clip before it reaches compile.
 
 	9.	Decision audit trail. Every creative/technical choice (provider, style, voice, music, fallbacks) logged with alternatives + confidence + reasoning. Remix: extend operator_decisions / cost ledger into a per-video decision log — improves explainability and feeds your operator-signal learning.
