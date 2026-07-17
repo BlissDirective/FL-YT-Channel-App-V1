@@ -132,6 +132,8 @@ Please proceed to elaborate upon and build the following concepts:
 	24.	Playbook quality_rules as hard constraints (not suggestions). Remix: let your style playbooks carry enforceable rules (“≤2 caption lines”) the critics treat as constraints.
 
 	25.	Reviewer protocol: max two review rounds, then pass-with-warnings. Remix: cap your refine/autofix loops with an explicit “2 rounds then warn” rule — prevents infinite polishing spend.
+
+> ✅ **SIGNED OFF — Batch 5: list2 #23/#25/#26/#27, B5/B7/B8, list1 #23/#25.** Core `review-protocol.ts` (`@studio/core`): `REVIEW_FOCUS` per stage (script → hook+payoff, assets → consistency+distinctness, cut → pacing+captions — #27/B8); 3-tier `tierFindings` where only critical blocks (#26); `reviewLoopDecision(rounds, findings)` enforcing the **max-2-rounds** cap → revise / pass-with-warnings / escalate (#25/B7); and the `StructuredBlocker` object + `buildBlocker`/`categorizeBlocker` (#23/B5). UI: a **structured "your turn" blocker card** now renders for any held video (categorised from its reason into what's blocked / needed / tried / actionable options with a recommendation), replacing the vague pause line. Verified: `tsc`, `eslint`, **887/887 vitest** (+11), `next build`.
 	26.	Findings tiered: critical / suggestion / nitpick (only critical blocks). Remix: add 3-tier severity to your critics/lint so the agent knows what must-fix vs note.
 	27.	review_focus per stage in the manifest — each stage declares what the reviewer checks. Remix: per-gate review checklists driving your QC judges.
 

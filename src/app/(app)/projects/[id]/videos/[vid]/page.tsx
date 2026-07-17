@@ -26,6 +26,8 @@ import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
 import { CollapsibleSection } from "@/components/ui/section-header";
 import { DecisionTrail } from "@/components/dashboard/decision-trail";
 import { TechnicalQc, type MediaQc } from "@/components/dashboard/technical-qc";
+import { StructuredBlockerCard } from "@/components/dashboard/structured-blocker";
+import { categorizeBlocker } from "@studio/core";
 import { getDecisions } from "@/lib/db/decisions-data";
 import { CheckpointPanel } from "./checkpoint-panel";
 import { CanvasControls } from "./canvas-controls";
@@ -584,6 +586,10 @@ export default async function VideoDetailPage({
           customDefault={project.custom_spec ?? null}
         />
         </div>
+      )}
+
+      {v.paused_reason && !["TRACKING", "KILLED", "APPROVED"].includes(v.status) && (
+        <StructuredBlockerCard blocker={categorizeBlocker(v.paused_reason)} />
       )}
 
       {mediaQc && <TechnicalQc qc={mediaQc} />}
