@@ -283,7 +283,7 @@ export function EddEditor(props: {
             type="button"
             disabled={isPending || !dirty || !validation.ok}
             onClick={save}
-            className="flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-xs font-semibold text-ink shadow-card disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-xs font-semibold text-on-accent shadow-card disabled:opacity-50"
           >
             {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
             Save version
@@ -320,7 +320,7 @@ export function EddEditor(props: {
                   : "Approve this cut"
             }
             onClick={() => act(() => approveCutAction(props.projectId, props.videoId), "Cut approved — rendering")}
-            className="flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 text-xs font-semibold text-white shadow-card disabled:opacity-40"
+            className="flex items-center gap-1.5 rounded-full bg-raised px-3.5 py-2 text-xs font-semibold text-white shadow-card disabled:opacity-40"
           >
             <Check className="size-3.5" /> Approve cut
           </button>

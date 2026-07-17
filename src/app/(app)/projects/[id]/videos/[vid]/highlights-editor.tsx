@@ -154,7 +154,7 @@ export function HighlightsEditor({
           disabled={opts}
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold shadow-card transition-colors disabled:opacity-50",
-            enabled ? "bg-ink text-white" : "bg-card-warm text-ink hover:bg-accent-soft",
+            enabled ? "bg-raised text-white" : "bg-card-warm text-ink hover:bg-accent-soft",
           )}
         >
           {opts ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
@@ -176,7 +176,7 @@ export function HighlightsEditor({
           disabled={opts}
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold shadow-card transition-colors disabled:opacity-50",
-            captionsOn ? "bg-ink text-white" : "bg-card-warm text-ink hover:bg-accent-soft",
+            captionsOn ? "bg-raised text-white" : "bg-card-warm text-ink hover:bg-accent-soft",
           )}
         >
           {opts ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
@@ -203,7 +203,7 @@ export function HighlightsEditor({
             <button
               onClick={generate}
               disabled={curating}
-              className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink shadow-card disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-on-accent shadow-card disabled:opacity-50"
             >
               {curating ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
               {list.length ? "Regenerate" : "Generate"}
@@ -305,7 +305,7 @@ export function HighlightsEditor({
             <button
               onClick={save}
               disabled={saving || !dirty}
-              className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
             >
               {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
               {dirty ? "Save changes" : "Saved"}

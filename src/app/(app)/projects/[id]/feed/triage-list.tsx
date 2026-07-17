@@ -156,7 +156,7 @@ export function TriageList({ projectId, triage }: { projectId: string; triage: P
     <div ref={rootRef} className="space-y-4" data-mode={mode}>
       {/* Batch bar (#3) */}
       {selectedList.length > 0 && (
-        <div className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-card bg-ink p-3 text-card shadow-float">
+        <div className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-card bg-raised p-3 text-card shadow-float">
           <span className="text-sm font-semibold">{selectedList.length} selected</span>
           <div className="ml-auto flex flex-wrap gap-2">
             <BatchBtn
@@ -429,7 +429,7 @@ function RowBtn({
       disabled={pending}
       className={cn(
         "flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50",
-        tone === "primary" && "bg-ink text-card hover:opacity-90",
+        tone === "primary" && "bg-raised text-card hover:opacity-90",
         tone === "danger" && "bg-red-50 text-red-700 hover:bg-red-100",
         tone === "default" && "bg-canvas text-ink hover:bg-accent-soft",
       )}

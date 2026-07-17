@@ -30,8 +30,8 @@ export function ProgressRail({
                 aria-current={active ? "step" : undefined}
                 className={cn(
                   "grid size-6 shrink-0 place-items-center rounded-full text-[10px] font-bold transition-colors",
-                  done && "bg-ink text-accent",
-                  active && "bg-accent text-ink ring-2 ring-accent/40",
+                  done && "bg-raised text-accent",
+                  active && "bg-accent text-on-accent ring-2 ring-accent/40",
                   !done && !active && "bg-card-warm text-muted",
                   step.gate && !done && !active && "ring-1 ring-line",
                 )}
@@ -49,7 +49,7 @@ export function ProgressRail({
             </span>
             {i < steps.length - 1 && (
               <span
-                className={cn("mb-4 h-0.5 min-w-2 flex-1 rounded-full", done ? "bg-ink" : "bg-line")}
+                className={cn("mb-4 h-0.5 min-w-2 flex-1 rounded-full", done ? "bg-raised" : "bg-line")}
               />
             )}
           </li>
@@ -77,7 +77,7 @@ export function StageProgressBar({
           key={i}
           className={cn(
             "h-1 flex-1 rounded-full",
-            i < current ? "bg-ink" : i === current ? "bg-accent" : "bg-line",
+            i < current ? "bg-raised" : i === current ? "bg-accent" : "bg-line",
           )}
         />
       ))}

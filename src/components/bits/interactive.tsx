@@ -28,6 +28,31 @@ export function SpotlightCard({
   );
 }
 
+/** App-side spotlight (uses `.spotlight` from globals.css): composes a
+    cursor-following amber glow ONTO existing card styling — pass your own
+    `bg-card`/rounded/padding classes. Degrades to a static element on touch. */
+export function Spotlight({
+  children,
+  className = "",
+  as: Tag = "div",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  as?: "div" | "section";
+}) {
+  const onMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
+  return (
+    <Tag onMouseMove={onMove} className={`spotlight ${className}`}>
+      {children}
+    </Tag>
+  );
+}
+
 /** Subtle 3D tilt toward the cursor (max ~5°, desktop pointer only). */
 export function TiltedCard({
   children,

@@ -94,8 +94,8 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
                 <span
                   className={cn(
                     "grid size-10 place-items-center rounded-2xl transition-colors",
-                    active && "bg-accent text-ink",
-                    done && "bg-ink text-accent",
+                    active && "bg-accent text-on-accent",
+                    done && "bg-raised text-accent",
                     !active && !done && "bg-card-warm text-muted",
                   )}
                 >
@@ -398,7 +398,7 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
           <button
             type="submit"
             disabled={pending}
-            className="flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-60"
+            className="flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02] disabled:opacity-60"
           >
             <Sparkles className="size-4" />
             {pending ? "Creating…" : "Create project"}
@@ -407,7 +407,7 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
           <button
             type="button"
             onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-            className="rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-card shadow-card"
+            className="rounded-full bg-raised px-6 py-2.5 text-sm font-semibold text-card shadow-card"
           >
             Continue
           </button>

@@ -22,7 +22,7 @@ export function RegenerateScript({ projectId, videoId }: { projectId: string; vi
             else router.refresh();
           })
         }
-        className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-full bg-raised px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
       >
         {isPending ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
         Regenerate script

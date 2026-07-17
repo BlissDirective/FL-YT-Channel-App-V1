@@ -45,7 +45,7 @@ export function CanvasControls({
           type="button"
           disabled={isPending}
           onClick={() => act(() => resumeVideoAction(projectId, videoId))}
-          className="flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-xs font-semibold text-ink shadow-card disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-xs font-semibold text-on-accent shadow-card disabled:opacity-50"
         >
           {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />}
           Resume
@@ -62,7 +62,7 @@ export function CanvasControls({
             );
           }
         }}
-        className="flex items-center gap-1.5 rounded-full bg-coral/10 px-3.5 py-2 text-xs font-semibold text-[#a8442b] transition-colors hover:bg-coral/20 disabled:opacity-50"
+        className="flex items-center gap-1.5 rounded-full bg-coral/10 px-3.5 py-2 text-xs font-semibold text-coral transition-colors hover:bg-coral/20 disabled:opacity-50"
       >
         <X className="size-3.5" /> Kill
       </button>

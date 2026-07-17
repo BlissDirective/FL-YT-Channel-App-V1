@@ -230,7 +230,7 @@ export function IntelWorkspace({
                 (depth === "deep" && (!sourceUrl.trim() || !vouched))
               }
               onClick={run}
-              className="flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
+              className="flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-on-accent shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
             >
               {pending ? <Loader2 className="size-4 animate-spin" /> : <Radar className="size-4" />}
               {pending ? "Scanning…" : "Run scan"}

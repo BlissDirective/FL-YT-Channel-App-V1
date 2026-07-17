@@ -256,7 +256,7 @@ export function ScriptRemix({
                   className={cn(
                     "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
                     m.role === "user"
-                      ? "ml-auto bg-ink text-white"
+                      ? "ml-auto bg-raised text-white"
                       : "bg-card text-ink shadow-card",
                   )}
                 >
@@ -304,7 +304,7 @@ export function ScriptRemix({
                   type="button"
                   disabled={applying}
                   onClick={accept}
-                  className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-ink shadow-card disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-on-accent shadow-card disabled:opacity-50"
                 >
                   {applying ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
                   Accept
@@ -341,7 +341,7 @@ export function ScriptRemix({
               type="button"
               disabled={pending || !input.trim()}
               onClick={send}
-              className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             >
               {pending ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4" />}
               Remix

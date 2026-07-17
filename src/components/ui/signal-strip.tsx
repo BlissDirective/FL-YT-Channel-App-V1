@@ -46,7 +46,7 @@ export function ProjectSignalStrip({
       <span
         className={cn(
           "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tabular-nums",
-          overBudget ? "bg-coral/15 text-[#a8442b]" : "bg-card-warm text-ink",
+          overBudget ? "bg-coral/15 text-coral" : "bg-card-warm text-ink",
         )}
       >
         <CircleDollarSign className="size-3.5" />
@@ -56,7 +56,7 @@ export function ProjectSignalStrip({
         )}
       </span>
       {autopilot && autopilot !== "off" && (
-        <span className="flex items-center gap-1.5 rounded-full bg-lavender/15 px-3 py-1 text-xs font-semibold text-[#6b4cd6]">
+        <span className="flex items-center gap-1.5 rounded-full bg-lavender/15 px-3 py-1 text-xs font-semibold text-lavender">
           <Bot className="size-3.5" /> {autopilot === "autopilot" ? "Autopilot" : "Co-pilot"}
         </span>
       )}

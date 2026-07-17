@@ -22,7 +22,7 @@ export function StatCard({
 }) {
   return (
     <div className={cn("flex items-center gap-4 rounded-card bg-card p-5 shadow-card", className)}>
-      <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-accent-soft text-ink">
+      <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-accent/12 text-accent ring-1 ring-accent/20">
         <Icon className="size-5" />
       </span>
       <div>
@@ -35,8 +35,8 @@ export function StatCard({
               className={cn(
                 "rounded-full px-1.5 py-0.5 text-xs font-semibold",
                 delta.startsWith("-")
-                  ? "bg-coral/15 text-[#a8442b]"
-                  : "bg-success-soft text-[#1d6b43]",
+                  ? "bg-coral/15 text-coral"
+                  : "bg-success-soft text-success",
               )}
             >
               {delta}

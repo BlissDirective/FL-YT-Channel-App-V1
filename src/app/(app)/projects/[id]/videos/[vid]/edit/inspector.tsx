@@ -476,7 +476,7 @@ function ClipPanel({
                   {o.source}
                 </span>
               )}
-              <span className="absolute bottom-0 left-0 rounded-tr bg-ink/70 px-1 text-[8px] text-white">
+              <span className="absolute bottom-0 left-0 rounded-tr bg-raised/70 px-1 text-[8px] text-white">
                 b{o.beatIdx}
               </span>
             </button>

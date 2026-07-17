@@ -33,7 +33,7 @@ export function FlowDiagram({
           const inner = (
             <>
               {node.count !== undefined && node.count > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 grid min-w-5 place-items-center rounded-full bg-accent px-1 text-xs font-bold text-ink">
+                <span className="absolute -right-1.5 -top-1.5 grid min-w-5 place-items-center rounded-full bg-accent px-1 text-xs font-bold text-on-accent">
                   {node.count}
                 </span>
               )}
@@ -51,13 +51,13 @@ export function FlowDiagram({
           const nodeClass = cn(
             "relative flex flex-col items-center gap-1.5 rounded-card px-4 py-3 transition-transform",
             node.emphasis
-              ? "bg-ink text-accent shadow-float"
+              ? "bg-raised text-accent shadow-float"
               : "bg-card-warm text-ink shadow-card",
             node.href && "hover:scale-[1.03] hover:shadow-float",
           );
           return (
             <div key={node.key} className="flex shrink-0 items-center">
-              {i > 0 && <span className="h-px w-5 shrink-0 bg-ink/20 sm:w-8" />}
+              {i > 0 && <span className="h-px w-5 shrink-0 bg-raised/20 sm:w-8" />}
               {node.href ? (
                 <Link href={node.href} className={nodeClass} aria-label={node.label}>
                   {inner}

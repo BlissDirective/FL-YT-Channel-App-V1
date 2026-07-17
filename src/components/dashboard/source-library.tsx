@@ -92,7 +92,7 @@ export function SourceLibrary({
         <button
           type="button"
           onClick={() => run(query)}
-          className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white"
+          className="shrink-0 rounded-full bg-raised px-3 py-1.5 text-xs font-semibold text-white"
         >
           Search
         </button>
@@ -110,7 +110,7 @@ export function SourceLibrary({
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {candidates.map((c) => (
             <div key={c.key} className="overflow-hidden rounded-lg bg-card shadow-card">
-              <div className="relative aspect-video bg-ink">
+              <div className="relative aspect-video bg-raised">
                 {/* eslint-disable-next-line @next/next/no-img-element -- external licensed thumbs */}
                 <img src={c.thumbUrl} alt={c.title} className="size-full object-cover" />
                 <span className="absolute left-1 top-1 rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
@@ -148,7 +148,7 @@ export function SourceLibrary({
                   type="button"
                   disabled={Boolean(applyingKey)}
                   onClick={() => apply(c)}
-                  className="flex w-full items-center justify-center gap-1 rounded-full bg-accent py-1 text-[11px] font-semibold text-ink disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-1 rounded-full bg-accent py-1 text-[11px] font-semibold text-on-accent disabled:opacity-50"
                 >
                   {applyingKey === c.key ? (
                     <Loader2 className="size-3 animate-spin" />
@@ -276,7 +276,7 @@ function PressKitLane({
             type="button"
             disabled={busy || !url.trim() || !title.trim()}
             onClick={submit}
-            className="flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-full bg-raised px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
           >
             {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
             Attach to shot {beatIdx + 1}

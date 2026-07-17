@@ -95,7 +95,7 @@ export function DeriveShorts(props: DeriveShortsProps) {
             type="button"
             disabled={isPending}
             onClick={derive}
-            className="ml-auto inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
+            className="ml-auto inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
           >
             {isPending ? (
               <Loader2 className="size-4 animate-spin" />
@@ -196,7 +196,7 @@ function ShortRow({
               type="button"
               disabled={isPending}
               onClick={publish}
-              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full bg-raised px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
             >
               {isPending ? (
                 <Loader2 className="size-3.5 animate-spin" />

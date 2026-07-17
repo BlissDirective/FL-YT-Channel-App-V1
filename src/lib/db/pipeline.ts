@@ -1,4 +1,4 @@
-import { PIPELINE_STAGES, type VideoStatus } from "@studio/core";
+import { GATE_FOR_STATUS, PIPELINE_STAGES, type VideoStatus } from "@studio/core";
 import type { Video } from "./types";
 
 /** A video that has reached YouTube (uploaded / published / tracking) belongs
@@ -71,6 +71,50 @@ export function publishDiagnosis(
     state: "manual",
     message: "Approved but not queued for auto-publish. Open the Publish Kit to upload to YouTube (or mark it uploaded).",
   };
+}
+
+/** Statuses an agent is actively working right now (a lane "lights up"). */
+const PROCESSING_STATUSES = new Set<VideoStatus>([
+  "SCRIPTING",
+  "GENERATING_ASSETS",
+  "ASSEMBLING",
+  "NEEDS_REVISION",
+]);
+
+export type BacklotStage = {
+  key: string;
+  label: string;
+  /** Videos currently in this lane. */
+  total: number;
+  /** Of those, how many an agent is actively working (drives the lane glow). */
+  active: number;
+  /** Of those, how many are waiting on the operator at a gate (your turn). */
+  awaiting: number;
+};
+
+/**
+ * Per-lane live stats for the Backlot production board (#8). One entry per
+ * PIPELINE_STAGE, in order. `active` powers the pulsing "work happening here"
+ * glow; `awaiting` powers the amber "your turn" pip. NEEDS_REVISION has no
+ * pipeline stage of its own — it loops back through Script, so we count it
+ * there (matching the library rail). Pure: derives from the videos only.
+ */
+export function backlotStages(videos: Video[]): BacklotStage[] {
+  return PIPELINE_STAGES.map((stage) => {
+    const inStage = videos.filter((v) => {
+      if (v.status === "NEEDS_REVISION") return stage.key === "script";
+      return effectiveStageKey(v) === stage.key;
+    });
+    return {
+      key: stage.key,
+      label: stage.label,
+      total: inStage.length,
+      active: inStage.filter((v) => PROCESSING_STATUSES.has(v.status)).length,
+      awaiting: inStage.filter(
+        (v) => !isLive(v) && GATE_FOR_STATUS[v.status] !== undefined,
+      ).length,
+    };
+  });
 }
 
 const ACTIVE_STAGE_ORDER = ["ready", "render", "assets", "script", "ideas"];

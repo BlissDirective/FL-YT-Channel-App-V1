@@ -59,7 +59,7 @@ export function TemplateEditor({
           type="button"
           disabled={isPending || body === initialBody}
           onClick={save}
-          className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card disabled:opacity-50"
+          className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-card disabled:opacity-50"
         >
           {isPending ? (
             <Loader2 className="size-4 animate-spin" />

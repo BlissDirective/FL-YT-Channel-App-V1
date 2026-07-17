@@ -12,7 +12,7 @@ export default async function LoginPage({
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-6 pt-4">
       <div className="flex flex-col items-center gap-3">
-        <span className="grid size-14 place-items-center rounded-3xl bg-ink text-accent">
+        <span className="grid size-14 place-items-center rounded-3xl bg-raised text-accent">
           <Sparkles className="size-7" fill="currentColor" />
         </span>
         <h1 className="text-2xl font-bold tracking-tight">Faceless Studio</h1>

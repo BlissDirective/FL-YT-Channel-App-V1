@@ -85,6 +85,7 @@ export function AssetTile({
               {stageLabel}
             </span>
           )}
+          {active && <span className="scanline" aria-hidden />}
           <span className="absolute left-1.5 right-1.5 top-1.5 flex flex-wrap gap-1">
             {active ? (
               <StatusChip tone="warning" className="gap-1 whitespace-nowrap">
@@ -99,7 +100,7 @@ export function AssetTile({
                 <AlertTriangle className="size-3" /> stalled
               </StatusChip>
             ) : paused ? (
-              <StatusChip tone="neutral" className="gap-1 whitespace-nowrap bg-ink/70 text-white">
+              <StatusChip tone="neutral" className="gap-1 whitespace-nowrap bg-raised/70 text-white">
                 <PauseCircle className="size-3" /> paused
               </StatusChip>
             ) : awaitingYou ? (
@@ -113,7 +114,7 @@ export function AssetTile({
           </span>
           {views != null && (
             <span className="absolute bottom-1.5 right-1.5">
-              <StatusChip tone="neutral" className="gap-1 bg-ink/70 text-white">
+              <StatusChip tone="neutral" className="gap-1 bg-raised/70 text-white">
                 <Eye className="size-3" /> {compactViews(views)}
               </StatusChip>
             </span>

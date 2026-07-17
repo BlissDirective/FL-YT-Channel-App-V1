@@ -42,10 +42,10 @@ function useAct() {
 
 const btn = {
   approve:
-    "flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-ink shadow-card transition-transform hover:scale-[1.03] disabled:opacity-50",
+    "flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.03] disabled:opacity-50",
   soft: "flex items-center gap-1 rounded-full bg-card-warm px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-accent-soft disabled:opacity-50",
   danger:
-    "flex items-center gap-1 rounded-full bg-coral/10 px-3 py-1.5 text-xs font-semibold text-[#a8442b] transition-colors hover:bg-coral/20 disabled:opacity-50",
+    "flex items-center gap-1 rounded-full bg-coral/10 px-3 py-1.5 text-xs font-semibold text-coral transition-colors hover:bg-coral/20 disabled:opacity-50",
 };
 
 /** Approve / request-changes / kill for a video waiting at a gate. */

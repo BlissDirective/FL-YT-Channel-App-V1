@@ -120,7 +120,7 @@ export function EddTimeline({
         <div ref={laneRef} className={`${lane} min-w-0 flex-1`}>
           {doc.intro.sting && doc.intro.sec > 0 && (
             <div
-              className="absolute inset-y-0 overflow-hidden truncate rounded-md bg-ink/15 text-center text-[9px] leading-9 text-muted"
+              className="absolute inset-y-0 overflow-hidden truncate rounded-md bg-raised/15 text-center text-[9px] leading-9 text-muted"
               style={{ left: 0, width: widthPct(doc.intro.sec) }}
             >
               sting
@@ -146,7 +146,7 @@ export function EddTimeline({
                 </span>
                 {tSec > 0 && (
                   <span
-                    className="absolute -right-1 top-0 z-10 rounded bg-ink px-0.5 text-[8px] leading-3 text-white"
+                    className="absolute -right-1 top-0 z-10 rounded bg-raised px-0.5 text-[8px] leading-3 text-white"
                     title={`${clip.transitionOut.kind} ${tSec}s`}
                   >
                     ⤞
@@ -155,14 +155,14 @@ export function EddTimeline({
                 {/* right-edge retime handle */}
                 <span
                   onPointerDown={(e) => startDrag(e, clip.id, clip.duration, clip.start)}
-                  className="absolute inset-y-0 right-0 w-1.5 cursor-ew-resize rounded-r-md bg-ink/30 hover:bg-ink/60"
+                  className="absolute inset-y-0 right-0 w-1.5 cursor-ew-resize rounded-r-md bg-raised/30 hover:bg-raised/60"
                 />
               </div>
             );
           })}
           {doc.outro.endCard && doc.outro.sec > 0 && (
             <div
-              className="absolute inset-y-0 overflow-hidden truncate rounded-md bg-ink/15 text-center text-[9px] leading-9 text-muted"
+              className="absolute inset-y-0 overflow-hidden truncate rounded-md bg-raised/15 text-center text-[9px] leading-9 text-muted"
               style={{ left: pct(runtime - doc.outro.sec), width: widthPct(doc.outro.sec) }}
             >
               end card
@@ -180,7 +180,7 @@ export function EddTimeline({
               <div
                 key={i}
                 onClick={() => onSelect({ type: "audio", index: i }, cue.start)}
-                className={`absolute inset-y-1 cursor-pointer rounded-md bg-ink/60 ${
+                className={`absolute inset-y-1 cursor-pointer rounded-md bg-raised/60 ${
                   selection?.type === "audio" && selection.index === i ? "ring-2 ring-ink/40" : ""
                 }`}
                 style={{

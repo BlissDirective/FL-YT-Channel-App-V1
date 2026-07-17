@@ -92,7 +92,9 @@ export default async function Home() {
       <AwaitingYouRow projects={awaiting} />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight">
+            Studio <span className="gradient-text">Overview</span>
+          </h1>
           <p className="mt-1 text-sm text-muted">
             All your channel projects at a glance
           </p>
@@ -109,7 +111,7 @@ export default async function Home() {
           <GenerateInsightsButton />
           <Link
             href="/projects/new"
-            className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02]"
+            className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02]"
           >
             <Plus className="size-4" /> New Project
           </Link>
@@ -186,7 +188,7 @@ function EmptyState() {
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/projects/new"
-          className="flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02]"
+          className="flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02]"
         >
           <Plus className="size-4" /> New Project
         </Link>

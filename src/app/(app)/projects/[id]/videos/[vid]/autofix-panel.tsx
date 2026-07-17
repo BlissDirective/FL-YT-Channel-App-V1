@@ -93,7 +93,7 @@ export function AutofixPanel({
             type="button"
             onClick={runNow}
             disabled={pending || !effectiveOn}
-            className="inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-card transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-full bg-raised px-3 py-1.5 text-xs font-semibold text-card transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             <Wand2 className="size-3.5" /> {pending ? "Running…" : "Run now"}
           </button>

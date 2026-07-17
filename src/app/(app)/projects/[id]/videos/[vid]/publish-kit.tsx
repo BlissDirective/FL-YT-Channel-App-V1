@@ -76,7 +76,7 @@ export function PublishKit(props: PublishKitProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <span className="grid size-9 place-items-center rounded-2xl bg-accent text-ink">
+        <span className="grid size-9 place-items-center rounded-2xl bg-accent text-on-accent">
           <Upload className="size-4" />
         </span>
         <div>
@@ -128,7 +128,7 @@ function ApproveFinalCut({ projectId, videoId }: PublishKitProps) {
             else setError(r.error);
           })
         }
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-raised px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
       >
         {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
         Approve final cut
@@ -172,7 +172,7 @@ function PublishToYouTube({ projectId, videoId, isShort, publishRequested }: Pub
               else setDone(true);
             })
           }
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-raised px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           {isPending ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
           Publish to YouTube
@@ -320,7 +320,7 @@ function RenderDownloads(props: PublishKitProps) {
             key={r.variant}
             href={(r.downloadUrl ?? r.url) as string}
             download={r.fileName}
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02]"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02]"
           >
             <Download className="size-4" />
             {r.variant === "short" ? "Short (9:16)" : "MP4 (16:9)"} ·{" "}
@@ -347,7 +347,7 @@ function RenderDownloads(props: PublishKitProps) {
           poster={thumbUrl ?? undefined}
           controls
           playsInline
-          className="aspect-video w-full overflow-hidden rounded-xl bg-ink object-contain"
+          className="aspect-video w-full overflow-hidden rounded-xl bg-raised object-contain"
         />
       )}
     </Card>
@@ -466,7 +466,7 @@ function MarkUploaded(props: PublishKitProps) {
               if (!r.ok) setError(r.error);
             })
           }
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-raised px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
           Mark as uploaded

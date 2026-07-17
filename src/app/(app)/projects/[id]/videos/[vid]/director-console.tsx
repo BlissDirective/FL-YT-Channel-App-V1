@@ -228,7 +228,7 @@ export function DirectorConsole({
                       directorReviseAction(projectId, videoId, { notes: lengthAdvisory.message }),
                     )
                   }
-                  className="ml-auto rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-accent hover:bg-ink/90 disabled:opacity-50"
+                  className="ml-auto rounded-full bg-raised px-3 py-1 text-[11px] font-semibold text-accent hover:bg-raised/90 disabled:opacity-50"
                 >
                   {busy === "Revise to length" ? "Working…" : "Revise to length"}
                 </button>
@@ -369,7 +369,7 @@ function StageRail({ currentIdx, status }: { currentIdx: number; status: string 
             <div
               className={cn(
                 "flex min-w-[92px] flex-1 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold",
-                current && "bg-ink text-accent",
+                current && "bg-raised text-accent",
                 done && "bg-emerald-50 text-emerald-700",
                 !done && !current && "bg-canvas text-muted",
               )}
@@ -584,7 +584,7 @@ function ActBtn({
       disabled={pending || disabled}
       className={cn(
         "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold shadow-card transition-colors disabled:opacity-50",
-        tone === "primary" ? "bg-ink text-accent hover:bg-ink/90" : "bg-canvas hover:bg-accent-soft",
+        tone === "primary" ? "bg-raised text-accent hover:bg-raised/90" : "bg-canvas hover:bg-accent-soft",
       )}
     >
       {busy === label ? <Loader2 className="size-3.5 animate-spin" /> : <Icon className="size-3.5" />}
@@ -651,7 +651,7 @@ function IterateDialog({
             type="button"
             disabled={pending}
             onClick={() => onSubmit(notes, findings.filter((_, i) => checked[i]))}
-            className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-accent hover:bg-ink/90 disabled:opacity-60"
+            className="rounded-full bg-raised px-4 py-2 text-sm font-semibold text-accent hover:bg-raised/90 disabled:opacity-60"
           >
             {pending ? "Working…" : revise ? "Revise" : "Re-render"}
           </button>

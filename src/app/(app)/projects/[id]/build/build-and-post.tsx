@@ -161,7 +161,7 @@ function BuildModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 grid place-items-center bg-raised/40 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -173,7 +173,7 @@ function BuildModal({
       >
         <div className="mb-4 flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <span className="grid size-9 place-items-center rounded-2xl bg-ink text-white">
+            <span className="grid size-9 place-items-center rounded-2xl bg-raised text-white">
               <Rocket className="size-4" />
             </span>
             <div>
@@ -238,7 +238,7 @@ function BuildModal({
                       <span
                         className={`grid size-4 shrink-0 place-items-center rounded border ${
                           selected.includes(i.id)
-                            ? "border-ink bg-ink text-white"
+                            ? "border-ink bg-raised text-white"
                             : "border-line"
                         }`}
                       >

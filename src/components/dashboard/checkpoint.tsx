@@ -262,7 +262,7 @@ export function DecisionBar({
                 },
               )
             }
-            className="flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-50"
+            className="flex items-center gap-2 rounded-full bg-raised px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-50"
           >
             {isPending ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
             Send for revision
@@ -287,7 +287,7 @@ export function DecisionBar({
           type="button"
           disabled={isPending}
           onClick={() => act(() => approveGateAction(projectId, videoId))}
-          className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
+          className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
         >
           {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
           Approve &amp; continue
@@ -311,7 +311,7 @@ export function DecisionBar({
               );
             }
           }}
-          className="flex items-center gap-2 rounded-full bg-coral/10 px-4 py-2 text-sm font-semibold text-[#a8442b] transition-colors hover:bg-coral/20 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-full bg-coral/10 px-4 py-2 text-sm font-semibold text-coral transition-colors hover:bg-coral/20 disabled:opacity-50"
         >
           <X className="size-4" /> Kill
         </button>
@@ -367,7 +367,7 @@ export function ThumbPicker({
               <img src={t.url} alt="" className="size-full object-cover" />
             )}
             {t.selected && (
-              <span className="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-accent text-ink">
+              <span className="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-accent text-on-accent">
                 <Check className="size-3" />
               </span>
             )}
@@ -406,8 +406,8 @@ export type AttributionCredit = {
 const CLIP_GRADIENTS = [
   "from-[#F5B829] to-[#F0876C]",
   "from-[#A78BFA] to-[#F0876C]",
-  "from-[#17150F] to-[#5a5345]",
-  "from-[#5BB98C] to-[#A78BFA]",
+  "from-[#7DD3FC] to-[#A78BFA]",
+  "from-[#57C98A] to-[#7DD3FC]",
 ];
 
 export function ClipsGrid({
@@ -462,7 +462,7 @@ export function ClipsGrid({
                   c.relevance.score >= 6
                     ? "bg-success/90"
                     : c.relevance.score >= 4
-                      ? "bg-accent/90 text-ink"
+                      ? "bg-accent/90 text-on-accent"
                       : "bg-coral/90",
                 )}
               >
@@ -541,7 +541,7 @@ export function ClipsGrid({
                 else router.refresh();
               });
             }}
-            className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white"
+            className="shrink-0 rounded-full bg-raised px-3 py-1.5 text-xs font-semibold text-white"
           >
             Reroll
           </button>

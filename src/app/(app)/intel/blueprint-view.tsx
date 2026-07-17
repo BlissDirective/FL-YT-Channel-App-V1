@@ -131,7 +131,7 @@ export function BlueprintView({
         <ol className="space-y-2">
           {b.structure.map((s, i) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="mt-0.5 shrink-0 rounded-full bg-ink px-2 py-0.5 text-xs font-bold tabular-nums text-accent">
+              <span className="mt-0.5 shrink-0 rounded-full bg-raised px-2 py-0.5 text-xs font-bold tabular-nums text-accent">
                 {s.targetSec}s
               </span>
               <div>
@@ -229,7 +229,7 @@ export function BlueprintView({
           <button
             type="button"
             onClick={sendToRemix}
-            className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-bold text-ink shadow-card transition-transform hover:scale-[1.02]"
+            className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-bold text-on-accent shadow-card transition-transform hover:scale-[1.02]"
           >
             <Wand2 className="size-4" /> Send to Script Remix
           </button>
@@ -237,7 +237,7 @@ export function BlueprintView({
         <button
           type="button"
           onClick={copy}
-          className="flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white"
+          className="flex items-center gap-2 rounded-full bg-raised px-4 py-2.5 text-sm font-semibold text-white"
         >
           {copied ? <Check className="size-4 text-accent" /> : <Copy className="size-4" />}
           {copied ? "Copied" : "Copy brief"}

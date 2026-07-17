@@ -98,7 +98,7 @@ export function OperatorPanel({
     <Card className={live ? "border border-accent/40 bg-accent-soft/30" : undefined}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="grid size-9 place-items-center rounded-2xl bg-ink text-card">
+          <span className="grid size-9 place-items-center rounded-2xl bg-raised text-card">
             <Rocket className="size-4" />
           </span>
           <div>
@@ -118,7 +118,7 @@ export function OperatorPanel({
               type="button"
               disabled={pending}
               onClick={() => act(() => startOperatorAction(projectId), "Auto Pilot started.")}
-              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-card transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full bg-raised px-4 py-2 text-sm font-semibold text-card transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               <Play className="size-4" /> Start Auto Pipeline
             </button>
@@ -138,7 +138,7 @@ export function OperatorPanel({
               type="button"
               disabled={pending}
               onClick={() => act(() => startOperatorAction(projectId), "Resumed.")}
-              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 text-sm font-semibold text-card transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full bg-raised px-3.5 py-2 text-sm font-semibold text-card transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               <Play className="size-4" /> Resume
             </button>
@@ -208,7 +208,7 @@ export function OperatorPanel({
         <div className="mt-3">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-canvas">
             <div
-              className={`h-full rounded-full ${pct > 90 ? "bg-coral" : "bg-ink"}`}
+              className={`h-full rounded-full ${pct > 90 ? "bg-coral" : "bg-raised"}`}
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -330,7 +330,7 @@ function Goal({
         </span>
       </div>
       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-card">
-        <div className={`h-full rounded-full ${highlight ? "bg-accent" : "bg-ink/60"}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full ${highlight ? "bg-accent" : "bg-raised/60"}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

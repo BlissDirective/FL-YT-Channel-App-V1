@@ -90,7 +90,7 @@ export function StepBackStage({
               type="button"
               disabled={pending}
               onClick={() => stepBack(false)}
-              className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             >
               {pending ? <Loader2 className="size-4 animate-spin" /> : <CornerUpLeft className="size-4" />}
               Keep assets &amp; go back

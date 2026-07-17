@@ -66,7 +66,7 @@ export function MobileNav() {
               >
                 <tab.icon className="size-4" />
                 {tab.badge ? (
-                  <span className="absolute -right-0.5 -top-0.5 grid min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] font-bold text-ink">
+                  <span className="absolute -right-0.5 -top-0.5 grid min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] font-bold text-on-accent">
                     {tab.badge}
                   </span>
                 ) : null}

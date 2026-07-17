@@ -97,7 +97,7 @@ export function ScoutChat({ projectId }: { projectId: string }) {
           type="button"
           disabled={isPending || !input.trim()}
           onClick={() => send(input)}
-          className="grid size-10 shrink-0 place-items-center rounded-xl bg-ink text-white disabled:opacity-50"
+          className="grid size-10 shrink-0 place-items-center rounded-xl bg-raised text-white disabled:opacity-50"
           aria-label="Send"
         >
           {isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
@@ -138,7 +138,7 @@ export function ScoutChat({ projectId }: { projectId: string }) {
                   }
                 })
               }
-              className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card disabled:opacity-50"
+              className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-card disabled:opacity-50"
             >
               {saving ? <Loader2 className="size-4 animate-spin" /> : <Bookmark className="size-4" />}
               Save idea

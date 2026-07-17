@@ -32,11 +32,11 @@ export function TopNav() {
     <header className="flex items-center justify-between gap-4 px-4 py-5 sm:px-8">
       <div className="flex items-center gap-2">
         <BackButton />
-        <Link href="/" className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-2xl bg-ink text-accent">
+        <Link href="/" className="group flex items-center gap-3">
+          <span className="relative grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-accent to-[#c98a00] text-on-accent shadow-[0_0_18px_-4px_rgb(245_184_41/0.7)] transition-transform group-hover:scale-105">
             <Sparkles className="size-5" fill="currentColor" />
           </span>
-          <span className="text-lg font-bold tracking-tight">
+          <span className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">
             Faceless Studio
           </span>
         </Link>
@@ -58,7 +58,7 @@ export function TopNav() {
             >
               {item.label}
               {item.badge ? (
-                <span className="grid min-w-5 place-items-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-ink">
+                <span className="grid min-w-5 place-items-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-on-accent">
                   {item.badge}
                 </span>
               ) : null}

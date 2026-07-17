@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clapperboard, Radar, Settings } from "lucide-react";
-import { getProject } from "@/lib/db/queries";
+import { getProject, getVideos } from "@/lib/db/queries";
 import { getLibrary, type LibraryItem } from "@/lib/db/library-data";
+import { getFeedEntries } from "@/lib/db/feed";
 import { LIBRARY_SECTIONS, RAIL_STEPS } from "@/lib/db/library";
+import { backlotStages } from "@/lib/db/pipeline";
 import type { Idea } from "@/lib/db/types";
 import { AssetTile } from "@/components/ui/asset-tile";
 import { CollapsibleSection } from "@/components/ui/section-header";
 import { ProjectSignalStrip } from "@/components/ui/signal-strip";
 import { StatusChip } from "@/components/ui/status-chip";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
+import { BacklotStageRail } from "@/components/dashboard/backlot-stage-rail";
+import { BacklotTicker } from "@/components/dashboard/backlot-ticker";
 import { ScoutChat } from "@/components/dashboard/scout-chat";
 import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-button";
 import { RunDemoButton } from "@/components/dashboard/run-demo-button";
@@ -37,8 +41,17 @@ export default async function LibraryPage({
   const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
-  const library = await getLibrary(id);
+  const [library, videos, feed] = await Promise.all([
+    getLibrary(id),
+    getVideos(id),
+    getFeedEntries(id, 24),
+  ]);
   const directorMode = (project.pipeline_mode ?? "autonomous") === "director";
+
+  // Backlot production board (#8): per-lane live stats + a "work happening now"
+  // flag that drives the header LIVE indicator.
+  const stages = backlotStages(videos);
+  const liveNow = stages.reduce((n, s) => n + s.active, 0);
 
   const monthlyBudget = Number(
     (project.budget as { monthlyUsd?: number })?.monthlyUsd ?? 0,
@@ -51,20 +64,37 @@ export default async function LibraryPage({
   const empty = Object.values(sectionCounts).every((n) => n === 0);
 
   return (
-    <div className="space-y-8 pt-2">
-      <RealtimeRefresher tables={["videos", "ideas", "qc_reviews", "assets", "cost_ledger"]} />
+    <div className="space-y-6 pt-2">
+      <RealtimeRefresher
+        tables={[
+          "videos",
+          "ideas",
+          "qc_reviews",
+          "assets",
+          "scripts",
+          "cost_ledger",
+          "operator_events",
+        ]}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-            <Link href="/" className="hover:text-ink">Projects</Link> / Library
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+            <Link href="/" className="hover:text-ink">Projects</Link> / Backlot
+            {liveNow > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent">
+                <span className="size-1.5 rounded-full bg-accent live-dot" /> {liveNow} live
+              </span>
+            )}
           </p>
           <div className="flex items-center gap-2">
-            <h1 className="truncate text-2xl font-bold tracking-tight">{project.name}</h1>
+            <h1 className="truncate font-[family-name:var(--font-display)] text-2xl font-bold tracking-tight sm:text-3xl">
+              {project.name}
+            </h1>
             {directorMode && (
               <span
                 data-mode="director"
-                className="flex shrink-0 items-center gap-1 rounded-full bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-accent"
+                className="flex shrink-0 items-center gap-1 rounded-full bg-raised px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-accent"
                 title="You direct every stage. Nothing advances on its own."
               >
                 <Clapperboard className="size-3" /> Director Mode
@@ -103,6 +133,16 @@ export default async function LibraryPage({
         </div>
       )}
 
+      {/* ── Backlot live production board (#8) ─────────────────────────── */}
+      <section className="relative overflow-hidden rounded-panel border border-line bg-gradient-to-br from-card/80 via-surface/60 to-card/80 p-4 shadow-float sm:p-5">
+        <span className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-accent/10 blur-3xl" aria-hidden />
+        <span className="pointer-events-none absolute -bottom-20 -left-10 size-48 rounded-full bg-sky/10 blur-3xl" aria-hidden />
+        <div className="relative space-y-4">
+          <BacklotStageRail stages={stages} projectId={project.id} />
+          <BacklotTicker entries={feed} />
+        </div>
+      </section>
+
       <ProjectSignalStrip
         spendUsd={library.monthSpendUsd}
         budgetUsd={monthlyBudget}
@@ -122,7 +162,7 @@ export default async function LibraryPage({
             <span className="inline-block size-2 rounded-full bg-accent/50" /> stalled
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block size-2 rounded-full bg-ink/50" /> paused
+            <span className="inline-block size-2 rounded-full bg-raised/50" /> paused
           </span>
           <span className="flex items-center gap-1.5">
             <span className="inline-block size-2 rounded-full bg-coral" /> failed

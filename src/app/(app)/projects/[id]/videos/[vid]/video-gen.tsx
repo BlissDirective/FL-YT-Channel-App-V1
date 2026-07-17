@@ -567,7 +567,7 @@ function BeatRow({
           disabled={busy || overBudget || Boolean(pending)}
           onClick={onGenerate}
           title={overBudget ? "Would exceed the monthly video budget" : undefined}
-          className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
         >
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Clapperboard className="size-4" />}
           {model.longClip ? `Queue · $${est.toFixed(2)}` : `$${est.toFixed(2)}`}
@@ -676,7 +676,7 @@ function FullAutoPanel({
           type="button"
           disabled={running || overCap}
           onClick={() => onRun(tier, est, tier === "custom" ? custom : undefined)}
-          className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
         >
           {running ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />}
           {running ? "Starting…" : `Run · ~$${est.toFixed(2)}`}
@@ -882,7 +882,7 @@ function AutoStitchPanel({
             type="button"
             disabled={overBudget}
             onClick={() => onLengthen(sectionIdx, seamless ? "stitch-seamless" : "stitch", targetSec, est)}
-            className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
             <Layers className="size-4" /> Queue long clip · ${est.toFixed(2)}
           </button>
@@ -927,7 +927,7 @@ function AutoStitchPanel({
             type="button"
             disabled={mergeEnd <= mergeStart}
             onClick={() => onMerge(mergeStart, mergeEnd)}
-            className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
             <Layers className="size-4" /> Merge sections {mergeStart + 1}–{mergeEnd + 1}
           </button>

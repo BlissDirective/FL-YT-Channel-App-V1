@@ -93,7 +93,7 @@ export function NotificationsCard({ vapidPublicKey }: { vapidPublicKey?: string 
           type="button"
           disabled={isPending}
           onClick={state === "on" ? disable : enable}
-          className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
+          className="flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02] disabled:opacity-50"
         >
           {isPending ? (
             <Loader2 className="size-4 animate-spin" />

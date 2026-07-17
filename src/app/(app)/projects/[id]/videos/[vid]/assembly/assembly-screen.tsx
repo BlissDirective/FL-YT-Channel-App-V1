@@ -132,7 +132,7 @@ export function AssemblyScreen({
           <button onClick={runPropose} disabled={pending} className="flex items-center gap-1.5 rounded-full bg-card-warm px-4 py-2 text-sm font-semibold shadow-card hover:bg-accent-soft disabled:opacity-50">
             <Wand2 className="size-4" /> Auto
           </button>
-          <button onClick={save} disabled={pending || invalid} className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-ink shadow-card hover:scale-[1.01] disabled:opacity-50">
+          <button onClick={save} disabled={pending || invalid} className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-card hover:scale-[1.01] disabled:opacity-50">
             <Save className="size-4" /> {dirty ? "Save*" : "Save"}
           </button>
           <Link href={`/projects/${projectId}/videos/${videoId}/edit`} className="flex items-center gap-1.5 rounded-full bg-card-warm px-4 py-2 text-sm font-semibold shadow-card hover:bg-accent-soft">
@@ -154,7 +154,7 @@ export function AssemblyScreen({
               </ul>
             </div>
             <div className="flex shrink-0 gap-2">
-              <button onClick={acceptProposal} className="flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-ink shadow-card">
+              <button onClick={acceptProposal} className="flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent shadow-card">
                 <Check className="size-3.5" /> Apply
               </button>
               <button onClick={() => setProposal(null)} className="flex items-center gap-1 rounded-full bg-card px-3 py-1.5 text-xs font-medium text-muted shadow-card hover:text-ink">

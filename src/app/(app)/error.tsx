@@ -24,7 +24,7 @@ export default function ErrorBoundary({
         <button
           type="button"
           onClick={reset}
-          className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-ink shadow-card transition-transform hover:scale-[1.02]"
+          className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02]"
         >
           <RotateCcw className="size-4" /> Try again
         </button>

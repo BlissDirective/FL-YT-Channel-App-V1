@@ -517,7 +517,7 @@ export default async function VideoDetailPage({
       {v.status === "ASSEMBLING" && (
         <Card className="border border-accent/40 bg-accent-soft/40">
           <div className="flex items-start gap-3">
-            <span className="mt-0.5 grid size-9 shrink-0 animate-pulse place-items-center rounded-2xl bg-accent text-ink">
+            <span className="mt-0.5 grid size-9 shrink-0 animate-pulse place-items-center rounded-2xl bg-accent text-on-accent">
               <Clapperboard className="size-4" />
             </span>
             <div>

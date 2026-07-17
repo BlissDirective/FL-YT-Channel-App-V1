@@ -177,7 +177,7 @@ function BeatBlock({
                 type="button"
                 onClick={toggle}
                 aria-label={playing ? "Pause" : "Play"}
-                className="grid size-9 place-items-center rounded-full bg-accent text-ink shadow-card"
+                className="grid size-9 place-items-center rounded-full bg-accent text-on-accent shadow-card"
               >
                 {playing ? <Pause className="size-4" /> : <Play className="size-4" />}
               </button>
@@ -216,7 +216,7 @@ function BeatBlock({
               type="button"
               disabled={isPending}
               onClick={save}
-              className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
             >
               {isPending ? (
                 <Loader2 className="size-3.5 animate-spin" />
@@ -241,7 +241,7 @@ function BeatBlock({
               key={i}
               className={cn(
                 "rounded px-0.5 transition-colors",
-                i === activeWord && playing && "bg-accent text-ink",
+                i === activeWord && playing && "bg-accent text-on-accent",
               )}
             >
               {w.w}{" "}

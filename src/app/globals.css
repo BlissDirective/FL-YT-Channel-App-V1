@@ -1,48 +1,93 @@
 @import "tailwindcss";
 
-/* "Warm control panel" design tokens — must stay in sync with
-   packages/core/src/design-tokens.ts */
+/* ─────────────────────────────────────────────────────────────────────────
+   "Studio dark" design tokens (OpenMontage Remixed #8) — the app control
+   panel now shares the cinema-dark language of the /launch hero. Must stay in
+   sync with packages/core/src/design-tokens.ts.
+
+   The app is fully tokenised, so re-theming is a token-value flip: every
+   `bg-card` / `text-ink` / `text-muted` surface re-themes at once. Two tokens
+   were split out of the previously overloaded `ink`:
+     • --color-ink       → primary FOREGROUND text (now light)
+     • --color-raised     → the dark ELEVATED surface `bg-ink` used to mean
+     • --color-on-accent  → dark text that sits on the amber accent
+   ───────────────────────────────────────────────────────────────────────── */
 @theme {
-  --color-canvas: #edebe7;
-  --color-surface: #faf7f1;
-  --color-card: #ffffff;
-  --color-card-warm: #fdfbf7;
-  --color-accent: #f5b829;
-  --color-accent-soft: #fcebc2;
-  --color-ink: #17150f;
-  --color-coral: #f0876c;
+  /* Base surfaces — deep, cool near-black stepped for elevation without
+     borders (canvas darkest → card-warm lightest). */
+  --color-canvas: #08070d;
+  --color-surface: #100e18;
+  --color-card: #17151f;
+  --color-card-warm: #201d2b;
+  --color-raised: #262230; /* the old `bg-ink` dark chip/overlay surface */
+
+  /* Brand + expanded colourway (steer away from beige/light-orange; more
+     colour: amber + sky + lavender + coral + green all in active use). */
+  --color-accent: #f5b829; /* amber — brand / primary CTA */
+  --color-accent-soft: rgba(245, 184, 41, 0.14); /* translucent amber wash */
+  --color-on-accent: #17150f; /* dark text on amber */
+  --color-sky: #7dd3fc; /* human / "you" / info */
   --color-lavender: #a78bfa;
-  --color-success: #5bb98c;
-  --color-success-soft: #ddf0e6;
-  --color-muted: #6b6757; /* AA-contrast (~4.8:1) on the warm backgrounds */
-  --color-line: #eeeae2;
+  --color-coral: #f0876c;
+  --color-success: #57c98a;
+  --color-success-soft: rgba(87, 201, 138, 0.15);
+
+  --color-ink: #f4f1ea; /* primary foreground text (light) */
+  --color-muted: #9c96a8; /* AA (~5:1) on the dark surfaces */
+  --color-line: rgba(244, 241, 234, 0.09);
 
   --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  /* Marketing display faces (self-hosted via fontsource, loaded in the
-     (marketing) layout). Two distinct techy grotesks for the hero taglines. */
+  /* Display faces (self-hosted via fontsource, loaded in the (app) layout) —
+     the same techy grotesks the hero uses, so headings match end to end. */
   --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display-alt: "Sora Variable", ui-sans-serif, system-ui, sans-serif;
 
   --radius-card: 1.25rem;
   --radius-panel: 1.75rem;
 
-  --shadow-card: 0 1px 3px rgb(23 21 15 / 0.04), 0 1px 2px rgb(23 21 15 / 0.03);
-  --shadow-float: 0 8px 24px rgb(23 21 15 / 0.08);
+  /* On dark, elevation reads through deeper shadow + a faint top highlight. */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3),
+    inset 0 1px 0 rgb(255 255 255 / 0.03);
+  --shadow-float: 0 12px 40px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.4),
+    inset 0 1px 0 rgb(255 255 255 / 0.04);
 }
 
 body {
   background-color: var(--color-canvas);
   color: var(--color-ink);
   font-feature-settings: "tnum";
+  -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: var(--color-accent-soft);
+  background: rgba(245, 184, 41, 0.28);
+  color: #fff;
 }
 
-/* Library "actively processing" glow — an illuminated, animated amber star
-   border around an asset a human or an agent is working right now. Pairs with
-   the static rings (awaiting/failed/stalled) so live work reads at a glance. */
+/* Custom scrollbar so the dark shell doesn't get a bright OS scrollbar. */
+* {
+  scrollbar-color: rgba(244, 241, 234, 0.18) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(244, 241, 234, 0.14);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 184, 41, 0.4);
+  background-clip: content-box;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Library "actively processing" tile — an illuminated, animated amber border
+   plus a diagonal light sweep ("scanline") across the thumbnail while an agent
+   works the asset. Pairs with the static rings (awaiting/failed/stalled).
+   ───────────────────────────────────────────────────────────────────────── */
 .tile-active {
   position: relative;
   animation: tile-glow 1.8s ease-in-out infinite;
@@ -52,9 +97,9 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 2px;
-  background: linear-gradient(120deg, var(--color-accent), #ffe4a3, var(--color-accent), #ffd066);
-  background-size: 200% 100%;
+  padding: 1.5px;
+  background: linear-gradient(120deg, var(--color-accent), #ffe4a3, var(--color-sky), var(--color-accent), #ffd066);
+  background-size: 300% 100%;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -62,15 +107,226 @@ body {
   pointer-events: none;
 }
 @keyframes tile-glow {
-  0%, 100% { box-shadow: 0 0 10px -2px rgb(245 184 41 / 0.45); }
-  50% { box-shadow: 0 0 22px 2px rgb(245 184 41 / 0.7); }
+  0%, 100% { box-shadow: 0 0 12px -2px rgb(245 184 41 / 0.5); }
+  50% { box-shadow: 0 0 26px 2px rgb(245 184 41 / 0.72); }
 }
 @keyframes tile-border {
-  to { background-position: 200% 0; }
+  to { background-position: 300% 0; }
 }
+
+/* A diagonal specular sweep — layer over any `position:relative` thumbnail
+   with <span class="scanline" /> to signal "rendering now". */
+.scanline {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.scanline::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(245, 184, 41, 0.22) 50%,
+    rgba(255, 255, 255, 0.12) 55%,
+    transparent
+  );
+  transform: rotate(8deg);
+  animation: scan 2.6s ease-in-out infinite;
+}
+@keyframes scan {
+  0% { left: -60%; }
+  60%, 100% { left: 130%; }
+}
+
+/* ── Stage-rail node glow — the lit pipeline lanes on the Backlot board ───── */
+.stage-live {
+  animation: stage-pulse 2.4s ease-in-out infinite;
+}
+@keyframes stage-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgb(245 184 41 / 0.35), 0 0 18px -4px rgb(245 184 41 / 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgb(245 184 41 / 0.6), 0 0 30px 0 rgb(245 184 41 / 0.8);
+  }
+}
+/* Energy dot travelling along a connector between two lit stages. */
+.flow-spark {
+  animation: flow-spark 1.9s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+@keyframes flow-spark {
+  0% { transform: translateX(-2px); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateX(var(--spark-dist, 28px)); opacity: 0; }
+}
+
+/* ── Aurora atmosphere behind the shell (drifting blurred blobs) ─────────── */
+.app-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.app-aurora::before,
+.app-aurora::after {
+  content: "";
+  position: absolute;
+  width: 55vw;
+  height: 55vw;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.16;
+}
+.app-aurora::before {
+  background: radial-gradient(circle, var(--color-accent), transparent 62%);
+  top: -18%;
+  left: -8%;
+  animation: drift-a 22s ease-in-out infinite alternate;
+}
+.app-aurora::after {
+  background: radial-gradient(circle, var(--color-sky), transparent 62%);
+  top: 30%;
+  right: -12%;
+  animation: drift-b 26s ease-in-out infinite alternate;
+}
+@keyframes drift-a {
+  to { transform: translate(10%, 16%) scale(1.18); }
+}
+@keyframes drift-b {
+  to { transform: translate(-12%, -10%) scale(1.12); }
+}
+
+/* ── Cursor-following spotlight card (react-bits parity with the hero) ───── */
+.spotlight {
+  position: relative;
+}
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.35s;
+  background: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(245, 184, 41, 0.12),
+    transparent 68%
+  );
+  pointer-events: none;
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* ── Animated gradient text (headline flourish) ─────────────────────────── */
+.gradient-text {
+  background: linear-gradient(100deg, var(--color-accent), #ffd97a, var(--color-sky), var(--color-lavender), var(--color-accent));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-shift 9s ease infinite;
+}
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ── Live-activity ticker: seamless horizontal marquee (pauses on hover) ─── */
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.marquee-track {
+  display: inline-flex;
+  animation: marquee 38s linear infinite;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* Soft breathing dot for "live" indicators. */
+.live-dot {
+  animation: live-dot 1.8s ease-in-out infinite;
+}
+@keyframes live-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(245 184 41 / 0.55); }
+  50% { box-shadow: 0 0 0 5px rgb(245 184 41 / 0); }
+}
+
+/* Timeline-tick divider motif (borrowed from the hero). */
+.ticks {
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-line) 0,
+    var(--color-line) 1px,
+    transparent 1px,
+    transparent 10px
+  );
+}
+
+/* ── Scroll-reveal primitives (shared with the hero's react-bits) ───────── */
+.m-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.m-reveal.m-in {
+  opacity: 1;
+  transform: none;
+}
+.m-word {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(0.3em);
+  transition:
+    opacity 0.5s ease,
+    filter 0.5s ease,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.m-word.m-in {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .m-reveal,
+  .m-word {
+    transition: opacity 0.3s ease !important;
+    transform: none !important;
+    filter: none !important;
+  }
   .tile-active { animation: none; box-shadow: 0 0 0 2px var(--color-accent); }
   .tile-active::after { animation: none; background-position: 0 0; }
+  .scanline::before,
+  .stage-live,
+  .flow-spark,
+  .app-aurora::before,
+  .app-aurora::after,
+  .gradient-text,
+  .marquee-track,
+  .live-dot { animation: none !important; }
 }
 
 @utility input {
@@ -82,10 +338,12 @@ body {
   line-height: 1.25rem;
   color: var(--color-ink);
   outline: none;
+  border: 1px solid var(--color-line);
   &::placeholder {
     color: var(--color-muted);
   }
   &:focus {
-    box-shadow: 0 0 0 2px rgb(245 184 41 / 0.4);
+    border-color: transparent;
+    box-shadow: 0 0 0 2px rgb(245 184 41 / 0.5);
   }
 }

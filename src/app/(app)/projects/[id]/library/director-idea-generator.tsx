@@ -104,7 +104,7 @@ export function DirectorIdeaGenerator({ projectId }: { projectId: string }) {
         type="button"
         onClick={submit}
         disabled={pending}
-        className="flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-semibold text-accent hover:bg-ink/90 disabled:opacity-60"
+        className="flex items-center gap-1.5 rounded-full bg-raised px-4 py-2 text-xs font-semibold text-accent hover:bg-raised/90 disabled:opacity-60"
       >
         {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
         Generate {count > 1 ? `${count} ideas` : "idea"}
