@@ -8,6 +8,8 @@
 
 import { isFalLive, kokoroSynthesize } from "./fal";
 
+import type { VoiceDirection } from "@studio/core";
+
 export type VoiceProvider = "elevenlabs" | "kokoro" | "mock";
 
 export type Voice = {
@@ -119,6 +121,8 @@ async function elevenLabsVoices(): Promise<Voice[]> {
 export async function synthesizeSpeech(opts: {
   text: string;
   voiceId: string;
+  /** Per-beat voice direction (tone/emotion), from voiceDirectionForBeat (#28). */
+  direction?: VoiceDirection;
 }): Promise<SynthesisResult> {
   const provider = voiceProviderFor(opts.voiceId);
   if (provider === "mock") {
@@ -127,7 +131,21 @@ export async function synthesizeSpeech(opts: {
     );
   }
   if (provider === "kokoro") return synthesizeKokoro(opts.text, opts.voiceId);
-  return synthesizeElevenLabs(opts.text, opts.voiceId);
+  return synthesizeElevenLabs(opts.text, opts.voiceId, opts.direction);
+}
+
+/** Map voice direction → ElevenLabs voice_settings. A serious/authoritative
+    read is steadier (higher stability); an excited hook is more expressive
+    (higher style, lower stability). Pure. */
+export function directionToVoiceSettings(d?: VoiceDirection): { stability: number; similarity_boost: number; style: number } {
+  if (!d) return { stability: 0.5, similarity_boost: 0.75, style: 0.2 };
+  const excited = d.emotion === "excited";
+  const steady = d.emotion === "serious" || d.emotion === "authoritative" || d.emotion === "somber";
+  return {
+    stability: steady ? 0.7 : excited ? 0.35 : 0.5,
+    similarity_boost: 0.75,
+    style: Math.max(0, Math.min(0.6, d.emphasis * 0.6)),
+  };
 }
 
 async function synthesizeKokoro(text: string, voiceId: string): Promise<SynthesisResult> {
@@ -147,7 +165,7 @@ async function synthesizeKokoro(text: string, voiceId: string): Promise<Synthesi
   };
 }
 
-async function synthesizeElevenLabs(text: string, voiceId: string): Promise<SynthesisResult> {
+async function synthesizeElevenLabs(text: string, voiceId: string, direction?: VoiceDirection): Promise<SynthesisResult> {
   if (!process.env.ELEVENLABS_API_KEY) throw new Error("ElevenLabs is not configured");
   const res = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps?output_format=mp3_44100_128`,
@@ -157,7 +175,7 @@ async function synthesizeElevenLabs(text: string, voiceId: string): Promise<Synt
         "xi-api-key": process.env.ELEVENLABS_API_KEY,
         "content-type": "application/json",
       },
-      body: JSON.stringify({ text, model_id: TTS_MODEL }),
+      body: JSON.stringify({ text, model_id: TTS_MODEL, voice_settings: directionToVoiceSettings(direction) }),
     },
   );
   if (!res.ok) {

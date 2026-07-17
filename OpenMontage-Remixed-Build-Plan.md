@@ -75,6 +75,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 15.	Music generation + bed. Suno / ElevenLabs Music for a soundtrack with ducking. Remix: turn on your D8 music (currently schema-present, gated off) via an ElevenLabs-Music adapter + your existing DuckSpec.
 
+> ✅ **SIGNED OFF — Batch 6: list1 #15/#27/#28, list2 #22/#17.** Core `audio-plan.ts` (`@studio/core`): `planMusic(input)` resolves the soundtrack at **proposal time** (mood from niche + intensity/tempo from the taste dial + a **sidechain DuckSpec**), so late music failure is impossible (#22); `voiceDirectionForBeat(beat)` derives per-beat tone/emotion/pace/emphasis (hook → excited, stat → authoritative, question → warm) that flows into narration + caption emphasis (#28/#17); `DEFAULT_VO_CLEANUP` targets the media-QC band (#27). Mock-first **ElevenLabs Music adapter** (`music.ts`, isMusicLive) synthesises the planned bed. Voice direction is wired into `synthesizeSpeech` → ElevenLabs `voice_settings` (steadier for authoritative, more expressive for excited). Verified: `tsc`, `eslint`, **895/895 vitest** (+11).
+
 	16.	Style playbooks (reusable YAML looks). A library of named visual styles. Remix: promote your per-video Visual Bible into reusable per-niche style playbooks you can apply to new videos.
 
 	17.	Scene detection on generated clips. Detect cut points inside footage. Remix: feed into the MVDA’s retime/trim decisions for tighter cuts.
