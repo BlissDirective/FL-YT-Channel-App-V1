@@ -407,10 +407,10 @@ export type AttributionCredit = {
 };
 
 const CLIP_GRADIENTS = [
-  "from-[#F5B829] to-[#F0876C]",
-  "from-[#A78BFA] to-[#F0876C]",
-  "from-[#7DD3FC] to-[#A78BFA]",
-  "from-[#57C98A] to-[#7DD3FC]",
+  "from-[#10D48E] to-[#FF6B6B]",
+  "from-[#7C5CFF] to-[#FF6B6B]",
+  "from-[#38BDF8] to-[#7C5CFF]",
+  "from-[#10D48E] to-[#38BDF8]",
 ];
 
 export function ClipsGrid({

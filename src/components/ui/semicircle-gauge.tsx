@@ -31,8 +31,8 @@ export function SemicircleGauge({
       >
         <defs>
           <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#F5B829" />
-            <stop offset="100%" stopColor="#F0876C" />
+            <stop offset="0%" stopColor="#10D48E" />
+            <stop offset="100%" stopColor="#FF6B6B" />
           </linearGradient>
         </defs>
         <path

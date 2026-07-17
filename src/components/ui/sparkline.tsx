@@ -47,20 +47,20 @@ export function Sparkline({
     >
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#F5B829" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#F5B829" stopOpacity="0" />
+          <stop offset="0%" stopColor="#10D48E" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#10D48E" stopOpacity="0" />
         </linearGradient>
       </defs>
       {points.length > 1 && <polygon points={area} fill={`url(#${id})`} />}
       <polyline
         points={line}
         fill="none"
-        stroke="#F5B829"
+        stroke="#10D48E"
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx={lastX} cy={lastY} r={2.5} fill="#F5B829" />
+      <circle cx={lastX} cy={lastY} r={2.5} fill="#10D48E" />
     </svg>
   );
 }

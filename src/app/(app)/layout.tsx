@@ -23,7 +23,7 @@ export default function AppLayout({
           bar / notch when installed as a PWA or viewed in a browser whose
           chrome overlays the viewport. */}
       <div className="relative z-10 mx-auto min-h-screen max-w-[1440px] p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-5">
-        <div className="min-h-[calc(100vh-2.5rem)] rounded-panel border border-line bg-surface/80 shadow-float backdrop-blur-xl">
+        <div className="glass-shine min-h-[calc(100vh-2.5rem)] rounded-panel border border-line bg-surface/80 shadow-float backdrop-blur-xl">
           <TopNav />
           {/* Bottom padding below `sm` keeps content clear of the tab bar. */}
           <main className="px-4 pb-24 sm:px-8 sm:pb-8">{children}</main>
