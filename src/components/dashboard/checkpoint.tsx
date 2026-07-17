@@ -11,7 +11,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Gauge, Image as ImageIcon, Loader2, Play, RefreshCw, X } from "lucide-react";
+import { Check, Gauge, Image as ImageIcon, Loader2, Play, RefreshCw, RotateCcw, X } from "lucide-react";
 import type { WatchVerdict } from "@/lib/pipeline/watch-gate";
 import { lowestDimension } from "@/lib/pipeline/watch-gate";
 import type { QcReview } from "@/lib/db/queries";
@@ -21,6 +21,7 @@ import {
   labelQcReviewAction,
   labelWatchVerdictAction,
   requestRevisionAction,
+  regenerateAssetAction,
   rerollBeatVisualAction,
   selectThumbnailAction,
 } from "@/lib/actions/pipeline";
@@ -394,6 +395,8 @@ export type ClipTile = {
   relevance?: { score?: number; depicts?: string; reason?: string };
   fromLibrary?: boolean;
   provider: string;
+  /** C2: the asset carries an exact stored request and can be reproduced. */
+  regenerable?: boolean;
 };
 
 export type AttributionCredit = {
@@ -502,6 +505,26 @@ export function ClipsGrid({
                     <RefreshCw className="size-3" />
                   )}
                 </button>
+                {c.regenerable && (
+                  <button
+                    type="button"
+                    aria-label={`Reproduce shot ${(c.beatIdx ?? 0) + 1} from its exact stored request`}
+                    title="Reproduce from the exact stored request (C2)"
+                    onClick={() => {
+                      setBusyBeat(c.beatIdx);
+                      startTransition(async () => {
+                        setError(undefined);
+                        const r = await regenerateAssetAction(projectId, c.id, true);
+                        setBusyBeat(null);
+                        if (!r.ok) setError(r.error);
+                        else router.refresh();
+                      });
+                    }}
+                    className="grid size-6 place-items-center rounded-full bg-black/50 text-white hover:bg-black/80"
+                  >
+                    <RotateCcw className="size-3" />
+                  </button>
+                )}
               </div>
             )}
           </div>

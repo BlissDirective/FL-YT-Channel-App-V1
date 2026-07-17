@@ -22,6 +22,7 @@ import {
   moveBeat,
   proposeBeatRemix,
   proposeScriptRemix,
+  regenerateAsset,
   rerollBeatVisual,
   rerollStickScene,
   setStickScene,
@@ -702,6 +703,20 @@ export async function rerollBeatVisualAction(
 ): Promise<PipelineResult> {
   return guarded(async () => {
     const result = await rerollBeatVisual({ videoId, beatIdx, note });
+    refresh(projectId);
+    return result;
+  });
+}
+
+/** Regenerable workspace (C2): re-roll a single asset from its exact stored
+    request. `reproduce` replays the same seed; default re-rolls a fresh one. */
+export async function regenerateAssetAction(
+  projectId: string,
+  assetId: string,
+  reproduce?: boolean,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const result = await regenerateAsset({ assetId, reproduce });
     refresh(projectId);
     return result;
   });

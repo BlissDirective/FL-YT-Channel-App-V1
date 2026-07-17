@@ -110,6 +110,7 @@
     "applySourceClipAction(projectId: string, videoId: string, beatIdx: number, candidate: SourceCandidate,)",
     "addPressKitAssetAction(projectId: string, videoId: string, beatIdx: number, asset: { url: string; title: string; author: string; sourceUrl?: string; kind: \"image\" | \"video\" },)",
     "rerollBeatVisualAction(projectId: string, videoId: string, beatIdx: number, note?: string,)",
+    "regenerateAssetAction(projectId: string, assetId: string, reproduce?: boolean,)",
     "regenerateScriptAction(projectId: string, videoId: string,)",
     "rerollStickSceneAction(projectId: string, videoId: string, beatIdx: number, note?: string,)",
     "setStickSceneAction(projectId: string, videoId: string, beatIdx: number, patch: { action?: string; setting?: string; mood?: string },)",

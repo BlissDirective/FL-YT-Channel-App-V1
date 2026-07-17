@@ -23,6 +23,9 @@ import { RAIL_STEPS, railIndexFor } from "@/lib/db/library";
 import type { QcReview } from "@/lib/db/queries";
 import { getEditorFlags } from "@/lib/pipeline/editor-flags";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
+import { CollapsibleSection } from "@/components/ui/section-header";
+import { DecisionTrail } from "@/components/dashboard/decision-trail";
+import { getDecisions } from "@/lib/db/decisions-data";
 import { CheckpointPanel } from "./checkpoint-panel";
 import { CanvasControls } from "./canvas-controls";
 import { DirectorConsole, type ConsoleReview, type ConsoleDecision } from "./director-console";
@@ -66,7 +69,7 @@ export default async function VideoDetailPage({
   const { id, vid } = await params;
   const { setup } = await searchParams;
   const supabase = await createClient();
-  const [project, { data: video }, { data: script }, { data: assets }] =
+  const [project, { data: video }, { data: script }, { data: assets }, decisionTrail] =
     await Promise.all([
       getProject(id),
       supabase.from("videos").select("*").eq("id", vid).maybeSingle(),
@@ -82,6 +85,7 @@ export default async function VideoDetailPage({
         .select("*")
         .eq("video_id", vid)
         .order("beat_index", { ascending: true }),
+      getDecisions(vid),
     ]);
   if (!project || !video) notFound();
 
@@ -219,6 +223,7 @@ export default async function VideoDetailPage({
                 shotType?: string;
                 relevance?: { score?: number; depicts?: string; reason?: string };
                 fromLibrary?: boolean;
+                request?: { kind?: string };
               };
               return {
                 id: a.id,
@@ -228,6 +233,7 @@ export default async function VideoDetailPage({
                 relevance: m.relevance,
                 fromLibrary: m.fromLibrary,
                 provider: a.provider,
+                regenerable: m.request?.kind === "still",
               };
             }),
         )
@@ -292,7 +298,7 @@ export default async function VideoDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pt-2">
-      <RealtimeRefresher tables={["videos", "scripts", "assets", "analytics_snapshots", "clip_jobs"]} />
+      <RealtimeRefresher tables={["videos", "scripts", "assets", "analytics_snapshots", "clip_jobs", "decisions"]} />
       <div>
         <Link
           href={`/projects/${id}/library`}
@@ -571,6 +577,17 @@ export default async function VideoDetailPage({
           customDefault={project.custom_spec ?? null}
         />
         </div>
+      )}
+
+      {decisionTrail.length > 0 && (
+        <CollapsibleSection
+          title="Decision trail"
+          count={decisionTrail.length}
+          storageKey={`decisions:${vid}`}
+          defaultCollapsed
+        >
+          <DecisionTrail decisions={decisionTrail} />
+        </CollapsibleSection>
       )}
     </div>
   );

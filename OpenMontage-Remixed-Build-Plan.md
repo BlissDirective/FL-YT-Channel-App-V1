@@ -38,6 +38,19 @@ Please proceed to elaborate upon and build the following concepts:
 
 	9.	Decision audit trail. Every creative/technical choice (provider, style, voice, music, fallbacks) logged with alternatives + confidence + reasoning. Remix: extend operator_decisions / cost ledger into a per-video decision log — improves explainability and feeds your operator-signal learning.
 
+> ✅ **SIGNED OFF — Tasks #9 + C2 complete (built together, branch `claude/openmontage-build-plan-be7rb9`).**
+> These two share one substrate — a per-choice record carrying the exact reproduction params — so they were built as one coherent change on top of #1's `clip_jobs.selection`.
+> **#9 Decision audit trail:**
+> - New append-only **`decisions` table** (`0059_decisions.sql`, RLS + realtime): one row per creative/technical choice — `kind` (model/provider/medium/tier/voice/music/style/fallback/regenerate), `choice`, `alternatives` jsonb, `confidence`, `reasoning`, `cost_usd`, and the exact **`params`** to reproduce. Generalises the Director-only `operator_decisions` into a log every mode writes to.
+> - **`recordDecision` / `recordDecisions`** best-effort writers (never break generation) in `pipeline/decisions.ts` (unit-tested, 5 cases).
+> - **Wired at real choice points:** each beat's scored model pick (from #1) → a `model` decision with alternatives + confidence + reasoning; the Visual Bible → a `style` decision; every re-roll → a `regenerate` decision.
+> - **Decision Trail UI** (`decision-trail.tsx`): a collapsible per-video panel on the video page — kind icons, choice, confidence, ranked alternatives, reasoning, cost, live-updating via realtime. Dark/on-brand.
+> **C2 Regenerable workspace:**
+> - Every generated still now stores its **exact request** on `meta.request` (prompt, model, endpoint, image size, **seed**) — `generateImage` was extended to capture/return a concrete seed (`fal.ts`), so an asset is reproducible, not just re-rollable.
+> - **`regenerateAsset` + `regenerateAssetAction(projectId, assetId, reproduce)`** replay the stored request (same seed = exact reproduction; fresh seed = a variation) without re-running the stage, logging a `regenerate` decision. Registered in the server-action contract manifest.
+> - **First-class UI:** a "Reproduce" control on each regenerable clip tile (ClipsGrid); the clip worker also copies the selection/request onto `assets.meta` for provenance.
+> - Verified: `tsc` clean, `eslint` clean, **828/828 vitest** (+6 new), `next build` clean, and visual QA of the Decision Trail.
+
 	10.	Localization & dub pipeline. Subtitle/dub/translate an existing video into other languages. Remix: a new repurpose path over your EDD (swap the VO track + captions per language) — a real monetization multiplier on content you already made.
 
 

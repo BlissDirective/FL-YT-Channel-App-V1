@@ -64,7 +64,7 @@ import {
   videoModelHealth,
   type ModelHealth,
 } from "@/lib/adapters/provider-selector";
-import { recordDecisions } from "@/lib/pipeline/decisions";
+import { recordDecision, recordDecisions } from "@/lib/pipeline/decisions";
 import { choreographStickScenes } from "@/lib/adapters/stick-choreographer";
 import { directShots, assessVisualPrompt, assessPromptRelevance, refineOneShot, isArtDirectorLive } from "@/lib/adapters/art-director";
 import { inspectStill, perceptualHash, hammingDistance } from "@/lib/adapters/image-check";
@@ -604,6 +604,17 @@ async function runScripting(db: Db, video: Video, project: Project) {
       if (costUsd > 0) {
         await recordCost(db, video, { provider: "anthropic", usd: costUsd, description: "Visual bible" }, `“${video.title}”`);
       }
+      // Decision trail (#9): the video's visual style is a first-class choice.
+      const styleBible = bible as { styleContract?: string; palette?: string[]; avoid?: string[] };
+      await recordDecision(db, {
+        projectId: video.project_id,
+        videoId: video.id,
+        kind: "style",
+        choice: styleBible.styleContract?.slice(0, 80) || "Visual bible",
+        reasoning: styleBible.styleContract || "Locked a per-video visual style contract for consistency.",
+        costUsd,
+        params: { palette: styleBible.palette ?? [], avoid: styleBible.avoid ?? [] },
+      });
     }
   } catch (err) {
     console.error("visual bible build failed (non-fatal):", err);
@@ -1389,7 +1400,22 @@ export async function makeBeatClip(
               provider: "fal.ai",
               storage_path: path,
               beat_index: beat.idx,
-              meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}`, ...(phash ? { phash } : {}) },
+              meta: {
+                shotType: beat.shotType,
+                stillImage: true,
+                model: `flux/${quality}`,
+                ...(phash ? { phash } : {}),
+                // Exact request needed to reproduce / re-roll this still (C2).
+                request: {
+                  kind: "still",
+                  provider: "fal.ai",
+                  endpoint: img.endpoint,
+                  prompt,
+                  quality,
+                  imageSize: "landscape_16_9",
+                  seed: img.seed,
+                },
+              },
               cost_usd: genUsd,
             },
             cost: {
@@ -2025,6 +2051,93 @@ export async function rerollBeatVisual(opts: {
     .eq("beat_index", opts.beatIdx);
   await db.from("assets").insert(draft.row);
   await recordCost(db, video, draft.cost, `reroll beat ${opts.beatIdx + 1}`);
+  return { ok: true };
+}
+
+/**
+ * Regenerable workspace (C2): re-roll a SINGLE generated asset from the exact
+ * request stored on it (meta.request), without re-running the whole stage.
+ * `reproduce` replays the stored seed for a deterministic reproduction; the
+ * default mints a fresh seed for a new variation. Logs a `regenerate` decision
+ * (#9). Currently covers FLUX stills — the bulk of generated assets and the
+ * cheapest to re-roll; video clips regenerate via their per-beat generator.
+ */
+export async function regenerateAsset(opts: {
+  assetId: string;
+  reproduce?: boolean;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const { data: asset } = await db
+    .from("assets")
+    .select("id, video_id, kind, beat_index, meta")
+    .eq("id", opts.assetId)
+    .maybeSingle();
+  if (!asset) return { ok: false, error: "Asset not found" };
+  const req = (asset.meta as { request?: Record<string, unknown> } | null)?.request;
+  if (!req || req.kind !== "still") {
+    return { ok: false, error: "This asset has no stored still request to regenerate from." };
+  }
+  const video = await getVideo(db, asset.video_id);
+  if (!video) return { ok: false, error: "Video not found" };
+  const project = await getProject(db, video.project_id);
+  if (!project) return { ok: false, error: "Project not found" };
+
+  const quality = req.quality === "dev" ? "dev" : "schnell";
+  const guard = await checkBudget(db, project, video, quality === "dev" ? 0.03 : 0.006);
+  if (!guard.ok) return { ok: false, error: guard.reason };
+
+  const prompt = String(req.prompt ?? "");
+  if (!prompt) return { ok: false, error: "Stored request has no prompt." };
+  const img = await generateImage({
+    prompt,
+    quality,
+    seed: opts.reproduce ? Number(req.seed) : undefined,
+  });
+  const path = `videos/${video.id}/beat-${asset.beat_index}-regen.jpg`;
+  await uploadMedia(path, img.image, "image/jpeg");
+  const phash = await perceptualHash(img.image);
+
+  await db
+    .from("assets")
+    .delete()
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", asset.beat_index);
+  await db.from("assets").insert({
+    video_id: video.id,
+    kind: "clip",
+    provider: "fal.ai",
+    storage_path: path,
+    beat_index: asset.beat_index,
+    meta: {
+      shotType: (asset.meta as { shotType?: string } | null)?.shotType ?? "broll",
+      stillImage: true,
+      model: `flux/${quality}`,
+      regenerated: true,
+      ...(phash ? { phash } : {}),
+      request: { ...req, seed: img.seed, endpoint: img.endpoint },
+    },
+    cost_usd: img.costUsd,
+  });
+  await recordCost(
+    db,
+    video,
+    { provider: "fal.ai", usd: img.costUsd, description: `Regenerate still — section ${Number(asset.beat_index) + 1}` },
+    `regenerate beat ${Number(asset.beat_index) + 1}`,
+  );
+  await recordDecision(db, {
+    projectId: video.project_id,
+    videoId: video.id,
+    beatIdx: asset.beat_index,
+    kind: "regenerate",
+    choice: `flux/${quality}`,
+    confidence: null,
+    reasoning: opts.reproduce
+      ? "Reproduced the still from its exact stored request (same seed)."
+      : "Re-rolled the still from its stored request with a fresh seed.",
+    costUsd: img.costUsd,
+    params: { ...req, seed: img.seed },
+  });
   return { ok: true };
 }
 

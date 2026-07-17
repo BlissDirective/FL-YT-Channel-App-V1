@@ -110,22 +110,29 @@ export async function generateImage(opts: {
   prompt: string;
   /** schnell = fast/cheap (b-roll, thumbnails), dev = premium (hero shots) */
   quality?: "schnell" | "dev";
-}): Promise<{ image: Buffer; costUsd: number }> {
+  /** Reproducibility seed (C2). Omit for a fresh random seed — the one used is
+      returned so the exact request can be stored on the asset and replayed. */
+  seed?: number;
+}): Promise<{ image: Buffer; costUsd: number; seed: number; endpoint: string }> {
   const quality = opts.quality ?? "schnell";
-  const data = await falRun<{ images: { url: string }[] }>(
-    `fal-ai/flux/${quality}`,
-    {
-      prompt: opts.prompt,
-      image_size: "landscape_16_9",
-      num_images: 1,
-      enable_safety_checker: true,
-    },
-  );
+  // Capture a concrete seed so the asset is reproducible (C2): a passed seed
+  // reproduces exactly; otherwise we mint one and record it.
+  const seed = opts.seed ?? Math.floor(Math.random() * 2_147_483_647);
+  const endpoint = `fal-ai/flux/${quality}`;
+  const data = await falRun<{ images: { url: string }[] }>(endpoint, {
+    prompt: opts.prompt,
+    image_size: "landscape_16_9",
+    num_images: 1,
+    enable_safety_checker: true,
+    seed,
+  });
   const url = data.images?.[0]?.url;
   if (!url) throw new Error("FLUX returned no image");
   return {
     image: await download(url),
     costUsd: quality === "dev" ? FLUX_DEV_USD : FLUX_SCHNELL_USD,
+    seed,
+    endpoint,
   };
 }
 
