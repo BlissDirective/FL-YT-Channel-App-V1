@@ -20,6 +20,12 @@ import { RunDemoButton } from "@/components/dashboard/run-demo-button";
 import { NewAsset } from "./new-asset";
 import { DirectorIdeaGenerator } from "./director-idea-generator";
 import {
+  ArchiveAllPublishedButton,
+  ArchiveButton,
+  LibraryGuardrailBanner,
+  UnarchiveButton,
+} from "./archive-actions";
+import {
   GateQuickActions,
   IdeaCardActions,
   NudgeQuickAction,
@@ -143,6 +149,11 @@ export default async function LibraryPage({
         </div>
       </section>
 
+      <LibraryGuardrailBanner
+        active={library.activeCount}
+        limit={Number(project.library_size_limit ?? 5)}
+      />
+
       <ProjectSignalStrip
         spendUsd={library.monthSpendUsd}
         budgetUsd={monthlyBudget}
@@ -236,9 +247,40 @@ export default async function LibraryPage({
           count={sectionCounts.published}
           storageKey={`library:${project.id}:published`}
         >
+          <div className="mb-3 flex justify-end">
+            <ArchiveAllPublishedButton projectId={project.id} />
+          </div>
           <Grid>
             {library.sections.published.map((item) => (
-              <VideoTile key={item.video.id} projectId={project.id} item={item} directorMode={directorMode} />
+              <VideoTile
+                key={item.video.id}
+                projectId={project.id}
+                item={item}
+                directorMode={directorMode}
+                archiveAction={<ArchiveButton projectId={project.id} videoId={item.video.id} />}
+              />
+            ))}
+          </Grid>
+        </CollapsibleSection>
+      )}
+
+      {library.archived.length > 0 && (
+        <CollapsibleSection
+          title="Archive"
+          count={library.archived.length}
+          storageKey={`library:${project.id}:archive`}
+          defaultCollapsed
+        >
+          <Grid>
+            {library.archived.map((item) => (
+              <div key={item.video.id} className="opacity-70 transition-opacity hover:opacity-100">
+                <VideoTile
+                  projectId={project.id}
+                  item={item}
+                  directorMode={directorMode}
+                  archiveAction={<UnarchiveButton projectId={project.id} videoId={item.video.id} />}
+                />
+              </div>
             ))}
           </Grid>
         </CollapsibleSection>
@@ -267,10 +309,13 @@ function VideoTile({
   projectId,
   item,
   directorMode = false,
+  archiveAction,
 }: {
   projectId: string;
   item: LibraryItem;
   directorMode?: boolean;
+  /** Restore button for the Archive section (overrides the normal actions). */
+  archiveAction?: React.ReactNode;
 }) {
   const { video, tile } = item;
   const stageLabel =
@@ -330,7 +375,9 @@ function VideoTile({
       spendUsd={Number(video.total_cost_usd)}
       views={item.views}
       actions={
-        directorMode ? (
+        archiveAction ? (
+          archiveAction
+        ) : directorMode ? (
           <span className="text-[11px] font-semibold text-accent">Open Console →</span>
         ) : atGate ? (
           <GateQuickActions projectId={projectId} videoId={video.id} />

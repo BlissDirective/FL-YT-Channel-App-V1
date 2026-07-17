@@ -11,6 +11,7 @@ import { PipelineModeCard } from "./pipeline-mode-card";
 import { ProviderScoreboard } from "@/components/dashboard/provider-scoreboard";
 import { TasteStyleCard } from "./taste-style-card";
 import { PlatformProfilesCard } from "./platform-profiles-card";
+import { LibrarySizeCard } from "./library-size-card";
 import type { TasteProfile } from "@studio/core";
 
 export default async function ProjectSettingsPage({
@@ -76,6 +77,8 @@ export default async function ProjectSettingsPage({
         </p>
         <ProviderScoreboard defaultTier="premium" />
       </div>
+
+      <LibrarySizeCard projectId={id} initial={Number(project.library_size_limit ?? 5)} />
 
       <PlatformProfilesCard />
     </div>

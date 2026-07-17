@@ -68,6 +68,11 @@
   "launch": [
     "joinLaunchList(input: JoinInput)"
   ],
+  "librarymgmt": [
+    "setVideoArchived(projectId: string, videoId: string, archived: boolean,)",
+    "archiveAllPublished(projectId: string,)",
+    "setLibrarySizeLimit(projectId: string, limit: number,)"
+  ],
   "operator": [
     "startOperatorAction(projectId: string)",
     "pauseOperatorAction(projectId: string)",

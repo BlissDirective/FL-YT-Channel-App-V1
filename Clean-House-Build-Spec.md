@@ -179,4 +179,17 @@ A **run report** summarizes: X ready · Y flagged · Z skipped · total spent vs
 ---
 
 ## Completion log
-_(Sign-offs appended here as each piece merges to main, per the repo convention.)_
+
+> ✅ **Phase 1 — archive state + library-size guardrail (shipped).** `0062`:
+> `videos.archived`/`archived_at`, `projects.library_size_limit` (default 5).
+> Pure `countsTowardLibraryLimit` / `activeLibraryCount` / `isOverLibraryLimit`
+> in `library.ts` (working pipeline Ideas→Ready; excludes Published/Tracking,
+> Killed, Archived). `getLibrary` now returns `archived` + `activeCount` and
+> keeps archived assets out of the active sections. Actions
+> (`librarymgmt.ts`): `setVideoArchived`, `archiveAllPublished`,
+> `setLibrarySizeLimit`. **Guardrail enforced** in the operator seed loop —
+> autonomous seeding stops with `library-at-capacity` when the working library
+> is full. UI: guardrail banner + Archive section (collapsible) + per-tile
+> Archive / bulk "Archive all published" / Restore, and a **Working-library
+> limit** slider in project Settings. Verified: `tsc`, `eslint`, **948/948
+> vitest** (+4, action manifest updated), `next build`, visual QA.

@@ -84,6 +84,8 @@ export type Project = {
   /** Taste profile + chosen style playbook (Batch 4 — carried through stages). */
   taste_profile?: unknown;
   style_playbook?: string | null;
+  /** Working-library size guardrail (Clean House §5); default 5. */
+  library_size_limit?: number;
   /** Optimizer proposals auto-apply as a canary template version (Phase 4.3). */
   auto_apply_insights: boolean;
   /** Which auto-fix strategy runs for this channel (off until chosen). */
@@ -261,6 +263,13 @@ export type Video = {
   watch_review: import("@/lib/pipeline/watch-gate").WatchVerdict | null;
   total_cost_usd: number;
   paused_reason: string | null;
+  /** Archived (Clean House §4) — hidden from the active library, orthogonal to
+      status; a published video can be archived. */
+  archived?: boolean;
+  archived_at?: string | null;
+  /** Flagged by Clean House as unfixable (§3) — red border + manual kill/recreate. */
+  flagged_unfixable?: boolean;
+  flag_reason?: string | null;
   /** Full Auto: worker advances to render when the last clip lands. */
   auto_finish: boolean;
   /** Kinetic Highlights — opt-in Claude-curated burned-in attention text. */

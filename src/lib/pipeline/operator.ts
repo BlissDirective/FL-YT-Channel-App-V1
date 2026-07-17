@@ -18,6 +18,7 @@ import {
 import { desiredMixShortsPct, effectiveDailyCap } from "@/lib/pipeline/monetization";
 import { sampleFormatDecision } from "@/lib/pipeline/format-bandit";
 import { planCostFor, type AutoTier } from "@/lib/adapters/auto-tiers";
+import { activeLibraryCount, isOverLibraryLimit } from "@/lib/db/library";
 import type { FrameCritique } from "@/lib/stick-types";
 import type {
   CalendarSlot,
@@ -355,6 +356,23 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
   const seededToday = await seededTodayCount(db, run, cfg.postingTz);
   if (seededToday >= dailyCap) {
     return { acted: false, reason: "already-seeded-today", spentUsd: spent };
+  }
+
+  // Library-size guardrail (Clean House §5): don't seed a new asset when the
+  // working library is already at the project's cap — this is what stops a
+  // runaway idea/seed loop from bloating the library. Archived/published/killed
+  // assets don't count, so publishing + archiving frees slots.
+  const limit = Number((project as { library_size_limit?: number }).library_size_limit ?? 5);
+  if (limit > 0) {
+    const { data: libVids } = await db
+      .from("videos")
+      .select("status, youtube_video_id, published_at, archived")
+      .eq("project_id", run.project_id)
+      .is("parent_video_id", null);
+    const active = activeLibraryCount((libVids ?? []) as Parameters<typeof activeLibraryCount>[0]);
+    if (isOverLibraryLimit(active, limit)) {
+      return { acted: false, reason: `library-at-capacity (${active}/${limit})`, spentUsd: spent };
+    }
   }
 
   // ATOMIC slot claim (Phase 3): the cron sweep and the "Run now" button can

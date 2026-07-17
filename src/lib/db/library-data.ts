@@ -5,7 +5,7 @@ import { getSignedMediaUrl } from "@/lib/storage";
 import type { Idea, Video } from "./types";
 import { getVideos } from "./queries";
 import { publishDiagnosis } from "./pipeline";
-import { liveProgress, tileState, type LibrarySectionKey, type TileState } from "./library";
+import { activeLibraryCount, liveProgress, tileState, type LibrarySectionKey, type TileState } from "./library";
 
 /**
  * Server assembly for the per-project Library (UI v2 Phase 2, D-2..D-5,
@@ -42,6 +42,10 @@ export type LibraryData = {
   attentionCount: number;
   monthSpendUsd: number;
   operatorState: "off" | "copilot" | "autopilot";
+  /** Archived assets (Clean House §4) — kept out of the active sections. */
+  archived: LibraryItem[];
+  /** Count of assets occupying the working library (guardrail §5). */
+  activeCount: number;
 };
 
 export async function getLibrary(projectId: string): Promise<LibraryData> {
@@ -154,6 +158,7 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
     published: [],
   };
   let attentionCount = 0;
+  const archivedItems: LibraryItem[] = [];
   const now = Date.now();
   // How long a video may sit in a worker-dependent status before we call it a
   // stall (the render/clip cron cadence is ~30 min; renders may legitimately run
@@ -211,6 +216,11 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
           ? null
           : liveProgress(video.status, clipCount.get(video.id) ?? 0, beatCount.get(video.id)),
     };
+    // Archived assets (Clean House §4) leave the active sections entirely.
+    if (video.archived) {
+      archivedItems.push(item);
+      continue;
+    }
     if (stalled) attentionCount += 1;
     if (tile.awaitingYou) attentionCount += 1;
     sections[tile.section].push(item);
@@ -232,5 +242,13 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
       : "copilot"
     : "off";
 
-  return { sections, ideaCards, attentionCount, monthSpendUsd, operatorState };
+  return {
+    sections,
+    ideaCards,
+    attentionCount,
+    monthSpendUsd,
+    operatorState,
+    archived: archivedItems,
+    activeCount: activeLibraryCount(videos),
+  };
 }

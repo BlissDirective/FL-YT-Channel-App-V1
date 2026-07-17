@@ -69,6 +69,32 @@ type LibraryVideo = Pick<
   | "total_cost_usd"
 >;
 
+/**
+ * Whether a video occupies a slot in the WORKING library (Clean House §5 —
+ * the library-size guardrail). Counts everything in the pipeline (Ideas →
+ * Ready) EXCEPT Published/Tracking (live), Killed, and Archived. A Ready
+ * (APPROVED) asset still counts until it is published or archived. Pure. */
+export function countsTowardLibraryLimit(
+  v: Pick<LibraryVideo, "status" | "youtube_video_id" | "published_at"> & { archived?: boolean | null },
+): boolean {
+  if (v.archived) return false;
+  if (v.status === "KILLED") return false;
+  if (isLive(v)) return false; // published / tracking
+  return true;
+}
+
+/** Count assets occupying the working library (for the guardrail). Pure. */
+export function activeLibraryCount(
+  videos: (Pick<LibraryVideo, "status" | "youtube_video_id" | "published_at"> & { archived?: boolean | null })[],
+): number {
+  return videos.reduce((n, v) => n + (countsTowardLibraryLimit(v) ? 1 : 0), 0);
+}
+
+/** At/over the guardrail limit → autonomous seeding should pause. Pure. */
+export function isOverLibraryLimit(activeCount: number, limit: number): boolean {
+  return limit > 0 && activeCount >= limit;
+}
+
 /** 0-based step on the canvas rail; -1 for killed. Live overrides status
     (a published video whose status lagged still reads as Tracking). */
 export function railIndexFor(v: Pick<LibraryVideo, "status" | "youtube_video_id" | "published_at">): number {
