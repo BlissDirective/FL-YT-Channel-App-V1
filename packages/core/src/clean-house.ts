@@ -1,0 +1,152 @@
+/**
+ * Clean House triage core (Clean-House-Build-Spec.md §3).
+ *
+ * Pure scoring that decides, per asset, whether it is SALVAGEABLE (feasible to
+ * reach a passing final score) or should be FLAGGED for manual handling — plus
+ * a cost estimate to advance it and the run-level budget-ceiling stop. All from
+ * signals the app already has (QC score, watch pass, media QC, autofix attempts,
+ * stage) — the triage spends nothing. The app persists the plan + drives the
+ * existing stage runners; this module just judges + budgets.
+ */
+import type { VideoStatus } from "./state-machine";
+
+/** Everything the triage needs about one asset — all already on hand. */
+export type AssetSignals = {
+  status: VideoStatus;
+  /** Latest QC score (0..10) or null if never scored. */
+  qcScore: number | null;
+  /** The passing floor for this project. */
+  qcFloor: number;
+  /** Watch/Self-Watch gate passed? null = not yet watched. */
+  watchPass: boolean | null;
+  /** Media/technical QC had a HARD structural defect. */
+  mediaHardFail: boolean;
+  /** How many autofix rounds have already run on this asset. */
+  autofixAttempts: number;
+  /** A script exists (so we're not starting from nothing). */
+  hasScript: boolean;
+  /** Persistently held with a failure reason. */
+  pausedReason: string | null;
+  archived?: boolean;
+};
+
+export type CleanHouseVerdict = "advance" | "flag" | "skip";
+
+export type AssetTriage = {
+  salvageability: number; // 0..1
+  verdict: CleanHouseVerdict;
+  reasons: string[];
+  estCostUsd: number;
+  /** The forward steps needed (human-readable). */
+  actions: string[];
+};
+
+/** The max autofix rounds before Clean House declares an asset unfixable
+    (mirrors the reviewer 2-round cap, B7). */
+export const CLEAN_HOUSE_MAX_ROUNDS = 2;
+
+// Rough remediation cost by how far the asset still has to travel (USD).
+const STAGE_REMAINING_COST: Partial<Record<VideoStatus, number>> = {
+  IDEA: 3.5, IDEA_APPROVED: 3.2, SCRIPTING: 3.0, SCRIPT_READY: 2.6,
+  GENERATING_ASSETS: 1.8, ASSETS_READY: 1.4, ASSEMBLING: 0.4,
+  FINAL_REVIEW: 0.3, NEEDS_REVISION: 2.4, APPROVED: 0, TRACKING: 0, KILLED: 0,
+};
+
+/**
+ * Triage one asset. Salvageability drops for repeated autofix failure, a QC
+ * score far below the floor, and hard structural defects; it's high for assets
+ * simply parked at a gate or mid-pipeline. Below the flag threshold → flag.
+ * Pure + deterministic.
+ */
+export function triageAsset(s: AssetSignals): AssetTriage {
+  if (s.archived || s.status === "KILLED" || s.status === "TRACKING") {
+    return { salvageability: 0, verdict: "skip", reasons: ["already terminal/archived"], estCostUsd: 0, actions: [] };
+  }
+
+  const reasons: string[] = [];
+  const actions: string[] = [];
+  let score = 0.7; // default: most assets are advanceable
+
+  // Repeated autofix failure is the strongest "unfixable" signal.
+  if (s.autofixAttempts >= CLEAN_HOUSE_MAX_ROUNDS) {
+    score -= 0.4;
+    reasons.push(`autofix exhausted (${s.autofixAttempts} rounds)`);
+  } else if (s.autofixAttempts === 1) {
+    score -= 0.1;
+  }
+
+  // QC score relative to the floor.
+  if (s.qcScore != null) {
+    const gap = s.qcScore - s.qcFloor;
+    if (gap >= 0) { score += 0.15; reasons.push(`QC ${s.qcScore.toFixed(1)} ≥ floor`); }
+    else if (gap >= -1.5) { score -= 0.1; actions.push("autofix to clear the QC floor"); }
+    else { score -= 0.3; reasons.push(`QC ${s.qcScore.toFixed(1)} far below floor`); actions.push("rewrite script + regenerate"); }
+  }
+
+  if (s.mediaHardFail) { score -= 0.2; actions.push("re-render (structural defect)"); reasons.push("media QC hard-fail"); }
+  if (!s.hasScript && s.status !== "IDEA" && s.status !== "IDEA_APPROVED") { score -= 0.05; actions.push("write script"); }
+  if (s.pausedReason && /fail|error|can.?t|unable/i.test(s.pausedReason)) { score -= 0.1; reasons.push("held on a failure"); }
+
+  // Forward steps implied by the current stage.
+  const stageAction = forwardActionFor(s.status);
+  if (stageAction) actions.push(stageAction);
+
+  score = Math.max(0, Math.min(1, score));
+  const verdict: CleanHouseVerdict = score < 0.35 ? "flag" : "advance";
+  if (verdict === "flag") reasons.push("below salvageability threshold — manual only");
+
+  return {
+    salvageability: Math.round(score * 100) / 100,
+    verdict,
+    reasons,
+    estCostUsd: verdict === "advance" ? estimateRemediationUsd(s) : 0,
+    actions: [...new Set(actions)],
+  };
+}
+
+function forwardActionFor(status: VideoStatus): string | null {
+  switch (status) {
+    case "IDEA": case "IDEA_APPROVED": return "approve idea → script";
+    case "SCRIPTING": case "SCRIPT_READY": return "approve script → assets";
+    case "GENERATING_ASSETS": case "ASSETS_READY": return "generate assets → render";
+    case "ASSEMBLING": case "FINAL_REVIEW": return "render → final review";
+    case "NEEDS_REVISION": return "run revision";
+    default: return null;
+  }
+}
+
+/** Estimated USD to advance an asset from its current stage to Ready. Pure. */
+export function estimateRemediationUsd(s: AssetSignals): number {
+  let cost = STAGE_REMAINING_COST[s.status] ?? 2;
+  // A far-below-floor asset needs a rewrite + full regen — count from the top.
+  if (s.qcScore != null && s.qcScore < s.qcFloor - 1.5) cost = Math.max(cost, 3);
+  if (s.mediaHardFail) cost += 0.4;
+  return Math.round(cost * 100) / 100;
+}
+
+export type CleanHousePlan = {
+  advance: number;
+  flag: number;
+  skip: number;
+  estCostUsd: number;
+};
+
+/** Roll per-asset triages into a run plan. Pure. */
+export function planCleanHouse(triages: AssetTriage[]): CleanHousePlan {
+  const advance = triages.filter((t) => t.verdict === "advance");
+  return {
+    advance: advance.length,
+    flag: triages.filter((t) => t.verdict === "flag").length,
+    skip: triages.filter((t) => t.verdict === "skip").length,
+    estCostUsd: Math.round(advance.reduce((s, t) => s + t.estCostUsd, 0) * 100) / 100,
+  };
+}
+
+/**
+ * Whether the run must STOP before doing the next item (budget ceiling). Pure —
+ * the executor calls this before each paid advance so a run never overruns.
+ */
+export function cleanHouseBudgetStop(spentUsd: number, ceilingUsd: number, nextCostUsd: number): boolean {
+  if (ceilingUsd <= 0) return false; // 0 = no ceiling
+  return spentUsd + nextCostUsd > ceilingUsd + 1e-9;
+}

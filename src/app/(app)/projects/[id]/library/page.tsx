@@ -4,6 +4,9 @@ import { Clapperboard, Radar, Settings } from "lucide-react";
 import { getProject, getVideos } from "@/lib/db/queries";
 import { getLibrary, type LibraryItem } from "@/lib/db/library-data";
 import { getFeedEntries } from "@/lib/db/feed";
+import { getIsAdmin } from "@/lib/admin-guard";
+import { getActiveCleanHouseRun } from "@/lib/pipeline/clean-house-runner";
+import { CleanHousePanel } from "./clean-house-panel";
 import { LIBRARY_SECTIONS, RAIL_STEPS } from "@/lib/db/library";
 import { backlotStages } from "@/lib/db/pipeline";
 import type { Idea } from "@/lib/db/types";
@@ -47,11 +50,13 @@ export default async function LibraryPage({
   const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
-  const [library, videos, feed] = await Promise.all([
+  const [library, videos, feed, isAdmin] = await Promise.all([
     getLibrary(id),
     getVideos(id),
     getFeedEntries(id, 24),
+    getIsAdmin(),
   ]);
+  const cleanHouse = isAdmin ? await getActiveCleanHouseRun(id) : null;
   const directorMode = (project.pipeline_mode ?? "autonomous") === "director";
 
   // Backlot production board (#8): per-lane live stats + a "work happening now"
@@ -148,6 +153,10 @@ export default async function LibraryPage({
           <BacklotTicker entries={feed} />
         </div>
       </section>
+
+      {isAdmin && cleanHouse && (
+        <CleanHousePanel projectId={project.id} active={cleanHouse} />
+      )}
 
       <LibraryGuardrailBanner
         active={library.activeCount}
@@ -355,13 +364,15 @@ function VideoTile({
       qcScore={item.qcScore}
       awaitingYou={directorMode ? directorAwaiting : Boolean(tile.awaitingYou) && !active}
       awaitingLabel={
-        directorMode
-          ? directorAwaiting
-            ? `Awaiting direction · ${stageLabel}`
-            : undefined
-          : item.awaitingLabel ?? undefined
+        video.flagged_unfixable
+          ? `Flagged unfixable — ${video.flag_reason ?? "kill or recreate manually"}`
+          : directorMode
+            ? directorAwaiting
+              ? `Awaiting direction · ${stageLabel}`
+              : undefined
+            : item.awaitingLabel ?? undefined
       }
-      failed={directorMode ? false : Boolean(tile.failed)}
+      failed={Boolean(video.flagged_unfixable) || (directorMode ? false : Boolean(tile.failed))}
       stalled={directorMode ? false : Boolean(item.stalled)}
       paused={paused && !active}
       active={active}

@@ -193,3 +193,25 @@ A **run report** summarizes: X ready · Y flagged · Z skipped · total spent vs
 > Archive / bulk "Archive all published" / Restore, and a **Working-library
 > limit** slider in project Settings. Verified: `tsc`, `eslint`, **948/948
 > vitest** (+4, action manifest updated), `next build`, visual QA.
+
+> ✅ **Phase 2 — Clean House triage + orchestrator (shipped).** `0063`:
+> `clean_house_runs` + `clean_house_items` + `videos.flagged_unfixable`/
+> `flag_reason`. Pure core `clean-house.ts` (`triageAsset` salvageability +
+> verdict, `estimateRemediationUsd`, `planCleanHouse`, `cleanHouseBudgetStop`).
+> Admin-gated runner: free triage from existing signals (QC / watch / media-QC /
+> autofix attempts) → an `awaiting_approval` plan; `approveCleanHouseRun`
+> (verdict overrides + ceiling); `advanceCleanHouseRun` ticks the run —
+> advancing each `advance` asset one forward step through the EXISTING gates
+> (`decideGate`), running a revision when FINAL QC is below floor, flagging at
+> the 2-round cap, respecting the budget ceiling + kill switch, logging every
+> step to the decision trail — plus pause/cancel. **Stops at Ready (APPROVED);
+> never publishes; never auto-kills.** UI: an admin-only **Clean House panel**
+> on the Library (triage → plan chips + ceiling → approve → live run with
+> ready/flagged/pending + spend vs ceiling + advance/pause/cancel); flagged
+> assets get the **red border** + reason. Scope is "all" today. Verified: `tsc`,
+> `eslint`, **961/961 vitest** (+7, action manifest updated), `next build`,
+> visual QA.
+>
+> _Follow-ups (noted): per-tile subset selection for triage; a cron hook so an
+> approved run auto-advances async render/clip work without a manual "Advance
+> now"; Clean House progress on the Backlot board._

@@ -23,6 +23,13 @@
     "cancelBuildRunAction(projectId: string, runId: string,)",
     "runBuildNowAction(projectId: string,)"
   ],
+  "cleanhouse": [
+    "startCleanHouseTriage(projectId: string, mode: \"all\" | \"selected\", videoIds: string[] = [],)",
+    "approveCleanHouse(projectId: string, runId: string, budgetCeilingUsd: number, overrides: { videoId: string; verdict: \"advance\" | \"flag\" | \"skip\" }[] = [],)",
+    "tickCleanHouse(projectId: string, runId: string)",
+    "pauseCleanHouse(projectId: string, runId: string)",
+    "cancelCleanHouse(projectId: string, runId: string)"
+  ],
   "diagnostics": [
     "testCredentialAction(service: string)"
   ],
