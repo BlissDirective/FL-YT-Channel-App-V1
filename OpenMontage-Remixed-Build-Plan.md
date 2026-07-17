@@ -140,6 +140,8 @@ Please proceed to elaborate upon and build the following concepts:
 
 	20.	Decision Communication Contract: “announce before execution” — before any paid call, state tool/provider/model/reason/sample-or-batch. Remix: a pre-spend announcement line (huge for director-mode trust).
 
+> ✅ **SIGNED OFF — Batch 13: list2 #20/#21/#28.** Core `decision-contract.ts` (`@studio/core`): `announceSpend()` renders the pre-spend line (tool · provider · model — reason (mode, ~$cost)) before any paid call (#20); `RE_GATE_CHANGES` + `requiresReapproval`/`reapprovalReason` codify the mid-run changes that re-open a gate — switch provider/model/treatment/engine, drop narration/music, sample→batch, raise budget (#21). Core `onboarding.ts`: `starterPromptsFor(vagueMessage)` (whole-word niche discovery) + `ONBOARDING_STEPS` — the "curious → making a video in <60s" path. UI: the home **empty state** now shows the 3-step path + tailored **starter chips**. Verified: `tsc`, `eslint`, **937/937 vitest** (+8), `next build`.
+
 	21.	“Ask before major changes” list — an explicit set of changes that re-trigger approval (switch provider/model/treatment/engine, drop narration/music, sample→batch). Remix: codify which mid-run changes re-open a gate.
 	22.	Music plan resolved at proposal time, never deferred (late music failure is expensive). Remix: decide music at script/plan stage, not render.
 	23.	Structured blocker escalation — a standard payload: what was attempted / what failed / category / options / recommendation. Remix: replace bare “failed” on tiles/console with this structured blocker.

@@ -27,6 +27,7 @@ import { SystemPulse } from "@/components/dashboard/system-pulse";
 import { AwaitingYouRow } from "@/components/dashboard/awaiting-you";
 import { GenerateInsightsButton } from "@/app/(app)/insights/insights-list";
 import { tileState } from "@/lib/db/library";
+import { ONBOARDING_STEPS, starterPromptsFor } from "@studio/core";
 
 export const dynamic = "force-dynamic";
 
@@ -185,6 +186,31 @@ function EmptyState() {
           to explore the studio with realistic data.
         </p>
       </div>
+      {/* Onboarding (#28): curious → making a video in <60s. */}
+      <div className="w-full max-w-xl">
+        <div className="mb-4 grid gap-2 sm:grid-cols-3">
+          {ONBOARDING_STEPS.map((s, i) => (
+            <div key={s.id} className="rounded-xl border border-line bg-card-warm p-3 text-left">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-accent">Step {i + 1}</span>
+              <p className="mt-0.5 text-sm font-semibold">{s.label}</p>
+              <p className="mt-0.5 text-[11px] leading-snug text-muted">{s.detail}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted">Start from an idea</p>
+        <div className="flex flex-wrap justify-center gap-2">
+          {starterPromptsFor("", 3).map((s) => (
+            <Link
+              key={s.id}
+              href={`/projects/new?starter=${encodeURIComponent(s.prompt)}`}
+              className="rounded-full border border-accent/30 bg-accent/[0.06] px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-accent/15"
+            >
+              {s.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/projects/new"

@@ -16,6 +16,8 @@ export * from "./free-footage";
 export * from "./scene-detection";
 export * from "./motion-craft";
 export * from "./localization";
+export * from "./decision-contract";
+export * from "./onboarding";
 export * from "./segment";
 export * from "./segment-ops";
 export * from "./grounding";
