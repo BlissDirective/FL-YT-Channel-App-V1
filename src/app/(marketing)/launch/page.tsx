@@ -13,6 +13,7 @@ import {
 import { Reveal, WordReveal, CountUp, Aurora } from "@/components/bits/motion";
 import { SpotlightCard, Magnetic } from "@/components/bits/interactive";
 import { CaptureForm } from "./capture-form";
+import { HeroVideo } from "./hero-video";
 import { ControlRoom } from "./control-room";
 import { CrewBoard } from "./crew-board";
 import { MvdaDemo } from "./mvda-demo";
@@ -125,7 +126,9 @@ export default function LaunchPage() {
       {/* ── 1. Hero ─────────────────────────────────────────────────────── */}
       <section className="relative flex min-h-[92vh] flex-col items-center justify-center px-5 pb-16 pt-24 text-center">
         <Aurora />
-        {/* Track C — FLUX-generated ambient backdrop (identity-free). */}
+        {/* Track C — FLUX-generated poster + fal/LTX-2 ambient clip over it.
+            The video (motion-safe) overlays the still; reduced-motion keeps the
+            still only. */}
         <Image
           src="/marketing/pipeline-nodes.png"
           alt=""
@@ -134,6 +137,7 @@ export default function LaunchPage() {
           sizes="100vw"
           className="pointer-events-none absolute inset-0 object-cover opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_78%)]"
         />
+        <HeroVideo />
         <div className="relative z-10 mx-auto max-w-4xl">
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--m-muted)]">
