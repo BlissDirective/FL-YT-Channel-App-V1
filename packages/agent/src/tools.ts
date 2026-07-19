@@ -186,6 +186,10 @@ export function makeTools(ctx: SessionCtx): Record<string, ToolDef> {
           return `timeline (${picks.length} key beats): ${picks.map((p) => `beat ${p.beatIdx} @${p.atSec}s`).join(", ")}`;
         }
         const frames = await ctx.sampleFrames(ctx.doc, picks.map((p) => ({ clipId: p.clipId, atSec: p.atSec })));
+        // Breadcrumb: the image tool-result path only runs in the real agent
+        // worker (never in unit tests), so this stderr line is how a run log
+        // proves timeline_view fired and returned images (§C.1 verification).
+        console.error(`🖼  timeline_view #${ctx.state.views}: rendered ${frames.length}/${picks.length} frames as image blocks`);
         const content: ToolContent[] = [
           { type: "text", text: `Rendered ${frames.length} frames at key beats. Judge framing, motion, b-roll relevance, and caption legibility; each frame is labeled with its beat.` },
         ];
