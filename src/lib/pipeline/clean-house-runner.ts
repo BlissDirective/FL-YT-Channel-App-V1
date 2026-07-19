@@ -7,8 +7,10 @@ import {
   cleanHouseStallAction,
   cleanHouseTerminationStop,
   planCleanHouse,
+  rankForBudget,
   triageAsset,
   type AssetSignals,
+  type CleanHouseBudgetStrategy,
   type VideoStatus,
   GATE_FOR_STATUS,
 } from "@studio/core";
@@ -71,7 +73,16 @@ async function gatherSignals(db: Db, v: Video, qcFloor: number): Promise<AssetSi
   };
 }
 
-export type TriageResult = { runId: string; plan: ReturnType<typeof planCleanHouse>; items: number };
+/** A lightweight advance-item projection so the plan view can rank + compute
+    the budget frontier client-side as the operator adjusts ceiling/strategy. */
+export type TriageAdvanceItem = { salvageability: number; estCostUsd: number; qcScore: number | null };
+export type TriageResult = {
+  runId: string;
+  plan: ReturnType<typeof planCleanHouse>;
+  items: number;
+  qcFloor: number;
+  advanceItems: TriageAdvanceItem[];
+};
 
 /** Phase 1: build the triage plan (awaiting_approval). Admin-only, no spend. */
 export async function triageCleanHouse(
@@ -89,7 +100,8 @@ export async function triageCleanHouse(
   const videos = (vids ?? []) as Video[];
   if (videos.length === 0) return { ok: false, error: "No assets to triage." };
 
-  const triages = await Promise.all(videos.map((v) => gatherSignals(db, v, qcFloor).then(triageAsset)));
+  const signalsList = await Promise.all(videos.map((v) => gatherSignals(db, v, qcFloor)));
+  const triages = signalsList.map(triageAsset);
   const plan = planCleanHouse(triages);
 
   const { data: run, error: runErr } = await db
@@ -109,11 +121,17 @@ export async function triageCleanHouse(
       salvageability: triages[i].salvageability,
       verdict: triages[i].verdict,
       est_cost_usd: triages[i].estCostUsd,
+      qc_score: signalsList[i].qcScore,
       actions: triages[i].actions,
     })),
   );
 
-  return { ok: true, result: { runId, plan, items: videos.length } };
+  const advanceItems: TriageAdvanceItem[] = triages
+    .map((t, i) => ({ salvageability: t.salvageability, estCostUsd: t.estCostUsd, qcScore: signalsList[i].qcScore, verdict: t.verdict }))
+    .filter((x) => x.verdict === "advance")
+    .map(({ salvageability, estCostUsd, qcScore }) => ({ salvageability, estCostUsd, qcScore }));
+
+  return { ok: true, result: { runId, plan, items: videos.length, qcFloor, advanceItems } };
 }
 
 /** Phase 2: approve (with optional per-asset verdict overrides + ceiling) and
@@ -122,13 +140,17 @@ export async function approveCleanHouseRun(
   runId: string,
   budgetCeilingUsd: number,
   overrides: { videoId: string; verdict: "advance" | "flag" | "skip" }[] = [],
+  strategy: CleanHouseBudgetStrategy = "salvageability",
 ): Promise<{ ok: boolean; error?: string }> {
   if (!(await requireAdmin())) return { ok: false, error: "Admin only." };
   const db = createAdminClient();
   for (const o of overrides) {
     await db.from("clean_house_items").update({ verdict: o.verdict }).eq("run_id", runId).eq("video_id", o.videoId);
   }
-  await db.from("clean_house_runs").update({ status: "running", budget_ceiling_usd: budgetCeilingUsd }).eq("id", runId);
+  await db
+    .from("clean_house_runs")
+    .update({ status: "running", budget_ceiling_usd: budgetCeilingUsd, budget_strategy: strategy })
+    .eq("id", runId);
   await advanceCleanHouseRun(runId);
   return { ok: true };
 }
@@ -156,10 +178,12 @@ type RunRow = {
   id: string; project_id: string; status: string; budget_ceiling_usd: number;
   spent_usd: number; created_at: string; tick_count: number;
   no_progress_ticks: number; last_progress: number;
+  budget_strategy: string | null;
 };
 type ItemRow = {
   id: string; video_id: string; verdict: string; est_cost_usd: number;
   inflight_since: string | null; nudges: number;
+  salvageability: number | null; qc_score: number | null;
 };
 
 /** Real reconciled spend the run is responsible for: ledger entries booked
@@ -287,7 +311,25 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
     let spent = Number(run.spent_usd);
     let paidAdvances = 0; // concurrency throttle counter
 
-    for (const item of pending) {
+    // Allocate the capped budget by the operator's chosen strategy: rank the
+    // paid "advance" items so the best bets are funded first. Flag/skip items
+    // are free, so process them ahead of the ranked advances (order-agnostic).
+    const strategy = (run.budget_strategy as CleanHouseBudgetStrategy | null) ?? "salvageability";
+    const rankedAdvance = rankForBudget(
+      pending
+        .filter((p) => p.verdict === "advance")
+        .map((p) => ({
+          row: p,
+          salvageability: Number(p.salvageability ?? 0),
+          estCostUsd: Number(p.est_cost_usd),
+          qcScore: p.qc_score == null ? null : Number(p.qc_score),
+          qcFloor,
+        })),
+      strategy,
+    ).map((x) => x.row);
+    const orderedPending = [...pending.filter((p) => p.verdict !== "advance"), ...rankedAdvance];
+
+    for (const item of orderedPending) {
       if (item.verdict === "flag") {
         await flagUnfixable(db, item.video_id, "Clean House: unlikely to reach a passing score — manual kill or recreate.");
         await db.from("clean_house_items").update({ outcome: "flagged" }).eq("id", item.id);
@@ -420,13 +462,13 @@ export async function driveAllCleanHouseRuns(): Promise<{ ticked: number; done: 
 
 /** The active (running/paused/awaiting) run for a project + its item outcomes. */
 export async function getActiveCleanHouseRun(projectId: string): Promise<{
-  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; budget_ceiling_usd: number; paused_reason: string | null } | null;
+  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; budget_ceiling_usd: number; paused_reason: string | null; budget_strategy: string | null } | null;
   counts: { advance: number; flag: number; skip: number; ready: number; flagged: number; pending: number };
 } | null> {
   const db = createAdminClient();
   const { data: run } = await db
     .from("clean_house_runs")
-    .select("id, status, est_cost_usd, spent_usd, budget_ceiling_usd, paused_reason")
+    .select("id, status, est_cost_usd, spent_usd, budget_ceiling_usd, paused_reason, budget_strategy")
     .eq("project_id", projectId)
     .in("status", ["awaiting_approval", "running", "paused"])
     .order("created_at", { ascending: false })
