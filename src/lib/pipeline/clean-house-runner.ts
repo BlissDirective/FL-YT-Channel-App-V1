@@ -13,7 +13,6 @@ import {
   GATE_FOR_STATUS,
 } from "@studio/core";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getIsAdmin } from "@/lib/admin-guard";
 import { decideGate, isKillSwitchOn } from "@/lib/pipeline/engine";
@@ -80,7 +79,7 @@ export async function triageCleanHouse(
   scope: { mode: "all" | "selected"; videoIds?: string[] },
 ): Promise<{ ok: boolean; error?: string; result?: TriageResult }> {
   if (!(await requireAdmin())) return { ok: false, error: "Admin only." };
-  const db = await createClient();
+  const db = createAdminClient();
   const cfg = await getQualityGateConfig(db);
   const qcFloor = Number(cfg.runFloor ?? 7);
 
@@ -93,11 +92,14 @@ export async function triageCleanHouse(
   const triages = await Promise.all(videos.map((v) => gatherSignals(db, v, qcFloor).then(triageAsset)));
   const plan = planCleanHouse(triages);
 
-  const { data: run } = await db
+  const { data: run, error: runErr } = await db
     .from("clean_house_runs")
     .insert({ project_id: projectId, status: "awaiting_approval", scope, est_cost_usd: plan.estCostUsd })
     .select("id")
     .single();
+  if (runErr || !run) {
+    return { ok: false, error: `Could not start a run: ${runErr?.message ?? "no row returned"}` };
+  }
   const runId = (run as { id: string }).id;
 
   await db.from("clean_house_items").insert(
@@ -122,7 +124,7 @@ export async function approveCleanHouseRun(
   overrides: { videoId: string; verdict: "advance" | "flag" | "skip" }[] = [],
 ): Promise<{ ok: boolean; error?: string }> {
   if (!(await requireAdmin())) return { ok: false, error: "Admin only." };
-  const db = await createClient();
+  const db = createAdminClient();
   for (const o of overrides) {
     await db.from("clean_house_items").update({ verdict: o.verdict }).eq("run_id", runId).eq("video_id", o.videoId);
   }
@@ -133,14 +135,14 @@ export async function approveCleanHouseRun(
 
 export async function pauseCleanHouseRun(runId: string): Promise<{ ok: boolean }> {
   if (!(await requireAdmin())) return { ok: false };
-  const db = await createClient();
+  const db = createAdminClient();
   await db.from("clean_house_runs").update({ status: "paused" }).eq("id", runId);
   return { ok: true };
 }
 
 export async function cancelCleanHouseRun(runId: string): Promise<{ ok: boolean }> {
   if (!(await requireAdmin())) return { ok: false };
-  const db = await createClient();
+  const db = createAdminClient();
   await db.from("clean_house_runs").update({ status: "cancelled" }).eq("id", runId);
   return { ok: true };
 }
@@ -238,7 +240,7 @@ async function notifyCleanHouse(db: Db, run: RunRow, message: string): Promise<v
  * Never publishes; never auto-kills (flags only). Idempotent + resumable.
  */
 export async function advanceCleanHouseRun(runId: string): Promise<{ ok: boolean; done?: boolean; paused?: boolean; reason?: string }> {
-  const db = await createClient();
+  const db = createAdminClient();
   return advanceCleanHouseRunWith(db, runId);
 }
 
@@ -421,7 +423,7 @@ export async function getActiveCleanHouseRun(projectId: string): Promise<{
   run: { id: string; status: string; est_cost_usd: number; spent_usd: number; budget_ceiling_usd: number; paused_reason: string | null } | null;
   counts: { advance: number; flag: number; skip: number; ready: number; flagged: number; pending: number };
 } | null> {
-  const db = await createClient();
+  const db = createAdminClient();
   const { data: run } = await db
     .from("clean_house_runs")
     .select("id, status, est_cost_usd, spent_usd, budget_ceiling_usd, paused_reason")
