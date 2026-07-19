@@ -486,6 +486,7 @@ async function main() {
     .select("*")
     .eq("edit_session_requested", true)
     .limit(3);
+  console.log(`agent-queue: ${requested?.length ?? 0} video(s) with a cut session requested`);
   for (const video of requested ?? []) {
     // CAS claim on the flag (conflict #1 discipline): exactly one worker wins.
     const { data: claimed } = await db
@@ -494,7 +495,11 @@ async function main() {
       .eq("id", video.id)
       .eq("edit_session_requested", true)
       .select("id");
-    if (!claimed || claimed.length === 0) continue;
+    if (!claimed || claimed.length === 0) {
+      console.log(`↩︎  ${(video as { title?: string }).title ?? video.id}: claimed by another worker — skipping`);
+      continue;
+    }
+    console.log(`▶️  claimed "${(video as { title?: string }).title ?? video.id}" — starting cut session`);
     await runSession(video);
   }
 }
