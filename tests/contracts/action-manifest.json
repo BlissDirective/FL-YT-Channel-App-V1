@@ -95,6 +95,7 @@
     "resumeVideoAction(projectId: string, videoId: string,)",
     "resetRenderAttemptsAction(projectId: string, videoId: string,)",
     "nudgeStalledVideoAction(projectId: string, videoId: string,)",
+    "requestMvdaCutAction(projectId: string, videoId: string,)",
     "startBuildRunAction(projectId: string, config: BuildRunConfig,)",
     "stepBackStageAction(projectId: string, videoId: string, deleteAssets: boolean,)",
     "runDemoPipelineAction(projectId: string)",

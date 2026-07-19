@@ -32,6 +32,7 @@ import { getDecisions } from "@/lib/db/decisions-data";
 import { CheckpointPanel } from "./checkpoint-panel";
 import { CanvasControls } from "./canvas-controls";
 import { DirectorConsole, type ConsoleReview, type ConsoleDecision } from "./director-console";
+import { MvdaCutButton } from "./mvda-cut-button";
 import { directorStageForStatus } from "@/lib/pipeline/decisions";
 import { tasteThreshold, type DirectorStageKey } from "@/lib/pipeline/operator-signal";
 import { ScriptReview } from "./script-review";
@@ -336,15 +337,18 @@ export default async function VideoDetailPage({
           </StatusChip>
           {((s && allAssets.some((a) => a.kind === "vo")) ||
             (v.kind === "short" && v.parent_video_id != null)) && (
-            <Link
-              href={`/projects/${id}/videos/${vid}/edit`}
-              className="flex items-center gap-1 rounded-full bg-canvas px-3 py-1 text-xs font-semibold shadow-card hover:bg-accent-soft"
-            >
-              <Clapperboard className="size-3.5" />
-              Open editor
-              {(v as { edit_document_version?: number | null }).edit_document_version != null &&
-                ` · cut v${(v as { edit_document_version?: number | null }).edit_document_version}`}
-            </Link>
+            <>
+              <Link
+                href={`/projects/${id}/videos/${vid}/edit`}
+                className="flex items-center gap-1 rounded-full bg-canvas px-3 py-1 text-xs font-semibold shadow-card hover:bg-accent-soft"
+              >
+                <Clapperboard className="size-3.5" />
+                Open editor
+                {(v as { edit_document_version?: number | null }).edit_document_version != null &&
+                  ` · cut v${(v as { edit_document_version?: number | null }).edit_document_version}`}
+              </Link>
+              <MvdaCutButton projectId={id} videoId={vid} />
+            </>
           )}
           {assemblyEnabled && s && (
             <Link

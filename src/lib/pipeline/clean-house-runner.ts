@@ -311,6 +311,14 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
     let spent = Number(run.spent_usd);
     let paidAdvances = 0; // concurrency throttle counter
 
+    // MVDA precision-cut routing (spec §C.2): on mvda-enabled channels whose CUT
+    // gate is set to auto-advance, route ASSETS-stage assets through the cut
+    // agent for a precision pass. Assist-mode channels keep the reliable plain
+    // advance (a manual-review cut would contradict Clean House's autonomy).
+    const { data: projRow } = await db.from("projects").select("mvda_enabled, autonomy").eq("id", run.project_id).maybeSingle();
+    const cutMode = (projRow as { autonomy?: Record<string, string> } | null)?.autonomy?.ASSETS ?? "assist";
+    const mvdaCut = Boolean((projRow as { mvda_enabled?: boolean } | null)?.mvda_enabled) && (cutMode === "copilot" || cutMode === "autopilot");
+
     // Allocate the capped budget by the operator's chosen strategy: rank the
     // paid "advance" items so the best bets are funded first. Flag/skip items
     // are free, so process them ahead of the ranked advances (order-agnostic).
@@ -381,6 +389,22 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
         await db.from("clean_house_items").update({ inflight_since: nowIso, nudges: 0 }).eq("id", item.id);
         paidAdvances += 1;
         await recordDecision(db, { projectId: v.project_id, videoId: v.id, kind: "regenerate", choice: "revision", reasoning: "Clean House revision (QC below floor)", params: { runId } });
+        continue;
+      }
+
+      // At the ASSETS (CUT) gate on an mvda-enabled channel, hand the cut to the
+      // MVDA agent for a precision pass instead of a plain approve. The agent
+      // cuts + advances under its own autonomy/floor; the asset is now in-flight
+      // and a later tick's stall handler tracks it.
+      if (mvdaCut && v.status === "ASSETS_READY") {
+        await db.from("videos").update({ edit_session_requested: true, auto_finish: false }).eq("id", v.id);
+        spent = Math.round((spent + item.est_cost_usd) * 100) / 100;
+        paidAdvances += 1;
+        await db.from("clean_house_items").update({ spent_usd: item.est_cost_usd, inflight_since: nowIso, nudges: 0 }).eq("id", item.id);
+        await recordDecision(db, {
+          projectId: v.project_id, videoId: v.id, kind: "regenerate",
+          choice: "mvda_cut", reasoning: "Clean House requested an MVDA precision cut", costUsd: item.est_cost_usd, params: { runId },
+        });
         continue;
       }
 
