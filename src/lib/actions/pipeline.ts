@@ -181,6 +181,36 @@ export async function nudgeStalledVideoAction(
   });
 }
 
+/**
+ * Request an MVDA precision cut (spec §C.3). Flags the video so the cut agent
+ * claims it (mirrors the autonomous handoff in clip-queue). Manual counterpart
+ * to "Open editor" — available in both Director and Autonomous modes. Kicks the
+ * agent worker now when dispatch is configured; otherwise the scheduled agent
+ * cron picks it up.
+ */
+export async function requestMvdaCutAction(
+  projectId: string,
+  videoId: string,
+): Promise<PipelineResult> {
+  return guarded(async () => {
+    const supabase = await createClient();
+    const { data: video } = await supabase
+      .from("videos")
+      .select("id, status")
+      .eq("id", videoId)
+      .maybeSingle();
+    if (!video) return { ok: false, error: "Video not found." };
+    const { error } = await supabase
+      .from("videos")
+      .update({ edit_session_requested: true, auto_finish: false })
+      .eq("id", videoId);
+    if (error) return { ok: false, error: error.message };
+    refresh(projectId);
+    if (ghDispatchConfigured()) await dispatchWorkflow("agent.yml");
+    return { ok: true };
+  });
+}
+
 /** Launch a Full-Auto Build & Post run (Phase 0): create the run + N seed
     videos; the build-runner cron drives them through to Final review. */
 export async function startBuildRunAction(
