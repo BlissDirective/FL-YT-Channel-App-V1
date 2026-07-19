@@ -29,22 +29,29 @@ the money lands on *whatever assets it reaches first*, not the best bets.
    `salvageability` score is already persisted per item — just add
    `.order('salvageability', { ascending:false }).order('est_cost_usd', { ascending:true })`
    to the tick query in `advanceCleanHouseRun` (`clean-house-runner.ts`).
-2. **Plan preview shows the budget frontier.** In the plan view, given the
-   entered ceiling, compute (pure, in `@studio/core`) which advance-items fit
-   under the ceiling in salvageability order → show
-   "≈N of M assets fit under $X; the rest wait / are skipped." A new pure
-   helper `planWithinBudget(items, ceilingUsd)` returns
-   `{ funded: Item[], deferred: Item[], fundedCostUsd }`.
-3. **Deferred items are explicit.** When the ledger cap pauses the run, items
-   never reached are marked `outcome:'skipped'` with reason "beyond budget"
-   (today they silently stay pending). Operator can raise the ceiling + resume
-   to fund more.
+2. **Operator-selectable strategy (DECIDED).** Expose a selector in the plan
+   view with three strategies, default **salvageability**:
+   - **salvageability** — highest salvageability first (tie: cheapest). Best odds.
+   - **cheapest** — lowest `est_cost_usd` first. Most wins per dollar.
+   - **closest-to-floor** — smallest QC-gap-to-floor first (least quality lift
+     per win). Requires the asset's QC score on the item (added — see schema).
+   Pure helper `rankForBudget(items, strategy)` returns the ordered queue; the
+   run persists the chosen strategy (`clean_house_runs.budget_strategy`).
+3. **Plan preview shows the budget frontier.** Given the ceiling + strategy,
+   `planWithinBudget(rankedItems, ceilingUsd)` (pure) returns
+   `{ funded, deferred, fundedCostUsd }`; the plan view shows
+   "≈N of M assets fit under $X; the rest wait." **Deferred items stay pending**
+   (NOT marked skipped) so raising the ceiling + Resume funds more — the preview
+   is the explicit surface, resume stays possible.
+
+### Schema (migration `0065`)
+- `clean_house_runs.budget_strategy text not null default 'salvageability'`
+- `clean_house_items.qc_score numeric` (nullable; captured at triage, powers
+  closest-to-floor ranking).
 
 ### Notes
 - The hard cap stays enforced on **real reconciled ledger spend**
   (`cleanHouseLedgerStop`) — unchanged. This only changes *ordering* + *preview*.
-- Optional (confirm): expose the strategy as a selector
-  (`salvageability | cheapest | closest-to-floor`) — default salvageability.
 
 ### Tests
 - `planWithinBudget` pure unit tests (ordering, frontier, zero/inf ceiling).
@@ -58,12 +65,16 @@ the money lands on *whatever assets it reaches first*, not the best bets.
 - **Pre-approval (awaiting_approval):** the plan view gains a **"← Re-select
   assets"** button. It cancels the awaiting run (`cancelCleanHouseRun`) and
   reopens the picker. (Selection is discarded — operator picks fresh.)
-- **Mid-run (running/paused):** the run controls gain **"Re-select"** behind a
-  one-tap confirm ("This ends the current run and starts a new selection").
-  It cancels the active run and reopens the picker.
-  - **In-flight caveat, surfaced in the confirm:** assets already advanced this
-    run keep whatever progress/spend already happened (that's real, ledgered
-    work); re-select just stops *new* work and starts a fresh triage.
+- **Mid-run (running/paused) (DECIDED):** the run controls gain **"Re-select"**
+  behind a one-tap confirm ("This ends the current run and starts a new
+  selection"). It **cancels the active run** and reopens the picker.
+  - **Cancel semantics:** assets **already in-flight** (advanced into an async
+    worker stage — render/clip jobs already dispatched) **finish naturally** on
+    their own queues; Clean House simply stops advancing them. Assets **queued
+    for cleanup but not yet advanced** are **dropped** (the cancelled run never
+    touches them). Already-ledgered spend stays real. This is exactly the
+    existing `cancelCleanHouseRun` behavior (tick halts on `status != running`),
+    so the change is UI-only.
 
 ### UI
 - `clean-house-panel.tsx`: add the Re-select affordance in both the plan block
@@ -102,22 +113,27 @@ scores. Give it **frames**:
   emphasis/timing, camera motion, **b-roll/visual swaps** (`swap_visual`), and
   pacing — the levers that matter for faceless AI footage.
 
-### C.2 — Clean House → MVDA edit-session trigger (autonomous)
+### C.2 — Clean House → MVDA edit-session trigger (autonomous) (DECIDED)
 Clean House currently polishes via the autofix loop and **never invokes the MVDA
 cut agent**. Add: when a salvageable asset reaches the cut/FINAL stage on an
-`mvda_enabled` channel, Clean House (and the normal autonomous build) may
+`mvda_enabled` channel, Clean House (and the normal autonomous build)
 **request an MVDA edit session** (`edit_session_requested`) so the cut agent does
-a precision pass before the FINAL gate — bounded by the same budget ceiling +
-`cut_copilot_floor` + 2-round cap. Gated so it never runs on channels without
-MVDA enabled, and never exceeds the run's cap.
+a precision pass before the FINAL gate — **on by default** for mvda_enabled
+channels — bounded by the same budget ceiling + `cut_copilot_floor` + 2-round cap.
+- **MVDA on by default for ALL channels (DECIDED):** migration flips
+  `projects.mvda_enabled` default → `true` **and backfills existing channels to
+  true**; the project-settings action default also flips to on. (Operators can
+  still turn it off per channel.) Enabling the flag alone doesn't start runs — a
+  session only fires when `edit_session_requested` is set, so this is safe.
 
-### C.3 — Manual "Precision edit" on both modes
-- **Director mode:** a **"Precision edit"** action on an asset opens the existing
-  editor (the 18-verb timeline) AND/OR triggers an MVDA cut session the operator
-  then refines. (Human edit UI already exists — this surfaces the trigger.)
-- **Autonomous mode:** same button, so the operator can promote a precision pass
-  on demand even while autopilot runs.
-- One consistent entry point in the asset/console UI, available in both modes.
+### C.3 — Manual precision editing on both modes (DECIDED: two actions)
+Offer **two distinct actions** on an asset, available in **both** Director and
+Autonomous modes:
+1. **"Open editor"** — opens the existing 18-verb human timeline editor for
+   hands-on precision cutting.
+2. **"Run MVDA cut"** — requests an MVDA precision pass (`edit_session_requested`)
+   the operator can then refine in the editor.
+One consistent entry point in the asset/console UI, both modes.
 
 ### C.4 — Training MVDA to write better edits (uses existing loops)
 No new ML — feed the agent better signal through systems that already exist:
@@ -154,12 +170,13 @@ No new ML — feed the agent better signal through systems that already exist:
 Each step: tsc + eslint + vitest + build green, visual QA, sign off here,
 commit + merge in the established rhythm.
 
-## Open questions
-1. Budget strategy: single default (salvageability-first) or an operator-visible
-   selector (salvageability / cheapest / closest-to-floor)?
-2. Mid-run re-select: confirm it should **cancel** the current run (abandon new
-   work) rather than pause-and-resume a different subset.
-3. C.2 autonomy: should the Clean House → MVDA edit-session pass be **on by
-   default** for mvda_enabled channels, or opt-in per run?
-4. Precision-edit button: open the **human editor**, **trigger an MVDA cut**, or
-   offer **both** as two actions?
+## Resolved decisions (operator sign-off)
+1. Budget strategy: **operator-visible selector** (salvageability / cheapest /
+   closest-to-floor), default salvageability.
+2. Mid-run re-select: **cancels** the run — in-flight assets finish on their
+   worker queues, queued-but-not-started assets are dropped.
+3. Clean House → MVDA precision pass **on by default** for mvda_enabled
+   channels; **`mvda_enabled` default flipped to true for all channels**
+   (+ backfill existing).
+4. Precision editing: **two distinct actions** — "Open editor" and "Run MVDA cut"
+   — on both modes.
