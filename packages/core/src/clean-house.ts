@@ -196,6 +196,69 @@ export function cleanHouseTerminationStop(s: CleanHouseRailState): { stop: boole
   return { stop: false };
 }
 
+// ── Budget allocation strategy (Precision-Editing-and-Clean-House-v2-Spec §A) ─
+// A capped budget should fund the best bets first, not arbitrary insertion
+// order. The operator picks a strategy; these pure helpers rank the work queue
+// and compute the budget frontier for the plan preview.
+
+export type CleanHouseBudgetStrategy = "salvageability" | "cheapest" | "closest-to-floor";
+
+/** The fields a rankable item needs (camelCase; the runner maps DB rows in). */
+export type BudgetRankable = {
+  salvageability: number;
+  estCostUsd: number;
+  qcScore: number | null;
+  qcFloor: number;
+};
+
+/** QC gap to the floor; null score → Infinity (ranks last for closest-to-floor). */
+function floorGap(i: BudgetRankable): number {
+  return i.qcScore == null ? Number.POSITIVE_INFINITY : Math.max(0, i.qcFloor - i.qcScore);
+}
+
+/**
+ * Order a set of advance items by the chosen budget strategy. Pure + stable
+ * enough for tests (deterministic tie-breaks). Generic so the runner can rank
+ * its own row type as long as it carries the BudgetRankable fields.
+ */
+export function rankForBudget<T extends BudgetRankable>(items: T[], strategy: CleanHouseBudgetStrategy): T[] {
+  const arr = [...items];
+  switch (strategy) {
+    case "cheapest":
+      arr.sort((a, b) => a.estCostUsd - b.estCostUsd || b.salvageability - a.salvageability);
+      break;
+    case "closest-to-floor":
+      arr.sort((a, b) => floorGap(a) - floorGap(b) || a.estCostUsd - b.estCostUsd);
+      break;
+    case "salvageability":
+    default:
+      arr.sort((a, b) => b.salvageability - a.salvageability || a.estCostUsd - b.estCostUsd);
+  }
+  return arr;
+}
+
+/**
+ * Greedily walk already-ranked items, funding each while cumulative estimated
+ * cost stays under the ceiling. ceiling <= 0 → no ceiling (fund all). Pure.
+ */
+export function planWithinBudget<T extends { estCostUsd: number }>(
+  rankedItems: T[],
+  ceilingUsd: number,
+): { funded: T[]; deferred: T[]; fundedCostUsd: number } {
+  if (ceilingUsd <= 0) {
+    const total = rankedItems.reduce((s, i) => s + i.estCostUsd, 0);
+    return { funded: [...rankedItems], deferred: [], fundedCostUsd: Math.round(total * 100) / 100 };
+  }
+  const funded: T[] = [];
+  const deferred: T[] = [];
+  let spent = 0;
+  for (const it of rankedItems) {
+    if (spent + it.estCostUsd <= ceilingUsd + 1e-9) { funded.push(it); spent += it.estCostUsd; }
+    else deferred.push(it);
+  }
+  return { funded, deferred, fundedCostUsd: Math.round(spent * 100) / 100 };
+}
+
 export type CleanHouseStallVerdict = "wait" | "nudge" | "flag";
 
 /**

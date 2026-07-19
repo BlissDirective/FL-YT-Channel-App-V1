@@ -11,8 +11,11 @@ import {
   CLEAN_HOUSE_MAX_NO_PROGRESS_TICKS,
   CLEAN_HOUSE_MAX_TICKS,
   planCleanHouse,
+  planWithinBudget,
+  rankForBudget,
   triageAsset,
   type AssetSignals,
+  type BudgetRankable,
 } from "@studio/core";
 
 const base: AssetSignals = {
@@ -97,6 +100,51 @@ describe("cleanHouseTerminationStop", () => {
   });
   it("keeps running while inside the rails", () => {
     expect(cleanHouseTerminationStop({ tickCount: 5, noProgressTicks: 1 }).stop).toBe(false);
+  });
+});
+
+describe("rankForBudget", () => {
+  const items: (BudgetRankable & { id: string })[] = [
+    { id: "a", salvageability: 0.9, estCostUsd: 3.0, qcScore: 6.8, qcFloor: 7 }, // best odds, small gap
+    { id: "b", salvageability: 0.5, estCostUsd: 0.4, qcScore: 5.0, qcFloor: 7 }, // cheapest, big gap
+    { id: "c", salvageability: 0.7, estCostUsd: 2.0, qcScore: null, qcFloor: 7 }, // no score
+  ];
+  it("salvageability: highest first", () => {
+    expect(rankForBudget(items, "salvageability").map((i) => i.id)).toEqual(["a", "c", "b"]);
+  });
+  it("cheapest: lowest cost first", () => {
+    expect(rankForBudget(items, "cheapest").map((i) => i.id)).toEqual(["b", "c", "a"]);
+  });
+  it("closest-to-floor: smallest QC gap first, null score last", () => {
+    expect(rankForBudget(items, "closest-to-floor").map((i) => i.id)).toEqual(["a", "b", "c"]);
+  });
+  it("does not mutate the input", () => {
+    const copy = [...items];
+    rankForBudget(items, "cheapest");
+    expect(items).toEqual(copy);
+  });
+});
+
+describe("planWithinBudget", () => {
+  const ranked = [
+    { id: "a", estCostUsd: 3 },
+    { id: "b", estCostUsd: 2 },
+    { id: "c", estCostUsd: 4 },
+  ];
+  it("funds greedily in order until the ceiling", () => {
+    const r = planWithinBudget(ranked, 5);
+    expect(r.funded.map((i) => i.id)).toEqual(["a", "b"]);
+    expect(r.deferred.map((i) => i.id)).toEqual(["c"]);
+    expect(r.fundedCostUsd).toBe(5);
+  });
+  it("no ceiling (<=0) funds everything", () => {
+    const r = planWithinBudget(ranked, 0);
+    expect(r.deferred).toHaveLength(0);
+    expect(r.fundedCostUsd).toBe(9);
+  });
+  it("skips an item that doesn't fit but keeps trying cheaper later ones", () => {
+    const r = planWithinBudget([{ id: "big", estCostUsd: 10 }, { id: "small", estCostUsd: 1 }], 2);
+    expect(r.funded.map((i) => i.id)).toEqual(["small"]);
   });
 });
 

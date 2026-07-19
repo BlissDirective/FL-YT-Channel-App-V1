@@ -9,6 +9,7 @@ import {
   triageCleanHouse,
   type TriageResult,
 } from "@/lib/pipeline/clean-house-runner";
+import type { CleanHouseBudgetStrategy } from "@studio/core";
 
 /**
  * Clean House server actions (admin-gated inside the runner). The UI triages,
@@ -30,8 +31,9 @@ export async function approveCleanHouse(
   runId: string,
   budgetCeilingUsd: number,
   overrides: { videoId: string; verdict: "advance" | "flag" | "skip" }[] = [],
+  strategy: CleanHouseBudgetStrategy = "salvageability",
 ): Promise<{ ok: boolean; error?: string }> {
-  const res = await approveCleanHouseRun(runId, budgetCeilingUsd, overrides);
+  const res = await approveCleanHouseRun(runId, budgetCeilingUsd, overrides, strategy);
   revalidatePath(`/projects/${projectId}/library`);
   return res;
 }

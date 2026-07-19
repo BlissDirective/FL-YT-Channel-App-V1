@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Play, Pause, X, ShieldCheck, ListChecks, AlertTriangle } from "lucide-react";
+import { Sparkles, Play, Pause, X, ShieldCheck, ListChecks, AlertTriangle, RotateCcw } from "lucide-react";
+import {
+  planWithinBudget,
+  rankForBudget,
+  type CleanHouseBudgetStrategy,
+} from "@studio/core";
 import {
   approveCleanHouse,
   cancelCleanHouse,
@@ -14,11 +19,18 @@ import { cn } from "@/lib/cn";
 import { StarBorder } from "@/components/ui/star-border";
 
 type Plan = { advance: number; flag: number; skip: number; estCostUsd: number };
+type AdvanceItem = { salvageability: number; estCostUsd: number; qcScore: number | null };
 type Candidate = { id: string; title: string; status: string };
 type RunState = {
-  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; budget_ceiling_usd: number; paused_reason: string | null } | null;
+  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; budget_ceiling_usd: number; paused_reason: string | null; budget_strategy: string | null } | null;
   counts: { advance: number; flag: number; skip: number; ready: number; flagged: number; pending: number };
 };
+
+const STRATEGIES: { key: CleanHouseBudgetStrategy; label: string; hint: string }[] = [
+  { key: "salvageability", label: "Best odds", hint: "highest salvageability first" },
+  { key: "cheapest", label: "Most wins", hint: "cheapest to fix first" },
+  { key: "closest-to-floor", label: "Least lift", hint: "closest to the floor first" },
+];
 
 /**
  * Clean House control (admin-only). Triage → approve a plan + budget ceiling →
@@ -36,8 +48,9 @@ export function CleanHousePanel({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [plan, setPlan] = useState<{ runId: string; plan: Plan } | null>(null);
+  const [plan, setPlan] = useState<{ runId: string; plan: Plan; advanceItems: AdvanceItem[]; qcFloor: number } | null>(null);
   const [ceiling, setCeiling] = useState(20);
+  const [strategy, setStrategy] = useState<CleanHouseBudgetStrategy>("salvageability");
   const [error, setError] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -50,10 +63,19 @@ export function CleanHousePanel({
       setError(null);
       const res = await startCleanHouseTriage(projectId, mode, ids);
       if (!res.ok || !res.result) { setError(res.error ?? "Failed"); return; }
-      setPlan({ runId: res.result.runId, plan: res.result.plan });
+      setPlan({ runId: res.result.runId, plan: res.result.plan, advanceItems: res.result.advanceItems, qcFloor: res.result.qcFloor });
       setCeiling(Math.max(5, Math.ceil(res.result.plan.estCostUsd)));
       setPicking(false);
       setSelected(new Set());
+      router.refresh();
+    });
+
+  // Discard the current triage plan (or run) and reopen the picker (Part B).
+  const reselect = (runId: string) =>
+    start(async () => {
+      await cancelCleanHouse(projectId, runId);
+      setPlan(null);
+      setPicking(true);
       router.refresh();
     });
 
@@ -71,7 +93,7 @@ export function CleanHousePanel({
 
   const approve = (runId: string) =>
     start(async () => {
-      await approveCleanHouse(projectId, runId, ceiling);
+      await approveCleanHouse(projectId, runId, ceiling, [], strategy);
       setPlan(null);
       router.refresh();
     });
@@ -79,7 +101,23 @@ export function CleanHousePanel({
   const act = (fn: () => Promise<unknown>) => start(async () => { await fn(); router.refresh(); });
 
   // ── Awaiting approval (triage plan ready) ────────────────────────────────
-  const awaitingPlan = plan ?? (run?.status === "awaiting_approval" ? { runId: run.id, plan: { advance: c.advance, flag: c.flag, skip: c.skip, estCostUsd: run.est_cost_usd } } : null);
+  const awaitingPlan =
+    plan ??
+    (run?.status === "awaiting_approval"
+      ? { runId: run.id, plan: { advance: c.advance, flag: c.flag, skip: c.skip, estCostUsd: run.est_cost_usd }, advanceItems: [] as AdvanceItem[] }
+      : null);
+
+  // Budget frontier: how many advance-items fit under the ceiling in the chosen
+  // strategy order (Part A). Only meaningful for a fresh triage this session
+  // (we have the per-item list); a prior-session plan hides it.
+  const frontier = useMemo(() => {
+    if (!plan || plan.advanceItems.length === 0) return null;
+    const ranked = rankForBudget(
+      plan.advanceItems.map((i) => ({ ...i, qcFloor: plan.qcFloor })),
+      strategy,
+    );
+    return planWithinBudget(ranked, ceiling);
+  }, [plan, strategy, ceiling]);
 
   return (
     <StarBorder color="var(--color-accent)" speed="7s" className="block w-full">
@@ -174,6 +212,30 @@ export function CleanHousePanel({
             <Chip tone="muted" label={`${awaitingPlan.plan.skip} skip`} />
             <Chip tone="accent" label={`~$${awaitingPlan.plan.estCostUsd.toFixed(2)} est.`} />
           </div>
+
+          {/* Budget strategy — which assets a capped budget funds first */}
+          <div className="space-y-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Budget strategy</p>
+            <div className="flex flex-wrap gap-1.5">
+              {STRATEGIES.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setStrategy(s.key)}
+                  title={s.hint}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                    strategy === s.key
+                      ? "border-accent bg-accent/15 text-accent"
+                      : "border-line bg-card-warm text-muted hover:text-ink",
+                  )}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-xs text-muted">
               Budget ceiling
@@ -198,12 +260,27 @@ export function CleanHousePanel({
             </button>
             <button
               type="button"
-              onClick={() => act(() => cancelCleanHouse(projectId, awaitingPlan.runId))}
-              className="rounded-full bg-card-warm px-4 py-2 text-xs font-semibold text-muted hover:text-ink"
+              onClick={() => reselect(awaitingPlan.runId)}
+              disabled={pending}
+              className="rounded-full bg-card-warm px-4 py-2 text-xs font-semibold text-muted hover:text-ink disabled:opacity-60"
             >
-              Cancel
+              <RotateCcw className="mr-1 inline size-3" /> Re-select assets
             </button>
           </div>
+
+          {/* Budget frontier — how much of the plan the ceiling actually funds */}
+          {frontier && ceiling > 0 && (
+            <p className="text-[11px] text-muted">
+              Under ${ceiling.toFixed(0)}: funds{" "}
+              <span className="font-semibold text-ink">
+                {frontier.funded.length} of {awaitingPlan.plan.advance}
+              </span>{" "}
+              advanceable assets (~${frontier.fundedCostUsd.toFixed(2)}).
+              {frontier.deferred.length > 0 && (
+                <> {frontier.deferred.length} wait until you raise the ceiling &amp; resume.</>
+              )}
+            </p>
+          )}
           <p className="text-[10px] text-muted">
             Approving authorizes autonomous execution for this run. It stops at
             Ready-to-publish — it never uploads and never kills.
@@ -241,6 +318,18 @@ export function CleanHousePanel({
                 <Play className="mr-1 inline size-3" /> Resume
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm("End this run and start a new selection? Assets already in flight finish on their own; queued ones are dropped.")) {
+                  reselect(run.id);
+                }
+              }}
+              disabled={pending}
+              className="rounded-full bg-card-warm px-3 py-1.5 text-xs font-semibold text-muted hover:text-ink disabled:opacity-60"
+            >
+              <RotateCcw className="mr-1 inline size-3" /> Re-select
+            </button>
             <button type="button" onClick={() => act(() => cancelCleanHouse(projectId, run.id))} className="rounded-full bg-card-warm px-3 py-1.5 text-xs font-semibold text-muted hover:text-coral">
               <X className="mr-1 inline size-3" /> Cancel
             </button>

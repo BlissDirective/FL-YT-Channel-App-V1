@@ -25,7 +25,7 @@
   ],
   "cleanhouse": [
     "startCleanHouseTriage(projectId: string, mode: \"all\" | \"selected\", videoIds: string[] = [],)",
-    "approveCleanHouse(projectId: string, runId: string, budgetCeilingUsd: number, overrides: { videoId: string; verdict: \"advance\" | \"flag\" | \"skip\" }[] = [],)",
+    "approveCleanHouse(projectId: string, runId: string, budgetCeilingUsd: number, overrides: { videoId: string; verdict: \"advance\" | \"flag\" | \"skip\" }[] = [], strategy: CleanHouseBudgetStrategy = \"salvageability\",)",
     "tickCleanHouse(projectId: string, runId: string)",
     "pauseCleanHouse(projectId: string, runId: string)",
     "cancelCleanHouse(projectId: string, runId: string)"
