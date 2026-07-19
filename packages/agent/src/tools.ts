@@ -21,6 +21,7 @@ import {
   setClipSilent,
   swapClipAsset,
   sourceForClipMeta,
+  selectGroundingFrames,
   validateAgainst,
   type EddDb,
   type EditDocument,
@@ -56,6 +57,10 @@ export type SessionCtx = {
       real Remotion + the footage frame-critic). */
   renderPreview: (doc: EditDocument, range?: { fromSec?: number; toSec?: number }) => Promise<{ path: string }>;
   judgeDoc: (doc: EditDocument) => Promise<{ score: number; issues: string[]; costUsd: number }>;
+  /** Visual grounding (§C.1): render still JPEGs at the given clip midpoints so
+      the agent can SEE the cut. Optional — absent in the self-test (which falls
+      back to a text-only timeline). Wired to Remotion in agent-queue. */
+  sampleFrames?: (doc: EditDocument, picks: { clipId: string; atSec: number }[]) => Promise<{ clipId: string; jpegBase64: string }[]>;
   onReady?: (note: string) => Promise<void>;
 };
 
@@ -126,7 +131,13 @@ const transitionSchema = z.object({
   dir: z.enum(["left", "right", "up", "down"]).optional(),
 });
 
-export type ToolDef = { description: string; schema: z.ZodTypeAny; run: (args: any) => Promise<string> };
+/** A tool result block. Backward-compatible: `run` may return a plain string
+    (wrapped as a single text block, exactly as before) OR content blocks so a
+    read tool can return images (visual grounding, §C.1). */
+export type ToolContent =
+  | { type: "text"; text: string }
+  | { type: "image"; data: string; mimeType: string };
+export type ToolDef = { description: string; schema: z.ZodTypeAny; run: (args: any) => Promise<string | ToolContent[]> };
 
 export function makeTools(ctx: SessionCtx): Record<string, ToolDef> {
   return {
@@ -158,6 +169,34 @@ export function makeTools(ctx: SessionCtx): Record<string, ToolDef> {
       description: "The current head Edit Decision Document (full JSON).",
       schema: z.object({}),
       run: async () => JSON.stringify(ctx.doc),
+    },
+    timeline_view: {
+      description:
+        "SEE the actual cut: renders still frames at key beats (bookends + transition/decision points) so you can judge framing, motion, b-roll relevance, and caption legibility with your eyes — not just the JSON. Read-only. Call before big pacing/transition/swap decisions and after a round of edits.",
+      schema: z.object({ maxFrames: z.number().min(1).max(8).default(6) }),
+      run: async (a): Promise<string | ToolContent[]> => {
+        ctx.state.views += 1;
+        const picks = selectGroundingFrames(
+          ctx.doc.tracks.video.map((c) => ({ id: c.id, beatIdx: c.beatIdx, start: c.start, duration: c.duration, transitionOut: c.transitionOut })),
+          a.maxFrames,
+        );
+        if (picks.length === 0) return "timeline is empty (no video clips yet)";
+        // Self-test / no renderer wired → text-only timeline (graceful).
+        if (!ctx.sampleFrames) {
+          return `timeline (${picks.length} key beats): ${picks.map((p) => `beat ${p.beatIdx} @${p.atSec}s`).join(", ")}`;
+        }
+        const frames = await ctx.sampleFrames(ctx.doc, picks.map((p) => ({ clipId: p.clipId, atSec: p.atSec })));
+        const content: ToolContent[] = [
+          { type: "text", text: `Rendered ${frames.length} frames at key beats. Judge framing, motion, b-roll relevance, and caption legibility; each frame is labeled with its beat.` },
+        ];
+        for (const p of picks) {
+          const f = frames.find((x) => x.clipId === p.clipId);
+          if (!f) continue;
+          content.push({ type: "text", text: `beat ${p.beatIdx} @ ${p.atSec}s (clip ${p.clipId}):` });
+          content.push({ type: "image", data: f.jpegBase64, mimeType: "image/jpeg" });
+        }
+        return content.length > 1 ? content : "timeline_view: no frames could be rendered this pass";
+      },
     },
     retime_clip: {
       description: "Set a clip's duration (seconds ≥1); later clips reflow gapless.",

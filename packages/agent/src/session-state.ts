@@ -11,6 +11,8 @@ export type SessionState = {
   judges: number;
   versions: number;
   lessons: number;
+  /** §C.1 visual-grounding renders (timeline_view) this session. */
+  views: number;
   /** Latest judge_preview overall score for the CURRENT head (null = unjudged). */
   judgeScore: number | null;
   /** C2 — the cut gate's floor; mark_ready is denied below it. */
@@ -18,7 +20,7 @@ export type SessionState = {
   killSwitch: boolean;
 };
 
-export const SESSION_CAPS = { previews: 3, judges: 3, versions: 15, lessons: 3 } as const;
+export const SESSION_CAPS = { previews: 3, judges: 3, versions: 15, lessons: 3, views: 4 } as const;
 
 /** Tools that spend money (Anthropic vision / render minutes). */
 const PAID = new Set(["render_preview", "judge_preview"]);
@@ -47,6 +49,9 @@ export function gateTool(name: string, s: SessionState): Gate {
   }
   if (name === "write_lesson" && s.lessons >= SESSION_CAPS.lessons) {
     return { allow: false, reason: `lesson cap reached (${SESSION_CAPS.lessons}/session)` };
+  }
+  if (name === "timeline_view" && s.views >= SESSION_CAPS.views) {
+    return { allow: false, reason: `timeline_view cap reached (${SESSION_CAPS.views}/session)` };
   }
   if (MUTATING.has(name) && !PAID.has(name) && name !== "mark_ready" && s.versions >= SESSION_CAPS.versions) {
     return { allow: false, reason: `version cap reached (${SESSION_CAPS.versions}/session)` };

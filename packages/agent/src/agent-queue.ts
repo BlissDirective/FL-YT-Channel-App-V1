@@ -206,6 +206,35 @@ function realJudge(ctx: Omit<SessionCtx, "state" | "renderPreview" | "judgeDoc" 
   };
 }
 
+/**
+ * Visual grounding (spec §C.1): render still JPEGs at the given clip midpoints
+ * so the cut agent can SEE its own timeline via the `timeline_view` tool. Mirrors
+ * realJudge's renderStill path; a frame that fails to render is skipped, never
+ * fatal. Slightly lower JPEG quality than the judge to keep tokens modest.
+ */
+function realSampleFrames(ctx: Omit<SessionCtx, "state" | "renderPreview" | "judgeDoc" | "onReady" | "sampleFrames">) {
+  return async (doc: EditDocument, picks: { clipId: string; atSec: number }[]) => {
+    const { renderStill, selectComposition } = await import("@remotion/renderer");
+    const serveUrl = await getServeUrl();
+    const inputProps = await playerPropsFor(ctx, doc);
+    const compId = ctx.video.kind === "short" ? "VerticalShort" : "LongForm";
+    const composition = await selectComposition({ serveUrl, id: compId, inputProps });
+    const outDir = mkdtempSync(join(tmpdir(), "mvda-view-"));
+    const out: { clipId: string; jpegBase64: string }[] = [];
+    for (const p of picks) {
+      try {
+        const frame = Math.min(composition.durationInFrames - 1, Math.max(0, Math.round(p.atSec * 30)));
+        const file = join(outDir, `v-${p.clipId}.jpg`);
+        await renderStill({ composition, serveUrl, output: file, inputProps, frame, imageFormat: "jpeg", jpegQuality: 70 });
+        out.push({ clipId: p.clipId, jpegBase64: readFileSync(file).toString("base64") });
+      } catch {
+        /* skip a frame that fails to render — never fatal */
+      }
+    }
+    return out;
+  };
+}
+
 // ── Knowledge context (§11, KD2/KD3) ──────────────────────────────────
 
 /** The curated house rubric — the human-approved layer (PR-gated, KD1). */
@@ -277,7 +306,7 @@ async function runSession(videoRow: Record<string, unknown>, selftest = false): 
     return;
   }
   const state: SessionState = {
-    maxBudgetUsd: MAX_BUDGET_USD, spentUsd: 0, previews: 0, judges: 0, versions: 0, lessons: 0,
+    maxBudgetUsd: MAX_BUDGET_USD, spentUsd: 0, previews: 0, judges: 0, versions: 0, lessons: 0, views: 0,
     judgeScore: null, floor: Number(project.cut_copilot_floor ?? 7.0), killSwitch: await killSwitchOn(),
   };
   const { data: sessionRow } = await db
@@ -299,6 +328,7 @@ async function runSession(videoRow: Record<string, unknown>, selftest = false): 
     judgeDoc: selftest
       ? async () => ({ score: 8, issues: ["selftest stub"], costUsd: 0 })
       : realJudge(base),
+    sampleFrames: selftest ? undefined : realSampleFrames(base),
     onReady: async (note) => {
       ready = true;
       readyNote = note;
@@ -323,28 +353,33 @@ async function runSession(videoRow: Record<string, unknown>, selftest = false): 
         durationSec: Math.max(1, firstClip.duration + step),
         note: "selftest",
       });
-      if (!r1.startsWith("ok")) throw new Error(`retime failed: ${r1}`);
+      if (typeof r1 !== "string" || !r1.startsWith("ok")) throw new Error(`retime failed: ${r1}`);
       const gDenied = gateTool("mark_ready", state);
       if (gDenied.allow) throw new Error("mark_ready must be denied before a judge pass");
       await tools.judge_preview.run({});
       const gAllowed = gateTool("mark_ready", state);
       if (!gAllowed.allow) throw new Error(`mark_ready still denied: ${(gAllowed as { reason: string }).reason}`);
       const r2 = await tools.mark_ready.run({ note: "selftest ready" });
-      if (!r2.startsWith("ready")) throw new Error(`mark_ready failed: ${r2}`);
+      if (typeof r2 !== "string" || !r2.startsWith("ready")) throw new Error(`mark_ready failed: ${r2}`);
       console.log(`✅ selftest PASSED — v${startVersion || 0}→v${ctx.headVersion}, judge ${state.judgeScore}`);
     } else {
       const sdk = await import("@anthropic-ai/claude-agent-sdk");
       const server = sdk.createSdkMcpServer({
         name: "mvda",
         tools: Object.entries(tools).map(([name, def]) =>
-          sdk.tool(name, def.description, (def.schema as z.ZodObject<z.ZodRawShape>).shape, async (args: Record<string, unknown>) => ({
-            content: [{ type: "text" as const, text: await def.run(def.schema.parse(args)) }],
-          })),
+          sdk.tool(name, def.description, (def.schema as z.ZodObject<z.ZodRawShape>).shape, async (args: Record<string, unknown>) => {
+            // Backward-compatible: a string result wraps as one text block
+            // (unchanged); a tool may also return content blocks (e.g. images
+            // from timeline_view, §C.1).
+            const out = await def.run(def.schema.parse(args));
+            return { content: typeof out === "string" ? [{ type: "text" as const, text: out }] : out };
+          }),
         ),
       });
       const prompt =
         `You are the studio's cut editor. Improve the cut of "${video.title}" ` +
         `(${introOutroRuntime(ctx.doc).toFixed(0)}s ${video.kind}). Work the loop: get_context → ` +
+        `timeline_view (SEE the cut — judge framing, motion, and b-roll with your eyes before deciding) → ` +
         `make targeted edits (pacing first: tighten slow beats, vary transitions where the topic shifts, ` +
         `auto_emphasis for the baseline then set_emphasis to hand-tune the 2-4 words that carry the hook, ` +
         `prefer hero holds on premium clips; add_keyframe for granular Ken Burns when a preset is too blunt; ` +

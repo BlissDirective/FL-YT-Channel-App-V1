@@ -26,6 +26,7 @@ function state(over: Partial<SessionState> = {}): SessionState {
     judges: 0,
     versions: 0,
     lessons: 0,
+    views: 0,
     judgeScore: null,
     floor: 7.0,
     killSwitch: false,
@@ -63,6 +64,8 @@ describe("gateTool — mechanical session guards", () => {
     expect(gateTool("render_preview", state({ previews: SESSION_CAPS.previews })).allow).toBe(false);
     expect(gateTool("judge_preview", state({ judges: SESSION_CAPS.judges })).allow).toBe(false);
     expect(gateTool("write_lesson", state({ lessons: SESSION_CAPS.lessons })).allow).toBe(false);
+    expect(gateTool("timeline_view", state({ views: SESSION_CAPS.views })).allow).toBe(false);
+    expect(gateTool("timeline_view", state({ views: SESSION_CAPS.views - 1 })).allow).toBe(true);
     // One below the cap is still fine.
     expect(gateTool("render_preview", state({ previews: SESSION_CAPS.previews - 1 })).allow).toBe(true);
   });
@@ -294,7 +297,7 @@ describe("agent tools over the shared allocator", () => {
   it("judge_preview stores the verdict on the head version and arms mark_ready", async () => {
     const tools = makeTools(h.ctx);
     expect(gateTool("mark_ready", h.ctx.state).allow).toBe(false);
-    const out = JSON.parse(await tools.judge_preview.run({}));
+    const out = JSON.parse((await tools.judge_preview.run({})) as string);
     expect(out.score).toBe(8.2);
     expect(h.ctx.state.judges).toBe(1);
     expect(h.ctx.state.spentUsd).toBeCloseTo(0.03);
