@@ -27,6 +27,7 @@ import {
 import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highlights";
 import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
+import { finalGateScore } from "@/lib/pipeline/rubrics";
 import { editorialGuard } from "@/lib/adapters/guardrails";
 import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
 import { pickBestVariant } from "@/lib/adapters/variant-judge";
@@ -3324,6 +3325,11 @@ export async function processPendingBuildVideos(
 // The Assets gate stays owned by Full-Auto (auto_finish) + the render farm so the
 // clip-replacement/render handoff is untouched; the final cut is the real check.
 
+/** FINAL score cap when no real frame critique exists yet — below the default
+    run floor (7.0) so an unassessed render HOLDS for a vision pass instead of
+    recording a phantom 0 or auto-publishing blind. */
+const FINAL_UNGROUNDED_HOLD = 6.5;
+
 /** Score one gate with the QC agent and append it to the qc_reviews ledger
     (billing the review when live). Returns the score + concrete issues. */
 async function scoreAndRecordGate(
@@ -3338,10 +3344,21 @@ async function scoreAndRecordGate(
     context: await qcContext(db, video, project, gate),
     escalateNear,
   });
+  // FINAL is judged from a text summary, so its holistic publish_ready always
+  // fails → phantom near-zero scores that don't measure the real video. Ground
+  // the FINAL number in the actual rendered frames (vision critique) when we
+  // have one; otherwise score structure only and HOLD (cap below the floor) for
+  // a real vision pass rather than record a misleading 0 or auto-publish blind.
+  let score = review.score;
+  if (gate === "FINAL") {
+    const vr = video.vision_review as { score?: number } | null;
+    const g = finalGateScore(review.criteria, typeof vr?.score === "number" ? vr.score : null);
+    score = g.grounded ? g.score : Math.min(g.score, FINAL_UNGROUNDED_HOLD);
+  }
   await db.from("qc_reviews").insert({
     video_id: video.id,
     gate,
-    score: review.score,
+    score,
     verdict: review.verdict,
     issues: review.issues,
     strengths: review.strengths,
@@ -3358,7 +3375,7 @@ async function scoreAndRecordGate(
       `${GATE_LABELS[gate]} gate`,
     );
   }
-  return { score: review.score, issues: review.issues };
+  return { score, issues: review.issues };
 }
 
 /** QC the freshly-written script; on a sub-floor miss, revise once (QC issues
@@ -3983,7 +4000,9 @@ export async function generateBeatVideo(opts: {
   const isStill = still?.storage_path && !(still.meta as { isVideo?: boolean })?.isVideo;
   const imageUrl = isStill ? (await getSignedMediaUrl(still!.storage_path)) ?? undefined : undefined;
 
-  const prompt = buildVisualPrompt(beat.visualPrompt, project.brand_kit.thumbnailStyle);
+  // VCE V1 — condition the clip prompt on the Visual Bible too (not just stills),
+  // so video keeps the style contract / palette / subject consistency.
+  const prompt = buildVisualPrompt(beat.visualPrompt, project.brand_kit.thumbnailStyle, video.visual_bible ?? null);
   let out: Awaited<ReturnType<typeof generateVideo>>;
   try {
     out = await generateVideo({ model, prompt, imageUrl, durationSec: dur });

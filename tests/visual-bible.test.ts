@@ -70,6 +70,15 @@ describe("buildVisualPrompt", () => {
     expect(out).toMatch(/ribbon-diagram 3-D protein structure/);
     expect(out).toMatch(/avoid: generic DNA double-helix, microscope cliché/);
   });
+
+  it("carries the house craft clause (positive art-direction, not just negatives)", () => {
+    const out = buildVisualPrompt("a city skyline", "cinematic");
+    // real cinematography language beyond the single style word
+    expect(out).toMatch(/directional lighting/);
+    expect(out).toMatch(/filmic color grade/);
+    // positives precede the long no-text negative clause
+    expect(out.indexOf("directional lighting")).toBeLessThan(out.indexOf("no text"));
+  });
 });
 
 describe("mockVisualBible", () => {

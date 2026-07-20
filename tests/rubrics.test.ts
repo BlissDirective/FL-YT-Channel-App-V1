@@ -7,11 +7,22 @@ import { describe, expect, it } from "vitest";
 import {
   GATE_RUBRICS,
   computeLints,
+  finalGateScore,
   lintLengthBand,
   lintPatternInterrupts,
   scoreFromCriteria,
   type CriterionResult,
 } from "@/lib/pipeline/rubrics";
+
+const named = (id: string, pass: boolean, weight = 1): CriterionResult => ({
+  id, label: id, pass, note: "", weight, source: "judge",
+});
+/** The FINAL rubric shape: completeness(1), duration_band(1), publish_ready(2). */
+const finalCriteria = (comp: boolean, dur: boolean, pub: boolean): CriterionResult[] => [
+  named("completeness", comp, 1),
+  named("duration_band", dur, 1),
+  named("publish_ready", pub, 2),
+];
 
 const crit = (pass: boolean, weight = 1): CriterionResult => ({
   id: "x",
@@ -37,6 +48,37 @@ describe("scoreFromCriteria", () => {
 
   it("returns 0 for an empty set (no free passes)", () => {
     expect(scoreFromCriteria([])).toBe(0);
+  });
+});
+
+describe("finalGateScore (grounds FINAL in the real rendered video)", () => {
+  it("blends structural gate with the vision score when a critique exists", () => {
+    // structure fully passes (10) + vision 6 → 0.35*10 + 0.65*6 = 7.4
+    expect(finalGateScore(finalCriteria(true, true, false), 6)).toEqual({ score: 7.4, grounded: true });
+  });
+
+  it("ignores the text publish_ready verdict — the vision score carries it", () => {
+    // publish_ready fails (the phantom-zero criterion) but a real vision 8 stands
+    const withVision = finalGateScore(finalCriteria(true, true, false), 8);
+    expect(withVision.grounded).toBe(true);
+    expect(withVision.score).toBeGreaterThan(7); // NOT the phantom ~5 the text rubric would give
+  });
+
+  it("a structurally broken render is still pulled down even with decent frames", () => {
+    // completeness fails → structScore 5 → 0.35*5 + 0.65*7 = 6.3
+    expect(finalGateScore(finalCriteria(false, true, true), 7)).toEqual({ score: 6.3, grounded: true });
+  });
+
+  it("no vision critique → scores structure only and marks it ungrounded (caller holds)", () => {
+    const g = finalGateScore(finalCriteria(true, true, false), null);
+    expect(g).toEqual({ score: 10, grounded: false }); // NOT a phantom 0 from unverifiable publish_ready
+    const broken = finalGateScore(finalCriteria(false, false, false), null);
+    expect(broken).toEqual({ score: 0, grounded: false }); // genuinely broken structure still scores low
+  });
+
+  it("clamps a wild vision score into range", () => {
+    expect(finalGateScore(finalCriteria(true, true, true), 99).score).toBeLessThanOrEqual(10);
+    expect(finalGateScore(finalCriteria(false, false, false), -5).score).toBeGreaterThanOrEqual(0);
   });
 });
 

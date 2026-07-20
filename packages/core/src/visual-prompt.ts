@@ -112,10 +112,23 @@ export function bibleNegatives(bible?: VisualBible | null): string {
   return `avoid: ${uniq.join(", ")}`;
 }
 
+/**
+ * House craft clause — the positive art-direction every generated image/video
+ * carries by default. Before this, the ONLY positive direction sent to the
+ * model was the single style word (usually "cinematic") drowned by a long
+ * negative clause, which is a major quality-ceiling. This front-loads real
+ * cinematography language (lighting, lens, grade, detail, atmosphere) that
+ * FLUX and the video models respond to. Per-project flavor still rides on
+ * `style`; per-video specifics still ride on the Visual Bible's styleContract.
+ */
+export const HOUSE_CRAFT =
+  "professional cinematography, dramatic directional lighting, shallow depth of field, " +
+  "rich filmic color grade, crisp fine detail, natural texture, atmospheric depth, high production value";
+
 /** Build the final prompt for an image/video model from a raw visual direction.
     Optionally conditioned on the Visual Bible (VCE V1) — omitted → unchanged. */
 export function buildVisualPrompt(visualPrompt: string, style: string, bible?: VisualBible | null): string {
   const directed = applyBible(visualPrompt, bible);
   const neg = bibleNegatives(bible);
-  return `${scrubVisualPrompt(directed)}. ${style} style, cinematic 16:9, ${NO_TEXT_SUFFIX}${neg ? `, ${neg}` : ""}`;
+  return `${scrubVisualPrompt(directed)}. ${style} style, cinematic 16:9, ${HOUSE_CRAFT}, ${NO_TEXT_SUFFIX}${neg ? `, ${neg}` : ""}`;
 }
