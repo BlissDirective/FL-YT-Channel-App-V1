@@ -29,7 +29,7 @@ export const SESSION_CAPS = { previews: 4, judges: 4, versions: 20, lessons: 3, 
 const PAID = new Set(["render_preview", "judge_preview"]);
 /** Tools that mutate the document/state (blocked under the kill switch). */
 const MUTATING = new Set([
-  "propose_edd", "retime_clip", "trim_clip", "set_transition", "set_motion",
+  "propose_edd", "retime_clip", "split_clip", "trim_clip", "set_transition", "set_motion",
   "set_emphasis", "set_caption_style", "set_silent", "swap_visual",
   "auto_emphasis", "add_sfx",
   "render_preview", "judge_preview", "mark_ready", "write_lesson",

@@ -21,6 +21,7 @@ import {
   normalizeTarget,
   removeAudioCue,
   retimeClip,
+  splitClip,
   setClipSilent,
   setMotion,
   setPageStyle,
@@ -104,6 +105,33 @@ describe("edd-editor operations keep the document valid", () => {
   it("retime floors at the legacy 1s minimum", () => {
     const doc = compileEdd(input());
     expect(retimeClip(doc, "v1", 0.2).tracks.video[0].duration).toBe(1);
+  });
+
+  it("split divides a clip into two valid halves, preserving runtime + VO coverage", () => {
+    const doc = compileEdd(input());
+    const before = doc.tracks.video.length;
+    const orig = doc.tracks.video.find((c) => c.id === "v1")!;
+    const split = splitClip(doc, "v1", 2.5);
+    expect(validAfter(split).errors).toEqual([]); // VO coverage + gapless survive
+    expect(split.tracks.video.length).toBe(before + 1);
+    // Total runtime is unchanged (an internal split, not a retime).
+    expect(introOutroRuntime(split)).toBeCloseTo(introOutroRuntime(doc), 3);
+    const idx = split.tracks.video.findIndex((c) => c.id === "v1");
+    const first = split.tracks.video[idx];
+    const second = split.tracks.video[idx + 1];
+    expect(first.duration).toBeCloseTo(2.5, 3);
+    expect(second.duration).toBeCloseTo(orig.duration - 2.5, 3);
+    expect(second.start).toBeCloseTo(first.start + 2.5, 3); // gapless join
+    expect(second.beatIdx).toBe(first.beatIdx); // both cover the same narrated beat
+    expect(first.transitionOut.kind).toBe("cut"); // hard cut between halves
+    expect(second.id).not.toBe(first.id); // unique id
+  });
+
+  it("split is a no-op when the offset leaves less than a frame on a side", () => {
+    const doc = compileEdd(input());
+    expect(splitClip(doc, "v1", 0.01).tracks.video.length).toBe(doc.tracks.video.length);
+    expect(splitClip(doc, "v1", 5.999).tracks.video.length).toBe(doc.tracks.video.length);
+    expect(splitClip(doc, "nope", 3).tracks.video.length).toBe(doc.tracks.video.length);
   });
 
   it("swap + trim + motion + transition compose and stay valid", () => {

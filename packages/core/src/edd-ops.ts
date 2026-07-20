@@ -224,6 +224,57 @@ export function setClipSpeed(doc: EditDocument, clipId: string, speed: number): 
   return d;
 }
 
+/**
+ * Split a clip into two at a LOCAL offset (seconds from the clip's start).
+ *
+ * The ONLY safe structural edit in a VO-locked timeline: both halves keep the
+ * same beat, so VO coverage and A/V sync are preserved, and the total runtime is
+ * unchanged (the video track stays gapless). Delete/reorder/insert are
+ * deliberately NOT offered — they'd strand a narrated beat's VO or desync it.
+ *
+ * Enables intra-beat variety — the rubric's "split the longest clips": split a
+ * long shot, then re-motion / re-transition / swap one half to break monotony.
+ * The outgoing transition moves to the tail; a hard cut joins the two halves.
+ * No-op if the clip is missing or the offset doesn't leave ≥1 frame each side.
+ */
+export function splitClip(doc: EditDocument, clipId: string, atLocalSec: number): EditDocument {
+  const d = clone(doc);
+  const i = clipIndex(d, clipId);
+  if (i < 0) return d;
+  const clip = d.tracks.video[i];
+  const at = r3(atLocalSec);
+  if (at <= FRAME || at >= clip.duration - FRAME) return d; // nothing meaningful to split
+  const firstDur = at;
+  const secondDur = r3(clip.duration - at);
+
+  const usedIds = new Set(d.tracks.video.map((c) => c.id));
+  let newId = `${clip.id}-s`;
+  for (let n = 2; usedIds.has(newId); n++) newId = `${clip.id}-s${n}`;
+
+  const isStill = clip.source === "still";
+  const second: VideoClip = {
+    ...clone(clip),
+    id: newId,
+    start: r3(clip.start + firstDur),
+    duration: secondDur,
+    // Video sources advance the trim window so the tail continues the shot;
+    // stills loop the window, so it's kept as-is.
+    trim: isStill ? clone(clip.trim) : { in: r3(clip.trim.in + firstDur), out: clip.trim.out },
+    // Fresh, duration-agnostic motion (a keyframe track wouldn't split cleanly).
+    motion: kenBurnsPreset(),
+    transitionOut: clone(clip.transitionOut), // the outgoing transition moves to the tail
+  };
+
+  clip.duration = firstDur;
+  if (clip.motion.kind === "keyframes") {
+    clip.motion = { kind: "keyframes", points: pinKeyframes(clip.motion.points, firstDur) };
+  }
+  clip.transitionOut = { kind: "cut" }; // hard cut between the two halves
+
+  d.tracks.video.splice(i + 1, 0, second);
+  return d;
+}
+
 /** Coerce a clip's motion to a keyframe track (from a preset or empty), so the
     keyframe editor / agent can add points. Endpoints stay pinned to the clip. */
 function asKeyframes(clip: EditDocument["tracks"]["video"][number]): MotionKeyframe[] {

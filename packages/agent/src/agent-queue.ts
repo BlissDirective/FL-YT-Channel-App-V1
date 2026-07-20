@@ -185,20 +185,32 @@ function realJudge(ctx: Omit<SessionCtx, "state" | "renderPreview" | "judgeDoc" 
     const compId = ctx.video.kind === "short" ? "VerticalShort" : "LongForm";
     const composition = await selectComposition({ serveUrl, id: compId, inputProps });
     const clips = doc.tracks.video;
-    const picks = clips.length <= 6 ? clips : clips.filter((_, i) => i % Math.ceil(clips.length / 6) === 0);
+    // Motion-aware sampling: fewer clips, but TWO frames per moving clip (early
+    // ~30% + late ~80%) so the critic can see camera motion, a speed ramp, and
+    // the transition into the next shot — and catch a dead, motionless still
+    // (identical frames). Stills get one frame (no motion to reveal). Bounded to
+    // ~8 frames total to keep judge cost in check.
+    const picks = clips.length <= 4 ? clips : clips.filter((_, i) => i % Math.ceil(clips.length / 4) === 0);
     const outDir = mkdtempSync(join(tmpdir(), "mvda-judge-"));
     const frames: { beatIdx: number; jpegBase64: string; shotType: string; isVideo: boolean; text: string }[] = [];
     for (const c of picks) {
-      const frame = Math.min(composition.durationInFrames - 1, Math.round((c.start + c.duration / 2) * 30));
-      const out = join(outDir, `f-${c.id}.jpg`);
-      await renderStill({ composition, serveUrl, output: out, inputProps, frame, imageFormat: "jpeg", jpegQuality: 80 });
-      frames.push({
-        beatIdx: c.beatIdx,
-        jpegBase64: readFileSync(out).toString("base64"),
-        shotType: "broll",
-        isVideo: c.source !== "still",
-        text: ctx.beats.find((b) => b.idx === c.beatIdx)?.text ?? "",
-      });
+      const isVideo = c.source !== "still";
+      const offsets = isVideo ? [0.3, 0.8] : [0.5];
+      for (const off of offsets) {
+        const frame = Math.min(
+          composition.durationInFrames - 1,
+          Math.max(0, Math.round((c.start + c.duration * off) * 30)),
+        );
+        const out = join(outDir, `f-${c.id}-${Math.round(off * 100)}.jpg`);
+        await renderStill({ composition, serveUrl, output: out, inputProps, frame, imageFormat: "jpeg", jpegQuality: 80 });
+        frames.push({
+          beatIdx: c.beatIdx,
+          jpegBase64: readFileSync(out).toString("base64"),
+          shotType: "broll",
+          isVideo,
+          text: ctx.beats.find((b) => b.idx === c.beatIdx)?.text ?? "",
+        });
+      }
     }
     const critique = await critiqueFootageFrames({ title: ctx.video.title, frames });
     await ledger(ctx.video.id, ctx.video.project_id, critique.costUsd, "MVDA cut judge (frame critic)");
@@ -383,7 +395,8 @@ async function runSession(videoRow: Record<string, unknown>, selftest = false): 
         `You are the studio's cut editor. Improve the cut of "${video.title}" ` +
         `(${introOutroRuntime(ctx.doc).toFixed(0)}s ${video.kind}). Work the loop: get_context → ` +
         `timeline_view (SEE the cut — judge framing, motion, and b-roll with your eyes before deciding) → ` +
-        `make targeted edits (pacing first: tighten slow beats, vary transitions where the topic shifts, ` +
+        `make targeted edits (pacing first: tighten slow beats, split_clip a long/monotonous shot then ` +
+        `re-motion, re-transition, or swap_visual one half to break it up, vary transitions where the topic shifts, ` +
         `auto_emphasis for the baseline then set_emphasis to hand-tune the 2-4 words that carry the hook, ` +
         `prefer hero holds on premium clips; add_keyframe for granular Ken Burns when a preset is too blunt; ` +
         `set_speed for a footage speed ramp on a reveal or through filler; add_sfx sparingly if generated ` +

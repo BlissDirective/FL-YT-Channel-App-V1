@@ -15,6 +15,7 @@ import {
   setTransition,
   setMotion,
   setClipSpeed,
+  splitClip,
   addMotionKeyframe,
   setTokenEmphasis,
   setPageStyle,
@@ -206,6 +207,12 @@ export function makeTools(ctx: SessionCtx): Record<string, ToolDef> {
       description: "Set a clip's duration (seconds ≥1); later clips reflow gapless.",
       schema: z.object({ clipId: z.string(), durationSec: z.number().min(1), note: z.string().default("") }),
       run: (a) => persist(ctx, retimeClip(ctx.doc, a.clipId, a.durationSec), a.note || `retime ${a.clipId} → ${a.durationSec}s`),
+    },
+    split_clip: {
+      description:
+        "Split a clip into two halves at a LOCAL offset (seconds from the clip's start). Both halves keep the beat so narration stays covered; a hard cut joins them and the outgoing transition moves to the tail. The one structural edit available — use it to break a long, monotonous shot, then re-motion / re-transition / swap_visual one half for variety (the rubric's 'split the longest clips').",
+      schema: z.object({ clipId: z.string(), atSec: z.number().min(0.2), note: z.string().default("") }),
+      run: (a) => persist(ctx, splitClip(ctx.doc, a.clipId, a.atSec), a.note || `split ${a.clipId} @${a.atSec}s`),
     },
     trim_clip: {
       description: "Set a clip's source trim window {in,out} (video sources loop the window).",
