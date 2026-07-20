@@ -177,7 +177,7 @@ async function flagUnfixable(db: Db, videoId: string, reason: string): Promise<v
 
 type RunRow = {
   id: string; project_id: string; status: string; budget_ceiling_usd: number;
-  spent_usd: number; created_at: string; tick_count: number;
+  spent_usd: number; committed_usd: number; created_at: string; tick_count: number;
   no_progress_ticks: number; last_progress: number;
   budget_strategy: string | null;
 };
@@ -307,14 +307,17 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
     //    capped run authorize multiples of its ceiling before any of it settled.
     const runVideoIds = pending.map((i) => i.video_id);
     const ledgerSpent = await ledgerSpentForRun(db, run, runVideoIds);
-    const committedSpent = cleanHouseCommittedSpend(ledgerSpent, Number(run.spent_usd));
+    const committedSpent = cleanHouseCommittedSpend(ledgerSpent, Number(run.committed_usd));
     if (cleanHouseLedgerStop(committedSpent, ceiling)) {
       return await pauseRunWithReason(db, run, `budget ceiling reached ($${committedSpent.toFixed(2)} of $${ceiling.toFixed(2)})`);
     }
 
     const cfg = await getQualityGateConfig(db);
     const qcFloor = Number(cfg.runFloor ?? 7);
-    let spent = Number(run.spent_usd);
+    // `committed` is the accumulated pre-flight ESTIMATE — the safety cap the
+    // budget stop gates on while the real ledger lags async workers. Displayed
+    // spend is reconciled separately from the ledger (see tick-end write).
+    let committed = Number(run.committed_usd);
     let paidAdvances = 0; // concurrency throttle counter
 
     // MVDA precision-cut routing (spec §C.2): on mvda-enabled channels whose CUT
@@ -383,7 +386,7 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
       // far — the greater of real ledger and the running estimate (which already
       // includes every prior tick's commitments via run.spent_usd). Gating on the
       // estimate is what actually caps the run while the ledger lags async work.
-      if (cleanHouseBudgetStop(cleanHouseCommittedSpend(ledgerSpent, spent), ceiling, item.est_cost_usd)) continue;
+      if (cleanHouseBudgetStop(cleanHouseCommittedSpend(ledgerSpent, committed), ceiling, item.est_cost_usd)) continue;
 
       // At the FINAL gate, only approve a PASSING cut; a failing one gets a
       // revision (under the cap) or is flagged (at the cap).
@@ -406,7 +409,7 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
       // and a later tick's stall handler tracks it.
       if (mvdaCut && v.status === "ASSETS_READY") {
         await db.from("videos").update({ edit_session_requested: true, auto_finish: false }).eq("id", v.id);
-        spent = Math.round((spent + item.est_cost_usd) * 100) / 100;
+        committed = Math.round((committed + item.est_cost_usd) * 100) / 100;
         paidAdvances += 1;
         await db.from("clean_house_items").update({ spent_usd: item.est_cost_usd, inflight_since: nowIso, nudges: 0 }).eq("id", item.id);
         await recordDecision(db, {
@@ -418,7 +421,7 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
 
       // Approve this gate → advance one step (triggers the next stage's worker).
       await decideGate({ videoId: v.id, decision: "approved", notes: "Clean House" }, db, "autopilot");
-      spent = Math.round((spent + item.est_cost_usd) * 100) / 100;
+      committed = Math.round((committed + item.est_cost_usd) * 100) / 100;
       paidAdvances += 1;
       // The asset now enters the next (worker) stage — (re)start its stall clock.
       await db.from("clean_house_items").update({ spent_usd: item.est_cost_usd, inflight_since: nowIso, nudges: 0 }).eq("id", item.id);
@@ -437,8 +440,14 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
       .not("outcome", "is", null);
     const resolved = resolvedCount ?? 0;
     const progressed = resolved > run.last_progress || paidAdvances > 0;
+    // Displayed spend = REAL reconciled dollars from the ledger (re-read after
+    // this tick's advances); committed = the estimate the stop caps on. The
+    // ledger lags async workers, so getActiveCleanHouseRun reconciles again on
+    // read to keep the shown figure current as costs settle.
+    const reconciledReal = await ledgerSpentForRun(db, run, runVideoIds);
     await db.from("clean_house_runs").update({
-      spent_usd: spent,
+      spent_usd: reconciledReal,
+      committed_usd: committed,
       tick_count: run.tick_count + 1,
       no_progress_ticks: progressed ? 0 : run.no_progress_ticks + 1,
       last_progress: resolved,
@@ -457,7 +466,7 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
       const rows = (outcomes ?? []) as { outcome: string | null }[];
       const ready = rows.filter((r) => r.outcome === "ready").length;
       const flagged = rows.filter((r) => r.outcome === "flagged").length;
-      await notifyCleanHouse(db, run, `run complete — ${ready} ready to publish, ${flagged} flagged, $${spent.toFixed(2)} spent.`);
+      await notifyCleanHouse(db, run, `run complete — ${ready} ready to publish, ${flagged} flagged, $${reconciledReal.toFixed(2)} spent.`);
       return { ok: true, done: true };
     }
     return { ok: true, done: false };
@@ -494,23 +503,31 @@ export async function driveAllCleanHouseRuns(): Promise<{ ticked: number; done: 
 
 /** The active (running/paused/awaiting) run for a project + its item outcomes. */
 export async function getActiveCleanHouseRun(projectId: string): Promise<{
-  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; budget_ceiling_usd: number; paused_reason: string | null; budget_strategy: string | null } | null;
+  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; committed_usd: number; budget_ceiling_usd: number; paused_reason: string | null; budget_strategy: string | null } | null;
   counts: { advance: number; flag: number; skip: number; ready: number; flagged: number; pending: number };
 } | null> {
   const db = createAdminClient();
   const { data: run } = await db
     .from("clean_house_runs")
-    .select("id, status, est_cost_usd, spent_usd, budget_ceiling_usd, paused_reason, budget_strategy")
+    .select("id, status, est_cost_usd, spent_usd, committed_usd, budget_ceiling_usd, paused_reason, budget_strategy, created_at")
     .eq("project_id", projectId)
     .in("status", ["awaiting_approval", "running", "paused"])
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (!run) return { run: null, counts: { advance: 0, flag: 0, skip: 0, ready: 0, flagged: 0, pending: 0 } };
-  const { data: items } = await db.from("clean_house_items").select("verdict, outcome").eq("run_id", run.id);
-  const rows = (items ?? []) as { verdict: string; outcome: string | null }[];
+  const { data: items } = await db.from("clean_house_items").select("verdict, outcome, video_id").eq("run_id", run.id);
+  const rows = (items ?? []) as { verdict: string; outcome: string | null; video_id: string }[];
+  // Reconcile displayed spend to REAL ledger dollars on read — the async
+  // workers book cost after the tick that committed them, so the stored figure
+  // trails until it settles. committed_usd stays as the estimate/safety cap.
+  const reconciledSpent = await ledgerSpentForRun(
+    db,
+    run as unknown as RunRow,
+    rows.map((r) => r.video_id),
+  );
   return {
-    run,
+    run: { ...run, spent_usd: reconciledSpent },
     counts: {
       advance: rows.filter((r) => r.verdict === "advance").length,
       flag: rows.filter((r) => r.verdict === "flag").length,

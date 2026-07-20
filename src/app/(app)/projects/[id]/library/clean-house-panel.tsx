@@ -22,7 +22,7 @@ type Plan = { advance: number; flag: number; skip: number; estCostUsd: number };
 type AdvanceItem = { salvageability: number; estCostUsd: number; qcScore: number | null };
 type Candidate = { id: string; title: string; status: string };
 type RunState = {
-  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; budget_ceiling_usd: number; paused_reason: string | null; budget_strategy: string | null } | null;
+  run: { id: string; status: string; est_cost_usd: number; spent_usd: number; committed_usd: number; budget_ceiling_usd: number; paused_reason: string | null; budget_strategy: string | null } | null;
   counts: { advance: number; flag: number; skip: number; ready: number; flagged: number; pending: number };
 };
 
@@ -298,7 +298,13 @@ export function CleanHousePanel({
             <Chip tone="success" label={`${c.ready} ready`} />
             <Chip tone="coral" label={`${c.flagged} flagged`} />
             <Chip tone="muted" label={`${c.pending} pending`} />
-            <span className="ml-auto tabular-nums text-muted">${run.spent_usd.toFixed(2)} / ${run.budget_ceiling_usd.toFixed(2)}</span>
+            <span
+              className="ml-auto tabular-nums text-muted"
+              title="Real dollars booked to the cost ledger · estimate committed against the ceiling"
+            >
+              <span className="font-semibold text-ink">${run.spent_usd.toFixed(2)}</span> spent
+              <span className="text-muted/70"> · ${run.committed_usd.toFixed(2)} committed</span> / ${run.budget_ceiling_usd.toFixed(2)}
+            </span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-raised">
             <div className="h-full rounded-full bg-accent transition-[width]" style={{ width: `${pct(c)}%` }} />
