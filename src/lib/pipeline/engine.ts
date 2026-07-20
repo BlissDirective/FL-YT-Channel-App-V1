@@ -3870,6 +3870,12 @@ export async function reconcileStuckRenders(dbArg?: Db): Promise<{ healed: numbe
  *     pass (no re-script, no wasted spend).
  *   • SCRIPTING (script generation itself was interrupted) → reset to
  *     IDEA_APPROVED so the normal flow re-scripts it.
+ *   • GENERATING_ASSETS with NO assets and NO clip jobs (fullAutoGenerate was
+ *     cut off after the script gate but before it enqueued a single clip, so
+ *     the asset stage never actually started) → reset to SCRIPT_READY so the
+ *     resume branch re-drives it. Gated on zero assets AND zero clip jobs so a
+ *     video that genuinely has generation in flight is never rewound (no
+ *     double-spend — there is nothing to duplicate).
  */
 export async function reconcileStrandedSeeds(dbArg?: Db): Promise<{ resumed: number; reset: number }> {
   const db = dbArg ?? (await createClient());
@@ -3879,7 +3885,7 @@ export async function reconcileStrandedSeeds(dbArg?: Db): Promise<{ resumed: num
     .from("videos")
     .select("id, project_id, build_run_id, status")
     .eq("auto_pilot_run", true)
-    .in("status", ["SCRIPTING", "SCRIPT_READY"])
+    .in("status", ["SCRIPTING", "SCRIPT_READY", "GENERATING_ASSETS"])
     .is("paused_reason", null)
     .not("build_run_id", "is", null)
     .lt("updated_at", cutoff)
@@ -3899,6 +3905,23 @@ export async function reconcileStrandedSeeds(dbArg?: Db): Promise<{ resumed: num
         .eq("id", v.id)
         .eq("status", "SCRIPTING");
       if (!error) reset++;
+    } else if (v.status === "GENERATING_ASSETS") {
+      // Only a CLEAN strand rewinds: no assets produced and no clip jobs queued
+      // means the asset stage never started, so re-running fullAutoGenerate from
+      // SCRIPT_READY duplicates nothing. A video with any asset/clip job in
+      // flight is left for the clip worker / reconcileStuckRenders.
+      const [{ count: assetCount }, { count: jobCount }] = await Promise.all([
+        db.from("assets").select("id", { count: "exact", head: true }).eq("video_id", v.id),
+        db.from("clip_jobs").select("id", { count: "exact", head: true }).eq("video_id", v.id),
+      ]);
+      if ((assetCount ?? 0) === 0 && (jobCount ?? 0) === 0) {
+        const { error } = await db
+          .from("videos")
+          .update({ status: "SCRIPT_READY", auto_finish: false })
+          .eq("id", v.id)
+          .eq("status", "GENERATING_ASSETS");
+        if (!error) reset++;
+      }
     } else if (resumed === 0) {
       const { data: run } = await db
         .from("build_runs")
