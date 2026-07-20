@@ -36,13 +36,19 @@ async function handle(request: NextRequest) {
     // this gate the cron kept grading, auto-fixing, auto-approving, and
     // releasing publishes while the switch was ON (runPipeline's internal
     // check never covered finalize/release/sweep).
-    if (await isKillSwitchOn(createAdminClient())) {
+    // Service-role client for EVERY pipeline call below. These run in a cron
+    // with no user session, so the default createClient() (SSR/anon) is subject
+    // to RLS and reads ZERO rows — which silently made processPendingBuildVideos
+    // and finalizeAutoPilotVideos no-ops (processed:0) and stranded autopilot
+    // builds for weeks. The autofix/operator sweeps already pass admin; these must too.
+    const db = createAdminClient();
+    if (await isKillSwitchOn(db)) {
       return NextResponse.json({ ok: true, skipped: "kill-switch" });
     }
     // Cheap passes first (release due slots, finalize rendered cuts, heal any
     // render-stranded videos), then the heavy generation step under a wall-clock
     // budget so a pass never hard-times-out mid-video and strands it.
-    const rel = await releaseScheduledVideos(6);
+    const rel = await releaseScheduledVideos(6, db);
     // Auto-fix sweep FIRST so a weak cut is critiqued + fixed (and converges to a
     // terminal state) BEFORE the operator decides whether to hold or offer it for
     // approval — otherwise the operator can hold a video the loop is still improving.
@@ -61,16 +67,16 @@ async function handle(request: NextRequest) {
     } catch (err) {
       console.error("build-runner operator sweep failed:", err);
     }
-    const fin = await finalizeAutoPilotVideos(5);
-    const heal = await reconcileStuckRenders();
+    const fin = await finalizeAutoPilotVideos(5, db);
+    const heal = await reconcileStuckRenders(db);
     // Drain up to 3 seeds per pass, but stop ~210s in (the route caps at 300s;
     // leave headroom for the steps above/below). Remaining seeds wait one pass.
-    const { processed, errors, held } = await processPendingBuildVideos(3, undefined, {
+    const { processed, errors, held } = await processPendingBuildVideos(3, db, {
       budgetMs: 210_000,
     });
     // Reconcile run lifecycle last (after this pass's state changes) so a
     // completion alert reflects the freshest video states.
-    const rec = await reconcileBuildRuns();
+    const rec = await reconcileBuildRuns(db);
 
     // Kick the GitHub render/clip WORKERS on demand when there's pending work —
     // dispatched runs dodge GitHub's cron throttling, so videos don't crawl.
@@ -78,7 +84,6 @@ async function handle(request: NextRequest) {
     let dispatched: { render?: boolean; clips?: boolean } = {};
     if (ghDispatchConfigured()) {
       try {
-        const db = createAdminClient();
         const [{ count: assembling }, { count: queuedClips }] = await Promise.all([
           db.from("videos").select("id", { count: "exact", head: true }).eq("status", "ASSEMBLING"),
           db.from("clip_jobs").select("id", { count: "exact", head: true }).eq("status", "queued"),
