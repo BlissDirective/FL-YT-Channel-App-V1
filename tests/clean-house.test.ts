@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanHouseBudgetStop,
+  cleanHouseCommittedSpend,
   cleanHouseLedgerStop,
   cleanHouseStallAction,
   cleanHouseTerminationStop,
@@ -84,6 +85,36 @@ describe("cleanHouseLedgerStop", () => {
     expect(cleanHouseLedgerStop(12, 10)).toBe(true);
     expect(cleanHouseLedgerStop(9.99, 10)).toBe(false);
     expect(cleanHouseLedgerStop(1000, 0)).toBe(false); // 0 = no ceiling
+  });
+});
+
+describe("cleanHouseCommittedSpend", () => {
+  it("takes the greater of real ledger and estimated commitments", () => {
+    expect(cleanHouseCommittedSpend(2.47, 75.4)).toBe(75.4); // ledger lags → estimate governs
+    expect(cleanHouseCommittedSpend(30, 12)).toBe(30); // real cost outran the estimate → ledger governs
+    expect(cleanHouseCommittedSpend(0, 0)).toBe(0);
+  });
+
+  it("REGRESSION: a lagging ledger must not let a capped run overrun (ceiling $25)", () => {
+    // The live incident: reconciled ledger was only $2.47 because MVDA cuts and
+    // stage workers book cost asynchronously, while the run had already committed
+    // $75.40 of advances. A ledger-only stop never fired; committed spend must.
+    const ledger = 2.47;
+    const committedEstimate = 75.4;
+    const ceiling = 25;
+    // Old (buggy) basis: ledger alone → never stops.
+    expect(cleanHouseLedgerStop(ledger, ceiling)).toBe(false);
+    // Fixed basis: committed spend → stops.
+    expect(cleanHouseLedgerStop(cleanHouseCommittedSpend(ledger, committedEstimate), ceiling)).toBe(true);
+    // And the per-item pre-check refuses the next advance on committed spend.
+    expect(cleanHouseBudgetStop(cleanHouseCommittedSpend(ledger, committedEstimate), ceiling, 3.4)).toBe(true);
+  });
+
+  it("still funds advances while committed spend is under the ceiling", () => {
+    // 7 items already committed (~$23.8 est), ledger still catching up at $1.10.
+    const committed = cleanHouseCommittedSpend(1.1, 23.8);
+    expect(cleanHouseBudgetStop(committed, 25, 1.0)).toBe(false); // one more $1 fits
+    expect(cleanHouseBudgetStop(committed, 25, 3.4)).toBe(true); // a $3.40 advance does not
   });
 });
 

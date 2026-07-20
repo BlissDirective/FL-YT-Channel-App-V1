@@ -183,6 +183,23 @@ export function cleanHouseLedgerStop(ledgerSpentUsd: number, ceilingUsd: number)
   return ledgerSpentUsd >= ceilingUsd - 1e-9;
 }
 
+/**
+ * The run's COMMITTED spend for budget gating: the greater of real reconciled
+ * ledger spend and the accumulated pre-flight estimate.
+ *
+ * The ledger LAGS. Clean House commits an advance by flagging an MVDA cut
+ * (`edit_session_requested`) or triggering a stage worker (clips/render) — and
+ * those book their real cost minutes-to-hours later, on a separate runner. So a
+ * ledger-only stop sees almost nothing and keeps authorizing work: a $25 run
+ * committed $75 of advances before any of it settled. Taking the max keeps the
+ * ceiling honest in BOTH directions — the estimate caps forward commitments the
+ * ledger hasn't caught up to, and the ledger still enforces if real cost ends up
+ * outrunning the estimate. Pure.
+ */
+export function cleanHouseCommittedSpend(ledgerSpentUsd: number, estimatedSpentUsd: number): number {
+  return Math.max(ledgerSpentUsd, estimatedSpentUsd);
+}
+
 export type CleanHouseRailState = { tickCount: number; noProgressTicks: number };
 
 /** Termination rails: should the run auto-pause (and why)? Pure. */

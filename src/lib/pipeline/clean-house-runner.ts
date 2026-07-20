@@ -3,6 +3,7 @@ import {
   CLEAN_HOUSE_MAX_ADVANCES_PER_TICK,
   CLEAN_HOUSE_MAX_ROUNDS,
   cleanHouseBudgetStop,
+  cleanHouseCommittedSpend,
   cleanHouseLedgerStop,
   cleanHouseStallAction,
   cleanHouseTerminationStop,
@@ -299,11 +300,16 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
     const { data: items } = await db.from("clean_house_items").select("*").eq("run_id", runId).is("outcome", null);
     const pending = (items ?? []) as ItemRow[];
 
-    // 4) REAL-ledger hard budget stop — the authoritative ceiling.
+    // 4) Hard budget stop — gate on COMMITTED spend: the greater of real
+    //    reconciled ledger and the run's accumulated estimate. The ledger alone
+    //    lags badly (MVDA cuts and stage workers book cost minutes-to-hours
+    //    after Clean House commits the advance), so a ledger-only stop let a
+    //    capped run authorize multiples of its ceiling before any of it settled.
     const runVideoIds = pending.map((i) => i.video_id);
     const ledgerSpent = await ledgerSpentForRun(db, run, runVideoIds);
-    if (cleanHouseLedgerStop(ledgerSpent, ceiling)) {
-      return await pauseRunWithReason(db, run, `budget ceiling reached ($${ledgerSpent.toFixed(2)} of $${ceiling.toFixed(2)})`);
+    const committedSpent = cleanHouseCommittedSpend(ledgerSpent, Number(run.spent_usd));
+    if (cleanHouseLedgerStop(committedSpent, ceiling)) {
+      return await pauseRunWithReason(db, run, `budget ceiling reached ($${committedSpent.toFixed(2)} of $${ceiling.toFixed(2)})`);
     }
 
     const cfg = await getQualityGateConfig(db);
@@ -373,9 +379,11 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
       // Per-tick concurrency throttle: cap the paid forward steps a tick fires.
       if (paidAdvances >= CLEAN_HOUSE_MAX_ADVANCES_PER_TICK) continue;
 
-      // Estimate-based pre-check before any paid forward step (belt to the
-      // ledger stop's braces — this catches spend the tick hasn't booked yet).
-      if (cleanHouseBudgetStop(ledgerSpent + spent - Number(run.spent_usd), ceiling, item.est_cost_usd)) continue;
+      // Per-item stop before any paid forward step: gate on committed spend so
+      // far — the greater of real ledger and the running estimate (which already
+      // includes every prior tick's commitments via run.spent_usd). Gating on the
+      // estimate is what actually caps the run while the ledger lags async work.
+      if (cleanHouseBudgetStop(cleanHouseCommittedSpend(ledgerSpent, spent), ceiling, item.est_cost_usd)) continue;
 
       // At the FINAL gate, only approve a PASSING cut; a failing one gets a
       // revision (under the cap) or is flagged (at the cap).
