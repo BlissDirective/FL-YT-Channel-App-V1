@@ -119,12 +119,19 @@ export async function generateImage(opts: {
   // reproduces exactly; otherwise we mint one and record it.
   const seed = opts.seed ?? Math.floor(Math.random() * 2_147_483_647);
   const endpoint = `fal-ai/flux/${quality}`;
+  // FLUX dev honours guidance + step count (schnell is guidance-distilled at a
+  // fixed low step count, so these are dev-only). More steps + moderate guidance
+  // sharpen detail and prompt adherence — the still seeds the i2v clip, so its
+  // fidelity caps the whole shot.
+  const qualityParams =
+    quality === "dev" ? { guidance_scale: 3.5, num_inference_steps: 34 } : {};
   const data = await falRun<{ images: { url: string }[] }>(endpoint, {
     prompt: opts.prompt,
     image_size: "landscape_16_9",
     num_images: 1,
     enable_safety_checker: true,
     seed,
+    ...qualityParams,
   });
   const url = data.images?.[0]?.url;
   if (!url) throw new Error("FLUX returned no image");

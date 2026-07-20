@@ -33,8 +33,11 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
 const MODEL = process.env.AGENT_MODEL?.trim() || "claude-sonnet-4-5";
-const MAX_BUDGET_USD = Number(process.env.AGENT_MAX_BUDGET_USD ?? 0.8);
-const MAX_TURNS = Number(process.env.AGENT_MAX_TURNS ?? 12);
+// Raised for real iteration depth: the mandatory loop (context → timeline_view →
+// edits → judge → fix → re-judge) burned most of the old 12-turn / $0.80 budget
+// before a second see→edit→re-see cycle. More room = genuinely better cuts.
+const MAX_BUDGET_USD = Number(process.env.AGENT_MAX_BUDGET_USD ?? 1.5);
+const MAX_TURNS = Number(process.env.AGENT_MAX_TURNS ?? 20);
 
 async function killSwitchOn(): Promise<boolean> {
   const { data } = await db.from("app_settings").select("value").eq("key", "kill_switch").maybeSingle();

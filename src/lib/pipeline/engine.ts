@@ -1333,7 +1333,11 @@ export async function makeBeatClip(
         }
       }
       if (canPay) {
-        const quality = beat.shotType === "hero" ? "dev" : "schnell";
+        // Every beat still now renders on FLUX dev, not just heroes: the still
+        // seeds the i2v clip (and IS the visual on still/Ken-Burns beats), so a
+        // low-fidelity schnell seed caps the whole shot. dev is ~$0.02 more per
+        // still — negligible next to the clip/VO spend, high leverage on quality.
+        const quality = "dev" as const;
 
         // Per-project FLUX still cache: an identical (prompt, quality) is rendered
         // once per project and reused — unchanged beats re-gen for $0.

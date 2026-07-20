@@ -20,7 +20,10 @@ export type SessionState = {
   killSwitch: boolean;
 };
 
-export const SESSION_CAPS = { previews: 3, judges: 3, versions: 15, lessons: 3, views: 4 } as const;
+// Raised alongside MAX_TURNS so the agent can run several genuine
+// see→edit→re-see→judge cycles instead of one; still bounded to prevent spend
+// runaway (the mechanical budget cap in gateTool remains the hard stop).
+export const SESSION_CAPS = { previews: 4, judges: 4, versions: 20, lessons: 3, views: 6 } as const;
 
 /** Tools that spend money (Anthropic vision / render minutes). */
 const PAID = new Set(["render_preview", "judge_preview"]);
