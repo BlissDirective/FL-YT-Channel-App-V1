@@ -149,7 +149,10 @@ async function judgeOnce(
     },
     body: JSON.stringify({
       model,
-      max_tokens: 1500,
+      // Big enough that the strong judge's evidence notes across 6–8 criteria
+      // don't truncate mid-tool-call — a truncated payload used to parse as
+      // "all criteria missing" → an all-fail spurious ~1.0 score.
+      max_tokens: 4000,
       tools: [reviewTool(gate)],
       tool_choice: { type: "tool", name: "deliver_review" },
       messages: [
@@ -175,6 +178,14 @@ async function judgeOnce(
     | undefined;
   if (!input) throw new Error("QC judge returned no review payload");
 
+  // A tool call with NONE of the rubric's criteria present is a malformed /
+  // truncated payload — not a real review. Scoring it as all-fail yields a
+  // spurious ~1.0 and (worse) can HOLD a fine asset or, at other gates, mislead
+  // the operator. Treat it as degraded so autonomy holds for a human instead.
+  const answered = rubric.filter((c) => input[c.id] != null).length;
+  if (answered === 0) {
+    return { ...heuristicReview(), judgeModel: model, verdict: "Judge returned an unparseable review (likely truncated) — held for a human." };
+  }
   const judged: CriterionResult[] = rubric.map((c) => {
     const raw = input[c.id] as { note?: string; pass?: boolean } | undefined;
     return {

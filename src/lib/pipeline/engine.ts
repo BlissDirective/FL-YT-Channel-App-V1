@@ -3858,6 +3858,72 @@ export async function reconcileStuckRenders(dbArg?: Db): Promise<{ healed: numbe
 }
 
 /**
+ * Self-heal autopilot seeds stranded MID-PIPELINE. processPendingBuildVideos
+ * only claims IDEA_APPROVED, and it drives script→gate→assets in ONE pass — so
+ * if a pass is cut off by the route's wall-clock cap between stages, the seed
+ * strands at SCRIPTING or SCRIPT_READY and nothing ever resumes it (the class of
+ * bug that left build_runs "generating" for weeks). This reconciler re-drives
+ * them, and is idempotent (safe to retry every pass):
+ *   • SCRIPT_READY (script passed its gate, assets never ran) → resume
+ *     fullAutoGenerate, KEEPING the good script. One per pass so a heavy
+ *     generate can't blow the route budget; a repeat timeout just retries next
+ *     pass (no re-script, no wasted spend).
+ *   • SCRIPTING (script generation itself was interrupted) → reset to
+ *     IDEA_APPROVED so the normal flow re-scripts it.
+ */
+export async function reconcileStrandedSeeds(dbArg?: Db): Promise<{ resumed: number; reset: number }> {
+  const db = dbArg ?? (await createClient());
+  const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  const blocked = await blockedRunIds(db);
+  const { data: stranded } = await db
+    .from("videos")
+    .select("id, project_id, build_run_id, status")
+    .eq("auto_pilot_run", true)
+    .in("status", ["SCRIPTING", "SCRIPT_READY"])
+    .is("paused_reason", null)
+    .not("build_run_id", "is", null)
+    .lt("updated_at", cutoff)
+    .order("updated_at", { ascending: true })
+    .limit(10);
+
+  let resumed = 0;
+  let reset = 0;
+  for (const v of (stranded ?? []) as { id: string; project_id: string; build_run_id: string; status: string }[]) {
+    if (blocked.has(v.build_run_id)) continue;
+    const project = await getProject(db, v.project_id);
+    if (!project || isDirectorMode(project)) continue;
+    if (v.status === "SCRIPTING") {
+      const { error } = await db
+        .from("videos")
+        .update({ status: "IDEA_APPROVED" })
+        .eq("id", v.id)
+        .eq("status", "SCRIPTING");
+      if (!error) reset++;
+    } else if (resumed === 0) {
+      const { data: run } = await db
+        .from("build_runs")
+        .select("tier, custom_spec")
+        .eq("id", v.build_run_id)
+        .maybeSingle();
+      try {
+        await fullAutoGenerate(
+          {
+            videoId: v.id,
+            tier: (run?.tier as AutoTier) ?? "economy",
+            custom: (run?.custom_spec as CustomSpec | null) ?? undefined,
+          },
+          db,
+        );
+        resumed++;
+      } catch (err) {
+        console.error(`reconcileStrandedSeeds resume ${v.id}:`, err);
+      }
+    }
+  }
+  return { resumed, reset };
+}
+
+/**
  * Retry a video's clip jobs after a provider outage (e.g. fal balance
  * exhausted). Any beat whose keyframe degraded to a mock placeholder is
  * re-rendered as a real still now that the provider is live again (cheap —

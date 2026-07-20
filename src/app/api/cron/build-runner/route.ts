@@ -5,6 +5,7 @@ import {
   isKillSwitchOn,
   processPendingBuildVideos,
   reconcileBuildRuns,
+  reconcileStrandedSeeds,
   reconcileStuckRenders,
   releaseScheduledVideos,
 } from "@/lib/pipeline/engine";
@@ -69,6 +70,13 @@ async function handle(request: NextRequest) {
     }
     const fin = await finalizeAutoPilotVideos(5, db);
     const heal = await reconcileStuckRenders(db);
+    // Self-heal autopilot seeds stranded mid-pipeline: a build video whose
+    // fullAutoGenerate was cut off by the 300s route cap sits at SCRIPT_READY
+    // (or SCRIPTING) forever — processPendingBuildVideos only re-claims
+    // IDEA_APPROVED, so nothing resumes it. Reset SCRIPTING→IDEA_APPROVED and
+    // resume one SCRIPT_READY per pass (keeping its script) so autonomous runs
+    // converge instead of parking.
+    const stranded = await reconcileStrandedSeeds(db);
     // Drain up to 3 seeds per pass, but stop ~210s in (the route caps at 300s;
     // leave headroom for the steps above/below). Remaining seeds wait one pass.
     const { processed, errors, held } = await processPendingBuildVideos(3, db, {
@@ -103,6 +111,8 @@ async function handle(request: NextRequest) {
       finalized: fin.finalized,
       heldAtFinal: fin.held,
       healedStuck: heal.healed,
+      strandedResumed: stranded.resumed,
+      strandedReset: stranded.reset,
       runsUpdated: rec.updated,
       runsCompleted: rec.completed,
       autofixFixed: autofix.fixed,
