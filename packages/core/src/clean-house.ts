@@ -200,6 +200,35 @@ export function cleanHouseCommittedSpend(ledgerSpentUsd: number, estimatedSpentU
   return Math.max(ledgerSpentUsd, estimatedSpentUsd);
 }
 
+/**
+ * Classify a stage/worker failure reason as a TRANSIENT infrastructure/billing
+ * problem — the pipeline is starved, not the asset unfixable. When this returns
+ * a hint, Clean House pauses the whole run (a circuit breaker) with an
+ * actionable operator message instead of burning the library flagging healthy
+ * assets as "unfixable". Returns null for genuine, asset-specific failures (a
+ * cut that just can't reach the QC floor), which SHOULD be flagged. Pure —
+ * matches on stable provider error phrases, not brittle numeric codes.
+ */
+export function transientOpsError(reason: string | null | undefined): string | null {
+  if (!reason) return null;
+  const r = reason.toLowerCase();
+  if (r.includes("credit balance is too low"))
+    return "Anthropic API is out of credit — top up Plans & Billing, then resume.";
+  if (r.includes("rate limit") || r.includes("rate_limit") || r.includes("too many requests"))
+    return "hit an API rate limit — wait a few minutes, then resume.";
+  if (r.includes("overloaded"))
+    return "the model API is overloaded — retry shortly.";
+  if (r.includes("exceeded supabase storage") || r.includes("maximum size exceeded"))
+    return "a render exceeded Supabase Storage limits — configure Cloudflare R2, then resume.";
+  if (r.includes("internal server error") || r.includes("service unavailable") ||
+      r.includes("bad gateway") || r.includes("gateway timeout"))
+    return "an upstream service is failing (5xx) — retry shortly.";
+  if (r.includes("econnreset") || r.includes("etimedout") ||
+      r.includes("fetch failed") || r.includes("socket hang up"))
+    return "a network error interrupted a provider call — retry shortly.";
+  return null;
+}
+
 export type CleanHouseRailState = { tickCount: number; noProgressTicks: number };
 
 /** Termination rails: should the run auto-pause (and why)? Pure. */

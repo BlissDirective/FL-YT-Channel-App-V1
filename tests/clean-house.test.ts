@@ -8,6 +8,7 @@ import {
   cleanHouseCommittedSpend,
   cleanHouseLedgerStop,
   cleanHouseStallAction,
+  transientOpsError,
   cleanHouseTerminationStop,
   CLEAN_HOUSE_MAX_NO_PROGRESS_TICKS,
   CLEAN_HOUSE_MAX_TICKS,
@@ -115,6 +116,28 @@ describe("cleanHouseCommittedSpend", () => {
     const committed = cleanHouseCommittedSpend(1.1, 23.8);
     expect(cleanHouseBudgetStop(committed, 25, 1.0)).toBe(false); // one more $1 fits
     expect(cleanHouseBudgetStop(committed, 25, 3.4)).toBe(true); // a $3.40 advance does not
+  });
+});
+
+describe("transientOpsError", () => {
+  it("flags the out-of-credit billing error (the live incident) with an actionable hint", () => {
+    const reason = 'scripting failed: Claude API error 400: {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing"}}';
+    expect(transientOpsError(reason)).toMatch(/out of credit/i);
+  });
+
+  it("classifies rate limits, overload, storage caps, 5xx, and network blips", () => {
+    expect(transientOpsError("429 rate limit exceeded")).toMatch(/rate limit/i);
+    expect(transientOpsError("Error: model overloaded (529)")).toMatch(/overloaded/i);
+    expect(transientOpsError("Render failed: exceeded Supabase Storage limits (413)")).toMatch(/R2/);
+    expect(transientOpsError("upstream 502 Bad Gateway")).toMatch(/5xx/);
+    expect(transientOpsError("fetch failed: ECONNRESET")).toMatch(/network/i);
+  });
+
+  it("returns null for genuine asset-specific failures (those SHOULD flag)", () => {
+    expect(transientOpsError(null)).toBeNull();
+    expect(transientOpsError("Auto Pilot held — QC 5.5 below the 6.0 floor. Manual review.")).toBeNull();
+    expect(transientOpsError("media QC found a structural defect (black frames).")).toBeNull();
+    expect(transientOpsError("Clean House: unlikely to reach a passing score")).toBeNull();
   });
 });
 

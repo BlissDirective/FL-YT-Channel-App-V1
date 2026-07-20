@@ -7,6 +7,7 @@ import {
   cleanHouseLedgerStop,
   cleanHouseStallAction,
   cleanHouseTerminationStop,
+  transientOpsError,
   planCleanHouse,
   rankForBudget,
   triageAsset,
@@ -365,6 +366,18 @@ async function advanceCleanHouseRunWith(db: Db, runId: string): Promise<{ ok: bo
       if (v.status === "APPROVED") { await db.from("clean_house_items").update({ outcome: "ready" }).eq("id", item.id); continue; }
 
       const signals = await gatherSignals(db, v, qcFloor);
+
+      // Circuit breaker: a worker left a TRANSIENT infra/billing error (out of
+      // API credit, rate limit, storage cap, 5xx, network). That's the pipeline
+      // being starved, not a bad asset — pause the whole run with an actionable
+      // message instead of flagging a healthy asset "unfixable". Reset this
+      // asset's error note so a resume (after the fix) retries it clean.
+      const opsHint = transientOpsError(signals.pausedReason);
+      if (opsHint) {
+        await db.from("videos").update({ paused_reason: null }).eq("id", v.id);
+        return await pauseRunWithReason(db, run, `paused on an infrastructure error — ${opsHint}`);
+      }
+
       const t = triageAsset(signals);
 
       // Re-triage may now flag it (e.g. autofix exhausted since planning).
