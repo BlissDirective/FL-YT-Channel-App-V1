@@ -534,6 +534,12 @@ async function main() {
           .from("clip_jobs")
           .update({ status: "error", error: `${msg} (gave up after ${MAX_ATTEMPTS} attempts)` })
           .eq("id", job.id);
+        // A permanently-failed clip is terminal, not pending — the beat falls
+        // back to its seed still at render. maybeFinish only ran on the success
+        // path, so if THIS was the last outstanding job the video stranded at
+        // ASSETS_READY forever. Re-check completion here too so the run advances
+        // (to the MVDA cut session, or straight to render) on a dead clip.
+        await maybeFinish(job.video_id);
       }
     }
   }
