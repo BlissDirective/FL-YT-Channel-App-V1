@@ -164,7 +164,9 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
   // stall (the render/clip cron cadence is ~30 min; renders may legitimately run
   // to their 45-min wall-clock budget, so ASSEMBLING gets a wider window).
   const STALL_MINUTES: Partial<Record<string, number>> = {
+    SCRIPTING: 30,
     GENERATING_ASSETS: 30,
+    NEEDS_REVISION: 30,
     ASSEMBLING: 60,
   };
 
