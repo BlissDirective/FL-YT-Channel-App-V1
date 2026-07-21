@@ -27,7 +27,11 @@ const INTRO_OUTRO_SEC = 6.5;
 const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
 /** Word budget for a target runtime: content words (minus intro/outro), a
-    soft floor, the hard ceiling, and a rough beat count (~130 words/beat). */
+    soft floor, the hard ceiling, and a rough beat count.
+    Beats are sized at ~100 words (~40s) rather than ~130 (~52s): a single beat
+    is one held visual, and the pattern-interrupt rubric (+ real retention) wants
+    the picture to change at least every ~45s. Shorter beats mean more, more
+    varied visuals — the fix for the monotony that tanks every video's cut. */
 export function scriptWordBudget(targetLengthSec: number) {
   // 5% headroom so real VO (which can read slower than 150 wpm) still lands
   // under the target rather than spilling over the hard cap.
@@ -37,7 +41,7 @@ export function scriptWordBudget(targetLengthSec: number) {
     target,
     min: Math.round(target * 0.82),
     max: target, // hard ceiling — keeping content ≤ this keeps runtime ≤ target
-    beats: Math.max(4, Math.round(target / 130)),
+    beats: Math.max(5, Math.round(target / 100)),
   };
 }
 
@@ -66,26 +70,48 @@ export function capScriptToBudget(beats: ScriptBeat[], targetLengthSec: number):
   return [...kept, outro].map((b, idx) => ({ ...b, idx }));
 }
 
-/** Tier 9.3 — guarantee a closing call-to-action beat. If the writer didn't end
-    on a CTA, append a warm, on-niche one (like/subscribe + comment a next-topic
-    idea). Kept short; the cap protects the last beat so it always survives. */
+/** Does a beat read as a closing sign-off / CTA? Broad on purpose so we detect
+    an outro the writer phrased its own way (not just the few words the old
+    narrow test caught) — otherwise the safety-net below bolts on a SECOND outro
+    and the script closes on two redundant sign-offs (a recurring QC failure). */
+export function isCtaLike(text: string): boolean {
+  return /\b(subscrib|comment below|in the comments|drop a comment|leave a comment|hit (the )?like|smash (that )?like|like this video|let me know|see you (in|next)|next (video|breakdown|one|time)|thanks for watching|catch you|until next time|ring the bell|turn on notifications|hit that bell)\b/i.test(
+    text,
+  );
+}
+
+/** Tier 9.3 — guarantee EXACTLY ONE closing call-to-action beat.
+ *  1. If the writer produced two trailing sign-offs (the recurring "beats 4 AND
+ *     5 are both outros" QC failure), collapse them — keep the last, drop the
+ *     redundant earlier one.
+ *  2. If the script already ends on a CTA, leave it.
+ *  3. Only if there is no closing CTA at all, append one warm on-niche line —
+ *     and it names the niche ONCE (the old fallback pasted it twice, which QC
+ *     flagged as mechanical filler). The cap protects the last beat. */
 export function ensureCtaBeat(beats: ScriptBeat[], niche: string): ScriptBeat[] {
   if (beats.length === 0) return beats;
-  const last = beats[beats.length - 1];
-  if (/\b(subscrib|comment|drop a|let me know|hit (the )?like|in the comments)\b/i.test(last.text)) {
-    return beats;
+  const reindex = (bs: ScriptBeat[]) => bs.map((b, idx) => ({ ...b, idx }));
+  let out = beats.slice();
+  // Collapse a redundant double outro → close on exactly one sign-off.
+  while (
+    out.length >= 2 &&
+    isCtaLike(out[out.length - 1].text) &&
+    isCtaLike(out[out.length - 2].text)
+  ) {
+    out = [...out.slice(0, -2), out[out.length - 1]];
   }
+  if (isCtaLike(out[out.length - 1].text)) return reindex(out);
   const topic = niche?.trim() || "this";
   const cta: ScriptBeat = {
-    idx: beats.length,
+    idx: out.length,
     text:
-      `If this made ${topic} a little clearer, hit like and subscribe so the next breakdown finds you — ` +
-      `and tell me in the comments which ${topic} topic I should unpack next.`,
+      `If that changed how you see ${topic}, subscribe — the next breakdown drops soon. ` +
+      `Tell me in the comments what to dig into next.`,
     visualPrompt:
       "A calm, premium closing scene — soft abstract gradient light with a sense of forward momentum. No text, no logos, no people.",
     shotType: "broll",
   };
-  return [...beats, cta].map((b, idx) => ({ ...b, idx }));
+  return reindex([...out, cta]);
 }
 
 /**
@@ -134,7 +160,7 @@ const DELIVER_SCRIPT_TOOL = {
       beats: {
         type: "array",
         description:
-          "Script beats in order. Beat 1 is the hook. Each beat is a FULLY-WRITTEN section of ~110–150 words of spoken narration (~45–60s each). Produce the exact number of beats the prompt asks for and write every one completely — do not return a short skeleton.",
+          "Script beats in order. Beat 1 is the hook. Each beat is a FULLY-WRITTEN section of ~80–105 words of spoken narration (~32–42s each) — short enough that its single visual never holds long enough to feel monotone. Produce the exact number of beats the prompt asks for and write every one completely — do not return a short skeleton.",
         items: {
           type: "object",
           properties: {
@@ -333,7 +359,9 @@ export async function generateScript(opts: {
     `- Write the COMPLETE script: produce all ${budget.beats} beats, each fully written, totaling about ${budget.target} words. NEVER stop after the hook or hand back a skeleton.\n` +
     `- Deliver every chapter, section, and timestamp your metadata promises — never reference content you didn't actually write.\n` +
     `- Each beat must advance the argument; do not restate the same point across multiple beats.\n` +
-    `- The FINAL beat MUST be a short (~10–15s) call-to-action where the narrator asks viewers to like and subscribe, and to comment a suggested ${opts.niche} topic for the next video — tailored to this channel. Keep it warm and confident, not desperate.`;
+    `- CLAIM HYGIENE: do not invent false precision. A specific figure (a percent, a dollar amount, a count, a lead-time) is allowed ONLY if it is genuinely well-known or you hedge it in the narration itself ("roughly", "on the order of", "reports suggest", "ballpark"). Never state an unsourced exact number as hard fact — reviewers reject suspiciously tidy figures. Prefer a hedged range over a fake-precise point value.\n` +
+    `- EXACTLY ONE closing beat: end on a SINGLE short (~10–15s) call-to-action where the narrator asks viewers to like and subscribe and to comment a suggested ${opts.niche} topic for the next video — warm and confident, not desperate. Do NOT write two sign-off beats, and do not repeat the channel-niche phrase more than once. The beat BEFORE it must be real content (a final insight or takeaway), never a second outro.\n` +
+    `- VISUAL VARIETY: adjacent beats must not all be the same shot type — vary hero/broll/stock so the picture changes at least every ~40 seconds. Reserve "hero" for the 1–3 highest-impact moments (the hook and the biggest reveals), not most beats.`;
   const lessons =
     opts.qcLessons && opts.qcLessons.length > 0
       ? `\n\nAVOID these specific problems QC flagged on earlier scripts for this channel:\n${opts.qcLessons
@@ -360,7 +388,7 @@ export async function generateScript(opts: {
       });
       if (outline) {
         outlineCostUsd = outline.costUsd;
-        const perBeatWords = Math.max(110, Math.round(budget.target / budget.beats));
+        const perBeatWords = Math.max(80, Math.round(budget.target / budget.beats));
         outlineBlock =
           `\n\nAPPROVED OUTLINE — expand each line into a full ~${perBeatWords}-word spoken beat (beat 1 opens with the hook):\n` +
           `HOOK: ${outline.hook}\n` +
@@ -428,7 +456,7 @@ export async function generateScript(opts: {
   const minRuntimeSec = Math.round(opts.targetLengthSec * 0.85);
   if (estimateRuntimeSec(beats) < minRuntimeSec) {
     const haveSec = estimateRuntimeSec(beats);
-    const perBeat = Math.max(110, Math.round(budget.target / budget.beats));
+    const perBeat = Math.max(80, Math.round(budget.target / budget.beats));
     const expand =
       `\n\nLENGTH CHECK FAILED: your draft runs only ~${haveSec}s but the target is ${opts.targetLengthSec}s ` +
       `(~${budget.target} words across ${budget.beats} beats, ~${perBeat} words each). ` +
@@ -755,6 +783,48 @@ const CLASSIFY_TOOL = {
   },
 } as const;
 
+/**
+ * Enforce visual variety on a set of shot-type classifications (the fix for the
+ * recurring "visual_variety" + "pattern_interrupts" QC failures):
+ *  1. HERO BUDGET — cap heroes at ~n/4 (max 3). The classifier happily tags most
+ *     beats "hero", which reads as no differentiation AND makes one long
+ *     same-look run. Keep the hook (beat 0) + an evenly-spread few; demote the
+ *     rest to broll.
+ *  2. BREAK RUNS — where two adjacent beats share a type and hero budget is
+ *     spare, promote the second to hero so the look changes. We never FORCE a
+ *     beat to "stock" (real footage on an abstract beat is the "wallpaper"
+ *     failure) — only promote, which is always visually safe.
+ * Pure + deterministic so it unit-tests cleanly.
+ */
+export function rebalanceShotTypes(
+  items: { idx: number; shotType: ScriptBeat["shotType"] }[],
+): { idx: number; shotType: ScriptBeat["shotType"] }[] {
+  const n = items.length;
+  if (n <= 1) return items.map((x) => ({ ...x }));
+  const out = items.map((x) => ({ ...x }));
+  const heroBudget = Math.min(3, Math.max(1, Math.round(n / 4)));
+  const heroIdxs = out.filter((x) => x.shotType === "hero").map((x) => x.idx);
+  if (heroIdxs.length > heroBudget) {
+    // Keep an evenly-spread subset (always including the first — the hook).
+    const keep = new Set<number>();
+    const step = (heroIdxs.length - 1) / (heroBudget - 1 || 1);
+    for (let k = 0; k < heroBudget; k++) keep.add(heroIdxs[Math.round(k * step)]);
+    for (const x of out) if (x.shotType === "hero" && !keep.has(x.idx)) x.shotType = "broll";
+  }
+  let heroesUsed = out.filter((x) => x.shotType === "hero").length;
+  for (let i = 1; i < out.length; i++) {
+    if (
+      out[i].shotType === out[i - 1].shotType &&
+      out[i].shotType !== "hero" &&
+      heroesUsed < heroBudget
+    ) {
+      out[i].shotType = "hero";
+      heroesUsed++;
+    }
+  }
+  return out;
+}
+
 function heuristicShot(b: { idx: number; text: string; visualPrompt: string }): ScriptBeat["shotType"] {
   if (b.idx === 0) return "hero";
   const s = `${b.text} ${b.visualPrompt}`.toLowerCase();
@@ -770,7 +840,12 @@ export async function classifyShotTypes(opts: {
   beats: { idx: number; text: string; visualPrompt: string }[];
 }): Promise<{ classifications: { idx: number; shotType: ScriptBeat["shotType"] }[]; costUsd: number }> {
   if (!isScriptLive()) {
-    return { classifications: opts.beats.map((b) => ({ idx: b.idx, shotType: heuristicShot(b) })), costUsd: 0 };
+    return {
+      classifications: rebalanceShotTypes(
+        opts.beats.map((b) => ({ idx: b.idx, shotType: heuristicShot(b) })),
+      ),
+      costUsd: 0,
+    };
   }
   const list = opts.beats
     .map((b) => `[${b.idx}] ${b.text.slice(0, 220)} || visual: ${b.visualPrompt}`)
@@ -793,7 +868,9 @@ Call classify_shots for EVERY beat idx.`;
   const shots = ((input as { shots?: { idx: number; shotType: ScriptBeat["shotType"] }[] }).shots) ?? [];
   const map = new Map(shots.map((s) => [s.idx, s.shotType]));
   return {
-    classifications: opts.beats.map((b) => ({ idx: b.idx, shotType: map.get(b.idx) ?? heuristicShot(b) })),
+    classifications: rebalanceShotTypes(
+      opts.beats.map((b) => ({ idx: b.idx, shotType: map.get(b.idx) ?? heuristicShot(b) })),
+    ),
     costUsd,
   };
 }

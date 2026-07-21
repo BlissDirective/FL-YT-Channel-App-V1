@@ -254,11 +254,13 @@ async function arriveAtGate(
     });
     qcScore = review.score;
     if (review.degraded) qcErrored = true; // live-but-failed → hold below, never a fake 6/10
-    const autoApprove = mode === "copilot" && review.score >= autoApproveFloor;
+    const autoApprove = mode === "copilot" && !review.degraded && review.score >= autoApproveFloor;
     await db.from("qc_reviews").insert({
       video_id: video.id,
       gate,
-      score: review.score,
+      // A degraded review is NOT a measurement — record null, never the neutral
+      // placeholder 6.0 (which the library would surface as a real QC score).
+      score: review.degraded ? null : review.score,
       verdict: review.verdict,
       issues: review.issues,
       strengths: review.strengths,
@@ -1276,7 +1278,7 @@ export async function makeBeatClip(
   const gateOn = Boolean(opts?.qualityGate?.enabled);
   try {
     if (beat.shotType === "stock") {
-      const stock = await searchStockClip(beat.visualPrompt);
+      const stock = await searchStockClip(beat.visualPrompt, { relevanceText: beat.text });
       if (stock) {
         return {
           row: {
@@ -1445,7 +1447,7 @@ export async function makeBeatClip(
   // Pexels above.) Only an empty/failed stock search drops to the mock tile.
   if (beat.shotType !== "stock") {
     try {
-      const rescue = await searchStockClip(beat.visualPrompt);
+      const rescue = await searchStockClip(beat.visualPrompt, { relevanceText: beat.text });
       if (rescue) {
         return {
           row: {
@@ -3362,7 +3364,10 @@ async function scoreAndRecordGate(
   await db.from("qc_reviews").insert({
     video_id: video.id,
     gate,
-    score,
+    // Degraded (no real judge) → record null, not the placeholder 6.0, so the
+    // library never shows a fabricated score. The caller still gets `score` for
+    // hold/advance logic (a degraded gate holds regardless).
+    score: review.degraded ? null : score,
     verdict: review.verdict,
     issues: review.issues,
     strengths: review.strengths,

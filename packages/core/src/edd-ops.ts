@@ -13,6 +13,7 @@ import {
   type Transition,
   type VideoClip,
 } from "./edd";
+import { INTRO_SEC, OUTRO_SEC, SHORT_TAIL_SEC } from "./render-constants";
 
 /**
  * Pure EDD editing operations (MVDA Phase B §5 + the agent's mutation layer,
@@ -449,8 +450,21 @@ export function setIntroOutro(
   patch: { sting?: boolean; endCard?: boolean },
 ): EditDocument {
   const d = clone(doc);
-  if (patch.sting != null) d.intro.sting = patch.sting;
-  if (patch.endCard != null) d.outro.endCard = patch.endCard;
+  // Keep the boolean and the reserved seconds in lockstep. The renderer paints
+  // the reserved intro/outro span whenever sec>0, so toggling the card OFF must
+  // also zero the seconds (otherwise the span stays but the operator wanted it
+  // gone), and toggling it back ON must restore a real duration (otherwise sec
+  // stays 0 and the card never shows). Shorts have no intro sting and use a
+  // compact tail. Runtime is re-derived by the caller's validate/normalize.
+  const isShort = d.meta.format === "short";
+  if (patch.sting != null) {
+    d.intro.sting = patch.sting && !isShort;
+    d.intro.sec = d.intro.sting ? d.intro.sec || INTRO_SEC : 0;
+  }
+  if (patch.endCard != null) {
+    d.outro.endCard = patch.endCard;
+    d.outro.sec = patch.endCard ? d.outro.sec || (isShort ? SHORT_TAIL_SEC : OUTRO_SEC) : 0;
+  }
   return d;
 }
 

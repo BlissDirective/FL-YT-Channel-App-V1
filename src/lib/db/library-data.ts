@@ -118,7 +118,10 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
     ]);
 
   const latestQc = new Map<string, number>();
-  for (const q of (qcRows ?? []) as { video_id: string; score: number }[]) {
+  for (const q of (qcRows ?? []) as { video_id: string; score: number | null }[]) {
+    // Skip degraded reviews (score null) — they aren't a real measurement, so
+    // the tile shows the latest GENUINE QC score instead of a fabricated one.
+    if (q.score == null) continue;
     if (!latestQc.has(q.video_id)) latestQc.set(q.video_id, Number(q.score));
   }
   const latestViews = new Map<string, number>();

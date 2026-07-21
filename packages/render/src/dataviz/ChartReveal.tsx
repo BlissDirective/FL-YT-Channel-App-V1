@@ -29,10 +29,17 @@ export const ChartReveal: React.FC<{ spec: ChartSpec; brand: VideoProps["brand"]
 
   const points = spec.points.slice(0, 6);
   const maxV = Math.max(1, ...points.map((p) => p.value));
+  // Reserve the bottom band for burned-in captions. Long-form captions sit in
+  // the bottom ~6.5–19% of the frame; drawing the whole chart into the top
+  // `safeH` (all title/plot/axis-label/source math derives from it) lifts the
+  // chart's own furniture — category labels and the source/"Illustrative" tag —
+  // clear of that band instead of colliding with the caption pill.
+  const captionBand = Math.round(height * 0.18);
+  const safeH = height - captionBand;
   // Plot box (leave room for title + source + axis labels).
-  const pad = { top: Math.round(height * 0.26), bottom: Math.round(height * 0.14), x: Math.round(width * 0.1) };
+  const pad = { top: Math.round(safeH * 0.26), bottom: Math.round(safeH * 0.14), x: Math.round(width * 0.1) };
   const plotW = width - pad.x * 2;
-  const plotH = height - pad.top - pad.bottom;
+  const plotH = safeH - pad.top - pad.bottom;
 
   const titleEnter = spring({ frame, fps, config: { damping: 16 } });
   // Whole-reveal progress drives bar growth / line draw.
@@ -56,7 +63,7 @@ export const ChartReveal: React.FC<{ spec: ChartSpec; brand: VideoProps["brand"]
       <div
         style={{
           position: "absolute",
-          top: Math.round(height * 0.09),
+          top: Math.round(safeH * 0.09),
           left: pad.x,
           right: pad.x,
           color: ink,
@@ -109,8 +116,9 @@ export const ChartReveal: React.FC<{ spec: ChartSpec; brand: VideoProps["brand"]
       {(spec.source || spec.illustrative) && (
         <div
           style={{
+            // Just above the reserved caption band (never over the caption pill).
             position: "absolute",
-            bottom: Math.round(height * 0.05),
+            bottom: captionBand + Math.round(safeH * 0.02),
             left: pad.x,
             color: muted,
             fontSize: Math.round(width * 0.014),
