@@ -91,7 +91,7 @@ import { DEFAULT_SCRIPT_TEMPLATE } from "./templates";
  * interface (see docs/DECISIONS.md).
  */
 
-type Db = Awaited<ReturnType<typeof createClient>>;
+export type Db = Awaited<ReturnType<typeof createClient>>;
 
 export type EngineResult = { ok: boolean; error?: string; warning?: string };
 
@@ -682,6 +682,7 @@ export async function synthesizeBeatVo(
   project: Project,
   beat: ScriptBeat,
   lexicon?: Lexicon,
+  opts?: { forceNewTake?: boolean },
 ): Promise<{ costUsd: number; cached: boolean; provider: string }> {
   const voiceId = project.voice_id ?? "";
   // Visual-only sections have no narration — nothing to synthesize.
@@ -696,13 +697,17 @@ export async function synthesizeBeatVo(
       : { spoken: beat.text, plan: null as null | ReturnType<typeof toSpokenText>["plan"] };
   const textHash = createHash("sha256").update(spoken.trim()).digest("hex");
 
-  const { data: hit } = await db
-    .from("vo_cache")
-    .select("storage_path, duration_sec, words")
-    .eq("project_id", project.id)
-    .eq("voice_id", voiceId)
-    .eq("text_hash", textHash)
-    .maybeSingle();
+  // A "new take" (workspace regenerate) must actually re-synthesize — the
+  // cache would hand back the identical audio for identical text.
+  const { data: hit } = opts?.forceNewTake
+    ? { data: null }
+    : await db
+        .from("vo_cache")
+        .select("storage_path, duration_sec, words")
+        .eq("project_id", project.id)
+        .eq("voice_id", voiceId)
+        .eq("text_hash", textHash)
+        .maybeSingle();
 
   let storagePath: string;
   let durationSec: number;
@@ -716,7 +721,10 @@ export async function synthesizeBeatVo(
     words = hit.words ?? [];
   } else {
     const result = await synthesizeSpeech({ text: spoken, voiceId });
-    storagePath = `vo-cache/${project.id}/${textHash.slice(0, 24)}.${result.fileExt}`;
+    // Distinct storage path per forced take so the previous take's audio file
+    // survives for the version history (the cache row still converges to one).
+    const takeSuffix = opts?.forceNewTake ? `-t${Date.now().toString(36)}` : "";
+    storagePath = `vo-cache/${project.id}/${textHash.slice(0, 24)}${takeSuffix}.${result.fileExt}`;
     await uploadMedia(storagePath, result.audio, result.contentType);
     durationSec = result.durationSec;
     // Fold the spoken-aligned timings back onto the clean display tokens so
@@ -1890,37 +1898,66 @@ export async function runPipeline(videoId: string, dbArg?: Db): Promise<EngineRe
         await db.from("videos").update({ paused_reason: null }).eq("id", videoId);
     }
 
-    try {
-      switch (video.status) {
-        case "IDEA_APPROVED":
-          await setStatus(db, videoId, "SCRIPTING");
-          break;
-        case "SCRIPTING":
-          await runScripting(db, video, project);
-          break;
-        case "GENERATING_ASSETS":
-          await runAssetGeneration(db, video, project);
-          break;
-        case "ASSEMBLING": {
-          const result = await runAssembly(db, video);
-          if (result === "external") return { ok: true }; // farm takes over
-          break;
-        }
-        default:
-          return { ok: true }; // APPROVED / TRACKING / KILLED / NEEDS_REVISION
+    const out = await runStageBody(db, video, project, "pipeline stage");
+    if (!out.ok) return { ok: false, error: out.error };
+    if (out.external || out.terminal) return { ok: true };
+  }
+  return { ok: true };
+}
+
+type StageOutcome = {
+  ok: boolean;
+  error?: string;
+  /** runAssembly handed off to the render farm — stop driving locally. */
+  external?: boolean;
+  /** Status has no working-stage body (gate/APPROVED/TRACKING/KILLED/…). */
+  terminal?: boolean;
+};
+
+/**
+ * ClickMax-transition Phase 1 seam: run the CURRENT working-stage body exactly
+ * once. The single stage switch shared by the autonomous hop loop
+ * (`runPipeline`), Director single-step (`runDirectedStage`), and the
+ * workspace Continue action (`advanceStage`) — so the three drivers can never
+ * drift in what a stage *does*, only in how far they drive.
+ *
+ * A thrown stage (e.g. a live provider error) must never leave the video
+ * silently stuck: it records a visible, retryable pause reason instead.
+ */
+async function runStageBody(
+  db: Db,
+  video: Video,
+  project: Project,
+  label: string,
+): Promise<StageOutcome> {
+  try {
+    switch (video.status) {
+      case "IDEA_APPROVED":
+        await setStatus(db, video.id, "SCRIPTING");
+        break;
+      case "SCRIPTING":
+        await runScripting(db, video, project);
+        break;
+      case "GENERATING_ASSETS":
+        await runAssetGeneration(db, video, project);
+        break;
+      case "ASSEMBLING": {
+        const result = await runAssembly(db, video);
+        if (result === "external") return { ok: true, external: true }; // farm takes over
+        break;
       }
-    } catch (err) {
-      // A thrown stage (e.g. a live provider error) must never leave the video
-      // silently stuck. Record a visible, retryable pause reason instead.
-      const msg = err instanceof Error ? err.message : String(err);
-      const stage = video.status.replace(/_/g, " ").toLowerCase();
-      await db
-        .from("videos")
-        .update({ paused_reason: `${stage} paused — ${humanizeProviderError(msg)}` })
-        .eq("id", videoId);
-      console.error(`pipeline stage ${video.status} failed for ${videoId}:`, err);
-      return { ok: false, error: msg };
+      default:
+        return { ok: true, terminal: true }; // APPROVED / TRACKING / KILLED / NEEDS_REVISION
     }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const stage = video.status.replace(/_/g, " ").toLowerCase();
+    await db
+      .from("videos")
+      .update({ paused_reason: `${stage} paused — ${humanizeProviderError(msg)}` })
+      .eq("id", video.id);
+    console.error(`${label} ${video.status} failed for ${video.id}:`, err);
+    return { ok: false, error: msg };
   }
   return { ok: true };
 }
@@ -1945,13 +1982,36 @@ export async function runDirectedStage(
   dbArg?: Db,
 ): Promise<EngineResult> {
   const db = dbArg ?? (await createClient());
+  const project = await projectOfVideo(db, videoId);
+  if (!project.ok) return project;
+  if (!isDirectorMode(project.project)) {
+    return { ok: false, error: "runDirectedStage is Director-Mode only" };
+  }
+  return advanceStage(videoId, db);
+}
+
+async function projectOfVideo(
+  db: Db,
+  videoId: string,
+): Promise<{ ok: true; video: Video; project: Project } | { ok: false; error: string }> {
   const video = await getVideo(db, videoId);
   if (!video) return { ok: false, error: "Video not found" };
   const project = await getProject(db, video.project_id);
   if (!project) return { ok: false, error: "Project not found" };
-  if (!isDirectorMode(project)) {
-    return { ok: false, error: "runDirectedStage is Director-Mode only" };
-  }
+  return { ok: true, video, project };
+}
+
+/**
+ * ClickMax-transition Phase 1: the single-step advance primitive — one call =
+ * one working stage, holding at gates. This is what the workspace "Continue"
+ * action and the Director UI both invoke; `runDirectedStage` is a thin
+ * director-only wrapper. Money + safety rails identical to autonomous mode.
+ */
+export async function advanceStage(videoId: string, dbArg?: Db): Promise<EngineResult> {
+  const db = dbArg ?? (await createClient());
+  const loaded = await projectOfVideo(db, videoId);
+  if (!loaded.ok) return loaded;
+  const { video, project } = loaded;
 
   // Money + safety rails (shared with autonomous mode by design).
   if (await isKillSwitchOn(db)) {
@@ -1994,32 +2054,79 @@ export async function runDirectedStage(
     }
   }
 
+  const out = await runStageBody(db, video, project, "stage");
+  return out.ok ? { ok: true } : { ok: false, error: out.error };
+}
+
+/**
+ * ClickMax-transition Phase 1 (§5): before a per-asset regeneration replaces a
+ * row, copy it into `asset_versions` so the workspace can show take history
+ * and pin an earlier version. Stage re-runs keep their delete+insert semantics
+ * (assets table = current takes only — 50+ read sites depend on that).
+ * Best-effort: a missing history table must never block a regeneration.
+ */
+async function archiveAssetVersions(
+  db: Db,
+  videoId: string,
+  kind: string,
+  beatIndex?: number,
+): Promise<void> {
   try {
-    switch (video.status) {
-      case "IDEA_APPROVED":
-        await setStatus(db, videoId, "SCRIPTING");
-        break;
-      case "SCRIPTING":
-        await runScripting(db, video, project);
-        break;
-      case "GENERATING_ASSETS":
-        await runAssetGeneration(db, video, project);
-        break;
-      case "ASSEMBLING":
-        await runAssembly(db, video); // 'external' → render farm takes over
-        break;
-      default:
-        return { ok: true }; // APPROVED / TRACKING / KILLED / NEEDS_REVISION
-    }
+    let q = db.from("assets").select("*").eq("video_id", videoId).eq("kind", kind);
+    if (beatIndex != null) q = q.eq("beat_index", beatIndex);
+    const { data } = await q;
+    const rows = (data ?? []) as Record<string, unknown>[];
+    if (rows.length === 0) return;
+    await db.from("asset_versions").insert(
+      rows.map((r) => ({
+        asset_id: r.id ?? null,
+        video_id: videoId,
+        kind,
+        beat_index: r.beat_index ?? null,
+        provider: r.provider,
+        storage_path: r.storage_path,
+        meta: r.meta ?? {},
+        cost_usd: r.cost_usd ?? 0,
+        archived_at: new Date().toISOString(),
+      })),
+    );
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    const stage = video.status.replace(/_/g, " ").toLowerCase();
-    await db
-      .from("videos")
-      .update({ paused_reason: `${stage} paused — ${humanizeProviderError(msg)}` })
-      .eq("id", videoId);
-    console.error(`directed stage ${video.status} failed for ${videoId}:`, err);
-    return { ok: false, error: msg };
+    console.error("asset_versions archive failed (non-blocking):", err);
+  }
+}
+
+/**
+ * Workspace card action (§4.1): re-synthesize ONE beat's VO as a fresh take.
+ * Bypasses the VO cache (same text would otherwise return identical audio),
+ * archives the previous take to asset_versions, and ledgers the spend.
+ */
+export async function regenerateBeatVo(opts: {
+  videoId: string;
+  beatIdx: number;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const loaded = await projectOfVideo(db, opts.videoId);
+  if (!loaded.ok) return loaded;
+  const { video, project } = loaded;
+
+  const script = await loadLatestScript(db, video.id);
+  const beat = ((script?.beats ?? []) as ScriptBeat[]).find((b) => b.idx === opts.beatIdx);
+  if (!beat) return { ok: false, error: "Beat not found" };
+
+  const guard = await checkBudget(db, project, video, 0.1);
+  if (!guard.ok) return { ok: false, error: guard.reason };
+
+  await archiveAssetVersions(db, video.id, "vo", opts.beatIdx);
+  const result = await synthesizeBeatVo(db, video, project, beat, undefined, {
+    forceNewTake: true,
+  });
+  if (result.costUsd > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: result.provider, usd: result.costUsd, description: `VO take, beat ${opts.beatIdx + 1}` },
+      `regenerate VO beat ${opts.beatIdx + 1}`,
+    );
   }
   return { ok: true };
 }
@@ -2050,6 +2157,7 @@ export async function rerollBeatVisual(opts: {
     ? { ...beat, visualPrompt: `${beat.visualPrompt}. ${opts.note.trim()}` }
     : beat;
   const draft = await makeBeatClip(video, project, steered);
+  await archiveAssetVersions(db, video.id, "clip", opts.beatIdx);
   await db
     .from("assets")
     .delete()
@@ -2256,7 +2364,27 @@ export async function regenerateScript(opts: { videoId: string }): Promise<Engin
   const project = await getProject(db, video.project_id);
   if (!project) return { ok: false, error: "Project not found" };
   await runScripting(db, video, project); // → fresh script version, SCRIPT_READY
+  await markDownstreamAssetsStale(db, video.id);
   return { ok: true };
+}
+
+/**
+ * ClickMax-transition §4.1 stale cascade: a script rewrite invalidates the
+ * VO/visuals generated from the OLD beats, but never auto-regenerates them —
+ * the workspace shows "stale" on those cards and the user (or a confirmed
+ * chat batch) pays per refresh. Best-effort until migration 0069 adds the
+ * column everywhere.
+ */
+async function markDownstreamAssetsStale(db: Db, videoId: string): Promise<void> {
+  try {
+    await db
+      .from("assets")
+      .update({ stale: true })
+      .eq("video_id", videoId)
+      .in("kind", ["vo", "clip", "captions"]);
+  } catch (err) {
+    console.error("stale-marking failed (non-blocking):", err);
+  }
 }
 
 // ── Beat shot-type (hero / broll / stock) ─────────────────────────────

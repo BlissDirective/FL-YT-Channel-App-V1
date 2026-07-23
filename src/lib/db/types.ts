@@ -38,6 +38,17 @@ export type Project = {
   voice_id: string | null;
   voice_name: string | null;
   autonomy: Record<ApprovalGate, AutonomyMode>;
+  /** ClickMax workspace (transition plan §5): free-text project context — tone,
+      recurring colors, audience, pacing — injected into every prompt path. */
+  instructions: string | null;
+  /** The single mode switch superseding the per-gate autonomy matrix in the
+      workspace UX: 'director' (default; Continue actions) or 'autopilot'
+      (build-runner drives, QC-gated auto-approval). Backfilled by 0069. */
+  workspace_mode: "director" | "autopilot";
+  /** Last model/duration/quality per composer mode + cost-confirm threshold. */
+  composer_prefs: Record<string, unknown>;
+  /** Autopilot notification channels, each independently toggleable. */
+  notify_prefs: { telegram?: boolean; webpush?: boolean };
   /** Director Mode (Fable-5-Director-Mode-Build-Spec.md). 'autonomous' (default)
       is today's engine-driven behavior; 'director' hands every stage transition
       to the operator — the engine never self-advances, sweeps skip the project,
@@ -565,6 +576,9 @@ export type Asset = {
   meta: Record<string, unknown>;
   cost_usd: number;
   created_at: string;
+  /** ClickMax workspace (§4.1): upstream beat changed since this was made —
+      shown on the card; refresh is a user-paid click, never automatic. */
+  stale?: boolean;
   /** Display URL resolved at query time (signed storage URL or external). */
   url?: string | null;
 };
