@@ -200,6 +200,44 @@ export function WorkspaceView(props: WorkspaceProps) {
 
   const selectedModel = props.videoModels.find((m) => m.id === modelId);
 
+  // Dictation (§4.6 polish): browser speech-to-text into the composer.
+  const [dictating, setDictating] = useState(false);
+  const recognitionRef = useRef<{ stop: () => void } | null>(null);
+  const toggleDictation = () => {
+    if (dictating) {
+      recognitionRef.current?.stop();
+      setDictating(false);
+      return;
+    }
+    type SpeechCtor = new () => {
+      lang: string;
+      interimResults: boolean;
+      onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void;
+      onend: () => void;
+      onerror: () => void;
+      start: () => void;
+      stop: () => void;
+    };
+    const w = window as unknown as { SpeechRecognition?: SpeechCtor; webkitSpeechRecognition?: SpeechCtor };
+    const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!Ctor) {
+      appendLocal("agent", "Voice input isn't supported in this browser.");
+      return;
+    }
+    const rec = new Ctor();
+    rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.onresult = (e) => {
+      const last = e.results[e.results.length - 1];
+      if (last?.isFinal && last[0]) setText((t) => (t ? `${t} ` : "") + last[0].transcript);
+    };
+    rec.onend = () => setDictating(false);
+    rec.onerror = () => setDictating(false);
+    recognitionRef.current = rec;
+    setDictating(true);
+    rec.start();
+  };
+
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 pb-40 pt-2">
       {/* ── Header ─────────────────────────────────────────────── */}
@@ -279,6 +317,21 @@ export function WorkspaceView(props: WorkspaceProps) {
           </p>
         )}
       </Card>
+
+      {/* ── Empty state ────────────────────────────────────────── */}
+      {props.beats.length === 0 && thread.length === 0 && (
+        <Card className="py-10 text-center">
+          <Sparkles className="mx-auto h-6 w-6 text-muted" />
+          <p className="mt-2 text-sm font-semibold">
+            {props.atGate ? "This idea is waiting on you." : "Nothing here yet."}
+          </p>
+          <p className="mx-auto mt-1 max-w-md text-sm text-muted">
+            {props.atGate
+              ? "Say “continue” (or press Continue) to write the script — or tell me what to change first."
+              : "Type below to drive everything: an idea, “continue”, “redo beat 3 with warmer light”, “what has this cost?”…"}
+          </p>
+        </Card>
+      )}
 
       {/* ── Beat cards (§3.3) ──────────────────────────────────── */}
       {props.beats.length > 0 && (
@@ -490,6 +543,16 @@ export function WorkspaceView(props: WorkspaceProps) {
                 }
               }}
             />
+            <Button
+              variant="ghost"
+              disabled={isPending}
+              onClick={toggleDictation}
+              aria-label={dictating ? "Stop dictation" : "Dictate prompt"}
+              title={dictating ? "Stop dictation" : "Dictate prompt (uses your microphone)"}
+              className={dictating ? "ring-2 ring-coral" : ""}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
             <Button disabled={isPending || !text.trim()} onClick={send} aria-label="Send">
               {mode === "video" && selectedModel ? (
                 <span className="text-xs tabular-nums">
