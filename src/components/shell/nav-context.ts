@@ -11,7 +11,6 @@ import {
   ListVideo,
   Newspaper,
   Settings,
-  Wallet,
 } from "lucide-react";
 
 /** /projects/{uuid}… → the project id (null for /projects/new and others). */
@@ -31,9 +30,11 @@ export type NavItem = {
 };
 
 export function globalNavV2(): NavItem[] {
+  // ClickMax transition decision 4: the Spend dashboard is parked — cost lives
+  // at the point of click (composer/Continue estimates, workspace header
+  // total) and via chat ("what have I spent?"). Ledger + queries unchanged.
   return [
     { label: "Home", href: "/", icon: LayoutDashboard },
-    { label: "Spend", href: "/costs", icon: Wallet },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
 }

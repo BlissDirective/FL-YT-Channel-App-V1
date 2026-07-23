@@ -15,6 +15,7 @@ import {
 import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { sendPushToAll } from "@/lib/push";
+import { isTelegramLive, sendTelegram } from "@/lib/adapters/telegram";
 import {
   generateScript,
   remixScript,
@@ -282,15 +283,30 @@ async function arriveAtGate(
     console.error("QC review failed:", err);
   }
 
-  try {
-    await sendPushToAll({
-      title: `${GATE_LABELS[gate]} ready for review`,
-      body: `“${video.title}” — ${project.name}${qcScore != null ? ` · QC ${qcScore.toFixed(1)}/10` : ""}`,
-      url: `/projects/${project.id}/review`,
-    });
-  } catch (err) {
-    // Push is best-effort — never let delivery problems block the pipeline.
-    console.error("web-push delivery failed:", err);
+  // Notification channels are independently toggleable per project
+  // (ClickMax transition decision 6; projects.notify_prefs, default both on).
+  const notify = (project.notify_prefs ?? {}) as { telegram?: boolean; webpush?: boolean };
+  if (notify.webpush !== false) {
+    try {
+      await sendPushToAll({
+        title: `${GATE_LABELS[gate]} ready for review`,
+        body: `“${video.title}” — ${project.name}${qcScore != null ? ` · QC ${qcScore.toFixed(1)}/10` : ""}`,
+        url: `/projects/${project.id}/review`,
+      });
+    } catch (err) {
+      // Push is best-effort — never let delivery problems block the pipeline.
+      console.error("web-push delivery failed:", err);
+    }
+  }
+  if (notify.telegram !== false && isTelegramLive()) {
+    try {
+      await sendTelegram(
+        `🎬 <b>${GATE_LABELS[gate]}</b> ready — “${video.title}” (${project.name})` +
+          (qcScore != null ? ` · QC ${qcScore.toFixed(1)}/10` : ""),
+      );
+    } catch (err) {
+      console.error("telegram delivery failed:", err);
+    }
   }
 
   const copilotApproved = mode === "copilot" && qcScore != null && qcScore >= autoApproveFloor;
@@ -567,6 +583,7 @@ async function runScripting(db: Db, video: Video, project: Project) {
     template,
     revisionNotes: notes,
     qcLessons: lessons,
+    instructions: project.instructions ?? undefined,
   });
 
   await db.from("scripts").insert({
@@ -1278,7 +1295,11 @@ export async function makeBeatClip(
   let scene = beat.visualPrompt;
   // VCE V1 — condition the prompt on the video's Visual Bible (null → unchanged).
   const bible = video.visual_bible ?? null;
-  let prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle, bible);
+  // ClickMax §4.6: project instructions ride along on every visual prompt.
+  const styleContext = project.instructions?.trim()
+    ? `${project.brand_kit.thumbnailStyle}. ${project.instructions.trim()}`
+    : project.brand_kit.thumbnailStyle;
+  let prompt = buildVisualPrompt(scene, styleContext, bible);
   // Secondary costs (prompt refine, discarded blank renders) are returned to the
   // caller and recorded sequentially (parallel recordCost would race the total).
   const extraCosts: NonNullable<AssetDraft["extraCosts"]> = [];

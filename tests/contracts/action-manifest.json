@@ -161,5 +161,13 @@
     "batchApproveAction(projectId: string, videoIds: string[], minScore = 0,)",
     "batchPublishAction(projectId: string, videoIds: string[],)",
     "batchReReviewAction(projectId: string, videoIds: string[],)"
+  ],
+  "workspace": [
+    "sendComposerMessage(opts: { projectId: string; videoId: string; text: string; mode: ComposerMode; focused?: RouteContext[\"focused\"]; modelId?: string; durationSec?: number; })",
+    "confirmComposerAction(opts: { projectId: string; videoId: string; action: string; params: Record<string, unknown>; })",
+    "continueStageAction(opts: { projectId: string; videoId: string; })",
+    "setWorkspaceModeAction(opts: { projectId: string; mode: \"director\" | \"autopilot\"; })",
+    "saveNotifyPrefsAction(opts: { projectId: string; prefs: { telegram: boolean; webpush: boolean }; })",
+    "saveInstructionsAction(opts: { projectId: string; instructions: string; })"
   ]
 }

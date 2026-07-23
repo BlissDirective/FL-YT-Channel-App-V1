@@ -27,6 +27,23 @@ earn-back review approves it.
 | `costs` page, `intel` page | LIVE dashboards | **PARK UI in Phase 3** per decision 4 (ledger, `video_intel` worker + table stay; spend surfaces move to composer chips + header total + chat) |
 | `packages/intel` worker (`video-intel.yml`) | DORMANT — worker live, feed uncertain | **KEEP worker**, park its dashboard with `intel` page |
 
+## Parking executed (Phase 4, 2026-07-23)
+
+Everything below is preserved in full on `parked/post-clickmax`
+(= main at tag `pre-clickmax-transition`).
+
+- **Deleted from the transition branch:** `src/lib/adapters/translate.ts`,
+  `packages/core/src/localization.ts` (+ its index export and
+  `tests/localization.test.ts`) — dead code with no live callers.
+- **UI removed, mechanism kept (same treatment as VCE):** the Editor & Assembly
+  flags card in Settings (`editor-flags.ts` stays; all flags off; the
+  app_settings override remains the operator escape hatch). The `/assembly`
+  route remains flag-gated → unreachable (effectively parked in place).
+- **Dashboards parked in Phase 3:** `/costs` and `/intel` now redirect home;
+  Spend removed from nav. Ledger + video-intel worker/table unchanged.
+- **Correction during execution:** `insights/insights-list.tsx` is NOT
+  orphaned (Feed + Home import `InsightCard`/`GenerateInsightsButton`) — kept.
+
 ## Earn-back protocol
 
 30-day clock starts when Phase 4 ships. For each parked item: (a) a concrete

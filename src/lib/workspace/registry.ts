@@ -28,6 +28,7 @@ import {
 import { estimateCost, estimateStageCost } from "@/lib/models/catalog";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
 import type { Db } from "@/lib/pipeline/engine";
+import { createClient } from "@/lib/supabase/server";
 
 export type ParamSpec = {
   type: "string" | "number" | "boolean";
@@ -198,6 +199,70 @@ const ACTIONS: WorkspaceAction[] = [
         videoId: str(p.videoId)!,
         tier: (str(p.tier) ?? "base") as AutoTier,
       }),
+  },
+  {
+    name: "auto_fix",
+    description:
+      "Run one auto-fix pass on this video now: QC re-reviews it and repairs the top flagged issue (regenerate/repair the failing artifact).",
+    params: {
+      projectId: { type: "string", required: true, description: "Project id" },
+      videoId: { type: "string", required: true, description: "Video id" },
+    },
+    costBearing: true,
+    estimate: () => estimateCost({ action: "qc-review" }),
+    execute: async (p) => {
+      const { runAutofixNowAction } = await import("@/lib/actions/autofix");
+      const r = await runAutofixNowAction(str(p.projectId)!, str(p.videoId)!);
+      return {
+        ok: r.ok,
+        error: r.error ?? r.reason,
+        data: r.ok ? { kind: r.kind, score: r.score, changes: r.changes } : undefined,
+      };
+    },
+  },
+  {
+    name: "get_spend",
+    description:
+      "Answer a spend question: total and recent provider costs for this video from the ledger. Read-only.",
+    params: {
+      videoId: { type: "string", required: true, description: "Video id" },
+    },
+    costBearing: false,
+    estimate: () => null,
+    execute: async (p, dbArg) => {
+      const db = dbArg ?? (await createClient());
+      const { data } = await db
+        .from("cost_ledger")
+        .select("provider, usd, description, at")
+        .eq("video_id", str(p.videoId)!)
+        .order("at", { ascending: false })
+        .limit(50);
+      const rows = (data ?? []) as { provider: string; usd: number; description: string }[];
+      const total = rows.reduce((s, r) => s + Number(r.usd), 0);
+      const byProvider: Record<string, number> = {};
+      for (const r of rows) byProvider[r.provider] = (byProvider[r.provider] ?? 0) + Number(r.usd);
+      return { ok: true, data: { totalUsd: Math.round(total * 100) / 100, byProvider, recent: rows.slice(0, 10) } };
+    },
+  },
+  {
+    name: "get_qc_summary",
+    description:
+      "Answer a QC question: the latest review scores, verdicts, and flagged issues for this video. Read-only.",
+    params: {
+      videoId: { type: "string", required: true, description: "Video id" },
+    },
+    costBearing: false,
+    estimate: () => null,
+    execute: async (p, dbArg) => {
+      const db = dbArg ?? (await createClient());
+      const { data } = await db
+        .from("qc_reviews")
+        .select("gate, score, verdict, issues, created_at, asset_id")
+        .eq("video_id", str(p.videoId)!)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return { ok: true, data: { reviews: data ?? [] } };
+    },
   },
 ];
 
