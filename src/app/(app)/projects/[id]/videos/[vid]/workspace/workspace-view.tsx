@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
   AudioLines,
   Check,
+  ChevronDown,
   Image as ImageIcon,
   Lightbulb,
   Mic,
@@ -200,6 +201,11 @@ export function WorkspaceView(props: WorkspaceProps) {
 
   const selectedModel = props.videoModels.find((m) => m.id === modelId);
 
+  // De-clutter pass: beats collapse to one-line rows (tap to expand the full
+  // script text + visual direction); instructions collapse to a disclosure.
+  const [expandedBeat, setExpandedBeat] = useState<number | null>(null);
+  const [showInstructions, setShowInstructions] = useState(false);
+
   // Dictation (§4.6 polish): browser speech-to-text into the composer.
   const [dictating, setDictating] = useState(false);
   const recognitionRef = useRef<{ stop: () => void } | null>(null);
@@ -239,17 +245,18 @@ export function WorkspaceView(props: WorkspaceProps) {
   };
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 pb-40 pt-2">
-      {/* ── Header ─────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold tracking-tight">{props.videoTitle}</h1>
-          <p className="text-xs text-muted">{props.projectName}</p>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="mx-auto flex max-w-4xl flex-col gap-4 pb-64 pt-2 sm:pb-44">
+      {/* ── Header (compact: title + status; controls on one thin row) ── */}
+      <div className="min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="min-w-0 truncate text-lg font-bold tracking-tight sm:text-xl">
+            {props.videoTitle}
+          </h1>
           <StatusChip tone={props.pausedReason ? "warning" : "neutral"}>
             {props.status.replace(/_/g, " ").toLowerCase()}
           </StatusChip>
+        </div>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <PillTabs
             size="sm"
             ariaLabel="Workspace mode"
@@ -282,41 +289,55 @@ export function WorkspaceView(props: WorkspaceProps) {
         </Card>
       )}
 
-      {/* ── Project instructions (§4.6) ────────────────────────── */}
-      <Card>
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle>Project instructions</CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              if (editingInstructions) {
-                startTransition(async () => {
-                  await saveInstructionsAction({ projectId: props.projectId, instructions });
-                  router.refresh();
-                });
-              }
-              setEditingInstructions((e) => !e);
-            }}
-          >
-            {editingInstructions ? <Check className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
-            {editingInstructions ? "Save" : "Edit"}
-          </Button>
-        </div>
-        {editingInstructions ? (
-          <textarea
-            className="mt-2 w-full rounded-xl border border-line bg-card p-3 text-sm outline-none focus:ring-2 focus:ring-accent"
-            rows={3}
-            placeholder="Tone, recurring colors, audience, pacing style, visual references…"
-            value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
-          />
-        ) : (
-          <p className="mt-1 text-sm text-muted">
-            {instructions || "Tone, recurring colors, audience, pacing — fed into every prompt."}
-          </p>
+      {/* ── Project instructions: a one-line disclosure, not a card ───── */}
+      <div>
+        <button
+          type="button"
+          className="flex w-full items-center gap-1.5 text-left text-xs font-semibold text-muted hover:text-ink"
+          onClick={() => setShowInstructions((s) => !s)}
+        >
+          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showInstructions ? "" : "-rotate-90"}`} />
+          Project instructions
+          {!showInstructions && instructions && (
+            <span className="min-w-0 flex-1 truncate font-normal">— {instructions}</span>
+          )}
+        </button>
+        {showInstructions && (
+          <Card className="mt-2">
+            <div className="flex items-center justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (editingInstructions) {
+                    startTransition(async () => {
+                      await saveInstructionsAction({ projectId: props.projectId, instructions });
+                      router.refresh();
+                    });
+                  }
+                  setEditingInstructions((e) => !e);
+                }}
+              >
+                {editingInstructions ? <Check className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
+                {editingInstructions ? "Save" : "Edit"}
+              </Button>
+            </div>
+            {editingInstructions ? (
+              <textarea
+                className="mt-1 w-full rounded-xl border border-line bg-card p-3 text-sm outline-none focus:ring-2 focus:ring-accent"
+                rows={3}
+                placeholder="Tone, recurring colors, audience, pacing style, visual references…"
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+              />
+            ) : (
+              <p className="text-sm text-muted">
+                {instructions || "Tone, recurring colors, audience, pacing — fed into every prompt."}
+              </p>
+            )}
+          </Card>
         )}
-      </Card>
+      </div>
 
       {/* ── Empty state ────────────────────────────────────────── */}
       {props.beats.length === 0 && thread.length === 0 && (
@@ -333,79 +354,127 @@ export function WorkspaceView(props: WorkspaceProps) {
         </Card>
       )}
 
-      {/* ── Beat cards (§3.3) ──────────────────────────────────── */}
+      {/* ── Script: compact beat rows; tap a row to read the FULL beat,
+             its visual direction, its visual, and its actions ─────────── */}
       {props.beats.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {props.beats.map((b) => (
-            <Card
-              key={b.idx}
-              className={`cursor-pointer transition-shadow ${focused?.beatIdx === b.idx ? "ring-2 ring-accent" : ""}`}
-              onClick={() =>
-                setFocused(focused?.beatIdx === b.idx ? null : { kind: "clip", beatIdx: b.idx })
-              }
+        <Card className="p-0">
+          <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">
+              Script · {props.beats.length} beats
+            </span>
+            <button
+              type="button"
+              className="text-xs text-muted underline decoration-dotted hover:text-ink"
+              onClick={() => setExpandedBeat(expandedBeat === -1 ? null : -1)}
             >
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-xs font-bold uppercase tracking-wide text-muted">
-                  Beat {b.idx + 1}
-                  {b.shotType ? ` · ${b.shotType}` : ""}
-                </span>
-                <span className="flex items-center gap-1">
-                  {(b.voStale || b.visualStale) && <StatusChip tone="warning">stale</StatusChip>}
-                  {b.qc &&
-                    (b.qc.issues.length > 0 ? (
-                      <span title={b.qc.issues.join("\n")}>
-                        <StatusChip tone="warning">QC ⚠</StatusChip>
-                      </span>
-                    ) : (
-                      <StatusChip tone="success">QC ✓</StatusChip>
-                    ))}
-                </span>
-              </div>
-              {b.visualUrl && (
-                <div className="mt-2 overflow-hidden rounded-lg border border-line">
-                  {b.visualKind === "clip" && b.visualUrl.includes(".mp4") ? (
-                    <video src={b.visualUrl} className="aspect-video w-full object-cover" controls preload="none" />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={b.visualUrl} alt={`Beat ${b.idx + 1} visual`} className="aspect-video w-full object-cover" />
+              {expandedBeat === -1 ? "Collapse all" : "Read full script"}
+            </button>
+          </div>
+          <div className="divide-y divide-line">
+            {props.beats.map((b) => {
+              const open = expandedBeat === -1 || expandedBeat === b.idx;
+              return (
+                <div key={b.idx} className={focused?.beatIdx === b.idx ? "bg-accent-soft/40" : ""}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left"
+                    onClick={() => setExpandedBeat(open && expandedBeat !== -1 ? null : b.idx)}
+                  >
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 shrink-0 text-muted transition-transform ${open ? "" : "-rotate-90"}`}
+                    />
+                    <span className="shrink-0 text-xs font-bold uppercase tracking-wide text-muted">
+                      {b.idx + 1}
+                      {b.shotType ? ` · ${b.shotType}` : ""}
+                    </span>
+                    {!open && <span className="min-w-0 flex-1 truncate text-sm">{b.text}</span>}
+                    <span className="ml-auto flex shrink-0 items-center gap-1">
+                      {(b.voStale || b.visualStale) && <StatusChip tone="warning">stale</StatusChip>}
+                      {b.qc &&
+                        (b.qc.issues.length > 0 ? (
+                          <span title={b.qc.issues.join("\n")}>
+                            <StatusChip tone="warning">QC ⚠</StatusChip>
+                          </span>
+                        ) : (
+                          <StatusChip tone="success">QC ✓</StatusChip>
+                        ))}
+                    </span>
+                  </button>
+                  {open && (
+                    <div className="space-y-3 px-4 pb-4 pl-10">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{b.text}</p>
+                      {b.visualPrompt && (
+                        <p className="rounded-lg bg-raised/40 px-3 py-2 text-xs text-muted">
+                          <span className="font-semibold text-ink">Visual direction:</span> {b.visualPrompt}
+                        </p>
+                      )}
+                      {b.visualUrl ? (
+                        <div className="overflow-hidden rounded-lg border border-line">
+                          {b.visualKind === "clip" && b.visualUrl.includes(".mp4") ? (
+                            <video src={b.visualUrl} className="aspect-video w-full object-cover" controls preload="none" />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={b.visualUrl} alt={`Beat ${b.idx + 1} visual`} className="aspect-video w-full object-cover" />
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted">
+                          No visual generated yet — it&apos;s created at the Assets stage, or ask for one now
+                          (&ldquo;generate beat {b.idx + 1}&rdquo;).
+                        </p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {b.voUrl && (
+                          <audio src={b.voUrl} controls preload="none" className="h-8 max-w-[200px]" />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isPending}
+                          title="Re-generate this beat's image/clip (a fresh roll of the visual — costs a few cents)"
+                          onClick={() => quickAction(`regenerate beat ${b.idx + 1} visual`, { kind: "clip", beatIdx: b.idx })}
+                        >
+                          <RefreshCw className="h-3 w-3" /> Redo visual
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isPending}
+                          title="Re-record this beat's narration as a fresh voiceover take"
+                          onClick={() => quickAction(`new VO take for beat ${b.idx + 1}`, { kind: "vo", beatIdx: b.idx })}
+                        >
+                          <AudioLines className="h-3 w-3" /> New VO
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isPending}
+                          title="Point the chat at this beat — your next message edits it"
+                          onClick={() =>
+                            setFocused(focused?.beatIdx === b.idx ? null : { kind: "clip", beatIdx: b.idx })
+                          }
+                        >
+                          {focused?.beatIdx === b.idx ? "Unfocus" : "Chat about this"}
+                        </Button>
+                        {b.qc && b.qc.issues.length > 0 && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={isPending}
+                            title="QC flagged issues — run one repair pass"
+                            onClick={() => quickAction("auto-fix the flagged issues")}
+                          >
+                            <Sparkles className="h-3 w-3" /> Auto-fix
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
-              )}
-              <p className="mt-2 line-clamp-3 text-sm">{b.text}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                {b.voUrl && (
-                  <audio src={b.voUrl} controls preload="none" className="h-8 max-w-[180px]" />
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={isPending}
-                  onClick={() => quickAction(`regenerate beat ${b.idx + 1} visual`, { kind: "clip", beatIdx: b.idx })}
-                >
-                  <RefreshCw className="h-3 w-3" /> Visual
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={isPending}
-                  onClick={() => quickAction(`new VO take for beat ${b.idx + 1}`, { kind: "vo", beatIdx: b.idx })}
-                >
-                  <AudioLines className="h-3 w-3" /> VO take
-                </Button>
-                {b.qc && b.qc.issues.length > 0 && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={isPending}
-                    onClick={() => quickAction("auto-fix the flagged issues")}
-                  >
-                    <Sparkles className="h-3 w-3" /> Auto-fix
-                  </Button>
-                )}
-              </div>
-            </Card>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        </Card>
       )}
 
       {/* ── Renders & thumbnails ───────────────────────────────── */}
@@ -480,7 +549,9 @@ export function WorkspaceView(props: WorkspaceProps) {
       )}
 
       {/* ── Composer (§3.1/§3.2) ───────────────────────────────── */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card/95 px-4 py-3 backdrop-blur">
+      {/* Sits ABOVE the mobile bottom-nav (which is fixed bottom-0 sm:hidden);
+          on desktop it drops back to the true bottom edge. */}
+      <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-40 border-t border-line bg-card/95 px-4 py-3 backdrop-blur sm:bottom-0">
         <div className="mx-auto max-w-4xl">
           <div className="flex flex-wrap items-center gap-2">
             <PillTabs

@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clapperboard, Radar, Settings } from "lucide-react";
+import { Clapperboard, Settings } from "lucide-react";
 import { getProject, getVideos } from "@/lib/db/queries";
 import { getLibrary, type LibraryItem } from "@/lib/db/library-data";
-import { getFeedEntries } from "@/lib/db/feed";
 import { getIsAdmin } from "@/lib/admin-guard";
 import { getActiveCleanHouseRun } from "@/lib/pipeline/clean-house-runner";
 import { CleanHousePanel } from "./clean-house-panel";
@@ -15,8 +14,6 @@ import { CollapsibleSection } from "@/components/ui/section-header";
 import { ProjectSignalStrip } from "@/components/ui/signal-strip";
 import { StatusChip } from "@/components/ui/status-chip";
 import { RealtimeRefresher } from "@/components/dashboard/realtime-refresher";
-import { BacklotStageRail } from "@/components/dashboard/backlot-stage-rail";
-import { BacklotTicker } from "@/components/dashboard/backlot-ticker";
 import { ScoutChat } from "@/components/dashboard/scout-chat";
 import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-button";
 import { RunDemoButton } from "@/components/dashboard/run-demo-button";
@@ -50,10 +47,9 @@ export default async function LibraryPage({
   const { id } = await params;
   const project = await getProject(id);
   if (!project) notFound();
-  const [library, videos, feed, isAdmin] = await Promise.all([
+  const [library, videos, isAdmin] = await Promise.all([
     getLibrary(id),
     getVideos(id),
-    getFeedEntries(id, 24),
     getIsAdmin(),
   ]);
   const cleanHouse = isAdmin ? await getActiveCleanHouseRun(id) : null;
@@ -115,13 +111,6 @@ export default async function LibraryPage({
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href={`/intel?project=${project.id}`}
-            className="flex items-center gap-1.5 rounded-full bg-card px-3.5 py-2 text-xs font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"
-            title="Scan the market (Intel)"
-          >
-            <Radar className="size-3.5" /> Intel
-          </Link>
-          <Link
             href={`/projects/${project.id}/settings`}
             className="flex items-center gap-1.5 rounded-full bg-card px-3.5 py-2 text-xs font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"
           >
@@ -144,15 +133,9 @@ export default async function LibraryPage({
         </div>
       )}
 
-      {/* ── Backlot live production board (#8) ─────────────────────────── */}
-      <section className="glass-shine relative overflow-hidden rounded-panel border border-line bg-gradient-to-br from-card/80 via-surface/60 to-card/80 p-4 shadow-float sm:p-5">
-        <span className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-accent/10 blur-3xl" aria-hidden />
-        <span className="pointer-events-none absolute -bottom-20 -left-10 size-48 rounded-full bg-sky/10 blur-3xl" aria-hidden />
-        <div className="relative space-y-4">
-          <BacklotStageRail stages={stages} projectId={project.id} />
-          <BacklotTicker entries={feed} />
-        </div>
-      </section>
+      {/* Backlot production board removed (ClickMax de-clutter pass): the
+          stage counts live in the section headers below and the workspace's
+          stage rail; the ticker duplicated the Feed. */}
 
       {isAdmin && cleanHouse && (
         <CleanHousePanel

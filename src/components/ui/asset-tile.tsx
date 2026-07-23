@@ -86,7 +86,9 @@ export function AssetTile({
             </span>
           )}
           {active && <span className="scanline" aria-hidden />}
-          <span className="absolute left-1.5 right-1.5 top-1.5 flex flex-wrap gap-1">
+          {/* Badge chips get a blur backdrop so they stay legible over
+              thumbnails with bright baked-in title text. */}
+          <span className="absolute left-1.5 right-1.5 top-1.5 flex flex-wrap gap-1 [&>*]:shadow-sm [&>*]:backdrop-blur-md">
             {active ? (
               <StatusChip tone="warning" className="gap-1 whitespace-nowrap">
                 <Loader2 className="size-3 animate-spin" /> working
