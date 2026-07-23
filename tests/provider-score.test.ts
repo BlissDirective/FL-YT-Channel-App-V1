@@ -69,8 +69,19 @@ describe("scoreProviders — basics", () => {
 });
 
 describe("scoreProviders — shot role changes the winner", () => {
-  it("b-roll favours the cheap/fast model", () => {
+  it("b-roll favours a solid model over the draft tier, but not the premium splurge", () => {
+    // Quality now carries real weight, so when the pool offers a standard model
+    // (premium+ tiers), b-roll upgrades from draft → standard; cost discipline
+    // still rules out the $0.40/s premium for ordinary b-roll. (Economy channels
+    // whose pool is draft-only still get the fast model — nothing to out-score.)
     const d = scoreProviders(ALL, ctx({ shot: "broll", targetSec: 6 }))!;
+    expect(d.winner.id).not.toBe("seedance-2-fast");
+    expect(d.winner.id).not.toBe("veo-3-1");
+    expect(d.winner.dims.quality).toBeGreaterThanOrEqual(0.7);
+  });
+
+  it("draft-only pool (economy tier) still picks the fast model — no cost inflation", () => {
+    const d = scoreProviders([seedanceFast], ctx({ shot: "broll", targetSec: 6 }))!;
     expect(d.winner.id).toBe("seedance-2-fast");
   });
 

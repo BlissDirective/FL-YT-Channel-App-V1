@@ -5,14 +5,19 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanHouseBudgetStop,
+  cleanHouseCommittedSpend,
   cleanHouseLedgerStop,
   cleanHouseStallAction,
+  transientOpsError,
   cleanHouseTerminationStop,
   CLEAN_HOUSE_MAX_NO_PROGRESS_TICKS,
   CLEAN_HOUSE_MAX_TICKS,
   planCleanHouse,
+  planWithinBudget,
+  rankForBudget,
   triageAsset,
   type AssetSignals,
+  type BudgetRankable,
 } from "@studio/core";
 
 const base: AssetSignals = {
@@ -84,6 +89,58 @@ describe("cleanHouseLedgerStop", () => {
   });
 });
 
+describe("cleanHouseCommittedSpend", () => {
+  it("takes the greater of real ledger and estimated commitments", () => {
+    expect(cleanHouseCommittedSpend(2.47, 75.4)).toBe(75.4); // ledger lags → estimate governs
+    expect(cleanHouseCommittedSpend(30, 12)).toBe(30); // real cost outran the estimate → ledger governs
+    expect(cleanHouseCommittedSpend(0, 0)).toBe(0);
+  });
+
+  it("REGRESSION: a lagging ledger must not let a capped run overrun (ceiling $25)", () => {
+    // The live incident: reconciled ledger was only $2.47 because MVDA cuts and
+    // stage workers book cost asynchronously, while the run had already committed
+    // $75.40 of advances. A ledger-only stop never fired; committed spend must.
+    const ledger = 2.47;
+    const committedEstimate = 75.4;
+    const ceiling = 25;
+    // Old (buggy) basis: ledger alone → never stops.
+    expect(cleanHouseLedgerStop(ledger, ceiling)).toBe(false);
+    // Fixed basis: committed spend → stops.
+    expect(cleanHouseLedgerStop(cleanHouseCommittedSpend(ledger, committedEstimate), ceiling)).toBe(true);
+    // And the per-item pre-check refuses the next advance on committed spend.
+    expect(cleanHouseBudgetStop(cleanHouseCommittedSpend(ledger, committedEstimate), ceiling, 3.4)).toBe(true);
+  });
+
+  it("still funds advances while committed spend is under the ceiling", () => {
+    // 7 items already committed (~$23.8 est), ledger still catching up at $1.10.
+    const committed = cleanHouseCommittedSpend(1.1, 23.8);
+    expect(cleanHouseBudgetStop(committed, 25, 1.0)).toBe(false); // one more $1 fits
+    expect(cleanHouseBudgetStop(committed, 25, 3.4)).toBe(true); // a $3.40 advance does not
+  });
+});
+
+describe("transientOpsError", () => {
+  it("flags the out-of-credit billing error (the live incident) with an actionable hint", () => {
+    const reason = 'scripting failed: Claude API error 400: {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing"}}';
+    expect(transientOpsError(reason)).toMatch(/out of credit/i);
+  });
+
+  it("classifies rate limits, overload, storage caps, 5xx, and network blips", () => {
+    expect(transientOpsError("429 rate limit exceeded")).toMatch(/rate limit/i);
+    expect(transientOpsError("Error: model overloaded (529)")).toMatch(/overloaded/i);
+    expect(transientOpsError("Render failed: exceeded Supabase Storage limits (413)")).toMatch(/R2/);
+    expect(transientOpsError("upstream 502 Bad Gateway")).toMatch(/5xx/);
+    expect(transientOpsError("fetch failed: ECONNRESET")).toMatch(/network/i);
+  });
+
+  it("returns null for genuine asset-specific failures (those SHOULD flag)", () => {
+    expect(transientOpsError(null)).toBeNull();
+    expect(transientOpsError("Auto Pilot held — QC 5.5 below the 6.0 floor. Manual review.")).toBeNull();
+    expect(transientOpsError("media QC found a structural defect (black frames).")).toBeNull();
+    expect(transientOpsError("Clean House: unlikely to reach a passing score")).toBeNull();
+  });
+});
+
 describe("cleanHouseTerminationStop", () => {
   it("auto-pauses at the tick ceiling", () => {
     const r = cleanHouseTerminationStop({ tickCount: CLEAN_HOUSE_MAX_TICKS, noProgressTicks: 0 });
@@ -97,6 +154,51 @@ describe("cleanHouseTerminationStop", () => {
   });
   it("keeps running while inside the rails", () => {
     expect(cleanHouseTerminationStop({ tickCount: 5, noProgressTicks: 1 }).stop).toBe(false);
+  });
+});
+
+describe("rankForBudget", () => {
+  const items: (BudgetRankable & { id: string })[] = [
+    { id: "a", salvageability: 0.9, estCostUsd: 3.0, qcScore: 6.8, qcFloor: 7 }, // best odds, small gap
+    { id: "b", salvageability: 0.5, estCostUsd: 0.4, qcScore: 5.0, qcFloor: 7 }, // cheapest, big gap
+    { id: "c", salvageability: 0.7, estCostUsd: 2.0, qcScore: null, qcFloor: 7 }, // no score
+  ];
+  it("salvageability: highest first", () => {
+    expect(rankForBudget(items, "salvageability").map((i) => i.id)).toEqual(["a", "c", "b"]);
+  });
+  it("cheapest: lowest cost first", () => {
+    expect(rankForBudget(items, "cheapest").map((i) => i.id)).toEqual(["b", "c", "a"]);
+  });
+  it("closest-to-floor: smallest QC gap first, null score last", () => {
+    expect(rankForBudget(items, "closest-to-floor").map((i) => i.id)).toEqual(["a", "b", "c"]);
+  });
+  it("does not mutate the input", () => {
+    const copy = [...items];
+    rankForBudget(items, "cheapest");
+    expect(items).toEqual(copy);
+  });
+});
+
+describe("planWithinBudget", () => {
+  const ranked = [
+    { id: "a", estCostUsd: 3 },
+    { id: "b", estCostUsd: 2 },
+    { id: "c", estCostUsd: 4 },
+  ];
+  it("funds greedily in order until the ceiling", () => {
+    const r = planWithinBudget(ranked, 5);
+    expect(r.funded.map((i) => i.id)).toEqual(["a", "b"]);
+    expect(r.deferred.map((i) => i.id)).toEqual(["c"]);
+    expect(r.fundedCostUsd).toBe(5);
+  });
+  it("no ceiling (<=0) funds everything", () => {
+    const r = planWithinBudget(ranked, 0);
+    expect(r.deferred).toHaveLength(0);
+    expect(r.fundedCostUsd).toBe(9);
+  });
+  it("skips an item that doesn't fit but keeps trying cheaper later ones", () => {
+    const r = planWithinBudget([{ id: "big", estCostUsd: 10 }, { id: "small", estCostUsd: 1 }], 2);
+    expect(r.funded.map((i) => i.id)).toEqual(["small"]);
   });
 });
 

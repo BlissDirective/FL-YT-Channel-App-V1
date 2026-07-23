@@ -25,7 +25,7 @@
   ],
   "cleanhouse": [
     "startCleanHouseTriage(projectId: string, mode: \"all\" | \"selected\", videoIds: string[] = [],)",
-    "approveCleanHouse(projectId: string, runId: string, budgetCeilingUsd: number, overrides: { videoId: string; verdict: \"advance\" | \"flag\" | \"skip\" }[] = [],)",
+    "approveCleanHouse(projectId: string, runId: string, budgetCeilingUsd: number, overrides: { videoId: string; verdict: \"advance\" | \"flag\" | \"skip\" }[] = [], strategy: CleanHouseBudgetStrategy = \"salvageability\",)",
     "tickCleanHouse(projectId: string, runId: string)",
     "pauseCleanHouse(projectId: string, runId: string)",
     "cancelCleanHouse(projectId: string, runId: string)"
@@ -95,6 +95,7 @@
     "resumeVideoAction(projectId: string, videoId: string,)",
     "resetRenderAttemptsAction(projectId: string, videoId: string,)",
     "nudgeStalledVideoAction(projectId: string, videoId: string,)",
+    "requestMvdaCutAction(projectId: string, videoId: string,)",
     "startBuildRunAction(projectId: string, config: BuildRunConfig,)",
     "stepBackStageAction(projectId: string, videoId: string, deleteAssets: boolean,)",
     "runDemoPipelineAction(projectId: string)",

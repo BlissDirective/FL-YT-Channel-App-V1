@@ -107,13 +107,22 @@ export const EddVideo: React.FC<VideoProps> = (props) => {
         />
       </Sequence>
 
-      {/* ── Intro sting / outro end card ── */}
-      {doc.intro.sting && doc.intro.sec > 0 && (
+      {/* ── Intro sting / outro end card ──
+          Runtime ALWAYS reserves intro.sec / outro.sec (see introOutroRuntime),
+          and clips are laid gapless strictly BETWEEN them — so the reserved head
+          [0, intro.sec] and tail [outroStart, totalFrames] are painted ONLY by
+          these two sequences. Gating them on the sting/endCard booleans (which
+          an editor op can flip without zeroing the seconds) left the reserved
+          span with nothing but the root background → a black frame on any
+          dark-branded channel. Paint whenever the seconds are reserved; the
+          booleans are equivalent to sec>0 on compile, so this matches intent and
+          can never black out. */}
+      {doc.intro.sec > 0 && (
         <Sequence durationInFrames={f(doc.intro.sec)}>
           <IntroSting {...props} />
         </Sequence>
       )}
-      {doc.outro.endCard && doc.outro.sec > 0 && (
+      {doc.outro.sec > 0 && (
         <Sequence from={outroStart} durationInFrames={Math.max(1, totalFrames - outroStart)}>
           <EndCard {...props} compact={doc.meta.format === "short"} />
         </Sequence>

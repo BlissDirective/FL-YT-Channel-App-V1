@@ -140,31 +140,51 @@ async function judgeOnce(
   lints: CriterionResult[],
 ): Promise<QcResult> {
   const rubric = GATE_RUBRICS[gate];
-  const res = await anthropicFetch({
-    method: "POST",
-    headers: {
-      "x-api-key": process.env.ANTHROPIC_API_KEY!,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1500,
-      tools: [reviewTool(gate)],
-      tool_choice: { type: "tool", name: "deliver_review" },
-      messages: [
-        {
-          role: "user",
-          content:
-            `${GATE_BRIEFS[gate]} Judge each criterion independently and strictly: ` +
-            `state your evidence first, then pass/fail. A criterion you cannot verify from the material FAILS. ` +
-            `Be concrete — vague praise helps nobody.\n\n${JSON.stringify(context, null, 2)}`,
-        },
-      ],
-    }),
+  const body = JSON.stringify({
+    model,
+    // Big enough that the strong judge's evidence notes across 6–8 criteria
+    // don't truncate mid-tool-call — a truncated payload used to parse as
+    // "all criteria missing" → an all-fail spurious ~1.0 score.
+    max_tokens: 4000,
+    tools: [reviewTool(gate)],
+    tool_choice: { type: "tool", name: "deliver_review" },
+    messages: [
+      {
+        role: "user",
+        content:
+          `${GATE_BRIEFS[gate]} Judge each criterion independently and strictly: ` +
+          `state your evidence first, then pass/fail. A criterion you cannot verify from the material FAILS. ` +
+          `Be concrete — vague praise helps nobody.\n\n${JSON.stringify(context, null, 2)}`,
+      },
+    ],
   });
-  if (!res.ok) {
-    throw new Error(`QC judge ${model} ${res.status}: ${(await res.text()).slice(0, 160)}`);
+  // Retry transient failures (429 / 5xx / network) before giving up — a single
+  // blip used to degrade the whole gate to a placeholder 6.0 and hold the video.
+  // 4xx (bad request) is not retried; it re-throws immediately.
+  let res: Awaited<ReturnType<typeof anthropicFetch>> | undefined;
+  let lastErr = "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 400 * attempt));
+    try {
+      res = await anthropicFetch({
+        method: "POST",
+        headers: {
+          "x-api-key": process.env.ANTHROPIC_API_KEY!,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body,
+      });
+    } catch (err) {
+      lastErr = err instanceof Error ? err.message : String(err); // network — retry
+      continue;
+    }
+    if (res.ok) break;
+    lastErr = `QC judge ${model} ${res.status}: ${(await res.text()).slice(0, 160)}`;
+    if (res.status < 500 && res.status !== 429) throw new Error(lastErr); // client error — don't retry
+  }
+  if (!res || !res.ok) {
+    throw new Error(lastErr || `QC judge ${model} failed`);
   }
   const data = (await res.json()) as {
     content: { type: string; input?: Record<string, unknown> }[];
@@ -175,6 +195,14 @@ async function judgeOnce(
     | undefined;
   if (!input) throw new Error("QC judge returned no review payload");
 
+  // A tool call with NONE of the rubric's criteria present is a malformed /
+  // truncated payload — not a real review. Scoring it as all-fail yields a
+  // spurious ~1.0 and (worse) can HOLD a fine asset or, at other gates, mislead
+  // the operator. Treat it as degraded so autonomy holds for a human instead.
+  const answered = rubric.filter((c) => input[c.id] != null).length;
+  if (answered === 0) {
+    return { ...heuristicReview(), judgeModel: model, verdict: "Judge returned an unparseable review (likely truncated) — held for a human." };
+  }
   const judged: CriterionResult[] = rubric.map((c) => {
     const raw = input[c.id] as { note?: string; pass?: boolean } | undefined;
     return {

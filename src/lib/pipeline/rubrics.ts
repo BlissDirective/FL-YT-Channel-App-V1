@@ -165,6 +165,45 @@ export function scoreFromCriteria(results: CriterionResult[]): number {
   return Math.round((passed / total) * 100) / 10;
 }
 
+/**
+ * FINAL-gate score grounded in the REAL rendered video.
+ *
+ * The text QC judge never sees the render — it scores a JSON summary — so its
+ * holistic `publish_ready` criterion is unverifiable and structurally fails
+ * ("A criterion you cannot verify FAILS"), producing phantom near-zero FINAL
+ * scores that measure nothing about the actual video. This grounds the FINAL
+ * number instead:
+ *
+ *  - **vision present** (a frame critic scored the real rendered frames):
+ *    blend the verifiable structural criteria (completeness, duration_band) as
+ *    a gate with the vision overall carrying the perceptual "publish-ready"
+ *    weight. Continuous — not quantized to the 3-criterion rubric's steps.
+ *  - **vision absent**: score ONLY the verifiable structural criteria and mark
+ *    it `grounded: false` — never fail a video on an unverifiable holistic guess
+ *    from text. The caller HOLDS an ungrounded video for a real vision pass
+ *    rather than trusting (or publishing on) a text-only verdict.
+ *
+ * Pure — unit-tested. `visionWeight` kept explicit so it's easy to tune.
+ */
+export function finalGateScore(
+  criteria: CriterionResult[],
+  visionScore: number | null | undefined,
+  visionWeight = 0.65,
+): { score: number; grounded: boolean } {
+  const structural = criteria.filter((c) => c.id === "completeness" || c.id === "duration_band");
+  const structTotal = structural.reduce((s, c) => s + c.weight, 0);
+  const structScore =
+    structTotal > 0
+      ? (structural.reduce((s, c) => s + (c.pass ? c.weight : 0), 0) / structTotal) * 10
+      : 10;
+  if (typeof visionScore === "number" && Number.isFinite(visionScore)) {
+    const v = Math.max(0, Math.min(10, visionScore));
+    const w = Math.max(0, Math.min(1, visionWeight));
+    return { score: Math.round((((1 - w) * structScore) + (w * v)) * 10) / 10, grounded: true };
+  }
+  return { score: Math.round(structScore * 10) / 10, grounded: false };
+}
+
 // ── Programmatic lints (free, deterministic — no model) ───────────────
 
 type LintBeat = { idx: number; text: string; shotType?: string };

@@ -118,7 +118,10 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
     ]);
 
   const latestQc = new Map<string, number>();
-  for (const q of (qcRows ?? []) as { video_id: string; score: number }[]) {
+  for (const q of (qcRows ?? []) as { video_id: string; score: number | null }[]) {
+    // Skip degraded reviews (score null) — they aren't a real measurement, so
+    // the tile shows the latest GENUINE QC score instead of a fabricated one.
+    if (q.score == null) continue;
     if (!latestQc.has(q.video_id)) latestQc.set(q.video_id, Number(q.score));
   }
   const latestViews = new Map<string, number>();
@@ -164,7 +167,9 @@ export async function getLibrary(projectId: string): Promise<LibraryData> {
   // stall (the render/clip cron cadence is ~30 min; renders may legitimately run
   // to their 45-min wall-clock budget, so ASSEMBLING gets a wider window).
   const STALL_MINUTES: Partial<Record<string, number>> = {
+    SCRIPTING: 30,
     GENERATING_ASSETS: 30,
+    NEEDS_REVISION: 30,
     ASSEMBLING: 60,
   };
 

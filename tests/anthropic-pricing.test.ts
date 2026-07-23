@@ -8,8 +8,10 @@ describe("anthropicPriceOf", () => {
     expect(anthropicPriceOf("claude-opus-4-8")).toEqual({ in: 5, out: 25 });
   });
 
-  it("falls back to sonnet pricing for unknown models", () => {
-    expect(anthropicPriceOf("claude-nonexistent")).toEqual(ANTHROPIC_PRICING["claude-sonnet-4-6"]);
+  it("falls back to the TOP tier for unknown models (over-estimate, not under)", () => {
+    // Was Sonnet (under-books an Opus-tier call ~40%); now the top tier so an
+    // unrecognised id is budget-safe.
+    expect(anthropicPriceOf("claude-nonexistent")).toEqual(ANTHROPIC_PRICING["claude-opus-4-8"]);
   });
 });
 
@@ -26,5 +28,17 @@ describe("anthropicCostUsd", () => {
 
   it("is zero for zero usage", () => {
     expect(anthropicCostUsd("claude-sonnet-4-6", 0, 0)).toBe(0);
+  });
+
+  it("prices cache tokens: write at 1.25x input, read at 0.1x input", () => {
+    // sonnet input $3/Mtok. 1M cache-creation → 3*1.25 = 3.75; 1M cache-read → 3*0.1 = 0.30.
+    expect(anthropicCostUsd("claude-sonnet-4-6", 0, 0, { creationTok: 1_000_000 })).toBe(3.75);
+    expect(anthropicCostUsd("claude-sonnet-4-6", 0, 0, { readTok: 1_000_000 })).toBe(0.3);
+    // additive with base in/out
+    expect(anthropicCostUsd("claude-sonnet-4-6", 1_000_000, 1_000_000, { readTok: 1_000_000 })).toBe(18.3);
+  });
+
+  it("cache tokens are optional (backward compatible)", () => {
+    expect(anthropicCostUsd("claude-haiku-4-5", 1234, 567)).toBe(0.0041);
   });
 });

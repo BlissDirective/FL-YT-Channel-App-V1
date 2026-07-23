@@ -27,6 +27,7 @@ import {
 import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highlights";
 import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
+import { finalGateScore } from "@/lib/pipeline/rubrics";
 import { editorialGuard } from "@/lib/adapters/guardrails";
 import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
 import { pickBestVariant } from "@/lib/adapters/variant-judge";
@@ -253,11 +254,13 @@ async function arriveAtGate(
     });
     qcScore = review.score;
     if (review.degraded) qcErrored = true; // live-but-failed → hold below, never a fake 6/10
-    const autoApprove = mode === "copilot" && review.score >= autoApproveFloor;
+    const autoApprove = mode === "copilot" && !review.degraded && review.score >= autoApproveFloor;
     await db.from("qc_reviews").insert({
       video_id: video.id,
       gate,
-      score: review.score,
+      // A degraded review is NOT a measurement — record null, never the neutral
+      // placeholder 6.0 (which the library would surface as a real QC score).
+      score: review.degraded ? null : review.score,
       verdict: review.verdict,
       issues: review.issues,
       strengths: review.strengths,
@@ -1275,7 +1278,7 @@ export async function makeBeatClip(
   const gateOn = Boolean(opts?.qualityGate?.enabled);
   try {
     if (beat.shotType === "stock") {
-      const stock = await searchStockClip(beat.visualPrompt);
+      const stock = await searchStockClip(beat.visualPrompt, { relevanceText: beat.text });
       if (stock) {
         return {
           row: {
@@ -1332,7 +1335,11 @@ export async function makeBeatClip(
         }
       }
       if (canPay) {
-        const quality = beat.shotType === "hero" ? "dev" : "schnell";
+        // Every beat still now renders on FLUX dev, not just heroes: the still
+        // seeds the i2v clip (and IS the visual on still/Ken-Burns beats), so a
+        // low-fidelity schnell seed caps the whole shot. dev is ~$0.02 more per
+        // still — negligible next to the clip/VO spend, high leverage on quality.
+        const quality = "dev" as const;
 
         // Per-project FLUX still cache: an identical (prompt, quality) is rendered
         // once per project and reused — unchanged beats re-gen for $0.
@@ -1440,7 +1447,7 @@ export async function makeBeatClip(
   // Pexels above.) Only an empty/failed stock search drops to the mock tile.
   if (beat.shotType !== "stock") {
     try {
-      const rescue = await searchStockClip(beat.visualPrompt);
+      const rescue = await searchStockClip(beat.visualPrompt, { relevanceText: beat.text });
       if (rescue) {
         return {
           row: {
@@ -3324,6 +3331,11 @@ export async function processPendingBuildVideos(
 // The Assets gate stays owned by Full-Auto (auto_finish) + the render farm so the
 // clip-replacement/render handoff is untouched; the final cut is the real check.
 
+/** FINAL score cap when no real frame critique exists yet — below the default
+    run floor (7.0) so an unassessed render HOLDS for a vision pass instead of
+    recording a phantom 0 or auto-publishing blind. */
+const FINAL_UNGROUNDED_HOLD = 6.5;
+
 /** Score one gate with the QC agent and append it to the qc_reviews ledger
     (billing the review when live). Returns the score + concrete issues. */
 async function scoreAndRecordGate(
@@ -3338,10 +3350,24 @@ async function scoreAndRecordGate(
     context: await qcContext(db, video, project, gate),
     escalateNear,
   });
+  // FINAL is judged from a text summary, so its holistic publish_ready always
+  // fails → phantom near-zero scores that don't measure the real video. Ground
+  // the FINAL number in the actual rendered frames (vision critique) when we
+  // have one; otherwise score structure only and HOLD (cap below the floor) for
+  // a real vision pass rather than record a misleading 0 or auto-publish blind.
+  let score = review.score;
+  if (gate === "FINAL") {
+    const vr = video.vision_review as { score?: number } | null;
+    const g = finalGateScore(review.criteria, typeof vr?.score === "number" ? vr.score : null);
+    score = g.grounded ? g.score : Math.min(g.score, FINAL_UNGROUNDED_HOLD);
+  }
   await db.from("qc_reviews").insert({
     video_id: video.id,
     gate,
-    score: review.score,
+    // Degraded (no real judge) → record null, not the placeholder 6.0, so the
+    // library never shows a fabricated score. The caller still gets `score` for
+    // hold/advance logic (a degraded gate holds regardless).
+    score: review.degraded ? null : score,
     verdict: review.verdict,
     issues: review.issues,
     strengths: review.strengths,
@@ -3358,7 +3384,7 @@ async function scoreAndRecordGate(
       `${GATE_LABELS[gate]} gate`,
     );
   }
-  return { score: review.score, issues: review.issues };
+  return { score, issues: review.issues };
 }
 
 /** QC the freshly-written script; on a sub-floor miss, revise once (QC issues
@@ -3837,6 +3863,95 @@ export async function reconcileStuckRenders(dbArg?: Db): Promise<{ healed: numbe
 }
 
 /**
+ * Self-heal autopilot seeds stranded MID-PIPELINE. processPendingBuildVideos
+ * only claims IDEA_APPROVED, and it drives script→gate→assets in ONE pass — so
+ * if a pass is cut off by the route's wall-clock cap between stages, the seed
+ * strands at SCRIPTING or SCRIPT_READY and nothing ever resumes it (the class of
+ * bug that left build_runs "generating" for weeks). This reconciler re-drives
+ * them, and is idempotent (safe to retry every pass):
+ *   • SCRIPT_READY (script passed its gate, assets never ran) → resume
+ *     fullAutoGenerate, KEEPING the good script. One per pass so a heavy
+ *     generate can't blow the route budget; a repeat timeout just retries next
+ *     pass (no re-script, no wasted spend).
+ *   • SCRIPTING (script generation itself was interrupted) → reset to
+ *     IDEA_APPROVED so the normal flow re-scripts it.
+ *   • GENERATING_ASSETS with NO assets and NO clip jobs (fullAutoGenerate was
+ *     cut off after the script gate but before it enqueued a single clip, so
+ *     the asset stage never actually started) → reset to SCRIPT_READY so the
+ *     resume branch re-drives it. Gated on zero assets AND zero clip jobs so a
+ *     video that genuinely has generation in flight is never rewound (no
+ *     double-spend — there is nothing to duplicate).
+ */
+export async function reconcileStrandedSeeds(dbArg?: Db): Promise<{ resumed: number; reset: number }> {
+  const db = dbArg ?? (await createClient());
+  const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  const blocked = await blockedRunIds(db);
+  const { data: stranded } = await db
+    .from("videos")
+    .select("id, project_id, build_run_id, status")
+    .eq("auto_pilot_run", true)
+    .in("status", ["SCRIPTING", "SCRIPT_READY", "GENERATING_ASSETS"])
+    .is("paused_reason", null)
+    .not("build_run_id", "is", null)
+    .lt("updated_at", cutoff)
+    .order("updated_at", { ascending: true })
+    .limit(10);
+
+  let resumed = 0;
+  let reset = 0;
+  for (const v of (stranded ?? []) as { id: string; project_id: string; build_run_id: string; status: string }[]) {
+    if (blocked.has(v.build_run_id)) continue;
+    const project = await getProject(db, v.project_id);
+    if (!project || isDirectorMode(project)) continue;
+    if (v.status === "SCRIPTING") {
+      const { error } = await db
+        .from("videos")
+        .update({ status: "IDEA_APPROVED" })
+        .eq("id", v.id)
+        .eq("status", "SCRIPTING");
+      if (!error) reset++;
+    } else if (v.status === "GENERATING_ASSETS") {
+      // Only a CLEAN strand rewinds: no assets produced and no clip jobs queued
+      // means the asset stage never started, so re-running fullAutoGenerate from
+      // SCRIPT_READY duplicates nothing. A video with any asset/clip job in
+      // flight is left for the clip worker / reconcileStuckRenders.
+      const [{ count: assetCount }, { count: jobCount }] = await Promise.all([
+        db.from("assets").select("id", { count: "exact", head: true }).eq("video_id", v.id),
+        db.from("clip_jobs").select("id", { count: "exact", head: true }).eq("video_id", v.id),
+      ]);
+      if ((assetCount ?? 0) === 0 && (jobCount ?? 0) === 0) {
+        const { error } = await db
+          .from("videos")
+          .update({ status: "SCRIPT_READY", auto_finish: false })
+          .eq("id", v.id)
+          .eq("status", "GENERATING_ASSETS");
+        if (!error) reset++;
+      }
+    } else if (resumed === 0) {
+      const { data: run } = await db
+        .from("build_runs")
+        .select("tier, custom_spec")
+        .eq("id", v.build_run_id)
+        .maybeSingle();
+      try {
+        await fullAutoGenerate(
+          {
+            videoId: v.id,
+            tier: (run?.tier as AutoTier) ?? "economy",
+            custom: (run?.custom_spec as CustomSpec | null) ?? undefined,
+          },
+          db,
+        );
+        resumed++;
+      } catch (err) {
+        console.error(`reconcileStrandedSeeds resume ${v.id}:`, err);
+      }
+    }
+  }
+  return { resumed, reset };
+}
+
+/**
  * Retry a video's clip jobs after a provider outage (e.g. fal balance
  * exhausted). Any beat whose keyframe degraded to a mock placeholder is
  * re-rendered as a real still now that the provider is live again (cheap —
@@ -3983,7 +4098,9 @@ export async function generateBeatVideo(opts: {
   const isStill = still?.storage_path && !(still.meta as { isVideo?: boolean })?.isVideo;
   const imageUrl = isStill ? (await getSignedMediaUrl(still!.storage_path)) ?? undefined : undefined;
 
-  const prompt = buildVisualPrompt(beat.visualPrompt, project.brand_kit.thumbnailStyle);
+  // VCE V1 — condition the clip prompt on the Visual Bible too (not just stills),
+  // so video keeps the style contract / palette / subject consistency.
+  const prompt = buildVisualPrompt(beat.visualPrompt, project.brand_kit.thumbnailStyle, video.visual_bible ?? null);
   let out: Awaited<ReturnType<typeof generateVideo>>;
   try {
     out = await generateVideo({ model, prompt, imageUrl, durationSec: dur });

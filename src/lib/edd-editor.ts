@@ -5,6 +5,7 @@
  */
 export {
   retimeClip,
+  splitClip,
   setTrim,
   swapClipAsset,
   setTransition,

@@ -95,14 +95,18 @@ export type ProviderDecision = {
   weights: Record<ScoreDimension, number>;
 };
 
-/** Base dimension weights; the shot role tilts them (see profileWeights). */
+/** Base dimension weights; the shot role tilts them (see profileWeights).
+    Tuned for "fewer, higher-quality videos": quality is the largest single
+    weight and cost/latency are secondary, so `auto` stops resolving to the
+    cheapest model that merely clears the bar. Cost still matters (the b-roll
+    tilt + the affordability fallback keep spend bounded). */
 const BASE_WEIGHTS: Record<ScoreDimension, number> = {
-  taskFit: 0.22,
-  quality: 0.16,
+  taskFit: 0.2,
+  quality: 0.24,
   control: 0.1,
   reliability: 0.14,
-  cost: 0.16,
-  latency: 0.1,
+  cost: 0.12,
+  latency: 0.08,
   continuity: 0.12,
 };
 
@@ -120,10 +124,12 @@ function profileWeights(
     w.cost -= 0.1;
     w.latency -= 0.04;
   } else {
-    w.cost += 0.08;
+    // B-roll leans cheaper/faster but no longer guts quality (was −0.1, which
+    // left quality ~6% of the decision → "cheapest that clears the bar").
+    w.cost += 0.05;
     w.latency += 0.04;
     w.taskFit += 0.02;
-    w.quality -= 0.1;
+    w.quality -= 0.05;
     w.continuity -= 0.04;
   }
   Object.assign(w, overrides ?? {});
@@ -182,10 +188,13 @@ export function scoreProviders(
     const audioMatch = ctx.needsAudio ? (c.audio ? 1 : 0.15) : 1;
     // Hero role rewards higher-quality models on task-fit; b-roll rewards
     // "enough" quality delivered cheaply/fast.
+    // Both roles now reward quality monotonically — b-roll just rewards it more
+    // gently than hero. The old b-roll curve peaked at "standard" (0.6) and
+    // actively PENALIZED premium models, which capped output quality.
     const roleFit =
       ctx.shot === "hero"
         ? 0.5 + 0.5 * c.quality
-        : 0.6 + 0.4 * (1 - Math.abs(c.quality - 0.6)); // b-roll ideal ≈ standard
+        : 0.6 + 0.4 * c.quality;
     const taskFit = clamp01(fit * audioMatch * roleFit);
 
     const reliability = clamp01(c.reliability * healthFor(c, ctx.health));

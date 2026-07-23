@@ -11,6 +11,8 @@ export type SessionState = {
   judges: number;
   versions: number;
   lessons: number;
+  /** §C.1 visual-grounding renders (timeline_view) this session. */
+  views: number;
   /** Latest judge_preview overall score for the CURRENT head (null = unjudged). */
   judgeScore: number | null;
   /** C2 — the cut gate's floor; mark_ready is denied below it. */
@@ -18,13 +20,16 @@ export type SessionState = {
   killSwitch: boolean;
 };
 
-export const SESSION_CAPS = { previews: 3, judges: 3, versions: 15, lessons: 3 } as const;
+// Raised alongside MAX_TURNS so the agent can run several genuine
+// see→edit→re-see→judge cycles instead of one; still bounded to prevent spend
+// runaway (the mechanical budget cap in gateTool remains the hard stop).
+export const SESSION_CAPS = { previews: 4, judges: 4, versions: 20, lessons: 3, views: 6 } as const;
 
 /** Tools that spend money (Anthropic vision / render minutes). */
 const PAID = new Set(["render_preview", "judge_preview"]);
 /** Tools that mutate the document/state (blocked under the kill switch). */
 const MUTATING = new Set([
-  "propose_edd", "retime_clip", "trim_clip", "set_transition", "set_motion",
+  "propose_edd", "retime_clip", "split_clip", "trim_clip", "set_transition", "set_motion",
   "set_emphasis", "set_caption_style", "set_silent", "swap_visual",
   "auto_emphasis", "add_sfx",
   "render_preview", "judge_preview", "mark_ready", "write_lesson",
@@ -47,6 +52,9 @@ export function gateTool(name: string, s: SessionState): Gate {
   }
   if (name === "write_lesson" && s.lessons >= SESSION_CAPS.lessons) {
     return { allow: false, reason: `lesson cap reached (${SESSION_CAPS.lessons}/session)` };
+  }
+  if (name === "timeline_view" && s.views >= SESSION_CAPS.views) {
+    return { allow: false, reason: `timeline_view cap reached (${SESSION_CAPS.views}/session)` };
   }
   if (MUTATING.has(name) && !PAID.has(name) && name !== "mark_ready" && s.versions >= SESSION_CAPS.versions) {
     return { allow: false, reason: `version cap reached (${SESSION_CAPS.versions}/session)` };

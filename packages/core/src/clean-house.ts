@@ -183,6 +183,52 @@ export function cleanHouseLedgerStop(ledgerSpentUsd: number, ceilingUsd: number)
   return ledgerSpentUsd >= ceilingUsd - 1e-9;
 }
 
+/**
+ * The run's COMMITTED spend for budget gating: the greater of real reconciled
+ * ledger spend and the accumulated pre-flight estimate.
+ *
+ * The ledger LAGS. Clean House commits an advance by flagging an MVDA cut
+ * (`edit_session_requested`) or triggering a stage worker (clips/render) — and
+ * those book their real cost minutes-to-hours later, on a separate runner. So a
+ * ledger-only stop sees almost nothing and keeps authorizing work: a $25 run
+ * committed $75 of advances before any of it settled. Taking the max keeps the
+ * ceiling honest in BOTH directions — the estimate caps forward commitments the
+ * ledger hasn't caught up to, and the ledger still enforces if real cost ends up
+ * outrunning the estimate. Pure.
+ */
+export function cleanHouseCommittedSpend(ledgerSpentUsd: number, estimatedSpentUsd: number): number {
+  return Math.max(ledgerSpentUsd, estimatedSpentUsd);
+}
+
+/**
+ * Classify a stage/worker failure reason as a TRANSIENT infrastructure/billing
+ * problem — the pipeline is starved, not the asset unfixable. When this returns
+ * a hint, Clean House pauses the whole run (a circuit breaker) with an
+ * actionable operator message instead of burning the library flagging healthy
+ * assets as "unfixable". Returns null for genuine, asset-specific failures (a
+ * cut that just can't reach the QC floor), which SHOULD be flagged. Pure —
+ * matches on stable provider error phrases, not brittle numeric codes.
+ */
+export function transientOpsError(reason: string | null | undefined): string | null {
+  if (!reason) return null;
+  const r = reason.toLowerCase();
+  if (r.includes("credit balance is too low"))
+    return "Anthropic API is out of credit — top up Plans & Billing, then resume.";
+  if (r.includes("rate limit") || r.includes("rate_limit") || r.includes("too many requests"))
+    return "hit an API rate limit — wait a few minutes, then resume.";
+  if (r.includes("overloaded"))
+    return "the model API is overloaded — retry shortly.";
+  if (r.includes("exceeded supabase storage") || r.includes("maximum size exceeded"))
+    return "a render exceeded Supabase Storage limits — configure Cloudflare R2, then resume.";
+  if (r.includes("internal server error") || r.includes("service unavailable") ||
+      r.includes("bad gateway") || r.includes("gateway timeout"))
+    return "an upstream service is failing (5xx) — retry shortly.";
+  if (r.includes("econnreset") || r.includes("etimedout") ||
+      r.includes("fetch failed") || r.includes("socket hang up"))
+    return "a network error interrupted a provider call — retry shortly.";
+  return null;
+}
+
 export type CleanHouseRailState = { tickCount: number; noProgressTicks: number };
 
 /** Termination rails: should the run auto-pause (and why)? Pure. */
@@ -194,6 +240,69 @@ export function cleanHouseTerminationStop(s: CleanHouseRailState): { stop: boole
     return { stop: true, reason: `no progress for ${CLEAN_HOUSE_MAX_NO_PROGRESS_TICKS} consecutive ticks` };
   }
   return { stop: false };
+}
+
+// ── Budget allocation strategy (Precision-Editing-and-Clean-House-v2-Spec §A) ─
+// A capped budget should fund the best bets first, not arbitrary insertion
+// order. The operator picks a strategy; these pure helpers rank the work queue
+// and compute the budget frontier for the plan preview.
+
+export type CleanHouseBudgetStrategy = "salvageability" | "cheapest" | "closest-to-floor";
+
+/** The fields a rankable item needs (camelCase; the runner maps DB rows in). */
+export type BudgetRankable = {
+  salvageability: number;
+  estCostUsd: number;
+  qcScore: number | null;
+  qcFloor: number;
+};
+
+/** QC gap to the floor; null score → Infinity (ranks last for closest-to-floor). */
+function floorGap(i: BudgetRankable): number {
+  return i.qcScore == null ? Number.POSITIVE_INFINITY : Math.max(0, i.qcFloor - i.qcScore);
+}
+
+/**
+ * Order a set of advance items by the chosen budget strategy. Pure + stable
+ * enough for tests (deterministic tie-breaks). Generic so the runner can rank
+ * its own row type as long as it carries the BudgetRankable fields.
+ */
+export function rankForBudget<T extends BudgetRankable>(items: T[], strategy: CleanHouseBudgetStrategy): T[] {
+  const arr = [...items];
+  switch (strategy) {
+    case "cheapest":
+      arr.sort((a, b) => a.estCostUsd - b.estCostUsd || b.salvageability - a.salvageability);
+      break;
+    case "closest-to-floor":
+      arr.sort((a, b) => floorGap(a) - floorGap(b) || a.estCostUsd - b.estCostUsd);
+      break;
+    case "salvageability":
+    default:
+      arr.sort((a, b) => b.salvageability - a.salvageability || a.estCostUsd - b.estCostUsd);
+  }
+  return arr;
+}
+
+/**
+ * Greedily walk already-ranked items, funding each while cumulative estimated
+ * cost stays under the ceiling. ceiling <= 0 → no ceiling (fund all). Pure.
+ */
+export function planWithinBudget<T extends { estCostUsd: number }>(
+  rankedItems: T[],
+  ceilingUsd: number,
+): { funded: T[]; deferred: T[]; fundedCostUsd: number } {
+  if (ceilingUsd <= 0) {
+    const total = rankedItems.reduce((s, i) => s + i.estCostUsd, 0);
+    return { funded: [...rankedItems], deferred: [], fundedCostUsd: Math.round(total * 100) / 100 };
+  }
+  const funded: T[] = [];
+  const deferred: T[] = [];
+  let spent = 0;
+  for (const it of rankedItems) {
+    if (spent + it.estCostUsd <= ceilingUsd + 1e-9) { funded.push(it); spent += it.estCostUsd; }
+    else deferred.push(it);
+  }
+  return { funded, deferred, fundedCostUsd: Math.round(spent * 100) / 100 };
 }
 
 export type CleanHouseStallVerdict = "wait" | "nudge" | "flag";

@@ -300,7 +300,9 @@ async function processJob(job: Job) {
   const beat = ((script?.beats ?? []) as { idx: number; visualPrompt: string }[]).find((b) => b.idx === job.beat_idx);
   if (!beat) throw new Error("Section not found");
   const style = (project?.brand_kit as { thumbnailStyle?: string })?.thumbnailStyle ?? "cinematic";
-  const prompt = buildVisualPrompt(beat.visualPrompt, style);
+  // VCE V1 — condition the clip prompt on the Visual Bible too (parity with stills).
+  const bible = (video as { visual_bible?: Parameters<typeof buildVisualPrompt>[2] }).visual_bible ?? null;
+  const prompt = buildVisualPrompt(beat.visualPrompt, style, bible);
 
   // image-to-video from our existing keyframe still, if present.
   const { data: still } = await db
@@ -532,6 +534,12 @@ async function main() {
           .from("clip_jobs")
           .update({ status: "error", error: `${msg} (gave up after ${MAX_ATTEMPTS} attempts)` })
           .eq("id", job.id);
+        // A permanently-failed clip is terminal, not pending — the beat falls
+        // back to its seed still at render. maybeFinish only ran on the success
+        // path, so if THIS was the last outstanding job the video stranded at
+        // ASSETS_READY forever. Re-check completion here too so the run advances
+        // (to the MVDA cut session, or straight to render) on a dead clip.
+        await maybeFinish(job.video_id);
       }
     }
   }
