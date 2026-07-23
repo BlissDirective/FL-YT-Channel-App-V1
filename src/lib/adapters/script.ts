@@ -314,6 +314,9 @@ export async function generateScript(opts: {
   revisionNotes?: string;
   /** Distilled recurring QC failures on this project's prior scripts. */
   qcLessons?: string[];
+  /** ClickMax workspace (§4.6): the project's free-text instructions — tone,
+      recurring colors, audience, pacing — injected into every prompt path. */
+  instructions?: string;
 }): Promise<ScriptDraft> {
   if (!isScriptLive()) {
     const draft = mockScript({
@@ -368,6 +371,9 @@ export async function generateScript(opts: {
           .map((l) => `- ${l}`)
           .join("\n")}`
       : "";
+  const projectInstructions = opts.instructions?.trim()
+    ? `\n\nPROJECT INSTRUCTIONS from the channel owner — follow them in every beat:\n${opts.instructions.trim()}`
+    : "";
 
   // Outline-first gate (Tier 4 #2): on a fresh draft, plan + self-vet a cheap
   // outline and have the full pass expand from it. Skipped on a revision — that
@@ -398,7 +404,7 @@ export async function generateScript(opts: {
       console.error("outline pre-pass failed (writing full script directly):", err);
     }
   }
-  const fullPrompt = `${prompt}${hardRules}${lessons}${outlineBlock}`;
+  const fullPrompt = `${prompt}${hardRules}${lessons}${projectInstructions}${outlineBlock}`;
 
   type ScriptInput = {
     beats: { text: string; visualPrompt: string; shotType: ScriptBeat["shotType"] }[];

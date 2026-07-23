@@ -567,6 +567,7 @@ async function runScripting(db: Db, video: Video, project: Project) {
     template,
     revisionNotes: notes,
     qcLessons: lessons,
+    instructions: project.instructions ?? undefined,
   });
 
   await db.from("scripts").insert({
@@ -1278,7 +1279,11 @@ export async function makeBeatClip(
   let scene = beat.visualPrompt;
   // VCE V1 — condition the prompt on the video's Visual Bible (null → unchanged).
   const bible = video.visual_bible ?? null;
-  let prompt = buildVisualPrompt(scene, project.brand_kit.thumbnailStyle, bible);
+  // ClickMax §4.6: project instructions ride along on every visual prompt.
+  const styleContext = project.instructions?.trim()
+    ? `${project.brand_kit.thumbnailStyle}. ${project.instructions.trim()}`
+    : project.brand_kit.thumbnailStyle;
+  let prompt = buildVisualPrompt(scene, styleContext, bible);
   // Secondary costs (prompt refine, discarded blank renders) are returned to the
   // caller and recorded sequentially (parallel recordCost would race the total).
   const extraCosts: NonNullable<AssetDraft["extraCosts"]> = [];

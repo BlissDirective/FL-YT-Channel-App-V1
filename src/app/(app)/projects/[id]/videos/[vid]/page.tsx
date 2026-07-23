@@ -46,6 +46,8 @@ import { VisionReview } from "./vision-review";
 import { AutofixPanel } from "./autofix-panel";
 import { RegenerateScript } from "./regenerate-script";
 import type { StickScene } from "@/lib/stick-types";
+import { WorkspaceView } from "./workspace/workspace-view";
+import { modelCatalog, estimateStageCost } from "@/lib/models/catalog";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -68,10 +70,10 @@ export default async function VideoDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string; vid: string }>;
-  searchParams: Promise<{ setup?: string }>;
+  searchParams: Promise<{ setup?: string; classic?: string }>;
 }) {
   const { id, vid } = await params;
-  const { setup } = await searchParams;
+  const { setup, classic } = await searchParams;
   const supabase = await createClient();
   const [project, { data: video }, { data: script }, { data: assets }, decisionTrail] =
     await Promise.all([
@@ -161,6 +163,116 @@ export default async function VideoDetailPage({
 
   const gate = GATE_FOR_STATUS[v.status];
   const assemblyEnabled = (await getEditorFlags()).assembly;
+
+  // ── ClickMax Workspace (transition §3) — the default view. The pre-transition
+  // hub stays reachable at ?classic=1 for one release (plan §6 Phase 2). ──
+  if (!classic) {
+    const [{ data: wsMessages }, { data: wsQc }, thumbUrls, renderUrls] = await Promise.all([
+      supabase
+        .from("workspace_messages")
+        .select("id, role, content, created_at")
+        .eq("video_id", vid)
+        .order("created_at", { ascending: true })
+        .limit(60),
+      supabase
+        .from("qc_reviews")
+        .select("gate, score, verdict, issues, asset_id, created_at")
+        .eq("video_id", vid)
+        .order("created_at", { ascending: false })
+        .limit(30),
+      Promise.all(
+        allAssets.filter((a) => a.kind === "thumb").slice(0, 3).map(async (a) => ({ id: a.id, url: await assetUrl(a) })),
+      ),
+      Promise.all(
+        allAssets.filter((a) => a.kind === "render").slice(0, 2).map(async (a) => ({ id: a.id, url: await assetUrl(a), kind: a.kind })),
+      ),
+    ]);
+    const qcRows = (wsQc ?? []) as { gate: string; score: number | null; verdict: string | null; issues: string[] | null; asset_id: string | null }[];
+    const latestGateQc = gate ? qcRows.find((r) => r.gate === gate) ?? null : null;
+    const clipByBeat = new Map(clipAssets.map((a) => [a.beat_index as number, a]));
+    const wsBeats = beats.map((b) => {
+      const clipRow = clipByBeat.get(b.idx);
+      const clip = clips.find((c) => c.idx === b.idx);
+      const audio = beatAudio.find((a) => a.idx === b.idx);
+      const voRow = allAssets.find((a) => a.kind === "vo" && a.beat_index === b.idx);
+      const assetQc = clipRow ? qcRows.find((r) => r.asset_id === clipRow.id) : null;
+      return {
+        idx: b.idx,
+        text: b.text,
+        visualPrompt: b.visualPrompt,
+        shotType: b.shotType,
+        voUrl: audio?.url ?? null,
+        voStale: Boolean((voRow as { stale?: boolean } | undefined)?.stale),
+        visualUrl: clip?.url ?? null,
+        visualKind: (clip?.isVideo ? "clip" : clip?.url ? "still" : null) as "clip" | "still" | null,
+        visualStale: Boolean((clipRow as { stale?: boolean } | undefined)?.stale),
+        visualProvider: clipRow?.provider ?? null,
+        qc: assetQc
+          ? { score: assetQc.score, verdict: assetQc.verdict, issues: assetQc.issues ?? [] }
+          : latestGateQc && b.idx === 0
+            ? { score: latestGateQc.score, verdict: latestGateQc.verdict, issues: latestGateQc.issues ?? [] }
+            : null,
+      };
+    });
+    const NEXT_STAGE: Record<string, string | null> = {
+      IDEA: "Script",
+      IDEA_APPROVED: "Script",
+      SCRIPTING: "Script",
+      SCRIPT_READY: "Assets",
+      GENERATING_ASSETS: "Assets",
+      ASSETS_READY: "Assemble",
+      ASSEMBLING: "Render",
+      FINAL_REVIEW: "Publish",
+      NEEDS_REVISION: "Script",
+    };
+    return (
+      <>
+        <RealtimeRefresher tables={["videos", "scripts", "assets", "clip_jobs", "workspace_messages"]} />
+        <WorkspaceView
+          projectId={id}
+          projectName={project.name}
+          videoId={vid}
+          videoTitle={v.title}
+          status={v.status}
+          pausedReason={v.paused_reason}
+          atGate={Boolean(gate)}
+          gateLabel={gate ?? null}
+          railIndex={railIndexFor(v)}
+          railSteps={RAIL_STEPS}
+          workspaceMode={
+            (project.workspace_mode as "director" | "autopilot" | undefined) ??
+            (directorMode ? "director" : "autopilot")
+          }
+          instructions={project.instructions ?? ""}
+          spendUsd={Number(v.total_cost_usd ?? 0)}
+          continueEstimateUsd={estimateStageCost({
+            status: v.status,
+            targetLengthSec: v.target_length_sec ?? 300,
+            beatCount: beats.length || undefined,
+          })}
+          nextStageLabel={NEXT_STAGE[v.status] ?? null}
+          beats={wsBeats}
+          renders={renderUrls}
+          thumbs={thumbUrls}
+          messages={((wsMessages ?? []) as { id: string; role: string; content: string; created_at: string }[]).map(
+            (m) => ({ id: m.id, role: m.role as "user" | "agent" | "system", content: m.content, createdAt: m.created_at }),
+          )}
+          videoModels={modelCatalog("video").map((m) => ({
+            id: m.id,
+            label: m.label,
+            badge: m.badge,
+            unitUsd: m.unitUsd,
+            unit: m.unit,
+            pros: m.pros,
+            durations: m.durations,
+            minDurationSec: m.minDurationSec,
+            maxDurationSec: m.maxDurationSec,
+          }))}
+          classicHref={`/projects/${id}/videos/${vid}?classic=1`}
+        />
+      </>
+    );
+  }
 
   // Checkpoint context (UI v2 Phase 3): the latest QC verdict for the open
   // gate, the linked idea card at IDEA, and thumbnail candidates at ASSETS.
