@@ -2,8 +2,19 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Visual Craft Engine feature flags (app_settings key 'vce'). Every VCE system
- * ships DARK (default off) so it can land, be validated in mock, then enabled.
+ * Visual Craft Engine — INVISIBLE UNDER-LAYER (ClickMax transition decision 5).
+ *
+ * VCE has no user-facing surface: the settings card was removed and the engine
+ * decides internally when each stage runs. This module is the single
+ * activation policy. Per-stage policy is currently: all stages OFF pending the
+ * measured activation audit (QC delta vs cost/latency per stage needs live
+ * provider keys to run; see plan §4.5) — flip a stage's default here once its
+ * measured delta justifies its cost, not via any UI.
+ *
+ * The app_settings 'vce' override remains as an internal operator escape
+ * hatch (setVceFlags server action), useful for A/B measurement runs.
+ * `compositor` (V5) is documented-dead: no engine site reads it.
+ *
  * With all flags off the pipeline behaves byte-identically to pre-VCE — the
  * flag-off invariance the cross-cutting test suite pins.
  */

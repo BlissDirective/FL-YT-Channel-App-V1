@@ -7,8 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { QualityGates } from "@/lib/actions/pipeline";
 import { Card, CardTitle } from "@/components/ui/card";
 import { KillSwitch } from "./kill-switch";
-import { VceSystemsCard } from "./vce-systems-card";
-import { getVceFlags, VCE_DEFAULTS } from "@/lib/pipeline/vce";
 import { EditorSystemsCard } from "./editor-systems-card";
 import { getEditorFlags, EDITOR_DEFAULTS } from "@/lib/pipeline/editor-flags";
 import { getIsAdmin } from "@/lib/admin-guard";
@@ -43,7 +41,6 @@ export default async function SettingsPage() {
   const [killSwitch, ledger, qc, qualityGates] = configured
     ? await Promise.all([getKillSwitch(), getCostLedger(12), getQcAgreement(), getQualityGates()])
     : [false, [], { total: 0, agree: 0, rate: 0 }, {}];
-  const vceFlags = configured ? await getVceFlags() : VCE_DEFAULTS;
   const editorFlags = configured ? await getEditorFlags() : EDITOR_DEFAULTS;
   const isAdmin = configured ? await getIsAdmin() : false;
   const shownTotal = ledger.reduce((s, e) => s + Number(e.usd), 0);
@@ -70,7 +67,10 @@ export default async function SettingsPage() {
 
       {configured && <QualityGatesCard initial={qualityGates} />}
 
-      {configured && isAdmin && <VceSystemsCard initial={vceFlags} />}
+      {/* ClickMax transition decision 5: the Visual Craft Engine is an invisible
+          under-layer — the engine's internal activation policy (vce.ts) decides
+          when its stages run; no user-facing toggles. The app_settings 'vce'
+          override remains as an operator escape hatch via setVceFlags. */}
 
       {configured && isAdmin && <EditorSystemsCard initial={editorFlags} />}
 
