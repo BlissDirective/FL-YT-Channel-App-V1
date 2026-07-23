@@ -339,6 +339,16 @@ export function WorkspaceView(props: WorkspaceProps) {
                 >
                   <AudioLines className="h-3 w-3" /> VO take
                 </Button>
+                {b.qc && b.qc.issues.length > 0 && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={isPending}
+                    onClick={() => quickAction("auto-fix the flagged issues")}
+                  >
+                    <Sparkles className="h-3 w-3" /> Auto-fix
+                  </Button>
+                )}
               </div>
             </Card>
           ))}

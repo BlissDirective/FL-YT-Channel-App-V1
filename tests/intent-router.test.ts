@@ -83,7 +83,7 @@ describe("intent router heuristics", () => {
   it("treats gate-side change requests as revisions carrying the notes", () => {
     const r = routeHeuristic("make the hook punchier and cut the third section", ctx());
     expect(r).toMatchObject({ kind: "action", action: "request_revision" });
-    expect((r as { params: { notes: string } }).params.notes).toContain("punchier");
+    expect((r as unknown as { params: { notes: string } }).params.notes).toContain("punchier");
   });
 
   it("video mode + toolbar model generates a clip for the named beat", () => {

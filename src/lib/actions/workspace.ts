@@ -67,6 +67,10 @@ function summarize(data: unknown): string {
       .join(", ");
     return `This video has cost $${d.totalUsd.toFixed(2)} so far${providers ? ` (${providers})` : ""}.`;
   }
+  const fix = data as { kind?: string; score?: number; changes?: string[] };
+  if (fix.changes) {
+    return `Auto-fix ran (${fix.kind ?? "repair"}${fix.score != null ? `, QC ${fix.score.toFixed(1)}` : ""}): ${fix.changes.slice(0, 3).join("; ") || "no changes needed"}.`;
+  }
   if (d.reviews) {
     if (d.reviews.length === 0) return "No QC reviews yet for this video.";
     const latest = d.reviews[0];
@@ -112,6 +116,7 @@ export async function sendComposerMessage(opts: {
 
     const ctx: RouteContext = {
       videoId: opts.videoId,
+      projectId: opts.projectId,
       status: v.status,
       atGate: Boolean(GATE_FOR_STATUS[v.status]),
       mode: opts.mode,
@@ -257,6 +262,25 @@ export async function setWorkspaceModeAction(opts: {
     const { error } = await db.from("projects").update(patch).eq("id", opts.projectId);
     if (error) return { ok: false, error: error.message };
     revalidatePath(`/projects/${opts.projectId}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Notification channel toggles (decision 6) — honored at gate arrivals. */
+export async function saveNotifyPrefsAction(opts: {
+  projectId: string;
+  prefs: { telegram: boolean; webpush: boolean };
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const db = await createClient();
+    const { error } = await db
+      .from("projects")
+      .update({ notify_prefs: opts.prefs })
+      .eq("id", opts.projectId);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/projects/${opts.projectId}/settings`);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };

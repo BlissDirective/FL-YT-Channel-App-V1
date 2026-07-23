@@ -35,6 +35,7 @@ export type RoutedIntent =
 
 export type RouteContext = {
   videoId: string;
+  projectId?: string;
   status: string;
   atGate: boolean;
   mode: ComposerMode;
@@ -66,6 +67,16 @@ export function routeHeuristic(text: string, ctx: RouteContext): RoutedIntent | 
       action: "continue",
       params: { videoId: ctx.videoId, atGate: ctx.atGate, status: ctx.status, targetLengthSec: ctx.targetLengthSec },
       label: ctx.atGate ? "Approving this stage and continuing" : "Running the next stage",
+    };
+  }
+
+  // Auto-fix (QC-flagged repair pass).
+  if (/\b(auto-?fix|fix (it|that|the (issues?|flags?|problems?))|repair)\b/.test(lower)) {
+    return {
+      kind: "action",
+      action: "auto_fix",
+      params: { videoId: ctx.videoId, projectId: ctx.projectId },
+      label: "Running an auto-fix pass",
     };
   }
 

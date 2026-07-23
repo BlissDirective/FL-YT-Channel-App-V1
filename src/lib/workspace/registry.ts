@@ -201,6 +201,26 @@ const ACTIONS: WorkspaceAction[] = [
       }),
   },
   {
+    name: "auto_fix",
+    description:
+      "Run one auto-fix pass on this video now: QC re-reviews it and repairs the top flagged issue (regenerate/repair the failing artifact).",
+    params: {
+      projectId: { type: "string", required: true, description: "Project id" },
+      videoId: { type: "string", required: true, description: "Video id" },
+    },
+    costBearing: true,
+    estimate: () => estimateCost({ action: "qc-review" }),
+    execute: async (p) => {
+      const { runAutofixNowAction } = await import("@/lib/actions/autofix");
+      const r = await runAutofixNowAction(str(p.projectId)!, str(p.videoId)!);
+      return {
+        ok: r.ok,
+        error: r.error ?? r.reason,
+        data: r.ok ? { kind: r.kind, score: r.score, changes: r.changes } : undefined,
+      };
+    },
+  },
+  {
     name: "get_spend",
     description:
       "Answer a spend question: total and recent provider costs for this video from the ledger. Read-only.",

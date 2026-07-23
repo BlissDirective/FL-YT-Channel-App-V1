@@ -8,6 +8,7 @@ import { DEFAULT_SCRIPT_TEMPLATE } from "@/lib/pipeline/templates";
 import { SettingsForm } from "./settings-form";
 import { TemplateEditor } from "./template-editor";
 import { PipelineModeCard } from "./pipeline-mode-card";
+import { NotificationsPrefsCard } from "./notifications-card";
 import { ProviderScoreboard } from "@/components/dashboard/provider-scoreboard";
 import { TasteStyleCard } from "./taste-style-card";
 import { PlatformProfilesCard } from "./platform-profiles-card";
@@ -48,6 +49,10 @@ export default async function ProjectSettingsPage({
         <p className="mt-1 text-sm text-muted">{project.name}</p>
       </div>
       <PipelineModeCard projectId={id} mode={project.pipeline_mode ?? "autonomous"} />
+      <NotificationsPrefsCard
+        projectId={id}
+        initial={(project.notify_prefs ?? {}) as { telegram?: boolean; webpush?: boolean }}
+      />
       <SettingsForm
         project={{ ...project, youtube_refresh_token: null }}
         hasYoutubeToken={Boolean(project.youtube_refresh_token)}
