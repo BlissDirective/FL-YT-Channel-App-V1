@@ -52,7 +52,7 @@ function ctx(): EddContext {
 
 describe("setIntroOutro keeps sec ⇔ boolean consistent", () => {
   it("turning the end card OFF zeroes the reserved outro seconds (no black tail)", () => {
-    const doc = compileEdd(input(), ctx());
+    const doc = compileEdd(input());
     expect(doc.outro.sec).toBeGreaterThan(0);
     const off = setIntroOutro(doc, { endCard: false });
     expect(off.outro.endCard).toBe(false);
@@ -60,7 +60,7 @@ describe("setIntroOutro keeps sec ⇔ boolean consistent", () => {
   });
 
   it("turning the end card back ON restores a real duration", () => {
-    const doc = compileEdd(input(), ctx());
+    const doc = compileEdd(input());
     const off = setIntroOutro(doc, { endCard: false });
     const on = setIntroOutro(off, { endCard: true });
     expect(on.outro.endCard).toBe(true);
@@ -68,14 +68,14 @@ describe("setIntroOutro keeps sec ⇔ boolean consistent", () => {
   });
 
   it("turning the intro sting OFF zeroes the reserved intro seconds", () => {
-    const doc = compileEdd(input(), ctx());
+    const doc = compileEdd(input());
     const off = setIntroOutro(doc, { sting: false });
     expect(off.intro.sting).toBe(false);
     expect(off.intro.sec).toBe(0);
   });
 
   it("a reserved span always has a matching boolean (never sec>0 with the layer off)", () => {
-    const doc = compileEdd(input(), ctx());
+    const doc = compileEdd(input());
     for (const patch of [{ endCard: false }, { endCard: true }, { sting: false }, { sting: true }]) {
       const d = setIntroOutro(doc, patch);
       if (d.outro.sec > 0) expect(d.outro.endCard).toBe(true);
