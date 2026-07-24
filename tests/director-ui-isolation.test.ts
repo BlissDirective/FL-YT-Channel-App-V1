@@ -54,8 +54,12 @@ describe("§10.2.6 library page mode isolation", () => {
     expect(src).toMatch(/autopilot=\{directorMode \? undefined :/);
   });
 
-  it("suppresses the autonomous operator state on tiles in director mode", () => {
-    expect(src).toMatch(/autopilot=\{directorMode \? undefined : tile\.autopilot\}/);
+  it("tiles carry no autonomous operator chrome in ANY mode (de-clutter: QC + title only)", () => {
+    // The ClickMax de-clutter pass reduced tiles to thumbnail + title + QC —
+    // the autopilot chip no longer exists on tiles, which satisfies director
+    // isolation by construction. Pin that it doesn't come back.
+    expect(src).not.toMatch(/<AssetTile[\s\S]*?autopilot=/);
+    expect(src).toMatch(/qcScore=\{item\.qcScore\}/);
   });
 });
 

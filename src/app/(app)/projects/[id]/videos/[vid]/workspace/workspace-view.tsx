@@ -283,11 +283,9 @@ export function WorkspaceView(props: WorkspaceProps) {
 
       <ProgressRail steps={props.railSteps as never} current={props.railIndex} />
 
-      {props.pausedReason && (
-        <Card className="border-coral/40">
-          <p className="text-sm text-coral">{props.pausedReason}</p>
-        </Card>
-      )}
+      {/* Trust-the-chat: holds/pauses arrive as thread messages (engine posts
+          them; the page injects a virtual one for pre-existing pauses) — no
+          persistent banner. The header status chip still tints amber. */}
 
       {/* ── Project instructions: a one-line disclosure, not a card ───── */}
       <div>

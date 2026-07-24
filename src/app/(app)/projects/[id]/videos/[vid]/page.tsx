@@ -254,9 +254,23 @@ export default async function VideoDetailPage({
           beats={wsBeats}
           renders={renderUrls}
           thumbs={thumbUrls}
-          messages={((wsMessages ?? []) as { id: string; role: string; content: string; created_at: string }[]).map(
-            (m) => ({ id: m.id, role: m.role as "user" | "agent" | "system", content: m.content, createdAt: m.created_at }),
-          )}
+          messages={(() => {
+            const stored = ((wsMessages ?? []) as { id: string; role: string; content: string; created_at: string }[]).map(
+              (m) => ({ id: m.id, role: m.role as "user" | "agent" | "system", content: m.content, createdAt: m.created_at }),
+            );
+            // Trust-the-chat: the current hold always appears in the thread.
+            // Older videos paused before the engine posted notes get a virtual
+            // (unstored) message so the state is never invisible.
+            if (v.paused_reason && !stored.some((m) => m.content.includes(v.paused_reason!))) {
+              stored.push({
+                id: "virtual-paused",
+                role: "agent",
+                content: `Heads up — this video is paused: ${v.paused_reason}. Say “continue” to retry, or tell me what to change.`,
+                createdAt: new Date().toISOString(),
+              });
+            }
+            return stored;
+          })()}
           videoModels={modelCatalog("video").map((m) => ({
             id: m.id,
             label: m.label,
