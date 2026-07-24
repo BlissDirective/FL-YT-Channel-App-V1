@@ -11,6 +11,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb, type FakeDb } from "./helpers/fake-db";
+import { invalidateQualityGateCache } from "@/lib/pipeline/quality-gates";
 
 // ── Leaf mocks (everything else is the real engine) ──────────────────────
 const qcMock = vi.hoisted(() => ({
@@ -102,6 +103,7 @@ const revisionRow = (decided_by: string) => ({
 });
 
 beforeEach(() => {
+  invalidateQualityGateCache();
   qcMock.live = false;
   qcMock.impl = null;
 });
@@ -275,6 +277,9 @@ describe("runPipeline safety rails", () => {
     }; // …but the call fails
     const db = seededDb(video("FINAL_REVIEW"), {
       project: { autonomy: { ...PROJECT.autonomy, FINAL: "autopilot" } },
+      // Pin the legacy BLOCKING behavior — advisory mode (the new default,
+      // where grader-down notes and continues) is covered separately.
+      settings: [{ key: "quality_gates", value: { advisory: false } }],
     });
     const r = await runPipeline("v1", db as never);
     expect(r.ok).toBe(true);

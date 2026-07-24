@@ -12,6 +12,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb, type FakeDb } from "./helpers/fake-db";
+import { invalidateQualityGateCache } from "@/lib/pipeline/quality-gates";
 
 const rescript = vi.hoisted(() => ({
   calls: [] as string[],
@@ -118,7 +119,9 @@ function seeded(v = video()): FakeDb {
     ],
     autofix_runs: [],
     operator_events: [],
-    app_settings: [],
+    // These specs pin the BLOCKING behavior — advisory mode (the new
+    // default) is exercised in workspace-thread-status/advisory tests.
+    app_settings: [{ key: "quality_gates", value: { advisory: false } }],
     cost_ledger: [],
   });
 }
@@ -132,6 +135,7 @@ async function run(db: FakeDb) {
 }
 
 beforeEach(() => {
+  invalidateQualityGateCache();
   rescript.calls = [];
   rescript.ok = true;
   rescript.killSwitch = false;

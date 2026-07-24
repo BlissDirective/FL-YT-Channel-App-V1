@@ -221,6 +221,57 @@ const ACTIONS: WorkspaceAction[] = [
     },
   },
   {
+    name: "mine_exemplars",
+    description:
+      "Study the niche's winners: find the strongest videos on this project's niche, analyze them (hook, structure, pacing), and save them as exemplars that train every future script prompt.",
+    params: {
+      projectId: { type: "string", required: true, description: "Project id" },
+      max: { type: "number", description: "How many winners to mine (default 6, max 12)" },
+    },
+    costBearing: true,
+    // Gemini perception per video is pennies; surfaced so the confirm rule works.
+    estimate: (p) => Math.round((num(p.max) ?? 6) * 3) / 100,
+    execute: async (p, dbArg) => {
+      const db = dbArg ?? (await createClient());
+      const { data: project } = await db
+        .from("projects")
+        .select("id, niche, angle, audience")
+        .eq("id", str(p.projectId)!)
+        .maybeSingle();
+      if (!project) return { ok: false, error: "Project not found" };
+      const { mineExemplars } = await import("@/lib/pipeline/exemplars");
+      const r = await mineExemplars(db, project as never, { max: num(p.max) });
+      return { ok: r.ok, error: r.error, data: { mined: r.mined, skipped: r.skipped, costUsd: r.costUsd } };
+    },
+  },
+  {
+    name: "get_performance",
+    description:
+      "Answer performance questions: how published videos are doing, whether QC scores actually predict views on this channel, and how many winner exemplars are training the prompts. Read-only.",
+    params: {
+      projectId: { type: "string", required: true, description: "Project id" },
+    },
+    costBearing: false,
+    estimate: () => null,
+    execute: async (p, dbArg) => {
+      const db = dbArg ?? (await createClient());
+      const { runOutcomeLoop } = await import("@/lib/pipeline/exemplars");
+      const summary = await runOutcomeLoop(db, str(p.projectId)!);
+      const { data: ex } = await db
+        .from("exemplars")
+        .select("id, origin")
+        .eq("project_id", str(p.projectId)!);
+      const rows = (ex ?? []) as { origin: string }[];
+      return {
+        ok: true,
+        data: {
+          ...summary,
+          exemplars: { total: rows.length, own: rows.filter((r) => r.origin === "own").length },
+        },
+      };
+    },
+  },
+  {
     name: "get_spend",
     description:
       "Answer a spend question: total and recent provider costs for this video from the ledger. Read-only.",

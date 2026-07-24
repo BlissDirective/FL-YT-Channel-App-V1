@@ -71,6 +71,26 @@ function summarize(data: unknown): string {
   if (fix.changes) {
     return `Auto-fix ran (${fix.kind ?? "repair"}${fix.score != null ? `, QC ${fix.score.toFixed(1)}` : ""}): ${fix.changes.slice(0, 3).join("; ") || "no changes needed"}.`;
   }
+  const mine = data as { mined?: number; skipped?: number; costUsd?: number };
+  if (mine.mined != null) {
+    return `Mined ${mine.mined} winner exemplar${mine.mined === 1 ? "" : "s"} from the niche${mine.skipped ? ` (${mine.skipped} skipped)` : ""}${mine.costUsd ? ` · ~$${mine.costUsd.toFixed(2)}` : ""}. Every new script now studies them.`;
+  }
+  const perf = data as {
+    tracked?: number;
+    qcViewsCorrelation?: number | null;
+    promotedOwnWinners?: number;
+    exemplars?: { total: number; own: number };
+  };
+  if (perf.tracked != null) {
+    const corr =
+      perf.qcViewsCorrelation != null
+        ? `QC↔views correlation ${perf.qcViewsCorrelation} (${Math.abs(perf.qcViewsCorrelation) < 0.3 ? "weak — trust your own grades" : perf.qcViewsCorrelation >= 0.3 ? "QC is somewhat predictive here" : "inverted — QC is misleading on this channel"})`
+        : "not enough scored+tracked videos yet to test whether QC predicts views";
+    const ex = perf.exemplars
+      ? ` Exemplar library: ${perf.exemplars.total} (${perf.exemplars.own} of your own winners).`
+      : "";
+    return `${perf.tracked} video${perf.tracked === 1 ? "" : "s"} tracking. ${corr}.${perf.promotedOwnWinners ? ` Promoted ${perf.promotedOwnWinners} of your own winners into the exemplar library.` : ""}${ex}`;
+  }
   if (d.reviews) {
     if (d.reviews.length === 0) return "No QC reviews yet for this video.";
     const latest = d.reviews[0];
