@@ -3,6 +3,7 @@ import { anthropicFetch } from "./anthropic";
 import type { ScriptBeat } from "@/lib/db/types";
 import { mockScript } from "@/lib/pipeline/mock-content";
 import { anthropicPriceOf } from "./pricing";
+import { SCRIPT_CRAFT_LAWS } from "./script-craft";
 
 /**
  * Script provider adapter (Anthropic Claude). Live when ANTHROPIC_API_KEY
@@ -123,7 +124,7 @@ export function ensureCtaBeat(beats: ScriptBeat[], niche: string): ScriptBeat[] 
 const VOICE_SYSTEM = `You write YouTube scripts that sound like a sharp human creator talking to one viewer — never like an AI essay or a press release.
 
 Hard rules:
-- BANNED phrases (never use, in any form): "delve", "dive in/into", "in today's video", "buckle up", "without further ado", "let's get started", "that's right, folks", "in conclusion", "the world of", "when it comes to", "it's important to note", "needless to say", "look no further", "game-changer", "at the end of the day", "rest assured", "embark", "tapestry", "navigate the", "unlock the secrets".
+- BANNED phrases (never use, in any form): "delve", "dive in/into", "in today's video", "buckle up", "without further ado", "let's get started", "that's right, folks", "in conclusion", "the world of", "when it comes to", "it's important to note", "needless to say", "look no further", "game-changer", "at the end of the day", "rest assured", "embark", "tapestry", "navigate the", "unlock the secrets", "realm", "foster", "furthermore", "shed light", "illuminate", "testament".
 - Vary rhythm hard: mix 3-word punches with longer lines. Never three same-length sentences in a row. Use sentence fragments for impact.
 - Real voice: contractions, second person ("you"), a clear opinion, the occasional aside. Confidence over hedging — cut "might", "perhaps", "in many ways".
 - Open cold and mid-thought with a real stake or a bold claim. No throat-clearing, no "welcome back".
@@ -428,7 +429,7 @@ export async function generateScript(opts: {
       console.error("outline pre-pass failed (writing full script directly):", err);
     }
   }
-  const fullPrompt = `${prompt}${hardRules}${lessons}${projectInstructions}${exemplarBlock}${outlineBlock}`;
+  const fullPrompt = `${prompt}${hardRules}${SCRIPT_CRAFT_LAWS}${lessons}${projectInstructions}${exemplarBlock}${outlineBlock}`;
 
   type ScriptInput = {
     beats: { text: string; visualPrompt: string; shotType: ScriptBeat["shotType"] }[];
