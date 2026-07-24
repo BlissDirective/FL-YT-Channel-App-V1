@@ -90,6 +90,26 @@ export function routeHeuristic(text: string, ctx: RouteContext): RoutedIntent | 
     };
   }
 
+  // Exemplar mining (agent-training Step 2).
+  if (/\b(mine|study|learn from|analyze)\b.*\b(exemplars?|winners?|top videos?|the competition|best performers?)\b/.test(lower)) {
+    return {
+      kind: "action",
+      action: "mine_exemplars",
+      params: { projectId: ctx.projectId },
+      label: "Mining winner exemplars from the niche",
+    };
+  }
+
+  // Performance / outcome questions (agent-training Step 4).
+  if (/\b(performing|performance|views|doing)\b/.test(lower) && /\?|how|are|what/.test(lower)) {
+    return {
+      kind: "action",
+      action: "get_performance",
+      params: { projectId: ctx.projectId },
+      label: "Checking channel performance",
+    };
+  }
+
   // Questions → read-only actions.
   if (/\b(spent|spend|cost|how much)\b/.test(lower) && /\?|how|what/.test(lower)) {
     return { kind: "action", action: "get_spend", params: { videoId: ctx.videoId }, label: "Checking spend" };

@@ -586,8 +586,23 @@ export async function processAutofixForVideo(
   project: Project,
   opts: { force?: boolean } = {},
 ): Promise<AutofixOutcome> {
-  const { autofixThreshold } = await getQualityGateConfig(db);
+  const { autofixThreshold, advisory } = await getQualityGateConfig(db);
   const { on, loop, config } = resolveAutofix(project, video, autofixThreshold);
+  // Advisory mode (agent-training Step 1): subjective autofix verdicts settle
+  // with a thread note instead of holding — the human grades the cut.
+  const advisoryNote = async (content: string, event: string, extra: Record<string, unknown> = {}) => {
+    try {
+      await db.from("workspace_messages").insert({
+        project_id: project.id,
+        video_id: video.id,
+        role: "agent",
+        content,
+        intent: { event, ...extra },
+      });
+    } catch (err) {
+      console.error("advisory note failed (non-blocking):", err);
+    }
+  };
   // `force` = an operator-initiated one-shot from the Vision review card:
   // run even when the channel loop is off/disabled, and clear any prior
   // held/done latch so a deliberate retry gets a fresh, still-budget-capped
@@ -690,6 +705,16 @@ export async function processAutofixForVideo(
       meta: { videoId: video.id, fromScore: pre, toScore: score, delta },
     });
     if (delta <= 0) {
+      if (advisory) {
+        state.status = "done";
+        await setState(db, video.id, state);
+        await advisoryNote(
+          `The re-script didn't improve QC (${pre.toFixed(1)} → ${score.toFixed(1)}). Leaving the cut as-is — give it your own grade.`,
+          "advisory_autofix_rescript",
+          { fromScore: pre, toScore: score },
+        );
+        return { acted: true, kind: "done", score };
+      }
       state.status = "held";
       await setState(db, video.id, state);
       await db
@@ -720,6 +745,16 @@ export async function processAutofixForVideo(
     const wasLowBand = open.fromScore < config.threshold - 3;
     const improved = score - open.fromScore >= 0.3;
     if (wasLowBand && !improved) {
+      if (advisory) {
+        state.status = "done";
+        await setState(db, video.id, state);
+        await advisoryNote(
+          `A low render (${open.fromScore.toFixed(1)}/10) didn't respond to a fix — stopping the loop here so nothing stalls. Judge whether it ships.`,
+          "advisory_autofix_lowband",
+          { fromScore: open.fromScore, toScore: score },
+        );
+        return { acted: true, kind: "done", score };
+      }
       state.status = "held";
       await setState(db, video.id, state);
       await db
@@ -763,6 +798,34 @@ export async function processAutofixForVideo(
         changes: [],
         status: "accepted",
         note: `accepted at ${best.toFixed(1)}/10 (${why})`,
+      });
+      return { acted: true, kind: "done", score: best };
+    }
+    if (advisory) {
+      state.status = "done";
+      await setState(db, video.id, state);
+      await db
+        .from("videos")
+        .update({
+          paused_reason: null,
+          autofix_state: { ...state, note: `Advisory accept at ${best.toFixed(1)}/10 (${why}).` },
+        })
+        .eq("id", video.id);
+      await advisoryNote(
+        `Auto-fix ran out of room (${why}) with a best of ${best.toFixed(1)}/10 — advisory floor was ${acceptFloor.toFixed(1)}. It's flowing forward; your grade decides.`,
+        "advisory_autofix_exhausted",
+        { best, acceptFloor },
+      );
+      await db.from("autofix_runs").insert({
+        project_id: project.id,
+        video_id: video.id,
+        loop,
+        attempt: attempts + 1,
+        tier: "tier1",
+        from_score: score,
+        changes: [],
+        status: "accepted",
+        note: `advisory accept at ${best.toFixed(1)}/10 (${why})`,
       });
       return { acted: true, kind: "done", score: best };
     }
@@ -885,6 +948,16 @@ export async function processAutofixForVideo(
 
         reason = `${score.toFixed(1)}/10 — the script/structure needs work: ${brief.brief.slice(0, 400)}`;
       }
+    }
+    if (advisory) {
+      state.status = "done";
+      await setState(db, video.id, state);
+      await advisoryNote(
+        `Auto-fix has no actionable repair: ${reason}. Leaving it to your judgment.`,
+        "advisory_autofix_structural",
+        { score },
+      );
+      return { acted: true, kind: "done", score };
     }
     state.status = "held";
     await setState(db, video.id, state);

@@ -55,18 +55,20 @@ export type WatchBlock = {
 /** Rule 3 — a non-degraded verdict blocks auto-publish when the overall
     score is under the floor OR the compliance criterion flagged policy risk
     (a degraded verdict never fakes a pass — the QC/grader rules hold it
-    elsewhere). */
+    elsewhere).
+
+    Advisory mode (agent-training Step 1): the SCORE floor stops blocking —
+    only a policy risk does. The score still reaches the operator as a thread
+    note; both consumers (build-run finalizer, operator approvals) inherit
+    the behavior from here. */
 export function watchBlocksPublish(
   watch: WatchVerdict | null,
-  qg: Pick<QualityGateConfig, "watchBlockPublishBelow">,
+  qg: Pick<QualityGateConfig, "watchBlockPublishBelow"> & { advisory?: boolean },
 ): WatchBlock {
   const policyRisk = Boolean(watch && watch.policyRisk);
+  const scoreBlocks = Boolean(watch && watch.overall < qg.watchBlockPublishBelow && !qg.advisory);
   return {
-    blocked: Boolean(
-      watch &&
-        !watch.degraded &&
-        (watch.overall < qg.watchBlockPublishBelow || policyRisk),
-    ),
+    blocked: Boolean(watch && !watch.degraded && (scoreBlocks || policyRisk)),
     policyRisk,
   };
 }

@@ -4,6 +4,7 @@ import { refreshTrackedStats } from "@/lib/stats";
 import { reconcileLedger } from "@/lib/pipeline/ledger";
 import { runOutcomeAuditAllProjects } from "@/lib/pipeline/outcome-audit";
 import { runLibrarian } from "@/lib/pipeline/memory-service";
+import { runOutcomeLoop } from "@/lib/pipeline/exemplars";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +47,28 @@ async function handle(request: NextRequest) {
     } catch (err) {
       console.error("librarian pass failed:", err);
     }
-    return NextResponse.json({ ok: true, refreshed, ledgerRepaired: repaired, outcomeAudits: audits.wrote, librarian });
+    // Agent-training Step 4: the outcome loop — auto-promote each channel's
+    // own top performers into the exemplar library (first-party training data
+    // the next scripts learn from).
+    let promoted = 0;
+    try {
+      const db = createAdminClient();
+      const { data: projects } = await db.from("projects").select("id").eq("status", "active");
+      for (const p of (projects ?? []) as { id: string }[]) {
+        const summary = await runOutcomeLoop(db as never, p.id);
+        promoted += summary.promotedOwnWinners;
+      }
+    } catch (err) {
+      console.error("outcome loop (exemplar promotion) failed:", err);
+    }
+    return NextResponse.json({
+      ok: true,
+      refreshed,
+      ledgerRepaired: repaired,
+      outcomeAudits: audits.wrote,
+      librarian,
+      ownWinnersPromoted: promoted,
+    });
   } catch (err) {
     console.error("cron refresh-stats failed:", err);
     return NextResponse.json(

@@ -36,6 +36,7 @@ import { verifyBeatVisual, isBeatRelevanceLive, type BeatRelevance } from "@/lib
 import { playbookForStage } from "@/lib/pipeline/playbook";
 import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { getVceFlags } from "@/lib/pipeline/vce";
+import { getScriptExemplars } from "@/lib/pipeline/exemplars";
 import { buildVisualBible } from "@/lib/adapters/visual-bible";
 import { planShots, mockBeatIntents } from "@/lib/adapters/shot-planner";
 import { nextPrompt } from "@/lib/pipeline/beat-refine";
@@ -358,18 +359,30 @@ async function arriveAtGate(
 
   // Phase 4.4 — "grader down" must not mean "publish anyway": when the QC
   // review errored and this gate would auto-advance, hold for a human instead.
+  // Advisory mode (Step 1): the grade was advisory anyway — note and continue;
+  // the human is the grader of record.
   if (qcErrored && isQcLive()) {
-    await db
-      .from("videos")
-      .update({ paused_reason: "QC unavailable — held for manual review (auto-advance blocked)" })
-      .eq("id", video.id);
-    await postWorkspaceNote(
-      db,
-      video,
-      `I held “${video.title}” at ${GATE_LABELS[gate]} — the QC reviewer was unavailable, so I won't auto-advance blind. Review it, or try again shortly.`,
-      { event: "gate_held_qc_down", gate },
-    );
-    return;
+    const qgAdv = await getQualityGateConfig(db);
+    if (qgAdv.advisory) {
+      await postWorkspaceNote(
+        db,
+        video,
+        `QC was unavailable at ${GATE_LABELS[gate]} — continuing without a score (advisory mode). Give this one your own look.`,
+        { event: "advisory_qc_down", gate },
+      );
+    } else {
+      await db
+        .from("videos")
+        .update({ paused_reason: "QC unavailable — held for manual review (auto-advance blocked)" })
+        .eq("id", video.id);
+      await postWorkspaceNote(
+        db,
+        video,
+        `I held “${video.title}” at ${GATE_LABELS[gate]} — the QC reviewer was unavailable, so I won't auto-advance blind. Review it, or try again shortly.`,
+        { event: "gate_held_qc_down", gate },
+      );
+      return;
+    }
   }
 
   // Phase 4.2 — prose fact-check gate: before an auto-advance past SCRIPT,
@@ -518,10 +531,21 @@ async function factCheckAtScriptGate(db: Db, video: Video, project: Project): Pr
     if (fc.costUsd > 0) {
       await recordCost(db, video, { provider: "anthropic", usd: fc.costUsd, description: "Script fact-check" });
     }
-    const { factRiskMax } = await getQualityGateConfig(db);
+    const { factRiskMax, advisory } = await getQualityGateConfig(db);
     if (fc.risk >= factRiskMax) {
       const worst = fc.claims.filter((c) => c.verdict === "false").slice(0, 2);
       const detail = worst.length ? ` — ${worst.map((c) => c.claim).join("; ").slice(0, 140)}` : "";
+      if (advisory) {
+        // Step 1 advisory mode: flag the risky claims in the thread and keep
+        // moving — the human judges whether they matter.
+        await postWorkspaceNote(
+          db,
+          video,
+          `Fact-check flagged risk ${fc.risk}/10${detail}. Continuing — double-check those claims before publishing.`,
+          { event: "advisory_factcheck", risk: fc.risk },
+        );
+        return false;
+      }
       await db
         .from("videos")
         .update({ paused_reason: `Fact-check risk ${fc.risk}/10${detail}` })
@@ -645,6 +669,9 @@ async function runScripting(db: Db, video: Video, project: Project) {
     revisionNotes: notes,
     qcLessons: lessons,
     instructions: project.instructions ?? undefined,
+    // Agent-training Step 2: proven winners (mined + this channel's own)
+    // ride into the prompt as few-shot references. Best-effort.
+    exemplars: await getScriptExemplars(db, project.id),
   });
 
   await db.from("scripts").insert({
@@ -3463,15 +3490,29 @@ export async function processPendingBuildVideos(
       // script). Skipped when QC isn't live (mock/dry runs flow through).
       const gate = await gateScriptForAutoPilot(db, video, project, floor);
       if (!gate.ok) {
-        await db
-          .from("videos")
-          .update({
-            auto_publish: false,
-            paused_reason: `Held — script QC ${gate.score?.toFixed(1) ?? "?"}/10 below the ${floor.toFixed(1)} floor after one revision. Review the script.`,
-          })
-          .eq("id", row.id);
-        held++;
-        continue;
+        // Advisory mode (agent-training Step 1): a subjective score never
+        // stalls the build — the verdict lands in the thread and the video
+        // proceeds; the human grades the finished cut. Blocking mode keeps
+        // the legacy hold.
+        const qgEarly = await getQualityGateConfig(db);
+        if (qgEarly.advisory) {
+          await postWorkspaceNote(
+            db,
+            video,
+            `Heads up — the script scored ${gate.score?.toFixed(1) ?? "?"}/10 after one revision (advisory floor ${floor.toFixed(1)}). Continuing anyway; judge the finished cut.`,
+            { event: "advisory_script_qc", score: gate.score ?? null, floor },
+          );
+        } else {
+          await db
+            .from("videos")
+            .update({
+              auto_publish: false,
+              paused_reason: `Held — script QC ${gate.score?.toFixed(1) ?? "?"}/10 below the ${floor.toFixed(1)} floor after one revision. Review the script.`,
+            })
+            .eq("id", row.id);
+          held++;
+          continue;
+        }
       }
 
       // Editorial gate (Tier 1): when quality gates are on, review the finished
@@ -3770,12 +3811,24 @@ export async function finalizeAutoPilotVideos(
       const watch = await resolveWatchVerdict(db, video, project);
       const { blocked: watchBlocks } = watchBlocksPublish(watch, qg);
 
-      if (score >= floor && !watchBlocks) {
-        const privacy = privacyForScore(score, pub);
+      // Advisory mode (Step 1): a sub-floor FINAL score doesn't hold — the
+      // video posts UNLISTED with the verdict in the thread; the human's own
+      // grade decides whether it flips public. Policy risks still block.
+      const advisoryPass = qg.advisory && !watchBlocks;
+      if ((score >= floor || advisoryPass) && !watchBlocks) {
+        const privacy = qg.advisory && score < floor ? "unlisted" : privacyForScore(score, pub);
         await db
           .from("videos")
           .update({ publish_privacy: privacy, auto_publish: true, paused_reason: null })
           .eq("id", row.id);
+        if (score < floor) {
+          await postWorkspaceNote(
+            db,
+            { id: row.id, project_id: row.project_id },
+            `Final cut scored ${score.toFixed(1)}/10 (advisory floor ${floor.toFixed(1)}) — posting UNLISTED so you can grade it before it goes public.`,
+            { event: "advisory_final_qc", score, floor },
+          );
+        }
         await decideGate({ videoId: row.id, decision: "approved" }, db, "autopilot");
         finalized++;
         try {

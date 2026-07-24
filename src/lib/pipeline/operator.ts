@@ -858,7 +858,11 @@ async function processOperatorApprovals(db: Db, run: OperatorRun, project: Proje
 
     // Hard gate: below the publish floor, an editorial FAIL, or a failing
     // Self-Watch verdict → hold for the one human touch (never auto-published).
-    if (qc < cfg.publishFloorQc || guard.verdict === "fail" || watchBlocks) {
+    // Advisory mode (Step 1): the QC-score floor stops holding (the score
+    // reaches the operator as advisory context; watchBlocksPublish already
+    // reduces to policy-risk-only under advisory). Editorial FAIL still holds.
+    const qcFloorBlocks = qc < cfg.publishFloorQc && !qg.advisory;
+    if (qcFloorBlocks || guard.verdict === "fail" || watchBlocks) {
       const reason =
         guard.verdict === "fail"
           ? `editorial review: ${guard.note || flags[0] || "flagged"}`

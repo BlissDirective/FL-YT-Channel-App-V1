@@ -856,6 +856,9 @@ export async function saveTemplateAction(
 // ── Quality gates (Phase 6 UI) ────────────────────────────────────────
 
 export type QualityGates = {
+  /** Advisory mode (agent-training Step 1): subjective scores annotate the
+      thread instead of blocking; deterministic checks still block. */
+  advisory?: boolean;
   ideaFloor?: number;
   revisionWarnAt?: number;
   revisionHardCap?: number;
@@ -893,7 +896,7 @@ export async function saveQualityGatesAction(
     .eq("key", "quality_gates")
     .maybeSingle();
   const merged = mergeQualityGates(
-    gates as Record<string, number | undefined>,
+    gates as Record<string, number | boolean | undefined>,
     (existing?.value as Record<string, unknown>) ?? null,
   );
   const { error } = await supabase

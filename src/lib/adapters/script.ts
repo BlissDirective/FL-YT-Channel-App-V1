@@ -317,6 +317,17 @@ export async function generateScript(opts: {
   /** ClickMax workspace (§4.6): the project's free-text instructions — tone,
       recurring colors, audience, pacing — injected into every prompt path. */
   instructions?: string;
+  /** Agent-training Step 2: proven-winner exemplars (mined from the niche +
+      this channel's own top performers) — few-shot references. The writer
+      studies the SHAPE (hook mechanics, structure, pacing); copying wording
+      is banned. */
+  exemplars?: {
+    title: string;
+    hook: string | null;
+    structureSummary: string | null;
+    notes: string | null;
+    origin: "mined" | "own";
+  }[];
 }): Promise<ScriptDraft> {
   if (!isScriptLive()) {
     const draft = mockScript({
@@ -374,6 +385,19 @@ export async function generateScript(opts: {
   const projectInstructions = opts.instructions?.trim()
     ? `\n\nPROJECT INSTRUCTIONS from the channel owner — follow them in every beat:\n${opts.instructions.trim()}`
     : "";
+  const exemplarBlock =
+    opts.exemplars && opts.exemplars.length > 0
+      ? `\n\nPROVEN WINNERS in this niche — study the SHAPE (how the hook creates a stake, how the structure escalates, the pacing), then write something ORIGINAL. Never copy their wording:\n${opts.exemplars
+          .slice(0, 3)
+          .map((e, i) => {
+            const parts = [`${i + 1}. "${e.title}"${e.origin === "own" ? " (this channel's own winner)" : ""}`];
+            if (e.hook) parts.push(`   Hook: ${e.hook}`);
+            if (e.structureSummary) parts.push(`   Structure: ${e.structureSummary}`);
+            if (e.notes) parts.push(`   Why it wins: ${e.notes}`);
+            return parts.join("\n");
+          })
+          .join("\n")}`
+      : "";
 
   // Outline-first gate (Tier 4 #2): on a fresh draft, plan + self-vet a cheap
   // outline and have the full pass expand from it. Skipped on a revision — that
@@ -404,7 +428,7 @@ export async function generateScript(opts: {
       console.error("outline pre-pass failed (writing full script directly):", err);
     }
   }
-  const fullPrompt = `${prompt}${hardRules}${lessons}${projectInstructions}${outlineBlock}`;
+  const fullPrompt = `${prompt}${hardRules}${lessons}${projectInstructions}${exemplarBlock}${outlineBlock}`;
 
   type ScriptInput = {
     beats: { text: string; visualPrompt: string; shotType: ScriptBeat["shotType"] }[];

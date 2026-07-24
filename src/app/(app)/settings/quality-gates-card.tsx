@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 
 export const QUALITY_GATE_DEFAULTS: Required<QualityGates> = {
+  advisory: true,
   ideaFloor: 6,
   revisionWarnAt: 3,
   revisionHardCap: 4,
@@ -28,7 +29,7 @@ export const QUALITY_GATE_DEFAULTS: Required<QualityGates> = {
   playbookAutoGraduateConfidence: 0.8,
 };
 
-type GateKey = keyof QualityGates;
+type GateKey = Exclude<keyof QualityGates, "advisory">;
 
 const FIELDS: { key: GateKey; label: string; hint: string; min: number; max: number; step?: number }[] = [
   { key: "ideaFloor", label: "Idea score floor", hint: "Ideas the judge scores below this are auto-dismissed", min: 0, max: 10, step: 0.5 },
@@ -58,6 +59,7 @@ export function QualityGatesCard({ initial }: { initial: QualityGates }) {
     ...Object.fromEntries(
       Object.entries(initial).filter(([, v]) => typeof v === "number" && Number.isFinite(v)),
     ),
+    advisory: initial.advisory !== false,
   });
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
@@ -89,6 +91,25 @@ export function QualityGatesCard({ initial }: { initial: QualityGates }) {
         so more videos hold for you, lower them to let more through
         automatically.
       </p>
+      <label className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-accent-soft px-3 py-2.5">
+        <span className="min-w-0">
+          <span className="block text-sm font-semibold">Advisory mode</span>
+          <span className="block text-xs text-muted">
+            ON: judge scores annotate the workspace thread and nothing subjective stalls —
+            you grade the results. OFF: the floors below hold videos automatically.
+            Technical checks (black frames, silence, policy) always block.
+          </span>
+        </span>
+        <input
+          type="checkbox"
+          checked={values.advisory}
+          onChange={(e) => {
+            setSaved(false);
+            setValues((v) => ({ ...v, advisory: e.target.checked }));
+          }}
+          className="size-5 shrink-0 accent-[var(--accent,currentColor)]"
+        />
+      </label>
       <div className="grid gap-3 sm:grid-cols-2">
         {FIELDS.map((f) => (
           <label key={f.key} className="flex items-center justify-between gap-3 rounded-xl bg-card-warm px-3 py-2">

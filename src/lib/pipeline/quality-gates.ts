@@ -22,6 +22,17 @@ export const DEFAULT_IDEA_FLOOR = 6.0;
 export type QualityGateConfig = {
   /** Always true — the gates are not optional. Kept for call-site clarity. */
   enabled: boolean;
+  /**
+   * Agent-training build Step 1 — ADVISORY MODE (default ON). Subjective
+   * judge scores stop blocking progress: script-QC floors, autofix accept
+   * floors, Self-Watch score floors, fact-check risk, grader-down and
+   * publish-floor holds all post their verdict to the workspace thread and
+   * CONTINUE. The human grades the result (that grading is the training
+   * data). Deterministic checks are unaffected and still block: media QC
+   * (black frames/silence/no-audio), chart-accuracy QC, editorial/policy
+   * verdicts, budgets, and the kill switch.
+   */
+  advisory: boolean;
   ideaFloor: number;
   /** Revision-loop UX warning and hard stop (per video). */
   revisionWarnAt: number;
@@ -66,6 +77,7 @@ export type QualityGateConfig = {
 
 export const DEFAULT_QUALITY_GATES: QualityGateConfig = {
   enabled: true,
+  advisory: true,
   ideaFloor: DEFAULT_IDEA_FLOOR,
   revisionWarnAt: 3,
   revisionHardCap: 4,
@@ -128,17 +140,19 @@ export const GATE_CLAMPS: Record<
  * back to their defaults. Pure + unit-tested.
  */
 export function mergeQualityGates(
-  input: Record<string, number | undefined>,
+  input: Record<string, number | boolean | undefined>,
   existing: Record<string, unknown> | null | undefined,
-): Record<string, number> {
-  const clean: Record<string, number> = {};
+): Record<string, number | boolean> {
+  const clean: Record<string, number | boolean> = {};
   for (const [key, spec] of Object.entries(GATE_CLAMPS)) {
     const raw = input[key];
     if (typeof raw !== "number" || !Number.isFinite(raw)) continue;
     const v = spec.kind === "int" ? Math.round(raw) : raw;
     clean[key] = clamp(v, spec.lo, spec.hi);
   }
-  const base = (existing ?? {}) as Record<string, number>;
+  // Advisory mode is the one boolean gate key (agent-training Step 1).
+  if (typeof input.advisory === "boolean") clean.advisory = input.advisory;
+  const base = (existing ?? {}) as Record<string, number | boolean>;
   return { ...base, ...clean };
 }
 
@@ -167,6 +181,7 @@ export async function getQualityGateConfig(db?: Db): Promise<QualityGateConfig> 
       .maybeSingle();
     const v = (data?.value ?? {}) as Partial<QualityGateConfig>;
     const num = (x: unknown): number | null => (typeof x === "number" && Number.isFinite(x) ? x : null);
+    if (typeof v.advisory === "boolean") cfg.advisory = v.advisory;
     cfg.ideaFloor = clamp(num(v.ideaFloor) ?? cfg.ideaFloor, 0, 10);
     cfg.revisionWarnAt = clamp(num(v.revisionWarnAt) ?? cfg.revisionWarnAt, 1, 10);
     cfg.revisionHardCap = clamp(num(v.revisionHardCap) ?? cfg.revisionHardCap, 1, 10);
