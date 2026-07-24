@@ -191,7 +191,7 @@ describe("Step 2: exemplar mining (offline mock providers)", () => {
     // Source pin: the exemplar block is concatenated into the live prompt.
     const src = readFileSync("src/lib/adapters/script.ts", "utf8");
     expect(src).toMatch(/PROVEN WINNERS in this niche/);
-    expect(src).toMatch(/\$\{prompt\}\$\{hardRules\}\$\{lessons\}\$\{projectInstructions\}\$\{exemplarBlock\}/);
+    expect(src).toMatch(/\$\{prompt\}\$\{hardRules\}\$\{SCRIPT_CRAFT_LAWS\}\$\{lessons\}\$\{projectInstructions\}\$\{exemplarBlock\}/);
   });
 
   it("router + registry expose mining and performance to chat", async () => {
