@@ -167,6 +167,7 @@
     "confirmComposerAction(opts: { projectId: string; videoId: string; action: string; params: Record<string, unknown>; })",
     "continueStageAction(opts: { projectId: string; videoId: string; })",
     "setWorkspaceModeAction(opts: { projectId: string; mode: \"director\" | \"autopilot\"; })",
+    "savePresenterImageAction(projectId: string, formData: FormData,)",
     "saveNotifyPrefsAction(opts: { projectId: string; prefs: { telegram: boolean; webpush: boolean }; })",
     "saveInstructionsAction(opts: { projectId: string; instructions: string; })"
   ]

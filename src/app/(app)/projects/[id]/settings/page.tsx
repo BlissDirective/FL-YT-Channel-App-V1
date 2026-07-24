@@ -4,11 +4,13 @@ import { ArrowLeft } from "lucide-react";
 import { getProject } from "@/lib/db/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getVoices } from "@/lib/adapters/voice";
+import { getSignedMediaUrl } from "@/lib/storage";
 import { DEFAULT_SCRIPT_TEMPLATE } from "@/lib/pipeline/templates";
 import { SettingsForm } from "./settings-form";
 import { TemplateEditor } from "./template-editor";
 import { PipelineModeCard } from "./pipeline-mode-card";
 import { NotificationsPrefsCard } from "./notifications-card";
+import { PresenterCard } from "./presenter-card";
 import { ProviderScoreboard } from "@/components/dashboard/provider-scoreboard";
 import { TasteStyleCard } from "./taste-style-card";
 import { PlatformProfilesCard } from "./platform-profiles-card";
@@ -52,6 +54,10 @@ export default async function ProjectSettingsPage({
       <NotificationsPrefsCard
         projectId={id}
         initial={(project.notify_prefs ?? {}) as { telegram?: boolean; webpush?: boolean }}
+      />
+      <PresenterCard
+        projectId={id}
+        presenterUrl={project.presenter_image_path ? await getSignedMediaUrl(project.presenter_image_path) : null}
       />
       <SettingsForm
         project={{ ...project, youtube_refresh_token: null }}

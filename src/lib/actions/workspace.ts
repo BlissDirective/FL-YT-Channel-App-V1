@@ -288,6 +288,40 @@ export async function setWorkspaceModeAction(opts: {
   }
 }
 
+/**
+ * AI Avatar: upload/replace the project's presenter image — the ONE fixed
+ * image that drives every avatar shot (identity by construction).
+ */
+export async function savePresenterImageAction(
+  projectId: string,
+  formData: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const file = formData.get("presenter");
+    if (!(file instanceof File) || file.size === 0) {
+      return { ok: false, error: "Choose an image file." };
+    }
+    if (file.size > 10 * 1024 * 1024) return { ok: false, error: "Image too large (max 10 MB)." };
+    const ext = (file.name.split(".").pop() ?? "png").toLowerCase();
+    if (!["png", "jpg", "jpeg", "webp"].includes(ext)) {
+      return { ok: false, error: "Use a PNG, JPG, or WEBP image." };
+    }
+    const { uploadMedia } = await import("@/lib/storage");
+    const path = `presenters/${projectId}/presenter-${Date.now().toString(36)}.${ext}`;
+    await uploadMedia(path, Buffer.from(await file.arrayBuffer()), file.type || "image/png");
+    const db = await createClient();
+    const { error } = await db
+      .from("projects")
+      .update({ presenter_image_path: path })
+      .eq("id", projectId);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/projects/${projectId}/settings`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /** Notification channel toggles (decision 6) — honored at gate arrivals. */
 export async function saveNotifyPrefsAction(opts: {
   projectId: string;

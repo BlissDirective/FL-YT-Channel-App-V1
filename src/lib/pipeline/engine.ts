@@ -37,6 +37,15 @@ import { playbookForStage } from "@/lib/pipeline/playbook";
 import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { getVceFlags } from "@/lib/pipeline/vce";
 import { getScriptExemplars } from "@/lib/pipeline/exemplars";
+import {
+  DEFAULT_AVATAR_MODEL_ID,
+  SYNC_USD_PER_SEC,
+  estimateAvatarCost,
+  generateAvatarVideo,
+  getAvatarModel,
+  isSyncLive,
+  resyncLipsync,
+} from "@/lib/adapters/avatar";
 import { buildVisualBible } from "@/lib/adapters/visual-bible";
 import { planShots, mockBeatIntents } from "@/lib/adapters/shot-planner";
 import { nextPrompt } from "@/lib/pipeline/beat-refine";
@@ -2240,6 +2249,214 @@ export async function regenerateBeatVo(opts: {
       `regenerate VO beat ${opts.beatIdx + 1}`,
     );
   }
+  return { ok: true };
+}
+
+/**
+ * AI Avatar (build phase A): render one beat as a talking-presenter shot.
+ * The presenter is the project's fixed presenter image (identity by
+ * construction); the voice is the beat's EXISTING VO asset — so the avatar
+ * is always in sync with the script by definition. Output replaces the
+ * beat's clip (archived to asset_versions first) and renders like any clip.
+ */
+export async function generateBeatAvatar(opts: {
+  videoId: string;
+  beatIdx: number;
+  modelId?: string;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const loaded = await projectOfVideo(db, opts.videoId);
+  if (!loaded.ok) return loaded;
+  const { video, project } = loaded;
+
+  const model = getAvatarModel(opts.modelId ?? DEFAULT_AVATAR_MODEL_ID);
+  if (!model) return { ok: false, error: "Unknown avatar model." };
+
+  const presenterPath = (project as { presenter_image_path?: string | null }).presenter_image_path;
+  if (!presenterPath) {
+    return {
+      ok: false,
+      error:
+        "No presenter image set for this project — upload one in Project Settings (the same image drives every avatar shot, which is what keeps the character consistent).",
+    };
+  }
+
+  const { data: vo } = await db
+    .from("assets")
+    .select("storage_path, meta")
+    .eq("video_id", video.id)
+    .eq("kind", "vo")
+    .eq("beat_index", opts.beatIdx)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!vo?.storage_path) {
+    return { ok: false, error: "No VO for this beat yet — the avatar lip-syncs to the beat's voiceover, so generate assets (or the VO) first." };
+  }
+  const durationSec = Math.max(1, Number((vo.meta as { durationSec?: number })?.durationSec ?? 8));
+  if (durationSec > model.maxClipSec) {
+    return {
+      ok: false,
+      error: `This beat's VO runs ${Math.round(durationSec)}s but ${model.label} caps at ${model.maxClipSec}s per clip — split the beat or pick another model.`,
+    };
+  }
+
+  const est = estimateAvatarCost(model, durationSec);
+  const guard = await checkBudget(db, project, video, est);
+  if (!guard.ok) return { ok: false, error: guard.reason };
+
+  const [imageUrl, audioUrl] = await Promise.all([
+    getSignedMediaUrl(presenterPath),
+    getSignedMediaUrl(vo.storage_path),
+  ]);
+
+  let row: Record<string, unknown>;
+  let cost = 0;
+  if (imageUrl && audioUrl) {
+    const out = await generateAvatarVideo({ model, imageUrl, audioUrl, durationSec });
+    if (out.provider === "fal-avatar") {
+      const path = `avatars/${video.id}/beat-${opts.beatIdx}-${Date.now().toString(36)}.mp4`;
+      await uploadMedia(path, out.video, "video/mp4");
+      cost = out.costUsd;
+      row = {
+        video_id: video.id,
+        kind: "clip",
+        provider: "fal-avatar",
+        storage_path: path,
+        beat_index: opts.beatIdx,
+        meta: { isVideo: true, avatar: true, model: model.id, durationSec },
+        cost_usd: cost,
+      };
+    } else {
+      row = mockAvatarRow(video.id, opts.beatIdx, model.id, durationSec);
+    }
+  } else {
+    // No storage/signing available (mock deploys) — record the mock shot so
+    // the flow still completes end-to-end.
+    row = mockAvatarRow(video.id, opts.beatIdx, model.id, durationSec);
+  }
+
+  await archiveAssetVersions(db, video.id, "clip", opts.beatIdx);
+  await db
+    .from("assets")
+    .delete()
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", opts.beatIdx);
+  await db.from("assets").insert(row);
+  if (cost > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: "fal-avatar", usd: cost, description: `${model.label}, beat ${opts.beatIdx + 1}` },
+      `avatar beat ${opts.beatIdx + 1}`,
+    );
+  }
+  await postWorkspaceNote(
+    db,
+    video,
+    `Beat ${opts.beatIdx + 1} is now an avatar shot (${model.label}${cost > 0 ? `, $${cost.toFixed(2)}` : ", mock"}).`,
+    { event: "avatar_generated", beatIdx: opts.beatIdx, model: model.id },
+  );
+  return { ok: true };
+}
+
+function mockAvatarRow(videoId: string, beatIdx: number, modelId: string, durationSec: number) {
+  return {
+    video_id: videoId,
+    kind: "clip",
+    provider: "mock:fal-avatar",
+    storage_path: `mock:avatar-${videoId}-${beatIdx}`,
+    beat_index: beatIdx,
+    meta: { isVideo: true, avatar: true, model: modelId, durationSec },
+    cost_usd: 0,
+  };
+}
+
+/**
+ * Avatar edit path (build phase B): after a VO retake, re-lipsync the
+ * EXISTING avatar clip to the new audio via sync.so (~$0.04/s) instead of
+ * paying for a full regeneration. Falls back with a clear message when the
+ * beat has no avatar clip or SYNC_SO_API_KEY isn't set.
+ */
+export async function resyncBeatAvatar(opts: {
+  videoId: string;
+  beatIdx: number;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const loaded = await projectOfVideo(db, opts.videoId);
+  if (!loaded.ok) return loaded;
+  const { video, project } = loaded;
+
+  const { data: clip } = await db
+    .from("assets")
+    .select("storage_path, meta")
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", opts.beatIdx)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const isAvatar = Boolean((clip?.meta as { avatar?: boolean } | null)?.avatar);
+  if (!clip?.storage_path || !isAvatar) {
+    return { ok: false, error: "This beat has no avatar clip to re-sync — generate one first (“make this beat an avatar shot”)." };
+  }
+  const { data: vo } = await db
+    .from("assets")
+    .select("storage_path, meta")
+    .eq("video_id", video.id)
+    .eq("kind", "vo")
+    .eq("beat_index", opts.beatIdx)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!vo?.storage_path) return { ok: false, error: "No VO for this beat to sync to." };
+  const durationSec = Math.max(1, Number((vo.meta as { durationSec?: number })?.durationSec ?? 8));
+
+  if (!isSyncLive()) {
+    return {
+      ok: false,
+      error: "Re-sync needs SYNC_SO_API_KEY (sync.so). Without it, regenerate the avatar shot instead (“redo beat's avatar”).",
+    };
+  }
+  const est = Math.round(SYNC_USD_PER_SEC * durationSec * 100) / 100;
+  const guard = await checkBudget(db, project, video, est);
+  if (!guard.ok) return { ok: false, error: guard.reason };
+
+  const [videoUrl, audioUrl] = await Promise.all([
+    getSignedMediaUrl(clip.storage_path),
+    getSignedMediaUrl(vo.storage_path),
+  ]);
+  if (!videoUrl || !audioUrl) return { ok: false, error: "Could not sign media URLs for re-sync." };
+
+  const out = await resyncLipsync({ videoUrl, audioUrl, durationSec });
+  if (out.provider !== "sync.so") {
+    return { ok: false, error: "Re-sync unavailable (mock mode)." };
+  }
+  const path = `avatars/${video.id}/beat-${opts.beatIdx}-resync-${Date.now().toString(36)}.mp4`;
+  await uploadMedia(path, out.video, "video/mp4");
+  await archiveAssetVersions(db, video.id, "clip", opts.beatIdx);
+  await db
+    .from("assets")
+    .delete()
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", opts.beatIdx);
+  await db.from("assets").insert({
+    video_id: video.id,
+    kind: "clip",
+    provider: "sync.so",
+    storage_path: path,
+    beat_index: opts.beatIdx,
+    meta: { ...(clip.meta as Record<string, unknown>), durationSec, resynced: true },
+    cost_usd: out.costUsd,
+  });
+  await recordCost(
+    db,
+    video,
+    { provider: "sync.so", usd: out.costUsd, description: `Avatar re-sync, beat ${opts.beatIdx + 1}` },
+    `avatar resync beat ${opts.beatIdx + 1}`,
+  );
   return { ok: true };
 }
 

@@ -90,6 +90,37 @@ export function routeHeuristic(text: string, ctx: RouteContext): RoutedIntent | 
     };
   }
 
+  // Avatar shots (avatar build): "make beat 3 an avatar", "avatar for beat 2",
+  // "redo beat 3's avatar". Re-sync routes separately (the cheap edit path).
+  {
+    const beatForAvatar = beatIdxFrom(t, ctx);
+    if (/\bre-?sync\b/.test(lower) && /\bavatar|lip-?sync\b/.test(lower) && beatForAvatar != null) {
+      return {
+        kind: "action",
+        action: "resync_beat_avatar",
+        params: { videoId: ctx.videoId, beatIdx: beatForAvatar },
+        label: `Re-syncing beat ${beatForAvatar + 1}'s avatar to the latest VO`,
+      };
+    }
+    if (/\bavatar|presenter|talking head\b/.test(lower) && beatForAvatar != null) {
+      const modelId = /omnihuman/.test(lower)
+        ? "omnihuman-1-5"
+        : /infinitalk/.test(lower)
+          ? "infinitalk"
+          : /veed|fabric/.test(lower)
+            ? /720/.test(lower)
+              ? "veed-fabric-720"
+              : "veed-fabric-480"
+            : undefined;
+      return {
+        kind: "action",
+        action: "generate_beat_avatar",
+        params: { videoId: ctx.videoId, beatIdx: beatForAvatar, modelId },
+        label: `Rendering beat ${beatForAvatar + 1} as an avatar shot${modelId ? ` (${modelId})` : ""}`,
+      };
+    }
+  }
+
   // Exemplar mining (agent-training Step 2).
   if (/\b(mine|study|learn from|analyze)\b.*\b(exemplars?|winners?|top videos?|the competition|best performers?)\b/.test(lower)) {
     return {

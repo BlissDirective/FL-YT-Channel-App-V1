@@ -22,6 +22,7 @@ import {
   ScrollText,
   Send,
   Sparkles,
+  UserRound,
   Video as VideoIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -442,6 +443,15 @@ export function WorkspaceView(props: WorkspaceProps) {
                           onClick={() => quickAction(`new VO take for beat ${b.idx + 1}`, { kind: "vo", beatIdx: b.idx })}
                         >
                           <AudioLines className="h-3 w-3" /> New VO
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isPending}
+                          title="Render this beat as a talking-presenter avatar shot (uses the project's presenter image + this beat's VO)"
+                          onClick={() => quickAction(`make beat ${b.idx + 1} an avatar shot`, { kind: "clip", beatIdx: b.idx })}
+                        >
+                          <UserRound className="h-3 w-3" /> Avatar
                         </Button>
                         <Button
                           variant="ghost"
