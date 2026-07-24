@@ -221,6 +221,47 @@ const ACTIONS: WorkspaceAction[] = [
     },
   },
   {
+    name: "generate_beat_avatar",
+    description:
+      "Render one beat as a talking-presenter avatar shot: the project's presenter image lip-syncs the beat's existing voiceover. Optional model (default kling-avatar-v2; also veed-fabric-480/720, omnihuman-1-5, infinitalk).",
+    params: {
+      videoId: { type: "string", required: true, description: "Video id" },
+      beatIdx: { type: "number", required: true, description: "Beat index (0-based)" },
+      modelId: { type: "string", description: "Avatar model id (default kling-avatar-v2)" },
+      durationSec: { type: "number", description: "Beat VO length, for the cost label (default 8)" },
+    },
+    costBearing: true,
+    estimate: (p) =>
+      estimateCost({
+        action: "avatar",
+        modelId: str(p.modelId) ?? "kling-avatar-v2",
+        durationSec: num(p.durationSec) ?? 8,
+      }),
+    execute: async (p) => {
+      const { generateBeatAvatar } = await import("@/lib/pipeline/engine");
+      return generateBeatAvatar({
+        videoId: str(p.videoId)!,
+        beatIdx: num(p.beatIdx)!,
+        modelId: str(p.modelId),
+      });
+    },
+  },
+  {
+    name: "resync_beat_avatar",
+    description:
+      "After a VO retake, re-lipsync the beat's EXISTING avatar clip to the new audio via sync.so (~$0.04/s — cents instead of a full regeneration).",
+    params: {
+      videoId: { type: "string", required: true, description: "Video id" },
+      beatIdx: { type: "number", required: true, description: "Beat index (0-based)" },
+    },
+    costBearing: true,
+    estimate: () => 0.32, // ~8s beat at $0.04/s
+    execute: async (p) => {
+      const { resyncBeatAvatar } = await import("@/lib/pipeline/engine");
+      return resyncBeatAvatar({ videoId: str(p.videoId)!, beatIdx: num(p.beatIdx)! });
+    },
+  },
+  {
     name: "mine_exemplars",
     description:
       "Study the niche's winners: find the strongest videos on this project's niche, analyze them (hook, structure, pacing), and save them as exemplars that train every future script prompt.",

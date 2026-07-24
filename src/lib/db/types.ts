@@ -49,6 +49,9 @@ export type Project = {
   composer_prefs: Record<string, unknown>;
   /** Autopilot notification channels, each independently toggleable. */
   notify_prefs: { telegram?: boolean; webpush?: boolean };
+  /** AI Avatar: storage path of the fixed presenter image (one image = one
+      consistent character across every avatar shot). Null = avatars off. */
+  presenter_image_path: string | null;
   /** Director Mode (Fable-5-Director-Mode-Build-Spec.md). 'autonomous' (default)
       is today's engine-driven behavior; 'director' hands every stage transition
       to the operator — the engine never self-advances, sweeps skip the project,

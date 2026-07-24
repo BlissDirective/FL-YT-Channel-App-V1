@@ -14,8 +14,14 @@ import {
   getVideoModel,
   type VideoModel,
 } from "@/lib/adapters/video-models";
+import {
+  AVATAR_MODELS,
+  estimateAvatarCost,
+  getAvatarModel,
+  type AvatarModel,
+} from "@/lib/adapters/avatar";
 
-export type CatalogKind = "video" | "image" | "voice";
+export type CatalogKind = "video" | "image" | "voice" | "avatar";
 
 export type CatalogEntry = {
   id: string;
@@ -133,9 +139,42 @@ const VOICE_ENTRIES: CatalogEntry[] = [
   },
 ];
 
+const AVATAR_BADGES: Record<string, CatalogEntry["badge"]> = {
+  "kling-avatar-v2": "Popular",
+  "veed-fabric-480": "Cheap",
+  "omnihuman-1-5": "Best",
+};
+
+const AVATAR_PROS: Record<string, string[]> = {
+  "kling-avatar-v2": [
+    "Best cost per production minute",
+    "Realistic AND stylized/cartoon characters",
+    "The default presenter engine",
+  ],
+  "veed-fabric-480": ["Cheapest way to prototype the look", "Fast turnaround"],
+  "veed-fabric-720": ["Fabric's production tier"],
+  "omnihuman-1-5": ["Film-grade full-body motion", "Camera movement — hero shots"],
+  infinitalk: ["Very stable lip-sync on long takes", "Handles unbroken monologues"],
+};
+
+function avatarEntry(m: AvatarModel): CatalogEntry {
+  return {
+    id: m.id,
+    kind: "avatar",
+    label: m.label,
+    description: m.bestFor,
+    pros: AVATAR_PROS[m.id] ?? [m.bestFor],
+    badge: AVATAR_BADGES[m.id] ?? null,
+    unitUsd: m.usdPerSec,
+    unit: "sec",
+    maxDurationSec: m.maxClipSec,
+  };
+}
+
 export function modelCatalog(kind?: CatalogKind): CatalogEntry[] {
   const all = [
     ...VIDEO_MODELS.map(videoEntry),
+    ...AVATAR_MODELS.map(avatarEntry),
     ...IMAGE_ENTRIES,
     ...VOICE_ENTRIES,
   ];
@@ -152,6 +191,7 @@ export function catalogEntry(id: string): CatalogEntry | undefined {
 
 export type EstimatableAction =
   | { action: "clip"; modelId: string; durationSec: number }
+  | { action: "avatar"; modelId: string; durationSec: number }
   | { action: "image"; tier?: "schnell" | "dev"; count?: number }
   | { action: "vo"; chars: number; voice?: "elevenlabs" | "kokoro" }
   | { action: "script"; targetLengthSec: number }
@@ -168,6 +208,10 @@ export function estimateCost(a: EstimatableAction): number {
     case "clip": {
       const m = getVideoModel(a.modelId);
       return m ? estimateClipCost(m, a.durationSec) : 0;
+    }
+    case "avatar": {
+      const m = getAvatarModel(a.modelId);
+      return m ? estimateAvatarCost(m, a.durationSec) : 0;
     }
     case "image": {
       const per = a.tier === "dev" ? 0.025 : 0.003;
