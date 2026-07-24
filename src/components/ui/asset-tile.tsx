@@ -37,9 +37,9 @@ export function AssetTile({
   title: string;
   subtitle?: string;
   thumbUrl?: string | null;
-  railIndex: number;
-  railTotal: number;
-  stageLabel: string;
+  railIndex?: number;
+  railTotal?: number;
+  stageLabel?: string;
   qcScore?: number | null;
   awaitingYou?: boolean;
   /** e.g. the paused_reason or "Script gate" — shown under the badge row. */
@@ -129,7 +129,9 @@ export function AssetTile({
         {subtitle && <p className="truncate text-xs text-muted">{subtitle}</p>}
       </Link>
 
-      <StageProgressBar total={railTotal} current={railIndex} />
+      {railTotal != null && railIndex != null && (
+        <StageProgressBar total={railTotal} current={railIndex} />
+      )}
 
       {active && progressPct != null && (
         <div className="h-1 overflow-hidden rounded-full bg-canvas" aria-hidden>
@@ -142,7 +144,7 @@ export function AssetTile({
 
       <div className="flex items-center justify-between gap-2 text-xs text-muted">
         <span className={cn("truncate font-medium", active && "text-ink")}>
-          {active && progressLabel ? progressLabel : stageLabel}
+          {(active && progressLabel ? progressLabel : stageLabel) ?? ""}
         </span>
         <span className="flex shrink-0 items-center gap-2">
           {qcScore != null && (

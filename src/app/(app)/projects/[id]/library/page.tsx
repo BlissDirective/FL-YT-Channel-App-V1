@@ -6,7 +6,7 @@ import { getLibrary, type LibraryItem } from "@/lib/db/library-data";
 import { getIsAdmin } from "@/lib/admin-guard";
 import { getActiveCleanHouseRun } from "@/lib/pipeline/clean-house-runner";
 import { CleanHousePanel } from "./clean-house-panel";
-import { LIBRARY_SECTIONS, RAIL_STEPS } from "@/lib/db/library";
+import { LIBRARY_SECTIONS } from "@/lib/db/library";
 import { backlotStages } from "@/lib/db/pipeline";
 import type { Idea } from "@/lib/db/types";
 import { AssetTile } from "@/components/ui/asset-tile";
@@ -25,12 +25,7 @@ import {
   LibraryGuardrailBanner,
   UnarchiveButton,
 } from "./archive-actions";
-import {
-  GateQuickActions,
-  IdeaCardActions,
-  NudgeQuickAction,
-  ResumeQuickAction,
-} from "./quick-actions";
+import { IdeaCardActions } from "./quick-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -158,26 +153,6 @@ export default async function LibraryPage({
         attentionCount={library.attentionCount}
         autopilot={directorMode ? undefined : library.operatorState}
       />
-
-      {!empty && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted" aria-hidden>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block size-2 animate-pulse rounded-full bg-accent shadow-[0_0_6px_1px_rgb(16_212_142/0.7)]" /> working now
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block size-2 rounded-full bg-accent" /> your turn
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block size-2 rounded-full bg-accent/50" /> stalled
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block size-2 rounded-full bg-raised/50" /> paused
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block size-2 rounded-full bg-coral" /> failed
-          </span>
-        </div>
-      )}
 
       {directorMode ? (
         <DirectorIdeaGenerator projectId={project.id} />
@@ -341,56 +316,23 @@ function VideoTile({
   // autonomous quick-actions/chips; the label reads as awaiting direction —
   // unless it's actively processing (then it glows instead).
   const directorAwaiting = directorMode && !terminal && !active;
+  // ClickMax de-clutter (decision: "QC number on the card, everything else
+  // behind the tap"): the tile is thumbnail + title + QC. Stage, spend,
+  // progress, holds, and the approve/changes/kill actions all live in the
+  // workspace the tap opens — where the thread narrates them. The active
+  // glow (ambient "working now") and archive action (library-only) remain.
+  void stageLabel;
+  void paused;
+  void atGate;
+  void directorAwaiting;
   return (
     <AssetTile
       href={`/projects/${projectId}/videos/${video.id}`}
       title={video.title}
-      subtitle={video.kind === "short" ? "Short" : "Long-form"}
       thumbUrl={item.thumbUrl}
-      railIndex={tile.railIndex}
-      railTotal={RAIL_STEPS.length}
-      stageLabel={stageLabel}
       qcScore={item.qcScore}
-      awaitingYou={directorMode ? directorAwaiting : Boolean(tile.awaitingYou) && !active}
-      awaitingLabel={
-        video.flagged_unfixable
-          ? `Flagged unfixable — ${video.flag_reason ?? "kill or recreate manually"}`
-          : directorMode
-            ? directorAwaiting
-              ? `Awaiting direction · ${stageLabel}`
-              : undefined
-            : item.awaitingLabel ?? undefined
-      }
-      failed={Boolean(video.flagged_unfixable) || (directorMode ? false : Boolean(tile.failed))}
-      stalled={directorMode ? false : Boolean(item.stalled)}
-      paused={paused && !active}
       active={active}
-      progressLabel={active ? item.progress?.label : undefined}
-      progressPct={
-        active && item.progress?.total
-          ? (item.progress.done ?? 0) / item.progress.total
-          : null
-      }
-      autopilot={directorMode ? undefined : tile.autopilot}
-      spendUsd={Number(video.total_cost_usd)}
-      views={item.views}
-      actions={
-        archiveAction ? (
-          archiveAction
-        ) : directorMode ? (
-          <span className="text-[11px] font-semibold text-accent">Open Console →</span>
-        ) : atGate ? (
-          <GateQuickActions projectId={projectId} videoId={video.id} />
-        ) : item.stalled ? (
-          <NudgeQuickAction projectId={projectId} videoId={video.id} />
-        ) : paused ? (
-          <ResumeQuickAction
-            projectId={projectId}
-            videoId={video.id}
-            renderFailed={/render failed/i.test(video.paused_reason ?? "")}
-          />
-        ) : undefined
-      }
+      actions={archiveAction ?? undefined}
     />
   );
 }

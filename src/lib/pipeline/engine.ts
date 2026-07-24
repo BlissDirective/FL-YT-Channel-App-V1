@@ -164,6 +164,31 @@ async function setStatus(db: Db, videoId: string, status: VideoStatus) {
   await db.from("videos").update({ status }).eq("id", videoId);
 }
 
+/**
+ * Trust-the-chat status (ClickMax de-clutter): pipeline events — gate
+ * arrivals, QC verdicts, holds, pauses — post into the workspace thread as
+ * agent messages instead of living as persistent banner chrome. Best-effort:
+ * a missing table must never block the pipeline.
+ */
+async function postWorkspaceNote(
+  db: Db,
+  video: Pick<Video, "id" | "project_id">,
+  content: string,
+  intent?: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await db.from("workspace_messages").insert({
+      project_id: video.project_id,
+      video_id: video.id,
+      role: "agent",
+      content,
+      intent: intent ?? null,
+    });
+  } catch (err) {
+    console.error("workspace note failed (non-blocking):", err);
+  }
+}
+
 /** Budget guard — runs before every paid stage (standing rule 6). Returns
     a pause reason when a cap would be exceeded, null when clear. Thin wrapper
     over the shared ledger checkBudget (Phase 2: one budget system). */
@@ -245,6 +270,7 @@ async function arriveAtGate(
     : COPILOT_AUTO_APPROVE_SCORE;
   let qcScore: number | null = null;
   let qcErrored = false;
+  let qcIssues: string[] = [];
   try {
     const review = await reviewGate({
       gate,
@@ -254,6 +280,7 @@ async function arriveAtGate(
       escalateNear: mode === "assist" ? undefined : autoApproveFloor,
     });
     qcScore = review.score;
+    qcIssues = review.issues ?? [];
     if (review.degraded) qcErrored = true; // live-but-failed → hold below, never a fake 6/10
     const autoApprove = mode === "copilot" && !review.degraded && review.score >= autoApproveFloor;
     await db.from("qc_reviews").insert({
@@ -310,10 +337,24 @@ async function arriveAtGate(
   }
 
   const copilotApproved = mode === "copilot" && qcScore != null && qcScore >= autoApproveFloor;
+  // Trust-the-chat: the gate outcome lands in the workspace thread (§decision
+  // "banners become messages"), whichever branch runs below.
+  const qcLine =
+    qcScore != null
+      ? ` QC scored it ${qcScore.toFixed(1)}/10${qcIssues.length > 0 ? ` — flagged: ${qcIssues.slice(0, 2).join("; ")}` : ""}.`
+      : "";
   // Full Auto owns advancement past the Assets gate (it pauses here so the
   // generated clips can replace the stills before the render runs).
   if (gate === "ASSETS" && video.auto_finish) return;
-  if (mode !== "autopilot" && !copilotApproved) return;
+  if (mode !== "autopilot" && !copilotApproved) {
+    await postWorkspaceNote(
+      db,
+      video,
+      `${GATE_LABELS[gate]} is ready for your review.${qcLine} Say “continue” to approve, or tell me what to change.`,
+      { event: "gate_hold", gate, qcScore },
+    );
+    return;
+  }
 
   // Phase 4.4 — "grader down" must not mean "publish anyway": when the QC
   // review errored and this gate would auto-advance, hold for a human instead.
@@ -322,6 +363,12 @@ async function arriveAtGate(
       .from("videos")
       .update({ paused_reason: "QC unavailable — held for manual review (auto-advance blocked)" })
       .eq("id", video.id);
+    await postWorkspaceNote(
+      db,
+      video,
+      `I held “${video.title}” at ${GATE_LABELS[gate]} — the QC reviewer was unavailable, so I won't auto-advance blind. Review it, or try again shortly.`,
+      { event: "gate_held_qc_down", gate },
+    );
     return;
   }
 
@@ -329,9 +376,23 @@ async function arriveAtGate(
   // verify the script's load-bearing claims; high risk holds the video.
   if (gate === "SCRIPT") {
     const held = await factCheckAtScriptGate(db, video, project);
-    if (held) return;
+    if (held) {
+      await postWorkspaceNote(
+        db,
+        video,
+        `I held the script — the fact-check flagged load-bearing claims that need a look before continuing.`,
+        { event: "gate_held_factcheck", gate },
+      );
+      return;
+    }
   }
 
+  await postWorkspaceNote(
+    db,
+    video,
+    `${GATE_LABELS[gate]} approved automatically.${qcLine} Continuing.`,
+    { event: "gate_auto_approved", gate, qcScore },
+  );
   await db.from("approvals").insert({
     video_id: video.id,
     gate,
@@ -1973,10 +2034,13 @@ async function runStageBody(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     const stage = video.status.replace(/_/g, " ").toLowerCase();
-    await db
-      .from("videos")
-      .update({ paused_reason: `${stage} paused — ${humanizeProviderError(msg)}` })
-      .eq("id", video.id);
+    const reason = `${stage} paused — ${humanizeProviderError(msg)}`;
+    await db.from("videos").update({ paused_reason: reason }).eq("id", video.id);
+    // Trust-the-chat: the pause reaches the thread, not just a banner field.
+    await postWorkspaceNote(db, video, `I hit a problem: ${reason}. Say “continue” to retry once it's resolved.`, {
+      event: "stage_paused",
+      status: video.status,
+    });
     console.error(`${label} ${video.status} failed for ${video.id}:`, err);
     return { ok: false, error: msg };
   }
