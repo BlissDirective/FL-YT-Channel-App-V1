@@ -156,6 +156,10 @@ export type VideoProps = {
   introPhrase?: string;
   /** Short narrated hook line played over the intro card (≤ INTRO_SEC). */
   introVoUrl?: string;
+  /** Song videos (children's-channel build): a full sung track that plays
+      across the WHOLE video. Beats carry no VO in this mode — the song is
+      the audio — so visuals are cut to the song instead of to narration. */
+  songUrl?: string;
 };
 
 export const FPS = RENDER_FPS;

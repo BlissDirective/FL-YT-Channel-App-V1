@@ -14,6 +14,7 @@ import {
   getVideoModel,
   type VideoModel,
 } from "@/lib/adapters/video-models";
+import { SONG_MODELS, estimateSongCost, getSongModel, type SongModel } from "@/lib/adapters/songs";
 import {
   AVATAR_MODELS,
   estimateAvatarCost,
@@ -21,7 +22,7 @@ import {
   type AvatarModel,
 } from "@/lib/adapters/avatar";
 
-export type CatalogKind = "video" | "image" | "voice" | "avatar";
+export type CatalogKind = "video" | "image" | "voice" | "avatar" | "song";
 
 export type CatalogEntry = {
   id: string;
@@ -32,7 +33,7 @@ export type CatalogEntry = {
   badge: "Fast" | "Cheap" | "Best" | "Popular" | null;
   /** USD per unit — unit is seconds (video), images (image), 1k chars (voice). */
   unitUsd: number;
-  unit: "sec" | "image" | "1k-chars";
+  unit: "sec" | "image" | "1k-chars" | "song" | "min";
   durations?: number[];
   minDurationSec?: number;
   maxDurationSec?: number;
@@ -171,10 +172,45 @@ function avatarEntry(m: AvatarModel): CatalogEntry {
   };
 }
 
+const SONG_BADGES: Record<string, CatalogEntry["badge"]> = {
+  "minimax-music-v2": "Cheap",
+  "lyria-3-pro": "Best",
+};
+
+const SONG_PROS: Record<string, string[]> = {
+  "minimax-music-v2": [
+    "Pennies per song — the volume workhorse",
+    "Sings the exact lyrics you wrote",
+  ],
+  "lyria-3-pro": [
+    "Timed lyrics for exact sing-along captions",
+    "Full songs with vocals up to three minutes",
+  ],
+  "elevenlabs-song": [
+    "Official API with explicit commercial terms",
+    "Uses the voice key you already have",
+  ],
+};
+
+function songEntry(m: SongModel): CatalogEntry {
+  return {
+    id: m.id,
+    kind: "song",
+    label: m.label,
+    description: m.bestFor,
+    pros: SONG_PROS[m.id] ?? [m.bestFor],
+    badge: SONG_BADGES[m.id] ?? null,
+    unitUsd: m.usdPerSong ?? m.usdPerMin ?? 0,
+    unit: m.usdPerSong ? "song" : "min",
+    maxDurationSec: m.maxSongSec,
+  };
+}
+
 export function modelCatalog(kind?: CatalogKind): CatalogEntry[] {
   const all = [
     ...VIDEO_MODELS.map(videoEntry),
     ...AVATAR_MODELS.map(avatarEntry),
+    ...SONG_MODELS.map(songEntry),
     ...IMAGE_ENTRIES,
     ...VOICE_ENTRIES,
   ];
@@ -192,6 +228,7 @@ export function catalogEntry(id: string): CatalogEntry | undefined {
 export type EstimatableAction =
   | { action: "clip"; modelId: string; durationSec: number }
   | { action: "avatar"; modelId: string; durationSec: number }
+  | { action: "song"; modelId: string; durationSec?: number }
   | { action: "image"; tier?: "schnell" | "dev"; count?: number }
   | { action: "vo"; chars: number; voice?: "elevenlabs" | "kokoro" }
   | { action: "script"; targetLengthSec: number }
@@ -212,6 +249,10 @@ export function estimateCost(a: EstimatableAction): number {
     case "avatar": {
       const m = getAvatarModel(a.modelId);
       return m ? estimateAvatarCost(m, a.durationSec) : 0;
+    }
+    case "song": {
+      const m = getSongModel(a.modelId);
+      return m ? estimateSongCost(m, a.durationSec ?? 120) : 0;
     }
     case "image": {
       const per = a.tier === "dev" ? 0.025 : 0.003;

@@ -90,6 +90,30 @@ export function routeHeuristic(text: string, ctx: RouteContext): RoutedIntent | 
     };
   }
 
+  // Song videos (children's-channel build): "write a song about sharing",
+  // "make a song about counting to five", "sing a song about colours".
+  {
+    const songMatch = /\b(write|make|create|generate|sing)\b[^.]*\bsong\b/.test(lower);
+    if (songMatch) {
+      const about = /\babout\s+(.+)$/i.exec(t.replace(/[.!?]+$/, ""));
+      const modelId = /lyria/.test(lower)
+        ? "lyria-3-pro"
+        : /eleven ?labs/.test(lower)
+          ? "elevenlabs-song"
+          : undefined;
+      return {
+        kind: "action",
+        action: "write_song",
+        params: {
+          videoId: ctx.videoId,
+          topic: about?.[1]?.trim() || undefined,
+          modelId,
+        },
+        label: about?.[1] ? `Writing a song about ${about[1].trim()}` : "Writing the song",
+      };
+    }
+  }
+
   // Avatar shots (avatar build): "make beat 3 an avatar", "avatar for beat 2",
   // "redo beat 3's avatar". Re-sync routes separately (the cheap edit path).
   {

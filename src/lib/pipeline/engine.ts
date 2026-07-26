@@ -38,6 +38,13 @@ import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type Qual
 import { getVceFlags } from "@/lib/pipeline/vce";
 import { getScriptExemplars } from "@/lib/pipeline/exemplars";
 import {
+  DEFAULT_SONG_MODEL_ID,
+  estimateSongCost,
+  generateSong,
+  getSongModel,
+  writeSongLyrics,
+} from "@/lib/adapters/songs";
+import {
   DEFAULT_AVATAR_MODEL_ID,
   SYNC_USD_PER_SEC,
   estimateAvatarCost,
@@ -2249,6 +2256,142 @@ export async function regenerateBeatVo(opts: {
       `regenerate VO beat ${opts.beatIdx + 1}`,
     );
   }
+  return { ok: true };
+}
+
+/**
+ * Song videos (children's-channel build): write original age-appropriate
+ * lyrics, sing them, and lay out the video so the animation follows the song.
+ *
+ * The integration insight is that a song video's "script" IS its lyrics: each
+ * lyric section becomes a beat whose visualPrompt is that section's scene, and
+ * whose narration text is EMPTY — so the asset stage skips VO (synthesizeBeatVo
+ * no-ops on empty text) and the sung track is the video's only voice. The
+ * render plays the `music` asset across the whole piece (VideoProps.songUrl).
+ * Everything downstream — stills, clips, render farm, shorts — is unchanged.
+ */
+export async function generateSongForVideo(opts: {
+  videoId: string;
+  topic?: string;
+  modelId?: string;
+  lengthSec?: number;
+  ageRange?: string;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const loaded = await projectOfVideo(db, opts.videoId);
+  if (!loaded.ok) return loaded;
+  const { video, project } = loaded;
+
+  const model = getSongModel(opts.modelId ?? DEFAULT_SONG_MODEL_ID);
+  if (!model) return { ok: false, error: "Unknown song model." };
+  const lengthSec = Math.min(Math.max(opts.lengthSec ?? 120, 30), model.maxSongSec);
+  const topic = (opts.topic ?? video.topic ?? video.title ?? "").trim();
+  if (!topic) return { ok: false, error: "Give me a song topic (e.g. “counting to five”)." };
+
+  const est = estimateSongCost(model, lengthSec) + 0.02; // + the lyric write
+  const guard = await checkBudget(db, project, video, est);
+  if (!guard.ok) return { ok: false, error: guard.reason };
+
+  // 1) Lyrics + musical style + one scene per section.
+  const written = await writeSongLyrics({
+    topic,
+    ageRange: opts.ageRange,
+    lengthSec,
+    channelStyle: project.instructions ?? undefined,
+  });
+  if (written.costUsd > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: "anthropic", usd: written.costUsd, description: "Song lyrics" },
+      `“${written.title}”`,
+    );
+  }
+
+  // 2) Sing them.
+  const song = await generateSong({
+    model,
+    style: written.style,
+    lyrics: written.lyrics,
+    durationSec: lengthSec,
+  });
+
+  let songPath: string;
+  let songCost = 0;
+  if (song.provider !== "mock") {
+    songPath = `songs/${video.id}/${Date.now().toString(36)}.mp3`;
+    await uploadMedia(songPath, song.audio, song.contentType);
+    songCost = song.costUsd;
+  } else {
+    songPath = `mock:song-${video.id}`;
+  }
+
+  await archiveAssetVersions(db, video.id, "music");
+  await db.from("assets").delete().eq("video_id", video.id).eq("kind", "music");
+  await db.from("assets").insert({
+    video_id: video.id,
+    kind: "music",
+    provider: song.provider === "mock" ? "mock:song" : song.provider,
+    storage_path: songPath,
+    beat_index: null,
+    meta: {
+      song: true,
+      model: model.id,
+      title: written.title,
+      style: written.style,
+      lyrics: written.lyrics,
+      durationSec: lengthSec,
+      ...(song.provider !== "mock" && song.timings ? { timings: song.timings } : {}),
+    },
+    cost_usd: songCost,
+  });
+  if (songCost > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: song.provider, usd: songCost, description: `${model.label} — “${written.title}”` },
+      `song “${written.title}”`,
+    );
+  }
+
+  // 3) Lay the video out as the song's scenes. Empty beat text = no VO, so the
+  //    song is the audio; the visual pipeline illustrates each section.
+  const perScene = Math.max(4, Math.round(lengthSec / Math.max(1, written.scenes.length)));
+  const beats: ScriptBeat[] = written.scenes.map((scene, idx) => ({
+    idx,
+    text: "",
+    visualPrompt: scene,
+    shotType: idx === 0 ? "hero" : "broll",
+  }));
+  await db.from("scripts").insert({
+    video_id: video.id,
+    version: await nextScriptVersion(db, video.id),
+    body: written.lyrics,
+    beats,
+    runtime_sec: lengthSec,
+    metadata: {
+      songTitle: written.title,
+      lyrics: written.lyrics,
+      musicStyle: written.style,
+      secondsPerScene: perScene,
+      titles: [written.title],
+      description: `${written.title} — an original sing-along for little ones.`,
+      tags: ["kids songs", "nursery rhymes", "sing along", "children's music"],
+      chapters: [],
+    },
+  });
+  await db
+    .from("videos")
+    .update({ title: written.title, status: "SCRIPT_READY", paused_reason: null })
+    .eq("id", video.id);
+
+  await postWorkspaceNote(
+    db,
+    video,
+    `“${written.title}” is written and sung (${model.label}${songCost > 0 ? `, $${songCost.toFixed(3)}` : ", mock"}). ` +
+      `${written.scenes.length} scenes laid out to the song — say “continue” to illustrate them.`,
+    { event: "song_generated", model: model.id, title: written.title },
+  );
   return { ok: true };
 }
 
