@@ -569,6 +569,65 @@ export type Script = {
   created_at: string;
 };
 
+/* ── Character Studio (docs/Character-Studio-Build-Plan.md) ───────────────── */
+
+/** GLOBAL, style-independent identity. The description works in any style;
+    only the images are style-specific (see CharacterLook). */
+export type Character = {
+  id: string;
+  name: string;
+  /** Extra name forms the matcher accepts ("Bo", "Bo the boy"). */
+  aliases: string[];
+  /** A location is a character that never moves — recurring settings drift
+      as badly as characters do, and this is the same machinery. */
+  role: "presenter" | "cast" | "prop" | "location";
+  description: string;
+  /** True once hand-edited: the agent may propose a rewrite, never apply one. */
+  description_owned_by_operator: boolean;
+  /** The one detail that must survive every frame. */
+  identity_anchor: string | null;
+  species_or_type: string | null;
+  notes: string | null;
+  /** Drafts are usable in videos, but badged. */
+  status: "draft" | "locked";
+  /** Bumped on relock; pinned onto videos so edits are forward-only. */
+  version: number;
+  created_at: string;
+  locked_at: string | null;
+};
+
+/** PROJECT-scoped art direction. Several per project (the A/B case). */
+export type Style = {
+  id: string;
+  project_id: string;
+  name: string;
+  style_string: string;
+  palette: Record<string, string>;
+  composition_rules: string | null;
+  exclusions: string | null;
+  is_default: boolean;
+  created_at: string;
+};
+
+/** identity × style → the actual reference images. */
+export type CharacterLook = {
+  id: string;
+  character_id: string;
+  style_id: string;
+  /** 'portrait' is the chest-up framing avatar models want. */
+  look_type: "illustration" | "portrait";
+  canonical_image_path: string | null;
+  sheet_image_path: string | null;
+  extra_ref_paths: string[];
+  /** The parent style changed after this look was locked — still usable,
+      offers regeneration, never auto-spends. */
+  stale: boolean;
+  status: "draft" | "locked";
+  version: number;
+  locked_at: string | null;
+  created_at: string;
+};
+
 export type Asset = {
   id: string;
   video_id: string;

@@ -1,6 +1,7 @@
 import "server-only";
 import {
   buildVisualPrompt,
+  composeScenePrompt,
   checkPublicHttpUrl,
   GATE_FOR_STATUS,
   GATE_LABELS,
@@ -37,6 +38,11 @@ import { playbookForStage } from "@/lib/pipeline/playbook";
 import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type QualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { getVceFlags } from "@/lib/pipeline/vce";
 import { getScriptExemplars } from "@/lib/pipeline/exemplars";
+import {
+  resolvePresenterImagePath,
+  resolveSceneCast,
+  resolveStyle,
+} from "@/lib/pipeline/cast-resolver";
 import {
   DEFAULT_SONG_MODEL_ID,
   estimateSongCost,
@@ -1404,6 +1410,24 @@ export async function makeBeatClip(
     ? `${project.brand_kit.thumbnailStyle}. ${project.instructions.trim()}`
     : project.brand_kit.thumbnailStyle;
   let prompt = buildVisualPrompt(scene, styleContext, bible);
+
+  // Character Studio (Phase 1): when this project has a style and/or a cast,
+  // the prompt is re-composed as STYLE + CHARACTERS PRESENT + SCENE +
+  // EXCLUSIONS, and the matched characters' locked reference images ride along.
+  // With no style and no cast this is a no-op — `prompt` above is unchanged,
+  // which is the phase's acceptance criterion.
+  let castRefPaths: string[] = [];
+  if (opts?.db) {
+    const cast = await composeCastPrompt(opts.db, {
+      project,
+      video,
+      beat,
+      fallbackPrompt: prompt,
+    });
+    prompt = cast.prompt;
+    castRefPaths = cast.referencePaths;
+  }
+  void castRefPaths; // consumed by the reference-capable image path (Phase 2)
   // Secondary costs (prompt refine, discarded blank renders) are returned to the
   // caller and recorded sequentially (parallel recordCost would race the total).
   const extraCosts: NonNullable<AssetDraft["extraCosts"]> = [];
@@ -2260,6 +2284,57 @@ export async function regenerateBeatVo(opts: {
 }
 
 /**
+ * Character Studio (Phase 1): re-compose one beat's visual prompt with the
+ * project's active style and whichever cast members the scene mentions, and
+ * resolve their reference images for that style.
+ *
+ * Returns the fallback prompt untouched when the project has neither a style
+ * nor a cast, so every pre-Character-Studio project renders byte-identically.
+ * Best-effort throughout — a missing table or a failed lookup degrades to the
+ * fallback rather than blocking a render.
+ */
+async function composeCastPrompt(
+  db: Db,
+  opts: {
+    project: Project;
+    video: Video;
+    beat: ScriptBeat;
+    fallbackPrompt: string;
+  },
+): Promise<{ prompt: string; referencePaths: string[]; characterIds: string[] }> {
+  try {
+    const styleId = (opts.video as { style_id?: string | null }).style_id ?? null;
+    const style = await resolveStyle(db, opts.project.id, styleId);
+    const overrides = (opts.beat as { cast?: { add?: string[]; remove?: string[] } }).cast;
+    const resolved = await resolveSceneCast(db, {
+      projectId: opts.project.id,
+      styleId: style?.id ?? null,
+      // The matcher scans narration AND visual direction — a character can be
+      // named in either.
+      text: `${opts.beat.text ?? ""} ${opts.beat.visualPrompt ?? ""}`,
+      overrides,
+    });
+    if (!style && resolved.characters.length === 0) {
+      return { prompt: opts.fallbackPrompt, referencePaths: [], characterIds: [] };
+    }
+    const composed = composeScenePrompt({
+      scene: opts.beat.visualPrompt,
+      style: style?.spec ?? null,
+      characters: resolved.characters,
+      fallbackPrompt: opts.fallbackPrompt,
+    });
+    return {
+      prompt: composed.prompt,
+      referencePaths: resolved.referencePaths,
+      characterIds: composed.characterIds,
+    };
+  } catch (err) {
+    console.error("cast prompt composition failed (using fallback):", err);
+    return { prompt: opts.fallbackPrompt, referencePaths: [], characterIds: [] };
+  }
+}
+
+/**
  * Song videos (children's-channel build): write original age-appropriate
  * lyrics, sing them, and lay out the video so the animation follows the song.
  *
@@ -2415,7 +2490,14 @@ export async function generateBeatAvatar(opts: {
   const model = getAvatarModel(opts.modelId ?? DEFAULT_AVATAR_MODEL_ID);
   if (!model) return { ok: false, error: "Unknown avatar model." };
 
-  const presenterPath = (project as { presenter_image_path?: string | null }).presenter_image_path;
+  // Character Studio (Phase 1 §8): prefer the presenter CHARACTER's portrait
+  // look for this style; fall back to the legacy projects.presenter_image_path
+  // so avatar projects that predate the Studio keep working untouched.
+  const presenterPath = await resolvePresenterImagePath(
+    db,
+    project as { id: string; presenter_image_path?: string | null },
+    (video as { style_id?: string | null }).style_id ?? null,
+  );
   if (!presenterPath) {
     return {
       ok: false,

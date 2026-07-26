@@ -25,6 +25,7 @@ export * from "./grounding";
 export * from "./scene-spec";
 export * from "./design-tokens";
 export * from "./visual-prompt";
+export * from "./cast";
 export * from "./edd";
 export * from "./edd-grounding";
 export * from "./edd-compile";
