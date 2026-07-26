@@ -51,6 +51,8 @@ export const LongForm: React.FC<VideoProps> = (props) => {
   return (
     <AbsoluteFill style={{ backgroundColor: props.brand.secondary, fontFamily: FONT }}>
       <HighlightFonts />
+      {/* Song videos: one sung track under the entire piece. */}
+      {props.songUrl && <Audio src={props.songUrl} />}
       <Sequence durationInFrames={Math.round(INTRO_SEC * FPS)}>
         <IntroSting {...props} />
       </Sequence>
@@ -91,6 +93,7 @@ export const Short: React.FC<VideoProps> = (props) => {
   return (
     <AbsoluteFill style={{ backgroundColor: props.brand.secondary, fontFamily: FONT }}>
       <HighlightFonts />
+      {props.songUrl && <Audio src={props.songUrl} />}
       <Sequence durationInFrames={dur}>
         <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} stickCast={props.stickCast} />
       </Sequence>

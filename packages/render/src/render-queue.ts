@@ -422,8 +422,13 @@ async function buildProps(
       ),
     });
   }
-  // A render without narration would be silent — treat as not ready.
-  if (!beats.some((b) => b.voUrl)) return null;
+  // Song videos (children's-channel build) carry their audio as one sung
+  // `music` asset instead of per-beat VO — resolve it before the audio guard.
+  const songAsset = assets.find((a) => a.kind === "music");
+  const songUrl = songAsset?.storage_path ? await sign(songAsset.storage_path) : undefined;
+
+  // A render with neither narration nor a song would be silent — not ready.
+  if (!songUrl && !beats.some((b) => b.voUrl)) return null;
 
   // Tier 9 #2 — narrated intro title card. Hero shot = the strongest available
   // frame (a hero still, else the first still/clip); phrase = the script's
@@ -467,6 +472,7 @@ async function buildProps(
       heroVideoUrl: heroBeat?.imageUrl ? undefined : heroBeat?.videoUrl,
       introPhrase: scriptMeta.thumbPhrase?.trim() || video.title,
       introVoUrl: introVoUrl ?? undefined,
+      songUrl: songUrl ?? undefined,
     },
     project,
     video,
