@@ -1,6 +1,6 @@
 # Character Studio — Build Plan
 
-**Status:** Decisions locked, ready to build
+**Status:** Fully specified — all 14 decisions closed (§0 and §10), ready to build
 **Goal:** Make characters and art styles first-class objects in the app, designed
 through a chat interface, locked to reference images, and injected automatically
 into every image, animation, and avatar prompt.
@@ -94,11 +94,15 @@ Minis A/B collapse into a single project: one cast, two styles, two looks each.
 ```
 characters                    -- GLOBAL (account-level), style-independent identity
   id, name, aliases[]         -- aliases power name-matching ("Bo", "Bo the boy")
-  role                        -- "presenter" | "cast" | "prop"  (presenter feeds avatars)
+  role                        -- "presenter" | "cast" | "prop" | "location"   (Q7:
+                              --   a location is a character that never moves)
   description                 -- the locked prose block, source of truth
+  description_owned_by_operator -- Q8: true once hand-edited; from then on the
+                              --   agent may PROPOSE a rewrite but never applies one
   identity_anchor             -- the ONE detail that must survive every frame
   species_or_type, notes
-  status                      -- draft | locked
+  status                      -- draft | locked  (Q6: drafts ARE usable, but badged)
+  version                     -- bumped on every relock; pinned onto videos (Q5)
   created_at, locked_at
 
 styles                        -- PROJECT-scoped, multiple per project
@@ -111,9 +115,14 @@ styles                        -- PROJECT-scoped, multiple per project
 
 character_looks               -- the join that resolves the tension above
   id, character_id, style_id
+  look_type                   -- Q2: "illustration" (full-body, storyboard scenes)
+                              --   | "portrait" (chest-up front-facing, avatars)
+                              --   A character may hold BOTH per style
   canonical_image_path        -- the locked reference
   sheet_image_path            -- auto-generated 3-view turnaround
   extra_ref_paths[]           -- optional angles/expressions
+  stale                       -- Q4: set when the parent style_string changes;
+                              --   offers one-click regeneration, never auto-spends
   status                      -- draft | locked
   locked_at, version
 
@@ -126,7 +135,8 @@ character_design_messages     -- the Character Studio chat thread (replayable)
 
 ### Changes to existing objects
 
-- `videos.style_id` — which style this video renders in. Null → project default. This is what lets the outcome loop report per-style performance, making the A/B native.
+- `videos.style_id` — which style this video renders in. Null → project default (Q9: chosen silently, switchable in one click, always shown on the card). This is what lets the outcome loop report per-style performance, making the A/B native.
+- `videos.character_versions` (jsonb) — **Q5:** `{character_id: version}` stamped when the video's assets are generated. Editing a character later is forward-only; the eleven videos made before the change keep the Bo they were made with, and the card can show "made with Bo v1."
 - `projects.presenter_image_path` — **superseded but kept**. The presenter becomes the character with `role = 'presenter'`; a migration copies any existing value into a character record. The avatar generator reads the character's locked look, falling back to the old column so nothing breaks mid-flight.
 - `projects.instructions` — **narrowed in meaning** to channel context (audience, tone, editorial direction). Style and cast move out of it into structured records. Existing text stays and still injects; it just stops being the only home for art direction.
 
@@ -176,10 +186,15 @@ with visible consequence.
 
 **On lock:**
 1. Freeze the description as the character's canonical text.
-2. Save the chosen image as `canonical_image_path` for the **current style**.
+2. Save the chosen image as `canonical_image_path` for the **current style** and look type.
 3. **Auto-generate the 3-view turnaround sheet** (front / three-quarter / side) — the single highest-leverage consistency artifact. The operator should never have to think about it.
 4. Set `status = locked`, stamp `locked_at`, start a usage counter.
-5. If two or more characters are locked in a style, offer a **cast group shot** — the only artifact that fixes relative scale between characters, and it doubles as channel art and a thumbnail base plate.
+5. **Q2 — offer the portrait look.** For any character likely to appear as an avatar, offer a second, chest-up front-facing look under the same style. Avatar models frame tightly, so inheriting a full-body illustration reference crops badly. Same character, second look type — generated on request, not automatically.
+6. **Q1 — offer the cast group shot** once two or more characters are locked in a style. It's the only artifact that fixes relative scale between characters and it doubles as channel art and a thumbnail base plate. **Offered prominently, never required** — a hard gate here would turn a helpful nudge into a toll booth.
+
+**Spend visibility (Q10):** the subject panel carries a running total for the
+character being designed and a soft per-character budget. Crossing it **warns and
+continues** — it never blocks — matching the advisory posture chosen for QC.
 
 **Unlocking** requires a confirm ("this changes how Bo looks in future videos"),
 bumps `version`, and preserves the prior look so a bad relock is recoverable.
@@ -224,7 +239,11 @@ false positive (a name mentioned in passing), add one the text implies but
 doesn't name. Overrides persist on the beat.
 
 **Fallbacks:** a character with no locked look for the current style injects its
-description text only, and the thread says so — degraded, never blocked.
+description text only, and the thread says so — degraded, never blocked. The same
+applies to **draft characters (Q6)**: they inject and generate normally, but the
+beat card badges them and the thread notes that consistency isn't guaranteed
+until the character is locked. A **stale look (Q4)** still injects — it was
+correct under the previous style string — but carries a "regenerate" affordance.
 
 ### Prompt assembly
 
@@ -301,8 +320,38 @@ styles as the acceptance case.
 
 ---
 
-## 10. Open questions for the build
+## 10. Resolved build decisions
 
-1. Should the **cast group shot** be required before the first multi-character scene, or offered? (Leaning: strongly offered, not required.)
-2. Does the presenter character need a **separate portrait-framed look** for avatars, distinct from its illustration look? (Leaning: yes — avatar models want chest-up front-facing; that's a second look type on the same character.)
-3. Should styles ever be **global** like characters, or stay project-scoped? (Leaning: project-scoped as decided; revisit if a second channel wants the same look.)
+All ten open questions are settled. No question in this plan is outstanding —
+the build starts from a closed spec.
+
+| # | Question | Decision | Where it lands |
+|---|---|---|---|
+| 1 | Cast group shot required? | **Offered prominently, never required** | §4.2 lock ritual, step 6 |
+| 2 | Presenter portrait look? | **Yes — two look types per character per style** (`illustration`, `portrait`) | `character_looks.look_type`; §4.2 step 5 |
+| 3 | Styles global? | **No — project-scoped**, as originally decided | §3 `styles.project_id` |
+| 4 | Style edited after locks? | **Mark looks stale, offer one-click regeneration.** Never silently regenerate (that's money), never silently ignore (that's drift) | `character_looks.stale` |
+| 5 | Character changed after videos exist? | **Pin the character version onto each video** — forward-only, history stays coherent | `videos.character_versions` |
+| 6 | Draft characters usable? | **Yes, but badged**, with a thread warning that consistency isn't guaranteed until locked | `characters.status`; §5 |
+| 7 | Locations and props? | **Yes — same mechanism, different role.** A location is a character that never moves | `characters.role` gains `location` |
+| 8 | Who owns the description? | **The operator.** After the first manual edit the agent proposes but never overwrites | `characters.description_owned_by_operator` |
+| 9 | Multi-style video selection? | **Default silently, switch in one click, always shown on the card** | `videos.style_id`; §4.3 |
+| 10 | Studio spend guardrails? | **Soft per-character budget with a running total — warn and continue, never block** | §4.2 spend visibility |
+
+**Decided by default (raise these if you disagree):** alias lists auto-derive
+from the character name and stay hand-editable; avatar capability is available to
+any character rather than only `role = 'presenter'`.
+
+### Two consequences worth calling out
+
+**Locations change the economics of the whole feature.** A recurring setting —
+"Bo's bedroom," "the meadow" — is currently regenerated from scratch every time
+it appears, which is the second-largest source of visual inconsistency after
+characters. Treating locations as characters means a twelve-song series shares
+one locked bedroom. It costs almost nothing to support because it's the same
+machinery, but only if `role` is designed in now rather than retrofitted.
+
+**Version pinning makes the outcome loop honest.** Because each video records the
+character versions it was made with, a performance comparison across a redesign
+becomes meaningful: you can ask whether Bo v2 actually outperformed Bo v1 rather
+than guessing. That turns a cosmetic change into a measurable one.
