@@ -276,16 +276,43 @@ catches slow drift before it becomes twelve inconsistent videos.
 
 ## 7. Build phases
 
-**Phase 1 — Data model + prompt assembly (headless)**
+**Phase 1 — Data model + prompt assembly (headless)** ✅ *shipped*
 Migrations for the five new tables and `videos.style_id`; the prompt composer;
 the name-matcher as a pure, unit-tested function; presenter back-compat shim.
 No UI. Existing behavior must be byte-identical when a project has no characters
 or styles — that's the phase's acceptance test.
 
-**Phase 2 — Character Studio UI**
+*Landed as:* `supabase/migrations/0072_character_studio.sql`,
+`packages/core/src/cast.ts` (pure), `src/lib/pipeline/cast-resolver.ts` (I/O),
+`tests/character-studio.test.ts` (25 cases).
+
+**Phase 2 — Character Studio UI** ✅ *shipped*
 The split view, candidate grids, upload-and-describe, the description editor,
 the lock ritual with auto-sheet generation. Wizard step + Cast tab. Premium
 model wired through the catalog with per-action defaults.
+
+*Landed as:*
+- `src/lib/adapters/reference-image.ts` — Nano Banana Pro (default) + FLUX.2
+  Pro; references switch the call to the model's edit/compose endpoint.
+- `src/lib/adapters/character-design.ts` — the design agent; forbidden from
+  writing art-medium words into a description.
+- `src/lib/pipeline/character-studio.ts` — all operations, `db`-injected.
+- `src/lib/actions/characters.ts` — 16 server actions (thin edge).
+- `supabase/migrations/0073_character_spend.sql` — `cost_ledger.character_id`,
+  so design spend is attributable per character while staying system-scoped and
+  therefore unable to eat a project's production cap.
+- Routes: `/characters`, `/characters/[cid]`, `/projects/[id]/cast`; the
+  new-project wizard's skippable **Look** step.
+- `tests/character-studio-phase2.test.ts` + `tests/character-studio-ui.test.ts`
+  (56 cases).
+
+Two deviations from the spec as written, both deliberate:
+- **Candidate grid defaults to 4, not 8.** At $0.15/image a default 2×4 grid is
+  $1.20 a press. Four is the default, eight the ceiling, and the count is a
+  visible control with the USD on the button.
+- **No fifth project tab.** The project tab bar stays at four (the mobile grid
+  tops out at five columns once Home is prepended), so Cast hangs off the
+  Library header and the *global* character library takes the new global tab.
 
 **Phase 3 — Auto-injection**
 Matcher into the generation path, per-beat chip overrides, caps and degraded
