@@ -86,6 +86,8 @@ export type StyleRow = {
   composition_rules: string | null;
   exclusions: string | null;
   is_default: boolean;
+  /** One frame with the whole cast in it — carries relative scale (Phase 4). */
+  group_shot_path?: string | null;
 };
 
 /* ------------------------------------------------------------------ */
@@ -462,7 +464,7 @@ export async function generateCandidates(
   const paths: string[] = [];
   if (res.provider === "mock") {
     for (let i = 0; i < count; i++) {
-      paths.push(`mock/characters/${opts.characterId}/${lookType}-${stamp}-${i}.png`);
+      paths.push(`mock/characters/${opts.characterId}/${opts.styleId}/${lookType}-${stamp}-${i}.png`);
     }
   } else {
     for (const [i, buf] of res.images.entries()) {
@@ -631,7 +633,7 @@ export async function generateCharacterSheet(
   const stamp = Date.now().toString(36);
   let path: string;
   if (res.provider === "mock") {
-    path = `mock/characters/${opts.characterId}/sheet-${stamp}.png`;
+    path = `mock/characters/${opts.characterId}/${opts.styleId}/sheet-${stamp}.png`;
   } else {
     path = `characters/${opts.characterId}/${opts.styleId}/sheet-${stamp}.png`;
     await uploadMedia(path, res.images[0], "image/png");
@@ -681,7 +683,7 @@ export async function generatePortraitLook(
   const stamp = Date.now().toString(36);
   let path: string;
   if (res.provider === "mock") {
-    path = `mock/characters/${opts.characterId}/portrait-${stamp}.png`;
+    path = `mock/characters/${opts.characterId}/${opts.styleId}/portrait-${stamp}.png`;
   } else {
     path = `characters/${opts.characterId}/${opts.styleId}/portrait-${stamp}.png`;
     await uploadMedia(path, res.images[0], "image/png");
@@ -699,6 +701,231 @@ export async function generatePortraitLook(
     .update({ canonical_image_path: path, status: "locked", stale: false })
     .eq("id", portrait.id);
   return { path, costUsd };
+}
+
+/* ------------------------------------------------------------------ */
+/* Phase 4 — multi-style batch work and the cast group shot            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Designate the character whose portrait drives this project's avatar shots
+ * (plan §8). `role` lives on the character, so designating one demotes any
+ * other presenter LINKED TO THIS PROJECT — two presenters in one channel would
+ * make which face talks a matter of row order.
+ */
+export async function setProjectPresenter(
+  db: Db,
+  opts: { projectId: string; characterId: string },
+): Promise<{ demoted: string[]; hasPortrait: boolean }> {
+  const { characters } = await loadProjectCastDetail(db, opts.projectId);
+  const target = characters.find((c) => c.id === opts.characterId);
+  if (!target) throw new Error("That character isn't in this project.");
+
+  const demoted: string[] = [];
+  for (const c of characters) {
+    if (c.id !== opts.characterId && c.role === "presenter") {
+      await db.from("characters").update({ role: "cast" }).eq("id", c.id);
+      demoted.push(c.name);
+    }
+  }
+  await db.from("characters").update({ role: "presenter" }).eq("id", opts.characterId);
+
+  // Avatar models frame chest-up, so a presenter without a portrait look will
+  // fall back to a full-body illustration and crop badly. Report it; the caller
+  // says so rather than silently producing a worse shot.
+  const styles = await listStyles(db, opts.projectId);
+  const styleId = styles.find((s) => s.is_default)?.id ?? styles[0]?.id ?? null;
+  const portrait = styleId ? await getLook(db, opts.characterId, styleId, "portrait") : null;
+  return { demoted, hasPortrait: Boolean(portrait?.canonical_image_path) };
+}
+
+export type BatchLookResult = {
+  /** {characterName: storage path} for looks that were produced. */
+  generated: { characterId: string; name: string; path: string }[];
+  /** Characters skipped because they already have a usable look here. */
+  skipped: string[];
+  failed: { name: string; error: string }[];
+  costUsd: number;
+  estimateUsd: number;
+};
+
+/**
+ * "Give every character a look in this style" — the button that makes a SECOND
+ * style practical (plan §7 Phase 4). Adding a style to an existing channel
+ * otherwise means walking the whole cast through the Studio one at a time.
+ *
+ * Generated looks land as DRAFTS, never auto-locked: a batch run is a starting
+ * point to review, and silently locking six characters the operator has not
+ * looked at would be exactly the "trust me" behaviour this whole feature
+ * exists to remove.
+ */
+export async function generateLooksForStyle(
+  db: Db,
+  opts: {
+    projectId: string;
+    styleId: string;
+    modelId?: string;
+    lookType?: LookType;
+    /** Include characters that already have a look (a deliberate restyle). */
+    includeExisting?: boolean;
+    /** Only characters whose look is stale — the "style changed" repair path. */
+    staleOnly?: boolean;
+  },
+): Promise<BatchLookResult> {
+  const { characters } = await loadProjectCastDetail(db, opts.projectId);
+  const lookType = opts.lookType ?? "illustration";
+  const model = getRefImageModel(opts.modelId ?? DEFAULT_REF_IMAGE_MODEL_ID);
+  if (!model) throw new Error("Unknown image model.");
+
+  const out: BatchLookResult = {
+    generated: [],
+    skipped: [],
+    failed: [],
+    costUsd: 0,
+    estimateUsd: 0,
+  };
+
+  for (const character of characters) {
+    const look = await getLook(db, character.id, opts.styleId, lookType);
+    const hasImage = Boolean(look?.canonical_image_path);
+    if (opts.staleOnly && !(hasImage && look?.stale)) {
+      out.skipped.push(character.name);
+      continue;
+    }
+    if (!opts.staleOnly && hasImage && !opts.includeExisting) {
+      out.skipped.push(character.name);
+      continue;
+    }
+    if (!character.description.trim()) {
+      out.failed.push({ name: character.name, error: "No description yet." });
+      continue;
+    }
+    try {
+      const res = await generateCandidates(db, {
+        characterId: character.id,
+        styleId: opts.styleId,
+        lookType,
+        count: 1,
+        modelId: model.id,
+        // A restyle must not be conditioned on the OLD style's image, or the
+        // new style never takes.
+        ignoreReferences: true,
+      });
+      const path = res.paths[0];
+      if (!path) {
+        out.failed.push({ name: character.name, error: "No image returned." });
+        continue;
+      }
+      const row = await getOrCreateLook(db, character.id, opts.styleId, lookType);
+      await db
+        .from("character_looks")
+        .update({ canonical_image_path: path, status: "draft", stale: false })
+        .eq("id", row.id);
+      out.generated.push({ characterId: character.id, name: character.name, path });
+      out.costUsd += res.costUsd;
+      out.estimateUsd += res.estimateUsd;
+    } catch (err) {
+      out.failed.push({
+        name: character.name,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+  return out;
+}
+
+/** What a batch run will cost before the operator presses it. */
+export async function estimateLooksForStyle(
+  db: Db,
+  opts: { projectId: string; styleId: string; modelId?: string; staleOnly?: boolean; includeExisting?: boolean },
+): Promise<{ count: number; usd: number }> {
+  const { characters } = await loadProjectCastDetail(db, opts.projectId);
+  const model = getRefImageModel(opts.modelId ?? DEFAULT_REF_IMAGE_MODEL_ID);
+  if (!model) return { count: 0, usd: 0 };
+  let count = 0;
+  for (const c of characters) {
+    const look = await getLook(db, c.id, opts.styleId, "illustration");
+    const hasImage = Boolean(look?.canonical_image_path);
+    if (opts.staleOnly) {
+      if (hasImage && look?.stale) count++;
+    } else if (!hasImage || opts.includeExisting) {
+      count++;
+    }
+  }
+  return { count, usd: estimateRefImageCost(model, count) };
+}
+
+/**
+ * One frame with the whole cast in it.
+ *
+ * Per-character references fix each identity but say nothing about how they
+ * relate — "knee-height to the children" is prose, and a model will cheerfully
+ * render a bunny the size of a bear. The group shot carries relative scale by
+ * construction, and it is conditioned on the locked looks so it agrees with
+ * them rather than inventing a seventh version of everyone.
+ */
+export async function generateCastGroupShot(
+  db: Db,
+  opts: { projectId: string; styleId: string; modelId?: string; characterIds?: string[] },
+): Promise<{ path: string | null; costUsd: number; names: string[] }> {
+  const model = getRefImageModel(opts.modelId ?? DEFAULT_REF_IMAGE_MODEL_ID);
+  if (!model) throw new Error("Unknown image model.");
+  const { characters } = await loadProjectCastDetail(db, opts.projectId);
+  const wanted = opts.characterIds
+    ? characters.filter((c) => opts.characterIds!.includes(c.id))
+    : characters;
+  const cast = wanted.filter((c) => c.role !== "location" && c.description.trim()).slice(0, 6);
+  if (cast.length < 2) {
+    throw new Error("A group shot needs at least two described characters.");
+  }
+
+  const { data: styleRow } = await db.from("styles").select("*").eq("id", opts.styleId).maybeSingle();
+  const style = styleSpec((styleRow as StyleRow | null) ?? null);
+
+  const refPaths: string[] = [];
+  for (const c of cast) {
+    const look = await getLook(db, c.id, opts.styleId, "illustration");
+    if (look?.canonical_image_path) refPaths.push(look.canonical_image_path);
+  }
+  const referenceUrls = await signedRefs(refPaths, model.maxReferences);
+
+  const blocks = cast.map((c) => characterBlock(castMemberOf(c))).join(" ");
+  const prompt =
+    `${style?.styleString ?? ""} ${blocks} ` +
+    `Group shot: all ${cast.length} characters standing together in a single line facing camera on a plain ` +
+    `background, full body, correct relative heights and proportions between them, even spacing, ` +
+    `neutral friendly expressions. No text, no letters, no numbers, no logos, no watermarks, ` +
+    `no extra characters.` +
+    (style?.exclusions ? ` ${style.exclusions}` : "");
+
+  const res = await generateReferenceImage({
+    model,
+    prompt: prompt.replace(/\s+/g, " ").trim(),
+    referenceUrls,
+    count: 1,
+    aspectRatio: "16:9",
+  });
+
+  const stamp = Date.now().toString(36);
+  let path: string;
+  if (res.provider === "mock") {
+    path = `mock/styles/${opts.styleId}/group-${stamp}.png`;
+  } else {
+    path = `styles/${opts.styleId}/group-${stamp}.png`;
+    await uploadMedia(path, res.images[0], "image/png");
+  }
+  const costUsd = res.provider === "mock" ? 0 : res.costUsd;
+  if (costUsd > 0) {
+    // Attributed to the first character so it lands in a per-character meter
+    // rather than nowhere; it is a cast-wide artifact either way.
+    await recordCharacterCost(db, cast[0].id, {
+      provider: "fal-ref-image",
+      usd: costUsd,
+      description: `Character Studio — cast group shot (${cast.map((c) => c.name).join(", ")})`,
+    });
+  }
+  await db.from("styles").update({ group_shot_path: path }).eq("id", opts.styleId);
+  return { path, costUsd, names: cast.map((c) => c.name) };
 }
 
 /* ------------------------------------------------------------------ */

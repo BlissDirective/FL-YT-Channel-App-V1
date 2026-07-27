@@ -177,11 +177,66 @@ describe("the scene-model cost lever", () => {
   });
 });
 
+/* ── Phase 4 surfaces ────────────────────────────────────────────── */
+
+describe("multi-style switcher", () => {
+  const src = read(WORKSPACE);
+
+  it("appears only when there is a real choice to make", () => {
+    expect(src).toMatch(/\(props\.styles\?\.length \?\? 0\) > 1 && \(/);
+  });
+
+  it("says plainly that switching does not restyle what already exists", () => {
+    expect(src).toMatch(/Existing visuals were made in the old style/);
+  });
+});
+
+describe("batch look tools", () => {
+  const src = read(CAST);
+
+  it("quote first, generate second — the total is never a surprise", () => {
+    expect(src).toMatch(/estimateStyleLooksAction/);
+    expect(src).toMatch(/setQuote\(\{ count: r\.count!, usd: r\.usd!, staleOnly \}\)/);
+    // The run path is only reachable from an accepted quote.
+    expect(src).toMatch(/const run = \(\) => \{\s*\n\s*if \(!quote\) return;/);
+  });
+
+  it("says the batch produced drafts to review, not locks", () => {
+    expect(src).toMatch(/generated as drafts/);
+    expect(src).toMatch(/review and lock/);
+  });
+
+  it("offers the preset import only to a project that has no styles yet", () => {
+    expect(src).toMatch(/\{presets\.length > 0 && styles\.length === 0 && \(/);
+    expect(src).toMatch(/Nothing was generated yet/);
+  });
+});
+
+describe("drift stays advisory", () => {
+  it("never blocks — it badges and offers a re-roll", () => {
+    const drift = read("src/lib/adapters/character-drift.ts");
+    expect(drift).toMatch(/ADVISORY BY DESIGN/);
+    expect(drift).toMatch(/Nothing is blocked/);
+    // A failed check is "no opinion", never a bad verdict.
+    expect(drift).toMatch(/treated as no opinion/);
+  });
+
+  it("the engine records it as a QC row and keeps going", () => {
+    const src = read(ENGINE);
+    expect(src).toMatch(/gate: "CHARACTER"/);
+    expect(src).toMatch(/await detectCharacterDrift\(db, video, project\);/);
+    // It runs before the status flip, and its failure can't stop it.
+    expect(src).toMatch(/detectCharacterDrift[\s\S]{0,200}?setStatus\(db, video\.id, "ASSETS_READY"\)/);
+    expect(src).toMatch(/drift detection failed \(non-blocking\)/);
+  });
+});
+
 describe("migrations stay additive", () => {
   for (const file of [
     "supabase/migrations/0072_character_studio.sql",
     "supabase/migrations/0073_character_spend.sql",
     "supabase/migrations/0074_character_scene_model.sql",
+    "supabase/migrations/0075_style_group_shot.sql",
   ]) {
     it(`${file} adds without destroying`, () => {
       const sql = read(file);

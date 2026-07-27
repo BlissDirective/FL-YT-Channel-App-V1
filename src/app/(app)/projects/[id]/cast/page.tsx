@@ -6,9 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { listCharacters, loadProjectCastDetail } from "@/lib/pipeline/character-studio";
 import { modelCatalog } from "@/lib/models/catalog";
+import { CHANNEL_PRESETS } from "@/lib/pipeline/channel-presets";
 import { DEFAULT_REF_IMAGE_MODEL_ID } from "@/lib/adapters/reference-image";
 import { StatusChip } from "@/components/ui/status-chip";
-import { CastManager, RemoveFromProject } from "./cast-manager";
+import { CastManager, PresenterToggle, RemoveFromProject } from "./cast-manager";
 
 export const dynamic = "force-dynamic";
 
@@ -57,13 +58,16 @@ export default async function ProjectCastPage({
 
       <CastManager
         projectId={id}
-        styles={styles.map((s) => ({
-          id: s.id,
-          name: s.name,
-          styleString: s.style_string ?? "",
-          exclusions: s.exclusions ?? "",
-          isDefault: s.is_default,
-        }))}
+        styles={await Promise.all(
+          styles.map(async (s) => ({
+            id: s.id,
+            name: s.name,
+            styleString: s.style_string ?? "",
+            exclusions: s.exclusions ?? "",
+            isDefault: s.is_default,
+            groupShotUrl: s.group_shot_path ? await getSignedMediaUrl(s.group_shot_path) : null,
+          })),
+        )}
         available={all
           .filter((c) => !linked.has(c.id))
           .map((c) => ({ id: c.id, name: c.name }))}
@@ -74,6 +78,7 @@ export default async function ProjectCastPage({
           pros: m.pros,
         }))}
         sceneModelId={project.character_image_model ?? DEFAULT_REF_IMAGE_MODEL_ID}
+        presets={CHANNEL_PRESETS.map((p) => ({ id: p.id, label: p.label, blurb: p.blurb }))}
       />
 
       <section className="space-y-2">
@@ -107,7 +112,13 @@ export default async function ProjectCastPage({
                         {c.status === "locked" ? "locked" : "draft"}
                       </StatusChip>
                     </div>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <PresenterToggle
+                        projectId={id}
+                        characterId={c.id}
+                        name={c.name}
+                        isPresenter={c.role === "presenter"}
+                      />
                       {styles.map((s) => (
                         <span
                           key={s.id}

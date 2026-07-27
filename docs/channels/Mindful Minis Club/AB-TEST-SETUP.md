@@ -4,7 +4,47 @@ How to stand the two style tracks up in the app so the comparison is valid.
 
 ---
 
-## Use TWO projects, not one
+> **Superseded — read this first.** The Character Studio (Phase 4) makes art
+> styles first-class objects, so the two-project split below is no longer
+> necessary. Use **[One project, two styles](#one-project-two-styles-current)**
+> instead. The original two-project method still works and is kept here for
+> anyone already running it.
+
+---
+
+## One project, two styles (current)
+
+A style is now its own record with its own string, palette, and exclusions, and
+each video names which style it renders in. The cast is separate again: one
+description per character, one locked image *per style*. That removes the
+reason the test needed two projects.
+
+1. Create **one** project — `Mindful Minis Club`.
+2. Open **Cast** (from the Library header) → **Start from a channel preset** →
+   *Mindful Minis Club*. That creates the six characters and both style tracks,
+   verbatim from `STYLE-LOCK-A.md` / `-B.md`, and costs nothing. It is
+   idempotent and never overwrites a description or style string you have
+   already edited.
+3. Per style, press **Looks for everyone** (it quotes the total first — six
+   characters is ~$0.90 on Nano Banana Pro). Review each character in the
+   Studio and **lock** the one that best matches the written block. The text is
+   the source of truth, not the prettiest render.
+4. Per style, press **Group shot** once. It fixes relative height, which is the
+   single most common failure in a frame with a child and a knee-height bunny.
+5. On each video, pick the style from the **Art style** control in the
+   workspace header. Alternate A/B/A/B across the first ten videos.
+
+Why this is a better test than two projects: the cast is *identical* by
+construction rather than by careful copy-paste, both tracks share one exemplar
+library and one outcome loop, and the only variable left is the art direction —
+which is what you were trying to measure.
+
+The comparison itself doesn't change: same channel, alternating uploads, and
+`videos.style_id` tells you which track any given video belongs to.
+
+---
+
+## Use TWO projects (original method)
 
 The app carries exactly one **Project Instructions** field per project, and that
 field is what locks the art style into every visual prompt. Running both styles

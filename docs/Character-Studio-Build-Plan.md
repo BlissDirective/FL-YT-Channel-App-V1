@@ -346,11 +346,45 @@ into its "cache table absent" guard in *every* test since that cache was added.
 Fixed in `tests/helpers/fake-db.ts`; the full suite still passes with caching
 now genuinely exercised.
 
-**Phase 4 — Multi-style + avatar + drift**
+**Phase 4 — Multi-style + avatar + drift** ✅ *shipped*
 Style switcher per video, "generate looks for all characters in this style,"
 avatar generator reading the presenter character, drift detection, cast group
 shots. **Migrate Mindful Minis** from two projects to one project with two
 styles as the acceptance case.
+
+*Landed as:*
+- **Style switcher** in the workspace header, shown only when the project has
+  more than one style. Switching says plainly that existing visuals were made
+  in the old style rather than silently implying a restyle.
+- **Batch looks per style** — "Looks for everyone" and "Regenerate stale", both
+  quoting the total before they spend, both producing DRAFTS. A restyle
+  deliberately ignores the old style's image as a reference, or the new style
+  never takes.
+- **Cast group shot** (`0075_style_group_shot.sql`): one frame with the whole
+  cast, conditioned on the locked looks, asking for correct relative heights.
+  It rides along as an extra reference on scenes with two or more characters,
+  appended LAST so it can never crowd a per-character identity out of a capped
+  reference list.
+- **Presenter designation** on the Cast page: promoting one demotes the
+  incumbent in that project, and the UI warns when the new presenter has no
+  chest-up portrait (avatar models crop a full-body illustration badly).
+- **Drift detection** (`src/lib/adapters/character-drift.ts`): a vision
+  comparison of each cast frame against its locked reference, judging identity
+  only and explicitly told that pose, expression, angle and background are
+  supposed to differ. Verdicts land as `qc_reviews` rows against the asset, so
+  the existing beat-card badge shows them with no new UI. Advisory — a failed
+  check is "no opinion", never "bad", and nothing blocks.
+- **The migration** (`src/lib/pipeline/channel-presets.ts`): the Mindful Minis
+  cast and both art tracks as data, applied to one project from the Cast page.
+  Idempotent, spends nothing, links an existing global character rather than
+  duplicating it, and never overwrites a description or style string the
+  operator has already tuned. `AB-TEST-SETUP.md` now leads with the
+  one-project method.
+- `tests/character-studio-phase4.test.ts` (29 cases) + Phase 4 UI contracts.
+
+One bug this phase surfaced: in mock mode, a character's look paths omitted the
+style id, so the same character's looks in two different styles collided on one
+path. Live mode was always correct; the mock branch is now consistent with it.
 
 ---
 

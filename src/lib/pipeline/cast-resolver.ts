@@ -191,6 +191,23 @@ export async function resolveSceneCast(
     } catch (err) {
       console.error("look resolve failed (non-blocking):", err);
     }
+    // Phase 4: two or more characters in one frame is where relative scale
+    // goes wrong, so the style's group shot rides along as an extra reference.
+    // It goes LAST — the per-character references are the identity anchors and
+    // must not be crowded out of a capped reference list.
+    if (referencePaths.length >= 2) {
+      try {
+        const { data: styleRow } = await db
+          .from("styles")
+          .select("group_shot_path")
+          .eq("id", opts.styleId)
+          .maybeSingle();
+        const group = (styleRow as { group_shot_path?: string | null } | null)?.group_shot_path;
+        if (group) referencePaths.push(group);
+      } catch {
+        /* column/table absent (migration pending) → no group reference */
+      }
+    }
   } else {
     textOnlyNames.push(...characters.map((c) => c.name));
   }

@@ -39,6 +39,7 @@ import {
   setWorkspaceModeAction,
   type ComposerResult,
 } from "@/lib/actions/workspace";
+import { setVideoStyleAction } from "@/lib/actions/characters";
 import type { ComposerMode } from "@/lib/workspace/router";
 
 export type WsBeat = {
@@ -104,6 +105,10 @@ export type WorkspaceProps = {
   beats: WsBeat[];
   /** The project's cast, for the per-beat chips. Empty = no cast. */
   castOptions?: WsCastOption[];
+  /** The project's art styles (Phase 4). Shown only when there's a choice. */
+  styles?: { id: string; name: string; isDefault: boolean }[];
+  /** Which style THIS video renders in; null = the project default. */
+  styleId?: string | null;
   renders: { id: string; url: string | null; kind: string }[];
   thumbs: { id: string; url: string | null }[];
   messages: WsMessage[];
@@ -297,6 +302,46 @@ export function WorkspaceView(props: WorkspaceProps) {
       </div>
 
       <ProgressRail steps={props.railSteps as never} current={props.railIndex} />
+
+      {/* Multi-style switcher (Phase 4): only shown when there's a real choice.
+          One cast, two looks — this is the control that makes an art-direction
+          A/B a per-video decision instead of a second project. */}
+      {(props.styles?.length ?? 0) > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-muted">Art style</span>
+          <select
+            className="rounded-full border border-line bg-card px-3 py-1.5 text-xs font-semibold"
+            value={props.styleId ?? ""}
+            disabled={isPending}
+            aria-label="Art style for this video"
+            onChange={(e) => {
+              const next = e.target.value || null;
+              startTransition(async () => {
+                const r = await setVideoStyleAction({
+                  projectId: props.projectId,
+                  videoId: props.videoId,
+                  styleId: next,
+                });
+                appendLocal(
+                  "agent",
+                  r.ok
+                    ? `Switched to ${props.styles?.find((s) => s.id === next)?.name ?? "the project default"}. Existing visuals were made in the old style — re-roll the ones you want restyled.`
+                    : `Couldn't switch style: ${r.error}`,
+                );
+                router.refresh();
+              });
+            }}
+          >
+            <option value="">Project default</option>
+            {props.styles?.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+                {s.isDefault ? " (default)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Trust-the-chat: holds/pauses arrive as thread messages (engine posts
           them; the page injects a virtual one for pre-existing pauses) — no

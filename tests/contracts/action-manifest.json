@@ -39,6 +39,12 @@
     "lockCharacterAction(opts: { characterId: string; styleId: string; lookType?: LookType; canonicalImagePath: string; generateSheet?: boolean; modelId?: string; projectId?: string | null; })",
     "generateSheetAction(opts: { characterId: string; styleId: string; lookType?: LookType; modelId?: string; })",
     "generatePortraitLookAction(opts: { characterId: string; styleId: string; modelId?: string; })",
+    "estimateStyleLooksAction(opts: { projectId: string; styleId: string; modelId?: string; staleOnly?: boolean; includeExisting?: boolean; })",
+    "generateStyleLooksAction(opts: { projectId: string; styleId: string; modelId?: string; staleOnly?: boolean; includeExisting?: boolean; })",
+    "generateGroupShotAction(opts: { projectId: string; styleId: string; modelId?: string; })",
+    "setPresenterAction(opts: { projectId: string; characterId: string; })",
+    "setVideoStyleAction(opts: { projectId: string; videoId: string; styleId: string | null; })",
+    "applyChannelPresetAction(opts: { projectId: string; presetId: string; })",
     "sendDesignMessageAction(opts: { characterId: string; text: string; styleId?: string | null; channelContext?: string | null; autoGenerate?: boolean; modelId?: string; })",
     "acceptProposalAction(opts: { characterId: string; description: string; identityAnchor?: string | null; })"
   ],

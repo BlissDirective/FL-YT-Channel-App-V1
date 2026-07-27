@@ -10,22 +10,31 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getRefImageModel } from "@/lib/adapters/reference-image";
 import {
+  applyChannelPreset,
+  type PresetApplyReport,
+} from "@/lib/pipeline/channel-presets";
+import {
   acceptProposedDescription,
   createCharacter,
   createStyle,
   deleteCharacter,
   deleteStyle,
   designChatTurn,
+  estimateLooksForStyle,
   generateCandidates,
+  generateCastGroupShot,
+  generateLooksForStyle,
   generateCharacterSheet,
   generatePortraitLook,
   linkCharacterToProject,
   lockCharacterLook,
   setDefaultStyle,
+  setProjectPresenter,
   unlinkCharacterFromProject,
   updateCharacter,
   updateStyle,
   uploadCharacterReference,
+  type BatchLookResult,
   type CandidateResult,
   type CharacterRole,
   type DesignTurn,
@@ -334,6 +343,125 @@ export async function generatePortraitLookAction(opts: {
     const res = await generatePortraitLook(db, opts);
     refreshCharacter(opts.characterId);
     return { ok: true, path: res.path };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/* ── Phase 4: multi-style batch work ─────────────────────────────── */
+
+/**
+ * Give every character a look in this style. Two-step by design: the caller
+ * asks for the estimate, shows it, and only then runs — a batch that silently
+ * spends six characters' worth of premium renders is exactly the surprise the
+ * cost rules exist to prevent.
+ */
+export async function estimateStyleLooksAction(opts: {
+  projectId: string;
+  styleId: string;
+  modelId?: string;
+  staleOnly?: boolean;
+  includeExisting?: boolean;
+}): Promise<{ ok: boolean; error?: string; count?: number; usd?: number }> {
+  try {
+    const db = await createClient();
+    const { count, usd } = await estimateLooksForStyle(db, opts);
+    return { ok: true, count, usd };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function generateStyleLooksAction(opts: {
+  projectId: string;
+  styleId: string;
+  modelId?: string;
+  staleOnly?: boolean;
+  includeExisting?: boolean;
+}): Promise<{ ok: boolean; error?: string; result?: BatchLookResult }> {
+  try {
+    const db = await createClient();
+    const result = await generateLooksForStyle(db, opts);
+    revalidatePath(`/projects/${opts.projectId}/cast`);
+    return { ok: true, result };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function generateGroupShotAction(opts: {
+  projectId: string;
+  styleId: string;
+  modelId?: string;
+}): Promise<{ ok: boolean; error?: string; path?: string | null; names?: string[] }> {
+  try {
+    const db = await createClient();
+    const res = await generateCastGroupShot(db, opts);
+    revalidatePath(`/projects/${opts.projectId}/cast`);
+    return { ok: true, path: res.path, names: res.names };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/**
+ * Designate whose face talks (plan §8). Avatar shots lip-sync ONE image; this
+ * is where the operator says which character that is, instead of it being
+ * whichever presenter-role row happened to come back first.
+ */
+export async function setPresenterAction(opts: {
+  projectId: string;
+  characterId: string;
+}): Promise<{ ok: boolean; error?: string; demoted?: string[]; hasPortrait?: boolean }> {
+  try {
+    const db = await createClient();
+    const res = await setProjectPresenter(db, opts);
+    refreshCharacter(opts.characterId, opts.projectId);
+    return { ok: true, demoted: res.demoted, hasPortrait: res.hasPortrait };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/** Render THIS video in a different style (Phase 4 multi-style switcher). */
+export async function setVideoStyleAction(opts: {
+  projectId: string;
+  videoId: string;
+  styleId: string | null;
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const db = await createClient();
+    const { error } = await db
+      .from("videos")
+      .update({ style_id: opts.styleId })
+      .eq("id", opts.videoId);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/projects/${opts.projectId}/videos/${opts.videoId}`);
+    return { ok: true };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/**
+ * Import a whole cast + its art styles into this project (Phase 4).
+ *
+ * This is the two-projects-to-one migration: the Mindful Minis A/B needed two
+ * projects only because one instructions field can't hold two art styles. With
+ * styles as first-class objects it doesn't, so the preset lands both tracks in
+ * one project and the A/B becomes a per-video switch. Idempotent; spends
+ * nothing (looks are generated afterwards, per style, with the cost quoted).
+ */
+export async function applyChannelPresetAction(opts: {
+  projectId: string;
+  presetId: string;
+}): Promise<{ ok: boolean; error?: string; report?: PresetApplyReport }> {
+  try {
+    const db = await createClient();
+    const report = await applyChannelPreset(db, opts);
+    revalidatePath(`/projects/${opts.projectId}/cast`);
+    revalidatePath("/characters");
+    return { ok: true, report };
   } catch (err) {
     return fail(err);
   }

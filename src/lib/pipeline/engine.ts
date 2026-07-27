@@ -52,6 +52,13 @@ import {
   getRefImageModel,
 } from "@/lib/adapters/reference-image";
 import {
+  DRIFT_WARN_SCORE,
+  checkCharacterDrift,
+  driftSummary,
+  isDriftCheckLive,
+  type DriftVerdict,
+} from "@/lib/adapters/character-drift";
+import {
   DEFAULT_SONG_MODEL_ID,
   estimateSongCost,
   generateSong,
@@ -1324,7 +1331,106 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
   // actually rendered with, no matter what the Studio does next.
   await recordCastOutcome(db, video, clipResults);
 
+  // Phase 4: is that actually still Bo? Advisory — badges and offers a re-roll,
+  // never blocks. Runs last so it sees the final frames.
+  if (!stick) await detectCharacterDrift(db, video, project);
+
   await setStatus(db, video.id, "ASSETS_READY");
+}
+
+/**
+ * Compare each cast frame against the character's locked reference (§6).
+ *
+ * Reference conditioning makes a character mostly consistent; over twelve
+ * videos "mostly" is how a channel ends up with four different Bos, and the
+ * failure is invisible one frame at a time. Verdicts land as `qc_reviews` rows
+ * against the asset, so the existing beat-card QC badge shows them with no new
+ * UI, and the summary goes into the thread.
+ *
+ * Only checks frames that were actually rendered against a reference — a
+ * text-only character has nothing to drift FROM.
+ */
+async function detectCharacterDrift(db: Db, video: Video, project: Project): Promise<void> {
+  if (!isDriftCheckLive()) return;
+  try {
+    const { data: clips } = await db
+      .from("assets")
+      .select("id, beat_index, storage_path, meta")
+      .eq("video_id", video.id)
+      .eq("kind", "clip");
+    const rows = ((clips ?? []) as {
+      id: string;
+      beat_index: number | null;
+      storage_path: string | null;
+      meta: Record<string, unknown>;
+    }[]).filter((c) => {
+      const req = c.meta?.request as { referencePaths?: string[] } | undefined;
+      return c.beat_index != null && c.storage_path && (req?.referencePaths?.length ?? 0) > 0;
+    });
+    if (rows.length === 0) return;
+
+    const cast = await loadProjectCast(db, project.id);
+    const results: { beatIdx: number; name: string; verdict: DriftVerdict }[] = [];
+
+    for (const row of rows) {
+      const meta = row.meta as {
+        cast?: { characterIds?: string[] };
+        request?: { referencePaths?: string[] };
+      };
+      // One character per frame is checked — the FIRST, which is the scene's
+      // subject by first-mention ordering. Checking all of them multiplies the
+      // vision spend for diminishing signal.
+      const characterId = meta.cast?.characterIds?.[0];
+      const referencePath = meta.request?.referencePaths?.[0];
+      const member = cast.find((c) => c.id === characterId);
+      if (!member || !referencePath) continue;
+
+      const [renderedUrl, referenceUrl] = await Promise.all([
+        getSignedMediaUrl(row.storage_path!),
+        getSignedMediaUrl(referencePath),
+      ]);
+      if (!renderedUrl || !referenceUrl) continue;
+
+      const verdict = await checkCharacterDrift({
+        renderedUrl,
+        referenceUrl,
+        characterName: member.name,
+        identityAnchor: member.identityAnchor,
+      });
+      if (!verdict) continue;
+      results.push({ beatIdx: row.beat_index!, name: member.name, verdict });
+
+      if (verdict.costUsd > 0) {
+        await recordCost(
+          db,
+          video,
+          { provider: "anthropic", usd: verdict.costUsd, description: "Character drift check" },
+          `beat ${row.beat_index! + 1}`,
+        );
+      }
+      const drifted = verdict.score < DRIFT_WARN_SCORE || !verdict.anchorHeld;
+      await db.from("qc_reviews").insert({
+        video_id: video.id,
+        asset_id: row.id,
+        gate: "CHARACTER",
+        score: verdict.score,
+        verdict: drifted ? "drift" : "on-model",
+        issues: drifted
+          ? [
+              ...(verdict.anchorHeld ? [] : [`identity anchor missing: ${member.identityAnchor ?? "—"}`]),
+              ...verdict.issues,
+            ].slice(0, 4)
+          : [],
+        strengths: [],
+        auto_approved: false,
+      });
+    }
+
+    const note = driftSummary(results);
+    if (note) await postWorkspaceNote(db, video, note, { kind: "drift" });
+  } catch (err) {
+    console.error("drift detection failed (non-blocking):", err);
+  }
 }
 
 /** Persist `videos.character_versions` and narrate the cast into the thread. */

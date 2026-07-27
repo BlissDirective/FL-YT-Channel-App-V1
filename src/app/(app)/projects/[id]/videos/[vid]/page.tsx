@@ -9,6 +9,7 @@ import {
   matchCast,
 } from "@studio/core";
 import { loadProjectCast } from "@/lib/pipeline/cast-resolver";
+import { listStyles } from "@/lib/pipeline/character-studio";
 import { createClient } from "@/lib/supabase/server";
 import {
   getClipJobs,
@@ -202,6 +203,7 @@ export default async function VideoDetailPage({
     // auto-matcher whose decisions only surface after you've paid for the image
     // is not correctable, it's just a surprise.
     const projectCast = await loadProjectCast(supabase, id);
+    const projectStyles = await listStyles(supabase, id);
     const castOptions = projectCast.map((c) => ({
       id: c.id,
       name: c.name,
@@ -287,6 +289,8 @@ export default async function VideoDetailPage({
           nextStageLabel={NEXT_STAGE[v.status] ?? null}
           beats={wsBeats}
           castOptions={castOptions}
+          styles={projectStyles.map((s) => ({ id: s.id, name: s.name, isDefault: s.is_default }))}
+          styleId={(v as { style_id?: string | null }).style_id ?? null}
           renders={renderUrls}
           thumbs={thumbUrls}
           messages={(() => {
