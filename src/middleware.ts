@@ -13,6 +13,9 @@ const PUBLIC_PATHS = [
   "/launch",
   "/legal",
   "/login",
+  // Password-reset landing: the operator arrives logged out, clicking the
+  // recovery link from their email; the session is established client-side.
+  "/auth",
   "/api/cron",
   "/api/mcp",
   "/api/telegram",
