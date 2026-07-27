@@ -52,6 +52,11 @@ export type Project = {
   /** AI Avatar: storage path of the fixed presenter image (one image = one
       consistent character across every avatar shot). Null = avatars off. */
   presenter_image_path: string | null;
+  /** Character Studio (Phase 3): which reference-capable image model renders
+      beats that have a matched, locked cast member. Null = the adapter default
+      (Nano Banana Pro). Beats with no cast never touch this — they stay on the
+      existing FLUX path at the existing price. */
+  character_image_model: string | null;
   /** Director Mode (Fable-5-Director-Mode-Build-Spec.md). 'autonomous' (default)
       is today's engine-driven behavior; 'director' hands every stage transition
       to the operator — the engine never self-advances, sweeps skip the project,
@@ -551,6 +556,10 @@ export type ScriptBeat = {
   shotType: "hero" | "broll" | "stock";
   /** Art-director camera motion (undefined → render default zoom-in). */
   motion?: BeatMotion;
+  /** Character Studio (Phase 3): the operator's correction to the name-matcher
+      for THIS beat. `add` forces a character into the frame the text never
+      names; `remove` takes out a false positive. Absent = trust the matcher. */
+  cast?: { add?: string[]; remove?: string[] };
 };
 
 export type Script = {

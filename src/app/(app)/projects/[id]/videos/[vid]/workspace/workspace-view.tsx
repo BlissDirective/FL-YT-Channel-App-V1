@@ -35,6 +35,7 @@ import {
   continueStageAction,
   saveInstructionsAction,
   sendComposerMessage,
+  setBeatCastAction,
   setWorkspaceModeAction,
   type ComposerResult,
 } from "@/lib/actions/workspace";
@@ -52,7 +53,18 @@ export type WsBeat = {
   visualStale: boolean;
   visualProvider: string | null;
   qc?: { score: number | null; verdict: string | null; issues: string[] } | null;
+  /** Character Studio Phase 3: who the matcher put in this frame, and the
+      baseline it decided on its own (so corrections can be expressed as a diff
+      that survives later edits to the beat text). Null = project has no cast. */
+  cast?: {
+    matchedIds: string[];
+    ids: string[];
+    names: string[];
+    droppedNames: string[];
+  } | null;
 };
+
+export type WsCastOption = { id: string; name: string; status: string };
 
 export type WsMessage = {
   id: string;
@@ -90,6 +102,8 @@ export type WorkspaceProps = {
   continueEstimateUsd: number;
   nextStageLabel: string | null;
   beats: WsBeat[];
+  /** The project's cast, for the per-beat chips. Empty = no cast. */
+  castOptions?: WsCastOption[];
   renders: { id: string; url: string | null; kind: string }[];
   thumbs: { id: string; url: string | null }[];
   messages: WsMessage[];
@@ -407,6 +421,26 @@ export function WorkspaceView(props: WorkspaceProps) {
                           <span className="font-semibold text-ink">Visual direction:</span> {b.visualPrompt}
                         </p>
                       )}
+                      {b.cast && (
+                        <CastChips
+                          beat={b}
+                          options={props.castOptions ?? []}
+                          disabled={isPending}
+                          onChange={(add, remove) => {
+                            startTransition(async () => {
+                              const r = await setBeatCastAction({
+                                projectId: props.projectId,
+                                videoId: props.videoId,
+                                beatIdx: b.idx,
+                                add,
+                                remove,
+                              });
+                              if (!r.ok) appendLocal("agent", `Couldn't change the cast: ${r.error}`);
+                              router.refresh();
+                            });
+                          }}
+                        />
+                      )}
                       {b.visualUrl ? (
                         <div className="overflow-hidden rounded-lg border border-line">
                           {b.visualKind === "clip" && b.visualUrl.includes(".mp4") ? (
@@ -649,6 +683,108 @@ export function WorkspaceView(props: WorkspaceProps) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Per-beat cast chips (Character Studio §4.4).
+ *
+ * The auto-matcher is a strong default, not an oracle: a short name that is
+ * also an ordinary word will match it, and a scene can be about someone the
+ * text never names. Both are one tap here, and — critically — the chips show
+ * BEFORE anything is rendered, so a wrong guess costs a tap rather than an
+ * image.
+ *
+ * Corrections are stored as a diff against what the matcher found on its own,
+ * so they still mean the right thing after the beat's text is edited.
+ */
+function CastChips({
+  beat,
+  options,
+  disabled,
+  onChange,
+}: {
+  beat: WsBeat;
+  options: WsCastOption[];
+  disabled?: boolean;
+  onChange: (add: string[], remove: string[]) => void;
+}) {
+  const cast = beat.cast;
+  const [picking, setPicking] = useState(false);
+  if (!cast) return null;
+
+  const matched = new Set(cast.matchedIds);
+  /** Turn "the set I want" into add/remove relative to the matcher. */
+  const commit = (desired: string[]) => {
+    const want = new Set(desired);
+    onChange(
+      desired.filter((id) => !matched.has(id)),
+      cast.matchedIds.filter((id) => !want.has(id)),
+    );
+  };
+  const absent = options.filter((o) => !cast.ids.includes(o.id));
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">In frame</span>
+      {cast.names.length === 0 && <span className="text-xs text-muted">nobody</span>}
+      {cast.ids.map((id, i) => (
+        <span
+          key={id}
+          className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold"
+        >
+          {cast.names[i]}
+          <button
+            type="button"
+            aria-label={`Remove ${cast.names[i]} from beat ${beat.idx + 1}`}
+            disabled={disabled}
+            className="text-muted hover:text-coral"
+            onClick={() => commit(cast.ids.filter((x) => x !== id))}
+          >
+            ✕
+          </button>
+        </span>
+      ))}
+      {absent.length > 0 &&
+        (picking ? (
+          <select
+            autoFocus
+            className="rounded-full border border-line bg-card px-2 py-0.5 text-xs font-semibold"
+            defaultValue=""
+            aria-label={`Add a character to beat ${beat.idx + 1}`}
+            onChange={(e) => {
+              if (e.target.value) commit([...cast.ids, e.target.value]);
+              setPicking(false);
+            }}
+            onBlur={() => setPicking(false)}
+          >
+            <option value="">Pick someone…</option>
+            {absent.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+                {o.status === "draft" ? " (draft)" : ""}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <button
+            type="button"
+            disabled={disabled}
+            className="rounded-full border border-line px-2 py-0.5 text-xs font-semibold text-muted hover:text-ink"
+            onClick={() => setPicking(true)}
+          >
+            + add
+          </button>
+        ))}
+      {cast.droppedNames.length > 0 && (
+        <span
+          className="text-[11px] text-muted"
+          title="Matched but cut to keep the frame coherent — add them back if this beat is really about them."
+        >
+          left out: {cast.droppedNames.join(", ")}
+        </span>
+      )}
     </div>
   );
 }

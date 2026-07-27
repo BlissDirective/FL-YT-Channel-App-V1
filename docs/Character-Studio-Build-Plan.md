@@ -314,9 +314,37 @@ Two deviations from the spec as written, both deliberate:
   tops out at five columns once Home is prepended), so Cast hangs off the
   Library header and the *global* character library takes the new global tab.
 
-**Phase 3 — Auto-injection**
+**Phase 3 — Auto-injection** ✅ *shipped*
 Matcher into the generation path, per-beat chip overrides, caps and degraded
 fallbacks, thread narration of what was injected.
+
+*Landed as:*
+- `makeBeatClip` renders a beat on the reference-capable model, conditioned on
+  the matched characters' locked images — **only** when the beat has at least
+  one matched character with a locked look. Everything else stays on the
+  existing FLUX path, at the existing price, on the byte-identical cache key.
+- The FLUX cache key now includes the reference set and the cast model for cast
+  beats, so a cached frame can never be served to a different cast.
+- Every degradation falls back to FLUX rather than failing the beat: no locked
+  look (description still injects), a mock-mode look with no signable URL, a
+  reference-model outage, a missing table.
+- `videos.character_versions` is stamped at the end of the asset stage, and one
+  thread line names who was in the video, how many beats used real references,
+  and what was left out and why.
+- Per-beat chips on the beat card show the matcher's verdict **before** anything
+  is rendered, and post corrections as a diff against it. Chat reaches the same
+  action ("add Breeze to beat 3").
+- `supabase/migrations/0074_character_scene_model.sql` +
+  a Cast-page selector: the per-project cost lever, because injecting references
+  moves a cast beat from ~$0.025 to ~$0.15 and that should be a choice.
+- `tests/character-studio-phase3.test.ts` (27 cases) including an end-to-end run
+  of the real pipeline with a cast.
+
+One bug this phase surfaced in the test harness itself: the fake query-builder
+had no `upsert`, so the engine's FLUX-cache write had been silently throwing
+into its "cache table absent" guard in *every* test since that cache was added.
+Fixed in `tests/helpers/fake-db.ts`; the full suite still passes with caching
+now genuinely exercised.
 
 **Phase 4 — Multi-style + avatar + drift**
 Style switcher per video, "generate looks for all characters in this style,"

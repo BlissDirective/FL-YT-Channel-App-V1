@@ -5,6 +5,8 @@ import { getProject } from "@/lib/db/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { listCharacters, loadProjectCastDetail } from "@/lib/pipeline/character-studio";
+import { modelCatalog } from "@/lib/models/catalog";
+import { DEFAULT_REF_IMAGE_MODEL_ID } from "@/lib/adapters/reference-image";
 import { StatusChip } from "@/components/ui/status-chip";
 import { CastManager, RemoveFromProject } from "./cast-manager";
 
@@ -65,6 +67,13 @@ export default async function ProjectCastPage({
         available={all
           .filter((c) => !linked.has(c.id))
           .map((c) => ({ id: c.id, name: c.name }))}
+        models={modelCatalog("reference-image").map((m) => ({
+          id: m.id,
+          label: m.label,
+          unitUsd: m.unitUsd,
+          pros: m.pros,
+        }))}
+        sceneModelId={project.character_image_model ?? DEFAULT_REF_IMAGE_MODEL_ID}
       />
 
       <section className="space-y-2">

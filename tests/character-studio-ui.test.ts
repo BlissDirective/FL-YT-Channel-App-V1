@@ -124,6 +124,79 @@ describe("the optional wizard step", () => {
   });
 });
 
+/* ── Phase 3 surfaces ────────────────────────────────────────────── */
+
+const WORKSPACE = "src/app/(app)/projects/[id]/videos/[vid]/workspace/workspace-view.tsx";
+const CANVAS = "src/app/(app)/projects/[id]/videos/[vid]/page.tsx";
+const ENGINE = "src/lib/pipeline/engine.ts";
+
+describe("per-beat cast chips", () => {
+  const src = read(WORKSPACE);
+
+  it("shows who is in the frame on the beat card, before anything is rendered", () => {
+    expect(src).toMatch(/function CastChips\(/);
+    expect(src).toMatch(/In frame/);
+    // Rendered from the matcher's prediction, not from a generated asset.
+    expect(read(CANVAS)).toMatch(/matchCast\(`\$\{b\.text \?\? ""\} \$\{b\.visualPrompt \?\? ""\}`/);
+  });
+
+  it("commits corrections as a diff against the matcher, not as an absolute set", () => {
+    expect(src).toMatch(/const commit = \(desired: string\[\]\) =>/);
+    expect(src).toMatch(/desired\.filter\(\(id\) => !matched\.has\(id\)\)/);
+    expect(src).toMatch(/cast\.matchedIds\.filter\(\(id\) => !want\.has\(id\)\)/);
+  });
+
+  it("names what the cap left out rather than dropping it silently", () => {
+    expect(src).toMatch(/left out:/);
+    expect(src).toMatch(/cast\.droppedNames\.length > 0/);
+  });
+
+  it("the canvas only builds cast props when the project actually has a cast", () => {
+    expect(read(CANVAS)).toMatch(/projectCast\.length > 0\s*\?/);
+  });
+});
+
+describe("the scene-model cost lever", () => {
+  it("is offered per project, priced per cast beat", () => {
+    const src = read(CAST);
+    expect(src).toMatch(/Scene image model/);
+    expect(src).toMatch(/per cast beat/);
+    expect(src).toMatch(/setSceneImageModelAction/);
+  });
+
+  it("says plainly that beats with nobody in them are unaffected", () => {
+    expect(read(CAST)).toMatch(/Beats with nobody\s*\n?\s*in them are unaffected/);
+  });
+
+  it("the engine only reaches for the premium model when references exist", () => {
+    const src = read(ENGINE);
+    expect(src).toMatch(/const useCast = castRefPaths\.length > 0;/);
+    expect(src).toMatch(/const castStill = useCast\s*\n?\s*\? await generateCastStill/);
+    // ...and the cache key only changes shape for those beats.
+    expect(src).toMatch(/useCast \? `\$\{prompt\}\|\$\{castModelId\}\|\$\{castRefPaths\.join\(","\)\}` : `\$\{prompt\}\|\$\{quality\}`/);
+  });
+});
+
+describe("migrations stay additive", () => {
+  for (const file of [
+    "supabase/migrations/0072_character_studio.sql",
+    "supabase/migrations/0073_character_spend.sql",
+    "supabase/migrations/0074_character_scene_model.sql",
+  ]) {
+    it(`${file} adds without destroying`, () => {
+      const sql = read(file);
+      // `drop policy if exists` immediately before a re-create is the repo's
+      // idempotent-policy idiom; nothing else may drop.
+      const drops = [...sql.matchAll(/^\s*drop\s+(\w+)/gim)].map((m) => m[1].toLowerCase());
+      expect(drops.every((d) => d === "policy")).toBe(true);
+      expect(sql).not.toMatch(/\bdelete\s+from\b|\btruncate\b|\bdrop\s+column\b/i);
+      // Re-runnable: every create is guarded.
+      const creates = [...sql.matchAll(/create\s+(table|index|unique index)\s+(?!if not exists)/gi)];
+      expect(creates).toHaveLength(0);
+    });
+  }
+});
+
 describe("navigation stays uncluttered", () => {
   it("puts the global character library in the global tab set", () => {
     expect(globalNavV2().map((i) => i.label)).toEqual(["Home", "Characters", "Settings"]);

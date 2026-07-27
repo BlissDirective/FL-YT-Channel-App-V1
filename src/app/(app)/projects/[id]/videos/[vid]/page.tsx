@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Clapperboard, LayoutGrid, Radar } from "lucide-react";
-import { GATE_FOR_STATUS, bracketById, buildLengthAdvisory } from "@studio/core";
+import {
+  GATE_FOR_STATUS,
+  applyCastOverrides,
+  bracketById,
+  buildLengthAdvisory,
+  matchCast,
+} from "@studio/core";
+import { loadProjectCast } from "@/lib/pipeline/cast-resolver";
 import { createClient } from "@/lib/supabase/server";
 import {
   getClipJobs,
@@ -190,12 +197,28 @@ export default async function VideoDetailPage({
     const qcRows = (wsQc ?? []) as { gate: string; score: number | null; verdict: string | null; issues: string[] | null; asset_id: string | null }[];
     const latestGateQc = gate ? qcRows.find((r) => r.gate === gate) ?? null : null;
     const clipByBeat = new Map(clipAssets.map((a) => [a.beat_index as number, a]));
+    // Character Studio Phase 3: run the matcher here so each beat card can show
+    // who it thinks is in the frame BEFORE anything is rendered — an
+    // auto-matcher whose decisions only surface after you've paid for the image
+    // is not correctable, it's just a surprise.
+    const projectCast = await loadProjectCast(supabase, id);
+    const castOptions = projectCast.map((c) => ({
+      id: c.id,
+      name: c.name,
+      status: c.status ?? "draft",
+    }));
     const wsBeats = beats.map((b) => {
       const clipRow = clipByBeat.get(b.idx);
       const clip = clips.find((c) => c.idx === b.idx);
       const audio = beatAudio.find((a) => a.idx === b.idx);
       const voRow = allAssets.find((a) => a.kind === "vo" && a.beat_index === b.idx);
       const assetQc = clipRow ? qcRows.find((r) => r.asset_id === clipRow.id) : null;
+      const { matched, dropped } = matchCast(`${b.text ?? ""} ${b.visualPrompt ?? ""}`, projectCast);
+      const chosen = applyCastOverrides(
+        matched.map((m) => m.member),
+        projectCast,
+        b.cast,
+      );
       return {
         idx: b.idx,
         text: b.text,
@@ -211,6 +234,17 @@ export default async function VideoDetailPage({
           ? { score: assetQc.score, verdict: assetQc.verdict, issues: assetQc.issues ?? [] }
           : latestGateQc && b.idx === 0
             ? { score: latestGateQc.score, verdict: latestGateQc.verdict, issues: latestGateQc.issues ?? [] }
+            : null,
+        cast:
+          projectCast.length > 0
+            ? {
+                // The matcher's own verdict, before corrections — the baseline
+                // the chips diff against to build add/remove.
+                matchedIds: matched.map((m) => m.member.id),
+                ids: chosen.map((c) => c.id),
+                names: chosen.map((c) => c.name),
+                droppedNames: dropped.map((d) => d.member.name),
+              }
             : null,
       };
     });
@@ -252,6 +286,7 @@ export default async function VideoDetailPage({
           })}
           nextStageLabel={NEXT_STAGE[v.status] ?? null}
           beats={wsBeats}
+          castOptions={castOptions}
           renders={renderUrls}
           thumbs={thumbUrls}
           messages={(() => {

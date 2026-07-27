@@ -23,7 +23,8 @@ class QueryBuilder implements PromiseLike<{
   count: number | null;
 }> {
   private filters: Filter[] = [];
-  private op: "select" | "insert" | "update" | "delete" = "select";
+  private op: "select" | "insert" | "update" | "delete" | "upsert" = "select";
+  private conflictCols: string[] = [];
   private values: Row | Row[] | null = null;
   private wantCount = false;
   private head = false;
@@ -53,6 +54,19 @@ class QueryBuilder implements PromiseLike<{
   update(values: Row) {
     this.op = "update";
     this.values = values;
+    return this;
+  }
+
+  /**
+   * PostgREST upsert with an `onConflict` column list — the form the FLUX
+   * still cache uses. Without it the engine's cache write throws and is
+   * swallowed by its "cache table absent" guard, so caching looks disabled in
+   * every test that should be exercising it.
+   */
+  upsert(values: Row | Row[], opts?: { onConflict?: string }) {
+    this.op = "upsert";
+    this.values = values;
+    this.conflictCols = (opts?.onConflict ?? "id").split(",").map((c) => c.trim());
     return this;
   }
 
@@ -181,6 +195,21 @@ class QueryBuilder implements PromiseLike<{
       (this.tables[this.table] ??= []).push(...(rows as Row[]));
       for (const row of rows as Row[]) {
         this.writeLog.push({ op: "insert", table: this.table, row });
+      }
+      return { data: rows, error: null, count: null };
+    }
+    if (this.op === "upsert") {
+      const rows = Array.isArray(this.values) ? this.values : [this.values!];
+      const table = (this.tables[this.table] ??= []);
+      for (const row of rows as Row[]) {
+        const existing = table.find((r) => this.conflictCols.every((c) => r[c] === row[c]));
+        if (existing) {
+          Object.assign(existing, row);
+          this.writeLog.push({ op: "update", table: this.table, values: row, matched: 1 });
+        } else {
+          table.push(row);
+          this.writeLog.push({ op: "insert", table: this.table, row });
+        }
       }
       return { data: rows, error: null, count: null };
     }

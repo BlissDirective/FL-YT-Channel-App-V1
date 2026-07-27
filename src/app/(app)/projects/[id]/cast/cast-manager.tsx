@@ -17,6 +17,7 @@ import {
   deleteStyleAction,
   linkCharacterAction,
   setDefaultStyleAction,
+  setSceneImageModelAction,
   unlinkCharacterAction,
   updateStyleAction,
 } from "@/lib/actions/characters";
@@ -66,10 +67,14 @@ export function CastManager({
   projectId,
   styles,
   available,
+  models,
+  sceneModelId,
 }: {
   projectId: string;
   styles: CastStyle[];
   available: { id: string; name: string }[];
+  models: { id: string; label: string; unitUsd: number; pros: string[] }[];
+  sceneModelId: string | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -78,6 +83,8 @@ export function CastManager({
   const [draft, setDraft] = useState({ styleString: "", exclusions: "" });
   const [linkId, setLinkId] = useState(available[0]?.id ?? "");
   const [notice, setNotice] = useState<string | null>(null);
+  const [sceneModel, setSceneModel] = useState(sceneModelId ?? models[0]?.id ?? "");
+  const activeModel = models.find((m) => m.id === sceneModel);
 
   const addStyle = () => {
     const name = newStyle.trim();
@@ -239,6 +246,35 @@ export function CastManager({
             <Plus className="size-4" /> Add
           </Button>
         </div>
+      </section>
+
+      <section className="space-y-2 rounded-card bg-card p-4 shadow-card">
+        <h2 className="text-sm font-semibold">Scene image model</h2>
+        <p className="text-xs text-muted">
+          Beats that a locked character appears in are rendered on this model, conditioned on their
+          reference image — that&apos;s what keeps them recognisable shot to shot. Beats with nobody
+          in them are unaffected and stay on the usual cheap path.
+        </p>
+        <select
+          className="w-full rounded-full border border-line bg-card px-3 py-2 text-sm"
+          value={sceneModel}
+          onChange={(e) => {
+            setSceneModel(e.target.value);
+            startTransition(async () => {
+              const r = await setSceneImageModelAction({ projectId, modelId: e.target.value || null });
+              setNotice(r.ok ? null : (r.error ?? "Could not save that."));
+              router.refresh();
+            });
+          }}
+          aria-label="Scene image model"
+        >
+          {models.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label} — ${m.unitUsd.toFixed(2)} per cast beat
+            </option>
+          ))}
+        </select>
+        {activeModel && <p className="text-[11px] text-muted">{activeModel.pros[0]}</p>}
       </section>
 
       {available.length > 0 && (

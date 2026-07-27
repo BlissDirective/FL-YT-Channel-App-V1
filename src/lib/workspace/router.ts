@@ -145,6 +145,43 @@ export function routeHeuristic(text: string, ctx: RouteContext): RoutedIntent | 
     }
   }
 
+  // Cast corrections (Character Studio Phase 3): "add Breeze to beat 3",
+  // "put Bo in beat 2", "remove Poppy from beat 4", "take Bo out of beat 1".
+  // Must precede the beat-visual re-roll rule, which would otherwise swallow
+  // phrasings like "put Bo in the shot for beat 3".
+  {
+    const castBeat = beatIdxFrom(t, ctx);
+    if (castBeat != null) {
+      const addMatch = /\b(?:add|put|include|bring)\s+(.+?)\s+(?:in|into|to|back into)\b/i.exec(t);
+      const removeMatch =
+        /\b(?:remove|drop|exclude|take)\s+(.+?)\s+(?:out of|from|off)\b/i.exec(t);
+      const names = (raw: string) =>
+        raw
+          .split(/\s*(?:,|\band\b)\s*/i)
+          .map((s) => s.replace(/^(the|a|an)\s+/i, "").trim())
+          .filter((s) => s.length > 0 && !/^beat\b/i.test(s))
+          .join(",");
+      const add = addMatch ? names(addMatch[1]) : "";
+      const remove = removeMatch ? names(removeMatch[1]) : "";
+      if (add || remove) {
+        const what = [add ? `adding ${add}` : null, remove ? `removing ${remove}` : null]
+          .filter(Boolean)
+          .join(" and ");
+        return {
+          kind: "action",
+          action: "set_beat_cast",
+          params: {
+            videoId: ctx.videoId,
+            beatIdx: castBeat,
+            ...(add ? { add } : {}),
+            ...(remove ? { remove } : {}),
+          },
+          label: `Beat ${castBeat + 1} cast: ${what}`,
+        };
+      }
+    }
+  }
+
   // Exemplar mining (agent-training Step 2).
   if (/\b(mine|study|learn from|analyze)\b.*\b(exemplars?|winners?|top videos?|the competition|best performers?)\b/.test(lower)) {
     return {

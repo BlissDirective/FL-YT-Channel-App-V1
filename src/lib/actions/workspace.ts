@@ -341,6 +341,36 @@ export async function saveNotifyPrefsAction(opts: {
   }
 }
 
+/**
+ * Character Studio Phase 3: set exactly who is in one beat's frame.
+ *
+ * The chips post the FULL desired set as add/remove relative to what the
+ * matcher found on its own, so the correction stays meaningful when the beat's
+ * text is later edited and the matcher's baseline moves.
+ */
+export async function setBeatCastAction(opts: {
+  projectId: string;
+  videoId: string;
+  beatIdx: number;
+  add: string[];
+  remove: string[];
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const { setBeatCast } = await import("@/lib/pipeline/engine");
+    const r = await setBeatCast({
+      videoId: opts.videoId,
+      beatIdx: opts.beatIdx,
+      add: opts.add,
+      remove: opts.remove,
+    });
+    if (!r.ok) return { ok: false, error: r.error };
+    refresh(opts.projectId, opts.videoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /** Project instructions — injected into every prompt path (§4.6). */
 export async function saveInstructionsAction(opts: {
   projectId: string;

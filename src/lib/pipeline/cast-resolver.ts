@@ -19,9 +19,13 @@ import {
 } from "@studio/core";
 import type { Db } from "@/lib/pipeline/engine";
 
+/** A cast member as resolved from the DB — identity plus the version that will
+    be stamped onto the video (Q5: edits are forward-only). */
+export type ResolvedMember = CastMember & { version?: number };
+
 export type ResolvedCast = {
   /** Characters to inject, in prompt order (already capped and overridden). */
-  characters: CastMember[];
+  characters: ResolvedMember[];
   /** Storage paths of their reference images for the active style. */
   referencePaths: string[];
   /** Matched but cut by the per-scene cap — narrated, never silent. */
@@ -87,7 +91,7 @@ export async function resolveStyle(
 export async function loadProjectCast(
   db: Db,
   projectId: string,
-): Promise<(CastMember & { version: number })[]> {
+): Promise<(ResolvedMember & { version: number })[]> {
   try {
     const { data: links } = await db
       .from("project_characters")

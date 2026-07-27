@@ -1,8 +1,10 @@
 import "server-only";
 import {
   buildVisualPrompt,
+  characterVersionStamp,
   composeScenePrompt,
   checkPublicHttpUrl,
+  MAX_CHARACTERS_PER_SCENE,
   GATE_FOR_STATUS,
   GATE_LABELS,
   isDirectorMode,
@@ -39,10 +41,16 @@ import { getQualityGateConfig, failClosedBlocksSpend, privacyForScore, type Qual
 import { getVceFlags } from "@/lib/pipeline/vce";
 import { getScriptExemplars } from "@/lib/pipeline/exemplars";
 import {
+  loadProjectCast,
   resolvePresenterImagePath,
   resolveSceneCast,
   resolveStyle,
 } from "@/lib/pipeline/cast-resolver";
+import {
+  DEFAULT_REF_IMAGE_MODEL_ID,
+  generateReferenceImage,
+  getRefImageModel,
+} from "@/lib/adapters/reference-image";
 import {
   DEFAULT_SONG_MODEL_ID,
   estimateSongCost,
@@ -1310,7 +1318,34 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
       cost_usd: 0,
     });
   }
+  // Character Studio Phase 3: stamp which character VERSION each beat was made
+  // with, then say out loud who ended up in the frames. The stamp is what makes
+  // later character edits forward-only (Q5) — this video keeps the cast it was
+  // actually rendered with, no matter what the Studio does next.
+  await recordCastOutcome(db, video, clipResults);
+
   await setStatus(db, video.id, "ASSETS_READY");
+}
+
+/** Persist `videos.character_versions` and narrate the cast into the thread. */
+async function recordCastOutcome(
+  db: Db,
+  video: Video,
+  drafts: AssetDraft[],
+): Promise<void> {
+  const compositions = drafts.map((d) => d.cast).filter((c): c is CastComposition => Boolean(c));
+  if (compositions.length === 0) return;
+  try {
+    const versions: Record<string, number> = {};
+    for (const c of compositions) Object.assign(versions, c.versions);
+    if (Object.keys(versions).length > 0) {
+      await db.from("videos").update({ character_versions: versions }).eq("id", video.id);
+    }
+    const note = castNarration(compositions);
+    if (note) await postWorkspaceNote(db, video, note, { kind: "cast" });
+  } catch (err) {
+    console.error("cast outcome record failed (non-blocking):", err);
+  }
 }
 
 type AssetDraft = {
@@ -1328,6 +1363,11 @@ type AssetDraft = {
       render) recorded by the caller sequentially — keeps parallel generation off
       the cost-total race. */
   extraCosts?: { provider: string; usd: number; description: string }[];
+  /** Character Studio Phase 3: who the matcher put in this frame and what it
+      chose not to. Carried on the draft (not just in meta) because the stage
+      narrates the whole video's cast in one line, including the beats where
+      every match was dropped and so nothing reached `meta`. */
+  cast?: CastComposition;
 };
 
 /** Stable content hash of a beat's visual identity (Tier 2): used to keep a
@@ -1417,17 +1457,30 @@ export async function makeBeatClip(
   // With no style and no cast this is a no-op — `prompt` above is unchanged,
   // which is the phase's acceptance criterion.
   let castRefPaths: string[] = [];
+  let composition: CastComposition | null = null;
   if (opts?.db) {
-    const cast = await composeCastPrompt(opts.db, {
+    composition = await composeCastPrompt(opts.db, {
       project,
       video,
       beat,
       fallbackPrompt: prompt,
     });
-    prompt = cast.prompt;
-    castRefPaths = cast.referencePaths;
+    prompt = composition.prompt;
+    castRefPaths = composition.referencePaths;
   }
-  void castRefPaths; // consumed by the reference-capable image path (Phase 2)
+  /** Cast facts recorded on the asset so the card, the narration, and any later
+      re-roll all agree on who was in this frame. */
+  const castMeta = composition && composition.characterIds.length > 0
+    ? {
+        cast: {
+          characterIds: composition.characterIds,
+          names: composition.names,
+          versions: composition.versions,
+          ...(composition.droppedNames.length ? { dropped: composition.droppedNames } : {}),
+          ...(composition.textOnlyNames.length ? { textOnly: composition.textOnlyNames } : {}),
+        },
+      }
+    : {};
   // Secondary costs (prompt refine, discarded blank renders) are returned to the
   // caller and recorded sequentially (parallel recordCost would race the total).
   const extraCosts: NonNullable<AssetDraft["extraCosts"]> = [];
@@ -1455,6 +1508,7 @@ export async function makeBeatClip(
             cost_usd: 0,
           },
           cost: { provider: "pexels", usd: 0, description: "Licensed stock clip — free" },
+          ...(composition && hasCastInfo(composition) ? { cast: composition } : {}),
         };
       }
       // No stock match → fall through to a generated still.
@@ -1500,7 +1554,15 @@ export async function makeBeatClip(
 
         // Per-project FLUX still cache: an identical (prompt, quality) is rendered
         // once per project and reused — unchanged beats re-gen for $0.
-        const cacheKey = createHash("sha256").update(`${prompt}|${quality}`).digest("hex");
+        // Cast beats key on the reference set and the cast model too: two beats
+        // can share a prompt and still be different renders because different
+        // characters were conditioned in. Non-cast beats keep the original key
+        // byte-for-byte so every existing cache entry still hits.
+        const castModelId = project.character_image_model ?? DEFAULT_REF_IMAGE_MODEL_ID;
+        const useCast = castRefPaths.length > 0;
+        const cacheKey = createHash("sha256")
+          .update(useCast ? `${prompt}|${castModelId}|${castRefPaths.join(",")}` : `${prompt}|${quality}`)
+          .digest("hex");
         if (db && !opts?.forceRegen) {
           try {
             const { data: hit } = await db
@@ -1517,11 +1579,18 @@ export async function makeBeatClip(
                   provider: "fal.ai",
                   storage_path: hit.storage_path,
                   beat_index: beat.idx,
-                  meta: { shotType: beat.shotType, stillImage: true, model: `flux/${quality}`, cached: true },
+                  meta: {
+                    shotType: beat.shotType,
+                    stillImage: true,
+                    model: useCast ? castModelId : `flux/${quality}`,
+                    cached: true,
+                    ...castMeta,
+                  },
                   cost_usd: 0,
                 },
                 cost: { provider: "fal.ai", usd: 0, description: "FLUX still reused from cache — free" },
                 extraCosts,
+                ...(composition && hasCastInfo(composition) ? { cast: composition } : {}),
               };
             }
           } catch {
@@ -1529,16 +1598,37 @@ export async function makeBeatClip(
           }
         }
 
-        let img = await generateImage({ prompt, quality });
+        // Character Studio Phase 3: when this beat has matched characters with
+        // locked looks, render it on the reference-capable model conditioned on
+        // those images. Null (no signable reference, provider failure, mock
+        // mode) falls straight through to the unchanged FLUX path.
+        const castStill = useCast
+          ? await generateCastStill({ project, prompt, referencePaths: castRefPaths })
+          : null;
+        let img: {
+          image: Buffer;
+          costUsd: number;
+          endpoint: string;
+          seed?: number | null;
+        } = castStill ?? (await generateImage({ prompt, quality }));
+        const renderedModel = castStill ? castStill.modelId : `flux/${quality}`;
         let genUsd = img.costUsd;
         // Pixel check (Tier 2): reject blank/solid/tiny renders. One re-roll; if
         // it's still bad, record the wasted spend and fall through to stock/mock.
+        // The re-roll stays on whichever model produced the first render, so a
+        // cast beat never silently loses its references on retry.
         let usable = true;
         if (gateOn && (await inspectStill(img.image)).bad) {
-          const retry = await generateImage({ prompt, quality });
-          genUsd += retry.costUsd;
-          if ((await inspectStill(retry.image)).bad) usable = false;
-          else img = retry;
+          const retry = castStill
+            ? await generateCastStill({ project, prompt, referencePaths: castRefPaths })
+            : await generateImage({ prompt, quality });
+          if (retry) {
+            genUsd += retry.costUsd;
+            if ((await inspectStill(retry.image)).bad) usable = false;
+            else img = retry;
+          } else {
+            usable = false;
+          }
         }
         if (usable) {
           const path = db
@@ -1567,8 +1657,9 @@ export async function makeBeatClip(
               meta: {
                 shotType: beat.shotType,
                 stillImage: true,
-                model: `flux/${quality}`,
+                model: renderedModel,
                 ...(phash ? { phash } : {}),
+                ...castMeta,
                 // Exact request needed to reproduce / re-roll this still (C2).
                 request: {
                   kind: "still",
@@ -1578,6 +1669,7 @@ export async function makeBeatClip(
                   quality,
                   imageSize: "landscape_16_9",
                   seed: img.seed,
+                  ...(castStill ? { referencePaths: castRefPaths.slice(0, castStill.refCount) } : {}),
                 },
               },
               cost_usd: genUsd,
@@ -1585,9 +1677,14 @@ export async function makeBeatClip(
             cost: {
               provider: "fal.ai",
               usd: genUsd,
-              description: quality === "dev" ? "Hero shot (FLUX dev)" : "B-roll still (FLUX schnell)",
+              description: castStill
+                ? `Cast shot (${castStill.modelId}, ${castStill.refCount} ref${castStill.refCount === 1 ? "" : "s"})`
+                : quality === "dev"
+                  ? "Hero shot (FLUX dev)"
+                  : "B-roll still (FLUX schnell)",
             },
             extraCosts,
+            ...(composition && hasCastInfo(composition) ? { cast: composition } : {}),
           };
         }
         // Both renders were blank — record the paid-but-discarded spend so it is
@@ -1626,6 +1723,7 @@ export async function makeBeatClip(
           },
           cost: { provider: "pexels", usd: 0, description: "Stock fallback (FLUX unavailable) — free" },
           extraCosts,
+          ...(composition && hasCastInfo(composition) ? { cast: composition } : {}),
         };
       }
     } catch (err) {
@@ -1645,6 +1743,7 @@ export async function makeBeatClip(
     },
     cost: stock ? MOCK_COSTS.stockClip : MOCK_COSTS.clip,
     extraCosts,
+    ...(composition && hasCastInfo(composition) ? { cast: composition } : {}),
   };
 }
 
@@ -2283,10 +2382,50 @@ export async function regenerateBeatVo(opts: {
   return { ok: true };
 }
 
+/** What one beat's cast resolution produced — the prompt plus everything the
+    narration, the version stamp, and the asset meta need. */
+export type CastComposition = {
+  prompt: string;
+  referencePaths: string[];
+  characterIds: string[];
+  /** Names in prompt order — what the thread narrates. */
+  names: string[];
+  /** {characterId: version} for the members injected into THIS beat. */
+  versions: Record<string, number>;
+  droppedNames: string[];
+  staleNames: string[];
+  textOnlyNames: string[];
+  draftNames: string[];
+};
+
+/** True when the resolution has anything worth recording or narrating. A
+    project that never opted in produces nothing, so nothing is attached. */
+function hasCastInfo(c: CastComposition): boolean {
+  return (
+    c.characterIds.length > 0 ||
+    c.droppedNames.length > 0 ||
+    c.textOnlyNames.length > 0 ||
+    c.draftNames.length > 0 ||
+    c.staleNames.length > 0
+  );
+}
+
+const EMPTY_COMPOSITION = (prompt: string): CastComposition => ({
+  prompt,
+  referencePaths: [],
+  characterIds: [],
+  names: [],
+  versions: {},
+  droppedNames: [],
+  staleNames: [],
+  textOnlyNames: [],
+  draftNames: [],
+});
+
 /**
- * Character Studio (Phase 1): re-compose one beat's visual prompt with the
- * project's active style and whichever cast members the scene mentions, and
- * resolve their reference images for that style.
+ * Character Studio (Phase 1 prompt, Phase 3 references): re-compose one beat's
+ * visual prompt with the project's active style and whichever cast members the
+ * scene mentions, and resolve their reference images for that style.
  *
  * Returns the fallback prompt untouched when the project has neither a style
  * nor a cast, so every pre-Character-Studio project renders byte-identically.
@@ -2301,7 +2440,7 @@ async function composeCastPrompt(
     beat: ScriptBeat;
     fallbackPrompt: string;
   },
-): Promise<{ prompt: string; referencePaths: string[]; characterIds: string[] }> {
+): Promise<CastComposition> {
   try {
     const styleId = (opts.video as { style_id?: string | null }).style_id ?? null;
     const style = await resolveStyle(db, opts.project.id, styleId);
@@ -2315,7 +2454,7 @@ async function composeCastPrompt(
       overrides,
     });
     if (!style && resolved.characters.length === 0) {
-      return { prompt: opts.fallbackPrompt, referencePaths: [], characterIds: [] };
+      return EMPTY_COMPOSITION(opts.fallbackPrompt);
     }
     const composed = composeScenePrompt({
       scene: opts.beat.visualPrompt,
@@ -2327,11 +2466,115 @@ async function composeCastPrompt(
       prompt: composed.prompt,
       referencePaths: resolved.referencePaths,
       characterIds: composed.characterIds,
+      names: resolved.characters.map((c) => c.name),
+      versions: characterVersionStamp(resolved.characters),
+      droppedNames: resolved.droppedNames,
+      staleNames: resolved.staleNames,
+      textOnlyNames: resolved.textOnlyNames,
+      draftNames: resolved.draftNames,
     };
   } catch (err) {
     console.error("cast prompt composition failed (using fallback):", err);
-    return { prompt: opts.fallbackPrompt, referencePaths: [], characterIds: [] };
+    return EMPTY_COMPOSITION(opts.fallbackPrompt);
   }
+}
+
+/**
+ * Character Studio Phase 3: render a beat still on the reference-capable model,
+ * conditioned on the matched characters' locked images.
+ *
+ * This is the ONE place identity actually survives from the Studio into a
+ * video. It only runs when a beat has at least one matched character WITH a
+ * locked look, so a project with no cast — or a beat nobody is in — never pays
+ * the premium price and never leaves the FLUX path.
+ *
+ * Returns null on any failure so the caller falls through to FLUX: a character
+ * rendered slightly off-model beats a beat with no visual at all.
+ */
+async function generateCastStill(opts: {
+  project: Project;
+  prompt: string;
+  referencePaths: string[];
+}): Promise<{ image: Buffer; costUsd: number; modelId: string; endpoint: string; refCount: number } | null> {
+  const model =
+    getRefImageModel(opts.project.character_image_model ?? DEFAULT_REF_IMAGE_MODEL_ID) ??
+    getRefImageModel(DEFAULT_REF_IMAGE_MODEL_ID)!;
+  try {
+    const urls: string[] = [];
+    for (const path of opts.referencePaths.slice(0, model.maxReferences)) {
+      const url = await getSignedMediaUrl(path, 3600);
+      // Mock-mode looks have no signable URL; without a real reference there is
+      // nothing to condition on, so fall back rather than pay premium for a
+      // prompt-only render.
+      if (url) urls.push(url);
+    }
+    if (urls.length === 0) return null;
+    const res = await generateReferenceImage({
+      model,
+      prompt: opts.prompt,
+      referenceUrls: urls,
+      count: 1,
+      aspectRatio: "16:9",
+    });
+    if (res.provider === "mock" || res.images.length === 0) return null;
+    return {
+      image: res.images[0],
+      costUsd: res.costUsd,
+      modelId: model.id,
+      endpoint: model.refEndpoint,
+      refCount: urls.length,
+    };
+  } catch (err) {
+    console.error("cast still failed (falling back to FLUX):", err);
+    return null;
+  }
+}
+
+/**
+ * One line in the thread saying exactly who went into the frames and what the
+ * matcher decided (Character Studio §4.4). The matcher's decisions are never
+ * silent — that is what makes an auto-matcher acceptable instead of alarming.
+ */
+export function castNarration(compositions: CastComposition[]): string | null {
+  const injected = new Map<string, number>();
+  const dropped = new Set<string>();
+  const textOnly = new Set<string>();
+  const draft = new Set<string>();
+  const stale = new Set<string>();
+  let refBeats = 0;
+  for (const c of compositions) {
+    for (const n of c.names) injected.set(n, (injected.get(n) ?? 0) + 1);
+    for (const n of c.droppedNames) dropped.add(n);
+    for (const n of c.textOnlyNames) textOnly.add(n);
+    for (const n of c.draftNames) draft.add(n);
+    for (const n of c.staleNames) stale.add(n);
+    if (c.referencePaths.length > 0) refBeats++;
+  }
+  if (injected.size === 0) return null;
+
+  const cast = [...injected.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([name, n]) => `${name} (${n} ${n === 1 ? "beat" : "beats"})`)
+    .join(", ");
+  const parts = [
+    `Cast in this video: ${cast}.`,
+    refBeats > 0
+      ? `${refBeats} ${refBeats === 1 ? "beat was" : "beats were"} rendered against locked reference images.`
+      : null,
+    textOnly.size > 0
+      ? `Described but not image-referenced (no locked look in this style yet): ${[...textOnly].join(", ")}.`
+      : null,
+    draft.size > 0
+      ? `Still drafts, so consistency isn't guaranteed yet: ${[...draft].join(", ")}.`
+      : null,
+    stale.size > 0
+      ? `Locked under an older style string — still used, worth regenerating: ${[...stale].join(", ")}.`
+      : null,
+    dropped.size > 0
+      ? `Mentioned but left out to keep frames coherent (max ${MAX_CHARACTERS_PER_SCENE} per shot): ${[...dropped].join(", ")}. Say “add <name> to beat N” to force one in.`
+      : null,
+  ].filter(Boolean);
+  return parts.join(" ");
 }
 
 /**
@@ -3000,6 +3243,92 @@ function reindex(beats: ScriptBeat[]): ScriptBeat[] {
 
 async function saveBeats(db: Db, scriptId: string, beats: ScriptBeat[]) {
   await db.from("scripts").update({ beats: reindex(beats) }).eq("id", scriptId);
+}
+
+/**
+ * Character Studio Phase 3: correct the name-matcher for one beat.
+ *
+ * The matcher is a strong default, not an oracle — a short name that is also an
+ * ordinary word will match it ("Bo" in "bo tie"), and a scene can be ABOUT a
+ * character the text never names. Both are one tap to fix, and the correction
+ * is stored on the beat so it survives every later re-roll of that beat.
+ *
+ * Marks the beat's existing visual stale rather than regenerating it: changing
+ * who is in a frame costs money to act on, so the operator presses the button.
+ */
+export async function setBeatCast(opts: {
+  videoId: string;
+  beatIdx: number;
+  add?: string[];
+  remove?: string[];
+  /** Chat says "also add Poppy" (merge); the chip UI sends the whole set. */
+  merge?: boolean;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const script = await loadLatestScript(db, opts.videoId);
+  if (!script) return { ok: false, error: "No script to edit" };
+  const beats = (script.beats as ScriptBeat[]).slice();
+  const beat = beats.find((b) => b.idx === opts.beatIdx);
+  if (!beat) return { ok: false, error: `No section ${opts.beatIdx + 1}` };
+
+  // Accept ids (the chip UI) or names/aliases (chat: "add Breeze to beat 3").
+  // An unrecognised name is an error, not a silent no-op — a chat command that
+  // quietly does nothing is worse than one that says it didn't understand.
+  const video = await getVideo(db, opts.videoId);
+  const cast = video ? await loadProjectCast(db, video.project_id) : [];
+  const unknown: string[] = [];
+  const resolve = (tokens: string[] = []): string[] =>
+    tokens
+      .map((raw) => {
+        const t = raw.trim();
+        if (!t) return null;
+        const lower = t.toLowerCase();
+        const hit =
+          cast.find((c) => c.id === t) ??
+          cast.find(
+            (c) =>
+              c.name.toLowerCase() === lower ||
+              (c.aliases ?? []).some((a) => a.toLowerCase() === lower),
+          );
+        if (!hit) unknown.push(t);
+        return hit?.id ?? null;
+      })
+      .filter((id): id is string => Boolean(id));
+
+  const prior = opts.merge ? (beat.cast ?? {}) : {};
+  const newAdd = resolve(opts.add);
+  const newRemove = resolve(opts.remove);
+  if (unknown.length > 0) {
+    return {
+      ok: false,
+      error: `No character named ${unknown.join(" or ")} in this project's cast. Add them in the Cast page first.`,
+    };
+  }
+  // A new instruction supersedes the prior one for the SAME character, so
+  // "remove Bo" after "add Bo" actually removes him. Within one call, an
+  // explicit add still beats an explicit remove (same rule as the matcher's).
+  const add = [
+    ...new Set([...(prior.add ?? []).filter((id) => !newRemove.includes(id)), ...newAdd]),
+  ];
+  const remove = [
+    ...new Set([...(prior.remove ?? []).filter((id) => !newAdd.includes(id)), ...newRemove]),
+  ].filter((id) => !add.includes(id));
+  // An empty override is stored as absent, so "clear my corrections" really
+  // does hand the beat back to the matcher.
+  beat.cast = add.length === 0 && remove.length === 0 ? undefined : { add, remove };
+  await saveBeats(db, script.id, beats);
+
+  try {
+    await db
+      .from("assets")
+      .update({ stale: true })
+      .eq("video_id", opts.videoId)
+      .eq("beat_index", opts.beatIdx)
+      .eq("kind", "clip");
+  } catch (err) {
+    console.error("cast override stale mark failed (non-blocking):", err);
+  }
+  return { ok: true };
 }
 
 export async function addBeat(opts: {

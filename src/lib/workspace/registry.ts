@@ -24,6 +24,7 @@ import {
   regenerateBeatVo,
   regenerateScript,
   rerollBeatVisual,
+  setBeatCast,
 } from "@/lib/pipeline/engine";
 import { estimateCost, estimateStageCost } from "@/lib/models/catalog";
 import type { AutoTier } from "@/lib/adapters/auto-tiers";
@@ -52,6 +53,14 @@ export type WorkspaceAction = {
 
 const str = (v: unknown) => (typeof v === "string" ? v : undefined);
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+/** Param specs are scalar-only (the router's contract), so list params travel
+    as comma-separated strings. */
+const csv = (v: unknown): string[] | undefined => {
+  const s = str(v);
+  if (!s) return undefined;
+  const out = s.split(",").map((t) => t.trim()).filter(Boolean);
+  return out.length > 0 ? out : undefined;
+};
 
 function validate(
   action: WorkspaceAction,
@@ -169,6 +178,29 @@ const ACTIONS: WorkspaceAction[] = [
         beatIdx: num(p.beatIdx)!,
         modelId: str(p.modelId)!,
         durationSec: num(p.durationSec)!,
+      }),
+  },
+  {
+    name: "set_beat_cast",
+    description:
+      "Correct which characters are in one beat's frame: force in someone the text never names, or take out a false match. Free — it only changes what the NEXT render of that beat will contain.",
+    params: {
+      videoId: { type: "string", required: true, description: "Video id" },
+      beatIdx: { type: "number", required: true, description: "Beat index (0-based)" },
+      add: { type: "string", description: "Comma-separated character names or ids to force in" },
+      remove: { type: "string", description: "Comma-separated character names or ids to keep out" },
+    },
+    costBearing: false,
+    estimate: () => null,
+    execute: async (p) =>
+      setBeatCast({
+        videoId: str(p.videoId)!,
+        beatIdx: num(p.beatIdx)!,
+        add: csv(p.add),
+        remove: csv(p.remove),
+        // Chat is incremental ("also add Poppy"); the chip UI posts the whole
+        // set through its own action.
+        merge: true,
       }),
   },
   {

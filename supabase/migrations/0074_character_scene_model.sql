@@ -1,0 +1,13 @@
+-- Character Studio, Phase 3: the per-project cost lever for cast scenes.
+--
+-- Injecting locked reference images into a beat's still means calling a
+-- reference-capable premium model instead of FLUX dev — Nano Banana Pro is
+-- ~$0.15 an image against FLUX dev's ~$0.025. That is the price of character
+-- consistency and it is worth paying on a character channel, but it is a 6x
+-- change on every beat that has a cast member in it, so the operator gets an
+-- explicit per-project choice instead of a silent default.
+--
+-- Null = the adapter default (nano-banana-pro). Only beats with at least one
+-- matched character AND a locked reference image use this model at all;
+-- everything else keeps the existing FLUX path untouched.
+alter table projects add column if not exists character_image_model text;

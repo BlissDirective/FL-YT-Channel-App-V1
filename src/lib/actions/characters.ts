@@ -8,6 +8,7 @@
  */
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getRefImageModel } from "@/lib/adapters/reference-image";
 import {
   acceptProposedDescription,
   createCharacter,
@@ -193,6 +194,33 @@ export async function deleteStyleAction(opts: {
   try {
     const db = await createClient();
     await deleteStyle(db, opts.styleId);
+    revalidatePath(`/projects/${opts.projectId}/cast`);
+    return { ok: true };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/**
+ * Which reference-capable model renders beats that have a locked cast member
+ * (Phase 3). This is the project's cost lever: Nano Banana Pro holds several
+ * characters in one frame at $0.15, FLUX.2 Pro does a single character for
+ * $0.03. Beats with no cast are unaffected either way.
+ */
+export async function setSceneImageModelAction(opts: {
+  projectId: string;
+  modelId: string | null;
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    if (opts.modelId && !getRefImageModel(opts.modelId)) {
+      return { ok: false, error: `Unknown image model: ${opts.modelId}` };
+    }
+    const db = await createClient();
+    const { error } = await db
+      .from("projects")
+      .update({ character_image_model: opts.modelId })
+      .eq("id", opts.projectId);
+    if (error) return { ok: false, error: error.message };
     revalidatePath(`/projects/${opts.projectId}/cast`);
     return { ok: true };
   } catch (err) {
