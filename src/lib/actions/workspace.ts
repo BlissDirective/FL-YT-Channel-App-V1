@@ -260,6 +260,111 @@ export async function continueStageAction(opts: {
 }
 
 /**
+ * Project-level open composer. Instead of the create door only seeding an
+ * "idea", this takes any pasted brief or command, births a video, and routes
+ * the SAME text through the workspace intent router — so "write a song about
+ * tidying up, led by the whole cast" creates the video AND writes the song in
+ * one shot, and a plain topic simply lands a fresh idea to continue from. The
+ * whole system is reachable from the first prompt, not just the idea phase.
+ *
+ * Returns the new videoId so the client can drop the operator straight into
+ * that video's workspace, where the same conversation continues.
+ */
+export async function startFromPromptAction(opts: {
+  projectId: string;
+  text: string;
+}): Promise<ComposerResult & { videoId?: string }> {
+  try {
+    const text = opts.text.trim();
+    if (!text) return { ok: false, error: "Type something to start." };
+    const db = await createClient();
+
+    // Title = first meaningful line (stripped of quotes/brackets); the full
+    // brief becomes the topic so downstream generators see all the context.
+    const firstLine = text.split("\n").map((l) => l.trim()).find(Boolean) ?? text;
+    const title =
+      firstLine.replace(/^[[\]"'“”\s]+|[[\]"'“”\s]+$/g, "").slice(0, 90) || "New video";
+    // Duration hint anywhere in the brief: "90s", "2 min", "150 seconds".
+    const secMatch = /(\d{1,4})\s*s(ec(onds?)?)?\b/i.exec(text);
+    const minMatch = /(\d{1,3})\s*min/i.exec(text);
+    const target = minMatch
+      ? Number(minMatch[1]) * 60
+      : secMatch
+        ? Number(secMatch[1])
+        : undefined;
+    const kind = /\bshort\b|9:16|vertical/i.test(text) ? "short" : "long";
+
+    const { data: video, error } = await db
+      .from("videos")
+      .insert({
+        project_id: opts.projectId,
+        title,
+        topic: text,
+        status: "IDEA",
+        kind,
+        ...(target ? { target_length_sec: Math.max(15, Math.min(target, 1200)) } : {}),
+      })
+      .select("*")
+      .single();
+    if (error || !video) {
+      return { ok: false, error: error?.message ?? "Could not start the video." };
+    }
+    const v = video as Video;
+
+    await saveMessage(db, {
+      project_id: opts.projectId,
+      video_id: v.id,
+      role: "user",
+      content: text,
+    });
+
+    const ctx: RouteContext = {
+      videoId: v.id,
+      projectId: opts.projectId,
+      status: v.status,
+      atGate: Boolean(GATE_FOR_STATUS[v.status]),
+      mode: "idea",
+      focused: null,
+      targetLengthSec: v.target_length_sec ?? 300,
+    };
+    const intent = await routeIntent(text, ctx);
+
+    let reply: string;
+    let ok = true;
+    if (intent.kind === "reply") {
+      reply = `Created “${title}”. ${intent.text}`;
+    } else {
+      const action = getWorkspaceAction(intent.action);
+      if (!action) {
+        reply = `Created “${title}”. Open it to keep going.`;
+      } else {
+        const result = await executeWorkspaceAction(intent.action, intent.params, db);
+        ok = result.ok;
+        reply = result.ok
+          ? result.data != null
+            ? summarize(result.data)
+            : `${intent.label} — done.`
+          : `${intent.label} — failed: ${result.error}`;
+      }
+    }
+
+    await saveMessage(db, {
+      project_id: opts.projectId,
+      video_id: v.id,
+      role: "agent",
+      content: reply,
+      intent: { kind: intent.kind, ...(intent.kind === "action" ? { action: intent.action } : {}) },
+    });
+    revalidatePath(`/projects/${opts.projectId}`);
+    revalidatePath(`/projects/${opts.projectId}/library`);
+    revalidatePath(`/projects/${opts.projectId}/videos/${v.id}`);
+    return { ok, reply, videoId: v.id };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
  * The single mode switch (decision on plan §4.2). Made REAL against existing
  * engine semantics: director sets pipeline_mode='director' (engine never
  * self-advances); autopilot sets pipeline_mode='autonomous' with every gate

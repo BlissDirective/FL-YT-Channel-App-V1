@@ -19,6 +19,7 @@ import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-b
 import { RunDemoButton } from "@/components/dashboard/run-demo-button";
 import { NewAsset } from "./new-asset";
 import { DirectorIdeaGenerator } from "./director-idea-generator";
+import { ProjectComposer } from "./project-composer";
 import {
   ArchiveAllPublishedButton,
   ArchiveButton,
@@ -160,14 +161,24 @@ export default async function LibraryPage({
         autopilot={directorMode ? undefined : library.operatorState}
       />
 
-      {directorMode ? (
-        <DirectorIdeaGenerator projectId={project.id} />
-      ) : (
-        <div className="space-y-3">
-          <NewAsset projectId={project.id} />
-          <RunIntelligenceButton projectId={project.id} />
-        </div>
-      )}
+      {/* The open composer is the primary create door: paste a brief or a
+          command and it drives the whole pipeline, not just the idea phase.
+          The structured generators live below as a secondary option. */}
+      <ProjectComposer projectId={project.id} />
+      <CollapsibleSection
+        title="Or generate from a seed"
+        defaultCollapsed
+        storageKey={`library:${project.id}:seed`}
+      >
+        {directorMode ? (
+          <DirectorIdeaGenerator projectId={project.id} />
+        ) : (
+          <div className="space-y-3">
+            <NewAsset projectId={project.id} />
+            <RunIntelligenceButton projectId={project.id} />
+          </div>
+        )}
+      </CollapsibleSection>
 
       {empty && (
         <div className="space-y-3 rounded-card bg-card p-8 text-center shadow-card">
