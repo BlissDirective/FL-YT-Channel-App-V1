@@ -62,7 +62,7 @@ export const LongForm: React.FC<VideoProps> = (props) => {
         cursor += Math.max(1, beat.durationSec);
         return (
           <Sequence key={beat.idx} from={from} durationInFrames={dur}>
-            <BeatScene beat={beat} brand={props.brand} captionSize={54} captions={props.captions} stickCast={props.stickCast} />
+            <BeatScene beat={beat} brand={props.brand} captionSize={54} captions={props.captions} stickCast={props.stickCast} song={Boolean(props.songUrl)} />
           </Sequence>
         );
       })}
@@ -95,7 +95,7 @@ export const Short: React.FC<VideoProps> = (props) => {
       <HighlightFonts />
       {props.songUrl && <Audio src={props.songUrl} />}
       <Sequence durationInFrames={dur}>
-        <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} stickCast={props.stickCast} />
+        <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} stickCast={props.stickCast} song={Boolean(props.songUrl)} />
       </Sequence>
       <Sequence from={dur} durationInFrames={Math.round(1.5 * FPS)}>
         <EndCard {...props} compact />
@@ -129,7 +129,7 @@ export const VerticalShort: React.FC<VideoProps> = (props) => {
         cursor += Math.max(1, beat.durationSec);
         return (
           <Sequence key={beat.idx} from={from} durationInFrames={dur}>
-            <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} stickCast={props.stickCast} />
+            <BeatScene beat={beat} brand={props.brand} captionSize={72} vertical captions={props.captions} stickCast={props.stickCast} song={Boolean(props.songUrl)} />
           </Sequence>
         );
       })}
@@ -152,7 +152,8 @@ const BeatScene: React.FC<{
   vertical?: boolean;
   captions?: boolean;
   stickCast?: VideoProps["stickCast"];
-}> = ({ beat, brand, captionSize, vertical, captions = true, stickCast }) => {
+  song?: boolean;
+}> = ({ beat, brand, captionSize, vertical, captions = true, stickCast, song }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   // Art-director per-beat camera motion (default: slow zoom-in). Gives cheap
@@ -232,6 +233,7 @@ const BeatScene: React.FC<{
           brand={brand}
           size={captionSize}
           vertical={vertical}
+          song={song}
         />
       )}
       <HighlightLayer highlights={beat.highlights} brand={brand} vertical={vertical} />
@@ -249,7 +251,10 @@ const Captions: React.FC<{
   brand: VideoProps["brand"];
   size: number;
   vertical?: boolean;
-}> = ({ words, brand, size, vertical }) => {
+  /** Sing-along treatment: big rounded playful type, bright active word, a
+      little pop on each new word — tuned for ages 2–5. */
+  song?: boolean;
+}> = ({ words, brand, size, vertical, song }) => {
   const frame = useCurrentFrame();
   const { width } = useVideoConfig();
   const t = frame / FPS;
@@ -297,6 +302,37 @@ const Captions: React.FC<{
       >
         {window.map((w, i) => {
           const isActive = winStart + i === active;
+          if (song) {
+            // Bounce the active word in as it lands (scale 1.35 → 1, ~0.16s).
+            const since = Math.max(0, t - w.start);
+            const pop = isActive ? 1 + 0.35 * Math.max(0, 1 - since / 0.16) : 1;
+            // Kid palette: warm cream idle, bright brand fill on the sung word.
+            const bright = brand.primary || "#F7B32B";
+            return (
+              <span
+                key={winStart + i}
+                style={{
+                  display: "inline-block",
+                  margin: "0 0.18em",
+                  fontFamily:
+                    "'Baloo 2','Comic Sans MS','Chalkboard SE','Fredoka',ui-rounded,'Segoe UI',sans-serif",
+                  fontWeight: 800,
+                  fontSize: fontSize * 1.12,
+                  letterSpacing: "0.01em",
+                  color: isActive ? bright : "#FFF7E6",
+                  transform: `scale(${pop}) translateY(${isActive ? -2 : 0}px)`,
+                  WebkitTextStroke: `${Math.max(3, fontSize * 0.05)}px #2A2015`,
+                  paintOrder: "stroke fill",
+                  textShadow: isActive
+                    ? `0 6px 0 rgba(42,32,21,0.35), 0 0 ${fontSize * 0.4}px ${bright}66`
+                    : "0 5px 0 rgba(42,32,21,0.3)",
+                  transition: "color 60ms linear",
+                }}
+              >
+                {w.w}
+              </span>
+            );
+          }
           return (
             <span key={winStart + i} style={captionTokenStyle(isActive, brand, fontSize)}>
               {w.w}

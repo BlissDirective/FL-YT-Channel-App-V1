@@ -332,6 +332,47 @@ async function resolveEddPayload(
   };
 }
 
+/** Split song lyrics into sections (by [Verse]/[Chorus]/… tags), each a list of
+    sung lines. Blank lines and section tags are dropped. */
+function splitLyricSections(lyrics: string): string[][] {
+  const sections: string[][] = [];
+  let cur: string[] = [];
+  for (const raw of lyrics.split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (/^\[.*\]$/.test(line)) {
+      if (cur.length) sections.push(cur);
+      cur = [];
+      continue;
+    }
+    cur.push(line);
+  }
+  if (cur.length) sections.push(cur);
+  return sections;
+}
+
+/** Even-split a flat list of lyric lines into n groups (used when the section
+    count doesn't line up with the beat count). */
+function distributeLyricLines(lines: string[], n: number): string[][] {
+  const groups: string[][] = Array.from({ length: n }, () => []);
+  if (lines.length === 0) return groups;
+  lines.forEach((ln, i) => groups[Math.min(n - 1, Math.floor((i * n) / lines.length))].push(ln));
+  return groups;
+}
+
+/** Karaoke word timings for a beat: flatten its lyric lines to words and spread
+    them evenly across the beat's duration. Beat-synced, not forced-aligned. */
+function wordsFromLyricLines(
+  lines: string[],
+  durationSec: number,
+): { w: string; start: number; end: number }[] {
+  const words = lines.join(" ").split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+  const dur = Math.max(1, durationSec);
+  const per = dur / words.length;
+  return words.map((w, i) => ({ w, start: i * per, end: (i + 1) * per }));
+}
+
 async function buildProps(
   videoId: string,
   eddVersionOverride?: number,
@@ -445,6 +486,26 @@ async function buildProps(
 
   // A render with neither narration nor a song would be silent — not ready.
   if (!songUrl && !beats.some((b) => b.voUrl)) return null;
+
+  // Sing-along captions. Song videos have no per-beat VO, so the caption layer
+  // (which keys off word timings) had nothing to show. Derive karaoke words from
+  // the stored lyrics: split into sections, map to beats (1:1 when the section
+  // count matches the beats, else distribute lines evenly), and time the words
+  // evenly across each beat's duration. This is beat-synced, not forced-aligned
+  // — it follows the song closely without a separate alignment pass.
+  if (songUrl && beats.length > 0 && !beats.some((b) => b.voUrl)) {
+    const rawLyrics = String((script.metadata as { lyrics?: string } | null)?.lyrics ?? "");
+    if (rawLyrics.trim()) {
+      const sections = splitLyricSections(rawLyrics);
+      const perBeat =
+        sections.length === beats.length
+          ? sections
+          : distributeLyricLines(sections.flat(), beats.length);
+      beats.forEach((b, i) => {
+        b.words = wordsFromLyricLines(perBeat[i] ?? [], b.durationSec);
+      });
+    }
+  }
 
   // Tier 9 #2 — narrated intro title card. Hero shot = the strongest available
   // frame (a hero still, else the first still/clip); phrase = the script's
