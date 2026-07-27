@@ -298,6 +298,22 @@ export function SettingsForm({
           )}
         </Field>
 
+        <Field label="Preferred song model (sing-along channels)">
+          <select
+            name="preferred_song_model"
+            defaultValue={project.preferred_song_model ?? "minimax-music-v2"}
+            className="input"
+          >
+            <option value="minimax-music-v2">MiniMax Music v2 — varied takes, ~$0.035/song</option>
+            <option value="elevenlabs-song">ElevenLabs Music — premium, consistent, ~$0.50/song</option>
+          </select>
+          <p className="mt-1 text-xs text-muted">
+            The channel default singer for song videos. Each video can override
+            this from the “Start anything” composer; re-lock a new default here
+            and it applies to every future video.
+          </p>
+        </Field>
+
         <Field label="Status">
           <div className="flex gap-1 rounded-full bg-canvas p-1">
             {["active", "paused"].map((s) => (

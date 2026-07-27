@@ -11,8 +11,23 @@ import { startFromPromptAction } from "@/lib/actions/workspace";
  * intent router resolves — "write a song about…", a topic, an episode spec —
  * then drops you into that video's workspace to keep the conversation going.
  */
-export function ProjectComposer({ projectId }: { projectId: string }) {
+/** Client-safe mirror of the sung song models (SONG_MODELS is server-only). */
+const SONG_MODEL_OPTIONS = [
+  { id: "default", label: "Channel default voice" },
+  { id: "minimax-music-v2", label: "MiniMax Music v2 (varied, cheap)" },
+  { id: "elevenlabs-song", label: "ElevenLabs Music (premium, consistent)" },
+];
+
+export function ProjectComposer({
+  projectId,
+  preferredSongLabel,
+}: {
+  projectId: string;
+  /** Human label of the channel's locked default, shown on the default option. */
+  preferredSongLabel?: string;
+}) {
   const [text, setText] = useState("");
+  const [songModel, setSongModel] = useState("default");
   const [error, setError] = useState<string>();
   const [note, setNote] = useState<string>();
   const [pending, start] = useTransition();
@@ -24,7 +39,7 @@ export function ProjectComposer({ projectId }: { projectId: string }) {
     start(async () => {
       setError(undefined);
       setNote("Starting…");
-      const r = await startFromPromptAction({ projectId, text: t });
+      const r = await startFromPromptAction({ projectId, text: t, songModelId: songModel });
       if (!r.videoId) {
         setError(r.error ?? "Something went wrong — try again.");
         setNote(undefined);
@@ -66,17 +81,38 @@ export function ProjectComposer({ projectId }: { projectId: string }) {
 
       {error && <p className="text-xs font-medium text-red-600">{error}</p>}
 
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-muted">{note ?? "⌘/Ctrl + Enter to send"}</span>
-        <button
-          type="button"
-          onClick={submit}
-          disabled={pending || !text.trim()}
-          className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02] disabled:opacity-60"
-        >
-          {pending ? <Loader2 className="size-3.5 animate-spin" /> : <ArrowUp className="size-3.5" />}
-          {pending ? "Starting…" : "Start"}
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <label className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
+          Voice
+          <select
+            value={songModel}
+            onChange={(e) => setSongModel(e.target.value)}
+            disabled={pending}
+            className="rounded-lg border border-line bg-bg px-2 py-1.5 text-xs text-ink"
+            aria-label="Song / voice model for this video"
+          >
+            {SONG_MODEL_OPTIONS.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.id === "default" && preferredSongLabel
+                  ? `Channel default (${preferredSongLabel})`
+                  : o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-muted">{note ?? "⌘/Ctrl + Enter to send"}</span>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={pending || !text.trim()}
+            className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-semibold text-on-accent shadow-card transition-transform hover:scale-[1.02] disabled:opacity-60"
+          >
+            {pending ? <Loader2 className="size-3.5 animate-spin" /> : <ArrowUp className="size-3.5" />}
+            {pending ? "Starting…" : "Start"}
+          </button>
+        </div>
       </div>
     </div>
   );

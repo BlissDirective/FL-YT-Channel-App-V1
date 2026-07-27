@@ -273,11 +273,16 @@ export async function continueStageAction(opts: {
 export async function startFromPromptAction(opts: {
   projectId: string;
   text: string;
+  /** Per-video song/voice model. Omit or "default" = the channel's preferred
+      model (falls back to the built-in default). */
+  songModelId?: string;
 }): Promise<ComposerResult & { videoId?: string }> {
   try {
     const text = opts.text.trim();
     if (!text) return { ok: false, error: "Type something to start." };
     const db = await createClient();
+    const songModel =
+      opts.songModelId && opts.songModelId !== "default" ? opts.songModelId : null;
 
     // Title = first meaningful line (stripped of quotes/brackets); the full
     // brief becomes the topic so downstream generators see all the context.
@@ -303,6 +308,7 @@ export async function startFromPromptAction(opts: {
         status: "IDEA",
         kind,
         ...(target ? { target_length_sec: Math.max(15, Math.min(target, 1200)) } : {}),
+        ...(songModel ? { song_model: songModel } : {}),
       })
       .select("*")
       .single();
@@ -338,7 +344,13 @@ export async function startFromPromptAction(opts: {
       if (!action) {
         reply = `Created “${title}”. Open it to keep going.`;
       } else {
-        const result = await executeWorkspaceAction(intent.action, intent.params, db);
+        // A deliberate model pick from the composer wins over the router's
+        // keyword guess for song actions.
+        const params =
+          songModel && (intent.action === "write_song" || intent.action === "resing_song")
+            ? { ...intent.params, modelId: songModel }
+            : intent.params;
+        const result = await executeWorkspaceAction(intent.action, params, db);
         ok = result.ok;
         reply = result.ok
           ? result.data != null

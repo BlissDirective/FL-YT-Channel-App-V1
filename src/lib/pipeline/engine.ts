@@ -2709,7 +2709,11 @@ export async function generateSongForVideo(opts: {
   if (!loaded.ok) return loaded;
   const { video, project } = loaded;
 
-  const model = getSongModel(opts.modelId ?? DEFAULT_SONG_MODEL_ID);
+  // Model resolution: an explicit request wins, then the per-video override,
+  // then the channel's preferred model, then the built-in default.
+  const model = getSongModel(
+    opts.modelId ?? video.song_model ?? project.preferred_song_model ?? DEFAULT_SONG_MODEL_ID,
+  );
   if (!model) return { ok: false, error: "Unknown song model." };
   const lengthSec = Math.min(Math.max(opts.lengthSec ?? 120, 30), model.maxSongSec);
   const topic = (opts.topic ?? video.topic ?? video.title ?? "").trim();
@@ -2841,7 +2845,9 @@ export async function resingSong(opts: {
   if (!loaded.ok) return loaded;
   const { video, project } = loaded;
 
-  const model = getSongModel(opts.modelId ?? DEFAULT_SONG_MODEL_ID);
+  const model = getSongModel(
+    opts.modelId ?? video.song_model ?? project.preferred_song_model ?? DEFAULT_SONG_MODEL_ID,
+  );
   if (!model) return { ok: false, error: "Unknown song model." };
 
   const { data: script } = await db

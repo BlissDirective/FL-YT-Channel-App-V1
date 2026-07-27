@@ -164,7 +164,18 @@ export default async function LibraryPage({
       {/* The open composer is the primary create door: paste a brief or a
           command and it drives the whole pipeline, not just the idea phase.
           The structured generators live below as a secondary option. */}
-      <ProjectComposer projectId={project.id} />
+      <ProjectComposer
+        projectId={project.id}
+        preferredSongLabel={
+          (
+            {
+              "minimax-music-v2": "MiniMax",
+              "elevenlabs-song": "ElevenLabs",
+              "lyria-3-pro": "Lyria",
+            } as Record<string, string>
+          )[project.preferred_song_model ?? ""] ?? "MiniMax"
+        }
+      />
       <CollapsibleSection
         title="Or generate from a seed"
         defaultCollapsed

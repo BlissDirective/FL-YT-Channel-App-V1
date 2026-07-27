@@ -153,6 +153,7 @@ export async function updateProject(
       brand_kit: parseBrandKit(formData),
       voice_id: String(formData.get("voice_id") ?? "") || null,
       voice_name: String(formData.get("voice_name") ?? "") || null,
+      preferred_song_model: String(formData.get("preferred_song_model") ?? "") || null,
       autonomy: parseAutonomy(formData),
       budget: parseBudget(formData),
       rpm_usd: Number(formData.get("rpm_usd") ?? 2),

@@ -105,6 +105,9 @@ export type Project = {
   style_playbook?: string | null;
   /** Working-library size guardrail (Clean House §5); default 5. */
   library_size_limit?: number;
+  /** Channel default song/voice model for sing-along videos (re-lockable).
+      Null → the built-in DEFAULT_SONG_MODEL_ID. */
+  preferred_song_model?: string | null;
   /** Optimizer proposals auto-apply as a canary template version (Phase 4.3). */
   auto_apply_insights: boolean;
   /** Which auto-fix strategy runs for this channel (off until chosen). */
@@ -256,6 +259,9 @@ export type Video = {
   source_segment: ShortSegment | null;
   format: string;
   target_length_sec: number;
+  /** Per-video song/voice model override (sing-along channels). Null → the
+      project's preferred_song_model, else the built-in default. */
+  song_model?: string | null;
   /** Director Mode length bracket (null in autonomous mode / pre-D4 videos).
       When present it wins over tier/target defaults in scripting + VO. */
   length_target: LengthTarget | null;
