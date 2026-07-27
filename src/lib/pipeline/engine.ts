@@ -2163,15 +2163,18 @@ async function makeStickClips(
 async function runAssembly(db: Db, video: Video): Promise<"external" | void> {
   // Live-asset videos are rendered by the GitHub Actions farm (cron, ≤10 min
   // pickup): leave the video at ASSEMBLING; the worker advances it to
-  // FINAL_REVIEW when the MP4 + Short land in Storage.
-  const { data: liveVo } = await db
+  // FINAL_REVIEW when the MP4 + Short land in Storage. Song videos carry their
+  // audio as a `music` asset (no per-beat VO), so treat a live music track the
+  // same as a live VO — otherwise the whole children's-song format silently
+  // falls back to a mock render and never produces a real MP4.
+  const { data: liveAudio } = await db
     .from("assets")
     .select("id")
     .eq("video_id", video.id)
-    .eq("kind", "vo")
+    .in("kind", ["vo", "music"])
     .not("provider", "like", "mock:%")
     .limit(1);
-  if (liveVo && liveVo.length > 0) return "external";
+  if (liveAudio && liveAudio.length > 0) return "external";
 
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", "render");
   await sleep(STAGE_DELAY_MS);

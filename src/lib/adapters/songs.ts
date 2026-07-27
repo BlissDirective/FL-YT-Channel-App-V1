@@ -307,8 +307,10 @@ async function generateFalSong(opts: {
     Authorization: `Key ${process.env.FAL_KEY}`,
     "content-type": "application/json",
   };
+  // fal's minimax-music/v2 (the working fal singing model) takes the lyrics in
+  // `lyrics_prompt`, not `lyrics` — the latter 422s with "field required".
   const input: Record<string, unknown> = { prompt: opts.style };
-  if (opts.lyrics?.trim()) input.lyrics = opts.lyrics.trim();
+  if (opts.lyrics?.trim()) input.lyrics_prompt = opts.lyrics.trim();
 
   let submit: Response | null = null;
   for (let attempt = 1; attempt <= 3; attempt++) {
