@@ -2823,6 +2823,107 @@ export async function generateSongForVideo(opts: {
 }
 
 /**
+ * Re-sing an existing song video with a different model, keeping the EXACT
+ * lyrics, scene layout and any illustrated clips — only the voice changes.
+ *
+ * write_song rewrites the lyrics on every call, which makes it the wrong tool
+ * for two jobs the channel actually needs: an apples-to-apples voice A/B (same
+ * words, same pictures, different singer) and the "3 candidates per song" the
+ * vocal-consistency plan calls for. This swaps just the `music` asset.
+ */
+export async function resingSong(opts: {
+  videoId: string;
+  modelId?: string;
+  lengthSec?: number;
+}): Promise<EngineResult> {
+  const db = await createClient();
+  const loaded = await projectOfVideo(db, opts.videoId);
+  if (!loaded.ok) return loaded;
+  const { video, project } = loaded;
+
+  const model = getSongModel(opts.modelId ?? DEFAULT_SONG_MODEL_ID);
+  if (!model) return { ok: false, error: "Unknown song model." };
+
+  const { data: script } = await db
+    .from("scripts")
+    .select("metadata, runtime_sec")
+    .eq("video_id", video.id)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const meta = (script?.metadata ?? {}) as {
+    lyrics?: string;
+    musicStyle?: string;
+    songTitle?: string;
+  };
+  const lyrics = meta.lyrics?.trim();
+  if (!lyrics) {
+    return { ok: false, error: "No song lyrics on this video yet — write the song first." };
+  }
+  const style =
+    meta.musicStyle?.trim() ||
+    project.instructions ||
+    "gentle children's sing-along, warm friendly adult female vocal";
+  const title = meta.songTitle || video.title || "Song";
+  const lengthSec = Math.min(
+    Math.max(opts.lengthSec ?? script?.runtime_sec ?? 120, 30),
+    model.maxSongSec,
+  );
+
+  const est = estimateSongCost(model, lengthSec);
+  const guard = await checkBudget(db, project, video, est);
+  if (!guard.ok) return { ok: false, error: guard.reason };
+
+  const song = await generateSong({ model, style, lyrics, durationSec: lengthSec });
+
+  let songPath: string;
+  let songCost = 0;
+  if (song.provider !== "mock") {
+    songPath = `songs/${video.id}/${Date.now().toString(36)}.mp3`;
+    await uploadMedia(songPath, song.audio, song.contentType);
+    songCost = song.costUsd;
+  } else {
+    songPath = `mock:song-${video.id}`;
+  }
+
+  await archiveAssetVersions(db, video.id, "music");
+  await db.from("assets").delete().eq("video_id", video.id).eq("kind", "music");
+  await db.from("assets").insert({
+    video_id: video.id,
+    kind: "music",
+    provider: song.provider === "mock" ? "mock:song" : song.provider,
+    storage_path: songPath,
+    beat_index: null,
+    meta: {
+      song: true,
+      model: model.id,
+      title,
+      style,
+      lyrics,
+      durationSec: lengthSec,
+      ...(song.provider !== "mock" && song.timings ? { timings: song.timings } : {}),
+    },
+    cost_usd: songCost,
+  });
+  if (songCost > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: song.provider, usd: songCost, description: `${model.label} re-sing — “${title}”` },
+      `re-sang “${title}” with ${model.label}`,
+    );
+  }
+  await postWorkspaceNote(
+    db,
+    video,
+    `Re-sang “${title}” with ${model.label}${songCost > 0 ? ` ($${songCost.toFixed(3)})` : ", mock"}. ` +
+      `Same lyrics and scenes — only the voice changed.`,
+    { event: "song_resung", model: model.id, title },
+  );
+  return { ok: true };
+}
+
+/**
  * AI Avatar (build phase A): render one beat as a talking-presenter shot.
  * The presenter is the project's fixed presenter image (identity by
  * construction); the voice is the beat's EXISTING VO asset — so the avatar

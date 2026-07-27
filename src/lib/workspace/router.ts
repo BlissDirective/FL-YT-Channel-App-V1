@@ -90,6 +90,31 @@ export function routeHeuristic(text: string, ctx: RouteContext): RoutedIntent | 
     };
   }
 
+  // Re-sing: swap the voice, keep the exact lyrics + scenes. Must precede the
+  // write_song matcher below so "sing it again with minimax" doesn't trigger a
+  // full lyric rewrite.
+  {
+    const resing =
+      /\b(re-?sing|sing (it|this|the song) (again|over|with)|swap the (voice|singer)|different (voice|singer)|keep the (same )?lyrics)\b/.test(
+        lower,
+      );
+    if (resing) {
+      const modelId = /lyria/.test(lower)
+        ? "lyria-3-pro"
+        : /eleven ?labs/.test(lower)
+          ? "elevenlabs-song"
+          : /mini ?max/.test(lower)
+            ? "minimax-music-v2"
+            : undefined;
+      return {
+        kind: "action",
+        action: "resing_song",
+        params: { videoId: ctx.videoId, modelId },
+        label: `Re-singing with ${modelId ?? "the default model"}`,
+      };
+    }
+  }
+
   // Song videos (children's-channel build): "write a song about sharing",
   // "make a song about counting to five", "sing a song about colours".
   {

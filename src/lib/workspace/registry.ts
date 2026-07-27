@@ -280,6 +280,31 @@ const ACTIONS: WorkspaceAction[] = [
     },
   },
   {
+    name: "resing_song",
+    description:
+      "Re-sing this video's EXISTING song with a different model, keeping the exact lyrics and scenes — only the voice changes. Use for a voice A/B or extra takes. Model: minimax-music-v2 (default) or elevenlabs-song.",
+    params: {
+      videoId: { type: "string", required: true, description: "Video id" },
+      modelId: { type: "string", description: "Song model id (default minimax-music-v2)" },
+      lengthSec: { type: "number", description: "Target song length in seconds" },
+    },
+    costBearing: true,
+    estimate: (p) =>
+      estimateCost({
+        action: "song",
+        modelId: str(p.modelId) ?? "minimax-music-v2",
+        durationSec: num(p.lengthSec) ?? 120,
+      }),
+    execute: async (p) => {
+      const { resingSong } = await import("@/lib/pipeline/engine");
+      return resingSong({
+        videoId: str(p.videoId)!,
+        modelId: str(p.modelId),
+        lengthSec: num(p.lengthSec),
+      });
+    },
+  },
+  {
     name: "generate_beat_avatar",
     description:
       "Render one beat as a talking-presenter avatar shot: the project's presenter image lip-syncs the beat's existing voiceover. Optional model (default kling-avatar-v2; also veed-fabric-480/720, omnihuman-1-5, infinitalk).",
