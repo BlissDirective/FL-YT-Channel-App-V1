@@ -32,11 +32,16 @@ export default async function CharacterStudioPage({
 
   // Styles come from the projects this character is linked into — a style is
   // project-scoped, an identity is not.
-  const { data: projectRows } = await db
-    .from("projects")
-    .select("id, name")
-    .in("id", state.projectIds.length > 0 ? state.projectIds : ["-"]);
-  const projects = ((projectRows ?? []) as { id: string; name: string }[]) ?? [];
+  // Guarded, not sentinel-filtered: `.in("id", ["-"])` would make Postgres try
+  // to cast "-" to uuid and fail the whole page for an unlinked character.
+  const projects: { id: string; name: string }[] = [];
+  if (state.projectIds.length > 0) {
+    const { data: projectRows } = await db
+      .from("projects")
+      .select("id, name")
+      .in("id", state.projectIds);
+    projects.push(...(((projectRows ?? []) as { id: string; name: string }[]) ?? []));
+  }
 
   const styles: { id: string; name: string; projectId: string; projectName: string; isDefault: boolean }[] = [];
   for (const p of projects) {
