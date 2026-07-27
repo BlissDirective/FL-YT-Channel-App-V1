@@ -317,60 +317,14 @@ export async function startFromPromptAction(opts: {
     }
     const v = video as Video;
 
-    await saveMessage(db, {
-      project_id: opts.projectId,
-      video_id: v.id,
-      role: "user",
-      content: text,
-    });
-
-    const ctx: RouteContext = {
-      videoId: v.id,
-      projectId: opts.projectId,
-      status: v.status,
-      atGate: Boolean(GATE_FOR_STATUS[v.status]),
-      mode: "idea",
-      focused: null,
-      targetLengthSec: v.target_length_sec ?? 300,
-    };
-    const intent = await routeIntent(text, ctx);
-
-    let reply: string;
-    let ok = true;
-    if (intent.kind === "reply") {
-      reply = `Created “${title}”. ${intent.text}`;
-    } else {
-      const action = getWorkspaceAction(intent.action);
-      if (!action) {
-        reply = `Created “${title}”. Open it to keep going.`;
-      } else {
-        // A deliberate model pick from the composer wins over the router's
-        // keyword guess for song actions.
-        const params =
-          songModel && (intent.action === "write_song" || intent.action === "resing_song")
-            ? { ...intent.params, modelId: songModel }
-            : intent.params;
-        const result = await executeWorkspaceAction(intent.action, params, db);
-        ok = result.ok;
-        reply = result.ok
-          ? result.data != null
-            ? summarize(result.data)
-            : `${intent.label} — done.`
-          : `${intent.label} — failed: ${result.error}`;
-      }
-    }
-
-    await saveMessage(db, {
-      project_id: opts.projectId,
-      video_id: v.id,
-      role: "agent",
-      content: reply,
-      intent: { kind: intent.kind, ...(intent.kind === "action" ? { action: intent.action } : {}) },
-    });
+    // Return immediately. The client redirects into the new video's workspace
+    // and replays this same text through the normal composer, so the operator
+    // watches the "writing…" happen live in the chat instead of staring at a
+    // spinner on the library page. The per-video song model is already stored
+    // on the row, so it still governs whatever song action the text triggers.
     revalidatePath(`/projects/${opts.projectId}`);
     revalidatePath(`/projects/${opts.projectId}/library`);
-    revalidatePath(`/projects/${opts.projectId}/videos/${v.id}`);
-    return { ok, reply, videoId: v.id };
+    return { ok: true, videoId: v.id };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }

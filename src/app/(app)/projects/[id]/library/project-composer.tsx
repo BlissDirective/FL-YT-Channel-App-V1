@@ -38,14 +38,20 @@ export function ProjectComposer({
     if (!t || pending) return;
     start(async () => {
       setError(undefined);
-      setNote("Starting…");
+      setNote("Opening…");
       const r = await startFromPromptAction({ projectId, text: t, songModelId: songModel });
       if (!r.videoId) {
         setError(r.error ?? "Something went wrong — try again.");
         setNote(undefined);
         return;
       }
-      // Land in the new video's workspace; the same chat continues there.
+      // Hand the prompt to the workspace so it runs there — the operator watches
+      // the "writing…" happen live in the chat instead of waiting on a spinner.
+      try {
+        sessionStorage.setItem(`mm:start:${r.videoId}`, t);
+      } catch {
+        /* private mode / storage disabled — the workspace just opens empty */
+      }
       router.push(`/projects/${projectId}/videos/${r.videoId}`);
     });
   }

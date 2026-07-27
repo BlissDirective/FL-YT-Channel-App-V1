@@ -6,7 +6,7 @@
  * main driver (§3.1): every message routes through the intent router to the
  * action registry; the buttons on cards invoke the SAME registered actions.
  */
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -218,6 +218,26 @@ export function WorkspaceView(props: WorkspaceProps) {
       handleResult(r);
     });
   };
+
+  // Handoff from the library's "Start anything" composer: it created this video
+  // and stashed the prompt, then redirected here. Replay it once through the
+  // normal composer so the writing happens live in this chat (not on a spinner
+  // back on the library page).
+  const startedRef = useRef(false);
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    let startText: string | null = null;
+    try {
+      const key = `mm:start:${props.videoId}`;
+      startText = sessionStorage.getItem(key);
+      if (startText) sessionStorage.removeItem(key);
+    } catch {
+      /* storage unavailable — nothing to replay */
+    }
+    if (startText && startText.trim()) quickAction(startText.trim());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.videoId]);
 
   const selectedModel = props.videoModels.find((m) => m.id === modelId);
 
