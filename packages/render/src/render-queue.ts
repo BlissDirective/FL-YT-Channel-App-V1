@@ -427,6 +427,22 @@ async function buildProps(
   const songAsset = assets.find((a) => a.kind === "music");
   const songUrl = songAsset?.storage_path ? await sign(songAsset.storage_path) : undefined;
 
+  // Song videos have no per-beat VO, so the loop above defaulted every scene to
+  // 5s — which truncates a ~100s song to a ~30s slideshow and cuts the music
+  // off mid-verse. Stretch the scenes to cover the song so the picture lasts as
+  // long as the music (song length from the music asset, falling back to the
+  // per-scene budget the song layout recorded).
+  if (songUrl && beats.length > 0 && !beats.some((b) => b.voUrl)) {
+    const meta = (script.metadata ?? {}) as { secondsPerScene?: number };
+    const songLenSec =
+      Number((songAsset?.meta as { durationSec?: number } | undefined)?.durationSec) ||
+      (meta.secondsPerScene ? meta.secondsPerScene * beats.length : 0);
+    if (songLenSec > 0) {
+      const per = Math.max(4, Math.round(songLenSec / beats.length));
+      for (const b of beats) b.durationSec = per;
+    }
+  }
+
   // A render with neither narration nor a song would be silent — not ready.
   if (!songUrl && !beats.some((b) => b.voUrl)) return null;
 
