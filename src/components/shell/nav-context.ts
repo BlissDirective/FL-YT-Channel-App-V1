@@ -11,6 +11,7 @@ import {
   ListVideo,
   Newspaper,
   Settings,
+  Users,
 } from "lucide-react";
 
 /** /projects/{uuid}… → the project id (null for /projects/new and others). */
@@ -33,8 +34,13 @@ export function globalNavV2(): NavItem[] {
   // ClickMax transition decision 4: the Spend dashboard is parked — cost lives
   // at the point of click (composer/Continue estimates, workspace header
   // total) and via chat ("what have I spent?"). Ledger + queries unchanged.
+  // Characters are GLOBAL, not project-scoped — one cast, reusable across every
+  // channel — so the Studio lives in the global tab set. A project's own Cast
+  // page (which characters it uses, in which styles) hangs off the project
+  // instead, to keep the project tab bar at four.
   return [
     { label: "Home", href: "/", icon: LayoutDashboard },
+    { label: "Characters", href: "/characters", icon: Users },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
 }

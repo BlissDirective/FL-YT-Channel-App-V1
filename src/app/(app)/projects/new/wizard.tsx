@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import {
+  Brush,
   Check,
   Mic,
   Palette,
@@ -20,6 +21,9 @@ const STEPS = [
   { key: "brand", label: "Brand", icon: Palette },
   { key: "voice", label: "Voice", icon: Mic },
   { key: "settings", label: "Autonomy", icon: Settings2 },
+  // Character Studio §7: entirely skippable. Leaving it blank creates no
+  // style, and the project renders exactly as it would have before.
+  { key: "look", label: "Look", icon: Brush },
 ] as const;
 
 const TONES = ["authoritative", "curious", "alarming", "calm", "aspirational"];
@@ -376,6 +380,37 @@ export function ProjectWizard({ voices }: { voices: Voice[] }) {
               />
             </Field>
           </div>
+        </div>
+
+        {/* Step 5 — the look (optional). A style is what every character is
+            rendered into; you can also add one later from the Cast page. */}
+        <div className={cn("space-y-5", step !== 4 && "hidden")}>
+          <p className="rounded-xl bg-card-warm p-3 text-xs leading-relaxed text-muted">
+            Optional. Describe the channel&apos;s art style once and every image inherits it — and
+            recurring characters can be locked to it in the Character Studio. Skip this and nothing
+            changes: the project renders exactly as it would have.
+          </p>
+          <Field label="Style name" hint="Leave everything blank to skip.">
+            <input name="style_name" placeholder="Style A: pastel storybook" className="input" />
+          </Field>
+          <Field
+            label="Art style"
+            hint="Medium, linework, shading, lighting — the look, not the subject."
+          >
+            <textarea
+              name="style_string"
+              rows={3}
+              placeholder="Soft pastel flat-vector picture-book illustration, thick rounded outlines, flat shading, warm daylight."
+              className="input"
+            />
+          </Field>
+          <Field label="Never include" hint="Applied to every image in this style.">
+            <input
+              name="style_exclusions"
+              placeholder="No text, no logos, no watermarks."
+              className="input"
+            />
+          </Field>
         </div>
 
         {state.error && (

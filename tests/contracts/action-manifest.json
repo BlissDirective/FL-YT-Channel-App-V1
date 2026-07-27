@@ -23,6 +23,24 @@
     "cancelBuildRunAction(projectId: string, runId: string,)",
     "runBuildNowAction(projectId: string,)"
   ],
+  "characters": [
+    "createCharacterAction(opts: { name: string; projectId?: string | null; role?: CharacterRole; description?: string; identityAnchor?: string | null; })",
+    "updateCharacterAction(opts: { characterId: string; projectId?: string | null; patch: { name?: string; aliases?: string[]; role?: CharacterRole; description?: string; identityAnchor?: string | null; speciesOrType?: string | null; notes?: string | null; }; })",
+    "deleteCharacterAction(opts: { characterId: string; projectId?: string | null; })",
+    "linkCharacterAction(opts: { projectId: string; characterId: string; })",
+    "unlinkCharacterAction(opts: { projectId: string; characterId: string; })",
+    "createStyleAction(opts: { projectId: string; name: string; styleString?: string; palette?: Record<string, string>; compositionRules?: string | null; exclusions?: string | null; isDefault?: boolean; })",
+    "updateStyleAction(opts: { styleId: string; projectId: string; patch: { name?: string; styleString?: string; palette?: Record<string, string>; compositionRules?: string | null; exclusions?: string | null; }; })",
+    "setDefaultStyleAction(opts: { projectId: string; styleId: string; })",
+    "deleteStyleAction(opts: { styleId: string; projectId: string; })",
+    "generateCandidatesAction(opts: { characterId: string; styleId: string; lookType?: LookType; sceneClause?: string; count?: number; modelId?: string; ignoreReferences?: boolean; projectId?: string | null; })",
+    "uploadCharacterReferenceAction(characterId: string, styleId: string, formData: FormData,)",
+    "lockCharacterAction(opts: { characterId: string; styleId: string; lookType?: LookType; canonicalImagePath: string; generateSheet?: boolean; modelId?: string; projectId?: string | null; })",
+    "generateSheetAction(opts: { characterId: string; styleId: string; lookType?: LookType; modelId?: string; })",
+    "generatePortraitLookAction(opts: { characterId: string; styleId: string; modelId?: string; })",
+    "sendDesignMessageAction(opts: { characterId: string; text: string; styleId?: string | null; channelContext?: string | null; autoGenerate?: boolean; modelId?: string; })",
+    "acceptProposalAction(opts: { characterId: string; description: string; identityAnchor?: string | null; })"
+  ],
   "cleanhouse": [
     "startCleanHouseTriage(projectId: string, mode: \"all\" | \"selected\", videoIds: string[] = [],)",
     "approveCleanHouse(projectId: string, runId: string, budgetCeilingUsd: number, overrides: { videoId: string; verdict: \"advance\" | \"flag\" | \"skip\" }[] = [], strategy: CleanHouseBudgetStrategy = \"salvageability\",)",

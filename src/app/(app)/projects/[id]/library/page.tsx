@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clapperboard, Settings } from "lucide-react";
+import { Clapperboard, Settings, Users } from "lucide-react";
 import { getProject, getVideos } from "@/lib/db/queries";
 import { getLibrary, type LibraryItem } from "@/lib/db/library-data";
 import { getIsAdmin } from "@/lib/admin-guard";
@@ -105,6 +105,12 @@ export default async function LibraryPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href={`/projects/${project.id}/cast`}
+            className="flex items-center gap-1.5 rounded-full bg-card px-3.5 py-2 text-xs font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"
+          >
+            <Users className="size-3.5" /> Cast
+          </Link>
           <Link
             href={`/projects/${project.id}/settings`}
             className="flex items-center gap-1.5 rounded-full bg-card px-3.5 py-2 text-xs font-semibold text-ink shadow-card transition-colors hover:bg-accent-soft"

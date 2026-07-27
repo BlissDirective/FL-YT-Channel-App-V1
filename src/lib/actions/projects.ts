@@ -96,6 +96,27 @@ export async function createProject(
     .single();
 
   if (error) return { error: error.message };
+
+  // Optional Character Studio step: an art style, if the operator filled one
+  // in. Blank is the normal case and creates nothing — a project with no style
+  // renders exactly as it always has.
+  const styleString = String(formData.get("style_string") ?? "").trim();
+  if (styleString) {
+    try {
+      const { createStyle } = await import("@/lib/pipeline/character-studio");
+      await createStyle(supabase, {
+        projectId: data.id,
+        name: String(formData.get("style_name") ?? "").trim() || "Style A",
+        styleString,
+        exclusions: String(formData.get("style_exclusions") ?? "").trim() || null,
+        isDefault: true,
+      });
+    } catch (err) {
+      // A style is a nice-to-have; never fail project creation over it.
+      console.error("optional style creation failed (non-blocking):", err);
+    }
+  }
+
   revalidatePath("/");
   redirect(`/projects/${data.id}`);
 }

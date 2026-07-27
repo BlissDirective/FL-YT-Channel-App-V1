@@ -16,13 +16,19 @@ import {
 } from "@/lib/adapters/video-models";
 import { SONG_MODELS, estimateSongCost, getSongModel, type SongModel } from "@/lib/adapters/songs";
 import {
+  REF_IMAGE_MODELS,
+  estimateRefImageCost,
+  getRefImageModel,
+  type RefImageModel,
+} from "@/lib/adapters/reference-image";
+import {
   AVATAR_MODELS,
   estimateAvatarCost,
   getAvatarModel,
   type AvatarModel,
 } from "@/lib/adapters/avatar";
 
-export type CatalogKind = "video" | "image" | "voice" | "avatar" | "song";
+export type CatalogKind = "video" | "image" | "voice" | "avatar" | "song" | "reference-image";
 
 export type CatalogEntry = {
   id: string;
@@ -206,9 +212,32 @@ function songEntry(m: SongModel): CatalogEntry {
   };
 }
 
+const REF_PROS: Record<string, string[]> = {
+  "nano-banana-pro": [
+    "Holds several characters consistent in one frame",
+    "Up to 14 reference images",
+    "The default for character work",
+  ],
+  "flux-2-pro": ["A tenth the cost for single-character scenes", "Multi-reference up to 10 images"],
+};
+
+function refImageEntry(m: RefImageModel): CatalogEntry {
+  return {
+    id: m.id,
+    kind: "reference-image",
+    label: m.label,
+    description: m.bestFor,
+    pros: REF_PROS[m.id] ?? [m.bestFor],
+    badge: m.id === "nano-banana-pro" ? "Best" : "Cheap",
+    unitUsd: m.usdPerImage,
+    unit: "image",
+  };
+}
+
 export function modelCatalog(kind?: CatalogKind): CatalogEntry[] {
   const all = [
     ...VIDEO_MODELS.map(videoEntry),
+    ...REF_IMAGE_MODELS.map(refImageEntry),
     ...AVATAR_MODELS.map(avatarEntry),
     ...SONG_MODELS.map(songEntry),
     ...IMAGE_ENTRIES,
@@ -229,6 +258,7 @@ export type EstimatableAction =
   | { action: "clip"; modelId: string; durationSec: number }
   | { action: "avatar"; modelId: string; durationSec: number }
   | { action: "song"; modelId: string; durationSec?: number }
+  | { action: "reference-image"; modelId: string; count?: number }
   | { action: "image"; tier?: "schnell" | "dev"; count?: number }
   | { action: "vo"; chars: number; voice?: "elevenlabs" | "kokoro" }
   | { action: "script"; targetLengthSec: number }
@@ -253,6 +283,10 @@ export function estimateCost(a: EstimatableAction): number {
     case "song": {
       const m = getSongModel(a.modelId);
       return m ? estimateSongCost(m, a.durationSec ?? 120) : 0;
+    }
+    case "reference-image": {
+      const m = getRefImageModel(a.modelId);
+      return m ? estimateRefImageCost(m, a.count ?? 1) : 0;
     }
     case "image": {
       const per = a.tier === "dev" ? 0.025 : 0.003;

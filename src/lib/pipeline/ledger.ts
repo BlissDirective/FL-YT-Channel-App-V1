@@ -77,6 +77,43 @@ export async function recordResearchCost(db: Db, usd: number, description: strin
   });
 }
 
+// ── Character Studio design budget (Character Studio §2, decision Q10) ──
+// Also a separate line: designing a character is not producing a video, so it
+// ledgers at SYSTEM scope and never enters monthSpend() or a project cap. The
+// per-character total drives the Studio's running meter, which WARNS at the
+// soft budget and never blocks — the operator decides when a character is
+// worth another twenty candidates.
+
+export const CHARACTER_SOFT_BUDGET_USD = Number(process.env.CHARACTER_SOFT_BUDGET_USD) > 0
+  ? Number(process.env.CHARACTER_SOFT_BUDGET_USD)
+  : 8;
+
+/** Ledger a Character Studio generation, attributed to the character. */
+export async function recordCharacterCost(
+  db: Db,
+  characterId: string,
+  cost: LedgerEntry,
+): Promise<void> {
+  if (cost.usd <= 0) return;
+  await db.from("cost_ledger").insert({
+    project_id: null,
+    video_id: null,
+    character_id: characterId,
+    provider: cost.provider,
+    description: cost.description,
+    usd: cost.usd,
+  });
+}
+
+/** Lifetime design spend on one character (the Studio's meter). */
+export async function characterSpend(db: Db, characterId: string): Promise<number> {
+  const { data } = await db
+    .from("cost_ledger")
+    .select("usd")
+    .eq("character_id", characterId);
+  return (data ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
+}
+
 /** Month-to-date ledger spend for a project. */
 export async function monthSpend(db: Db, projectId: string): Promise<number> {
   const monthStart = new Date(
