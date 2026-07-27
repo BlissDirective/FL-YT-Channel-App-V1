@@ -450,6 +450,17 @@ export function SettingsForm({
               className="input"
             />
           </Field>
+          <Field label="Working library size (videos before auto-seed pauses)">
+            <input
+              name="library_size_limit"
+              type="number"
+              min={1}
+              max={500}
+              step={1}
+              defaultValue={project.library_size_limit ?? 5}
+              className="input"
+            />
+          </Field>
         </div>
 
         <div className="space-y-3 border-t border-line pt-4">

@@ -159,6 +159,12 @@ export async function updateProject(
       status: String(formData.get("status") ?? "active"),
       auto_intelligence: formData.get("auto_intelligence") === "on",
       clip_confirm_usd: Number(formData.get("clip_confirm_usd") ?? 3),
+      // Working-library guardrail: how many un-archived videos may sit in the
+      // library before autonomous seeding pauses (manual creation always works).
+      library_size_limit: Math.max(
+        1,
+        Math.min(500, Math.round(Number(formData.get("library_size_limit") ?? 5))),
+      ),
       visual_style: visualStyle,
       ...(visualStyle === "stick" ? { stick_cast: stickCast } : {}),
       autofix_loop: autofix.loop,
