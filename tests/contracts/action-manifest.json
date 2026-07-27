@@ -191,6 +191,7 @@
     "sendComposerMessage(opts: { projectId: string; videoId: string; text: string; mode: ComposerMode; focused?: RouteContext[\"focused\"]; modelId?: string; durationSec?: number; })",
     "confirmComposerAction(opts: { projectId: string; videoId: string; action: string; params: Record<string, unknown>; })",
     "continueStageAction(opts: { projectId: string; videoId: string; })",
+    "startFromPromptAction(opts: { projectId: string; text: string; /** Per-video song/voice model. Omit or \"default\" = the channel's preferred model (falls back to the built-in default). */ songModelId?: string; })",
     "setWorkspaceModeAction(opts: { projectId: string; mode: \"director\" | \"autopilot\"; })",
     "savePresenterImageAction(projectId: string, formData: FormData,)",
     "saveNotifyPrefsAction(opts: { projectId: string; prefs: { telegram: boolean; webpush: boolean }; })",
