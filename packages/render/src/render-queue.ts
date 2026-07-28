@@ -475,9 +475,25 @@ async function buildProps(
   // per-scene budget the song layout recorded).
   if (songUrl && beats.length > 0 && !beats.some((b) => b.voUrl)) {
     const meta = (script.metadata ?? {}) as { secondsPerScene?: number };
-    const songLenSec =
-      Number((songAsset?.meta as { durationSec?: number } | undefined)?.durationSec) ||
-      (meta.secondsPerScene ? meta.secondsPerScene * beats.length : 0);
+    const songMeta = (songAsset?.meta ?? {}) as {
+      durationSec?: number;
+      alignedWords?: { start: number; end: number }[];
+    };
+    // The generator records the REQUESTED length, but the provider often
+    // overruns it (a 120s ask can come back a 170s song), so trusting
+    // durationSec alone cuts the last verses. When we have forced-aligned
+    // words, the final vocal onset is a hard floor for how long the picture
+    // must last — take the max so no sung line is ever left on the cutting
+    // room floor (a short instrumental outro past the last word is fine to lose).
+    const lastWordEnd = (songMeta.alignedWords ?? []).reduce(
+      (m, w) => (Number.isFinite(w.end) ? Math.max(m, w.end) : m),
+      0,
+    );
+    const songLenSec = Math.max(
+      Number(songMeta.durationSec) || 0,
+      lastWordEnd > 0 ? lastWordEnd + 2 : 0,
+      meta.secondsPerScene ? meta.secondsPerScene * beats.length : 0,
+    );
     if (songLenSec > 0) {
       const per = Math.max(4, Math.round(songLenSec / beats.length));
       for (const b of beats) b.durationSec = per;
@@ -501,20 +517,32 @@ async function buildProps(
         ?.alignedWords ?? []
     ).filter((w) => Number.isFinite(w.start) && Number.isFinite(w.end));
     if (aligned.length > 0) {
-      // Absolute scene start times (durationSec was stretched to the song above).
+      // The sung track plays from composition frame 0, but the scenes start
+      // AFTER the intro sting (INTRO_SEC) and captions render on each scene's
+      // LOCAL clock. Shift the absolute word times back by INTRO_SEC so the
+      // highlighted word lands on the vocal you actually hear. (The picture,
+      // which also starts after the sting, trails the audio by that same beat —
+      // expected for a title-carded open.)
+      const shifted = aligned.map((w) => ({
+        w: w.w,
+        start: w.start - INTRO_SEC,
+        end: w.end - INTRO_SEC,
+      }));
+      // Scene start times on the beat timeline (durationSec stretched to the
+      // song above), so a word is placed in the scene whose window holds its
+      // onset — scene 0 also absorbs anything before it, the last scene anything
+      // after. Times are made scene-relative for BeatScene's local clock.
       let acc = 0;
       const spans = beats.map((b) => {
         const start = acc;
         acc += b.durationSec;
         return { start, end: acc };
       });
+      const last = beats.length - 1;
       beats.forEach((b, i) => {
         const { start, end } = spans[i];
-        // A word belongs to the scene whose window contains its onset (the last
-        // scene also absorbs any word past the final boundary). Times are made
-        // relative to the scene so BeatScene renders them on its local clock.
-        b.words = aligned
-          .filter((w) => w.start >= start && (w.start < end || i === beats.length - 1))
+        b.words = shifted
+          .filter((w) => (w.start >= start || i === 0) && (w.start < end || i === last))
           .map((w) => ({
             w: w.w,
             start: Math.max(0, w.start - start),
