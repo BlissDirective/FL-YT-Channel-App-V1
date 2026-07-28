@@ -1230,15 +1230,29 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
       !accentIdx.has(idx) &&
       estSec >= MULTI_IMAGE_MIN_SEC
     ) {
-      // On-model first: if this scene was rendered against locked character
-      // references, generate the extra frames the same way (same cast, same
-      // outfits, fresh composition) so a multi-image section never drops the
-      // characters for off-brand stock. Non-cast beats keep the stock/FLUX path.
-      const castRefs = meta.request?.referencePaths ?? [];
+      // On-model first: if this scene resolves to a cast with locked looks,
+      // generate the extra frames the same way (same cast, same outfits, fresh
+      // composition) so a multi-image section never drops the characters for
+      // off-brand stock. Resolve the cast here rather than trusting the clip
+      // meta — a cache-hit primary carries no `request.referencePaths`, so
+      // re-composing is what keeps the extras on-model on a re-generation.
+      // Non-cast beats fall through to the stock/FLUX path unchanged.
+      let castRefs = meta.request?.referencePaths ?? [];
+      let castPrompt = meta.request?.prompt ?? beat.visualPrompt;
+      if (castRefs.length === 0) {
+        const comp = await composeCastPrompt(db, {
+          project,
+          video,
+          beat,
+          fallbackPrompt: beat.visualPrompt,
+        });
+        castRefs = comp.referencePaths;
+        castPrompt = comp.prompt;
+      }
       let images: string[] = [];
       if (castRefs.length > 0) {
         images = await extraCastStillsForBeat(db, video, project, beat, {
-          prompt: meta.request?.prompt ?? beat.visualPrompt,
+          prompt: castPrompt,
           referencePaths: castRefs,
         });
       }
