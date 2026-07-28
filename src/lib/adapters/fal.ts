@@ -84,6 +84,39 @@ export async function kokoroSynthesize(opts: {
   };
 }
 
+// ── Whisper word-level transcription (for forced-alignment captions) ──
+
+/** fal Whisper with word-level timestamps. Used to force-align known lyrics to
+    the actual sung audio so sing-along captions land on the beat instead of on
+    an even split. Returns each recognised WORD with its start/end in seconds.
+    Best-effort: callers fall back to even distribution when this throws. */
+export async function falTranscribeWords(opts: {
+  audioUrl: string;
+}): Promise<{ words: { w: string; start: number; end: number }[]; costUsd: number }> {
+  const data = await falRun<{
+    text?: string;
+    chunks?: { timestamp?: [number | null, number | null]; text?: string }[];
+  }>("fal-ai/whisper", {
+    audio_url: opts.audioUrl,
+    task: "transcribe",
+    language: "en",
+    // Word-level granularity is what makes the captions frame-accurate; segment
+    // level would only pin whole lines.
+    chunk_level: "word",
+    version: "3",
+  });
+  const words = (data.chunks ?? [])
+    .map((c) => {
+      const start = Number(c.timestamp?.[0] ?? NaN);
+      const end = Number(c.timestamp?.[1] ?? NaN);
+      return { w: (c.text ?? "").trim(), start, end };
+    })
+    .filter((c) => c.w.length > 0 && Number.isFinite(c.start) && Number.isFinite(c.end));
+  // fal Whisper large-v3 bills ~$0.0006/audio-min; the song is ~2 min, so a
+  // flat cent covers it without needing the exact duration here.
+  return { words, costUsd: 0.01 };
+}
+
 /** Duration from the WAV header (RIFF byte rate + data chunk size). */
 function wavDurationSec(wav: Buffer): number {
   try {

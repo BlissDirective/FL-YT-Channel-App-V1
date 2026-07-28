@@ -488,22 +488,51 @@ async function buildProps(
   if (!songUrl && !beats.some((b) => b.voUrl)) return null;
 
   // Sing-along captions. Song videos have no per-beat VO, so the caption layer
-  // (which keys off word timings) had nothing to show. Derive karaoke words from
-  // the stored lyrics: split into sections, map to beats (1:1 when the section
-  // count matches the beats, else distribute lines evenly), and time the words
-  // evenly across each beat's duration. This is beat-synced, not forced-aligned
-  // — it follows the song closely without a separate alignment pass.
+  // (which keys off word timings) had nothing to show. Two sources, best first:
+  //   1. Forced alignment — the asset stage force-aligned the lyrics to the sung
+  //      audio and stashed absolute-time words on the music asset
+  //      (meta.alignedWords). We bucket those into each scene by time so the
+  //      karaoke highlight lands on the beat, not on an even guess.
+  //   2. Fallback — split the stored lyrics into sections, map to beats, and
+  //      time words evenly across each scene. Beat-synced, not frame-accurate.
   if (songUrl && beats.length > 0 && !beats.some((b) => b.voUrl)) {
-    const rawLyrics = String((script.metadata as { lyrics?: string } | null)?.lyrics ?? "");
-    if (rawLyrics.trim()) {
-      const sections = splitLyricSections(rawLyrics);
-      const perBeat =
-        sections.length === beats.length
-          ? sections
-          : distributeLyricLines(sections.flat(), beats.length);
-      beats.forEach((b, i) => {
-        b.words = wordsFromLyricLines(perBeat[i] ?? [], b.durationSec);
+    const aligned = (
+      (songAsset?.meta as { alignedWords?: { w: string; start: number; end: number }[] } | undefined)
+        ?.alignedWords ?? []
+    ).filter((w) => Number.isFinite(w.start) && Number.isFinite(w.end));
+    if (aligned.length > 0) {
+      // Absolute scene start times (durationSec was stretched to the song above).
+      let acc = 0;
+      const spans = beats.map((b) => {
+        const start = acc;
+        acc += b.durationSec;
+        return { start, end: acc };
       });
+      beats.forEach((b, i) => {
+        const { start, end } = spans[i];
+        // A word belongs to the scene whose window contains its onset (the last
+        // scene also absorbs any word past the final boundary). Times are made
+        // relative to the scene so BeatScene renders them on its local clock.
+        b.words = aligned
+          .filter((w) => w.start >= start && (w.start < end || i === beats.length - 1))
+          .map((w) => ({
+            w: w.w,
+            start: Math.max(0, w.start - start),
+            end: Math.max(w.start - start + 0.05, w.end - start),
+          }));
+      });
+    } else {
+      const rawLyrics = String((script.metadata as { lyrics?: string } | null)?.lyrics ?? "");
+      if (rawLyrics.trim()) {
+        const sections = splitLyricSections(rawLyrics);
+        const perBeat =
+          sections.length === beats.length
+            ? sections
+            : distributeLyricLines(sections.flat(), beats.length);
+        beats.forEach((b, i) => {
+          b.words = wordsFromLyricLines(perBeat[i] ?? [], b.durationSec);
+        });
+      }
     }
   }
 

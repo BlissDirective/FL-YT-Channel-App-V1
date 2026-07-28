@@ -91,6 +91,7 @@ import {
   type Lexicon,
 } from "@/lib/adapters/pronunciation";
 import { generateImage, generateVideo, isFalLive, FalVideoTimeoutError } from "@/lib/adapters/fal";
+import { alignLyricsToAudio } from "@/lib/adapters/align";
 import {
   clampDuration,
   estimateClipCost,
@@ -933,8 +934,14 @@ async function mapLimit<T, R>(
 async function runAssetGeneration(db: Db, video: Video, project: Project) {
   const script = await loadLatestScript(db, video.id);
   const beats = (script?.beats ?? []) as ScriptBeat[];
-  const scriptMeta = (script?.metadata ?? {}) as { thumbPhrase?: string };
+  const scriptMeta = (script?.metadata ?? {}) as { thumbPhrase?: string; secondsPerScene?: number };
   const stick = project.visual_style === "stick";
+  // Song layout: every beat carries lyrics as the audio (empty narration text)
+  // and one long scene per lyric section. Its per-scene length comes from the
+  // song layout, not the (empty) narration — needed so the multi-image gate
+  // below treats these long scenes as multi-image-worthy.
+  const songLike = beats.length > 0 && beats.every((b) => !(b.text ?? "").trim());
+  const songSceneSec = songLike ? Number(scriptMeta.secondsPerScene ?? 0) : 0;
 
   // VCE V2 — the Medium Router (flagged). Plan each beat's cheapest satisfying
   // medium within budget, store the plan, and downshift beat shotTypes so
@@ -1205,9 +1212,17 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
     // Multi-image section: only for still beats (FLUX stills, not stock VIDEO or
     // generated clips) that are long enough and aren't AI-video accents. Free
     // stock photos for all tiers; economy may top up with cheap FLUX schnell.
-    const meta = clip.row.meta as { stillImage?: boolean; images?: string[] };
+    const meta = clip.row.meta as {
+      stillImage?: boolean;
+      images?: string[];
+      request?: { referencePaths?: string[]; prompt?: string };
+    };
     const beat = beats.find((b) => b.idx === idx);
-    const estSec = beat ? Math.max(4, beat.text.trim().split(/\s+/).length / 2.5) : 0;
+    // Song scenes are long and text-less; use the song's per-scene length so
+    // they qualify for the multi-image treatment (narration word-count = 0).
+    const estSec = beat
+      ? Math.max(songSceneSec, 4, beat.text.trim().split(/\s+/).length / 2.5)
+      : 0;
     if (
       !stick &&
       meta.stillImage === true &&
@@ -1215,9 +1230,24 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
       !accentIdx.has(idx) &&
       estSec >= MULTI_IMAGE_MIN_SEC
     ) {
-      const allowFlux = autoTier === "economy" && fluxExtraBudget > 0;
-      const { images, fluxUsed } = await extraStillsForBeat(db, video, project, beat, { allowFlux });
-      fluxExtraBudget -= fluxUsed;
+      // On-model first: if this scene was rendered against locked character
+      // references, generate the extra frames the same way (same cast, same
+      // outfits, fresh composition) so a multi-image section never drops the
+      // characters for off-brand stock. Non-cast beats keep the stock/FLUX path.
+      const castRefs = meta.request?.referencePaths ?? [];
+      let images: string[] = [];
+      if (castRefs.length > 0) {
+        images = await extraCastStillsForBeat(db, video, project, beat, {
+          prompt: meta.request?.prompt ?? beat.visualPrompt,
+          referencePaths: castRefs,
+        });
+      }
+      if (images.length === 0) {
+        const allowFlux = autoTier === "economy" && fluxExtraBudget > 0;
+        const res = await extraStillsForBeat(db, video, project, beat, { allowFlux });
+        images = res.images;
+        fluxExtraBudget -= res.fluxUsed;
+      }
       if (images.length) clip.row.meta = { ...clip.row.meta, images };
     }
     await db.from("assets").insert(clip.row);
@@ -1325,6 +1355,55 @@ async function runAssetGeneration(db: Db, video: Video, project: Project) {
       cost_usd: 0,
     });
   }
+  // Sing-along forced alignment: a song video carries its vocal as a `music`
+  // asset (no per-beat VO), so the captions can't key off VO word timings.
+  // Force-align the known lyrics to the actual sung audio ONCE here and stash
+  // the absolute-time word list on the music asset; the render worker slices it
+  // per scene so the karaoke highlight follows the singer, not an even split.
+  // Best-effort — a failure leaves the music asset untouched and the renderer
+  // keeps the even-split fallback.
+  try {
+    const { data: songAsset } = await db
+      .from("assets")
+      .select("id, storage_path, provider, meta")
+      .eq("video_id", video.id)
+      .eq("kind", "music")
+      .not("provider", "like", "mock:%")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const songMeta = (songAsset?.meta ?? {}) as {
+      lyrics?: string;
+      durationSec?: number;
+      alignedWords?: unknown;
+    };
+    if (songAsset?.storage_path && songMeta.lyrics && !songMeta.alignedWords) {
+      const url = await getSignedMediaUrl(songAsset.storage_path, 3600);
+      if (url) {
+        const aligned = await alignLyricsToAudio({
+          audioUrl: url,
+          lyrics: songMeta.lyrics,
+          durationSec: songMeta.durationSec,
+        });
+        if (aligned && aligned.words.length > 0) {
+          await db
+            .from("assets")
+            .update({ meta: { ...songMeta, alignedWords: aligned.words } })
+            .eq("id", songAsset.id);
+          if (aligned.costUsd > 0) {
+            await recordCost(db, video, {
+              provider: "fal.ai",
+              usd: aligned.costUsd,
+              description: "Sing-along caption alignment (Whisper)",
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("song caption alignment failed (non-fatal):", err);
+  }
+
   // Character Studio Phase 3: stamp which character VERSION each beat was made
   // with, then say out loud who ended up in the frames. The stamp is what makes
   // later character edits forward-only (Q5) — this video keeps the cast it was
@@ -1537,6 +1616,57 @@ export async function extraStillsForBeat(
     }
   }
   return { images: images.slice(0, MULTI_IMAGE_EXTRA), fluxUsed };
+}
+
+/** On-model extra stills for a multi-image section: re-render the SAME scene on
+    the reference-capable model with the SAME locked character refs, asking for
+    a fresh composition each time (different camera angle / poses / moment). This
+    is what makes a long song scene show 2–3 on-model frames of the cast acting
+    out the lyric instead of one held picture — without ever swapping in
+    off-brand stock. Best-effort: each frame that fails is simply skipped, and an
+    empty result lets the caller fall back to the stock/FLUX path. */
+async function extraCastStillsForBeat(
+  db: Db,
+  video: Video,
+  project: Project,
+  beat: ScriptBeat,
+  opts: { prompt: string; referencePaths: string[] },
+): Promise<string[]> {
+  const images: string[] = [];
+  // Vary the shot each frame while pinning identity to the same references.
+  const variations = [
+    "alternate camera angle — a wider group shot, same characters, same outfits, same scene and moment, fresh natural poses",
+    "alternate camera angle — a closer, lower angle, same characters, same outfits, same scene and moment, mid-action poses",
+  ];
+  for (let i = 0; i < MULTI_IMAGE_EXTRA; i++) {
+    try {
+      const prompt = `${opts.prompt} — ${variations[i % variations.length]}.`;
+      const still = await generateCastStill({
+        project,
+        prompt,
+        referencePaths: opts.referencePaths,
+      });
+      if (!still) break; // no signable reference / provider down → let caller fall back
+      const path = `videos/${video.id}/beat-${beat.idx}-castextra-${i}.jpg`;
+      await uploadMedia(path, still.image, "image/jpeg");
+      images.push(path);
+      if (still.costUsd > 0) {
+        await recordCost(
+          db,
+          video,
+          {
+            provider: "fal.ai",
+            usd: still.costUsd,
+            description: `Multi-image cast still (${still.modelId}, ${still.refCount} ref${still.refCount === 1 ? "" : "s"})`,
+          },
+          `beat ${beat.idx + 1}`,
+        );
+      }
+    } catch {
+      /* an extra frame is best-effort — never blocks the cut */
+    }
+  }
+  return images;
 }
 
 /** One beat's visual: stock beats search Pexels (free), hero beats get a
