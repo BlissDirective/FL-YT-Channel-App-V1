@@ -42,7 +42,7 @@ export const ChannelIntro: React.FC<{
   // ── Grid (drifting circuit board) ─────────────────────────────────────
   const cell = Math.round(height / 9);
   const drift = interpolate(prog, [0, 1], [0, -cell]); // gentle diagonal drift
-  const gridOpacity = interpolate(frame, [0, Math.round(0.8 * fps)], [0, 0.22], { extrapolateRight: "clamp" });
+  const gridOpacity = interpolate(frame, [0, Math.round(0.35 * fps)], [0, 0.22], { extrapolateRight: "clamp" });
 
   // ── Light "data beams" — horizontal sweeps at a few rows, staggered ────
   const beamRows = [0.28, 0.5, 0.72, 0.86];
@@ -64,12 +64,12 @@ export const ChannelIntro: React.FC<{
   ] as const;
 
   // ── Kicker "WELCOME TO" ───────────────────────────────────────────────
-  const kickerIn = spring({ frame: frame - Math.round(0.9 * fps), fps, config: { damping: 16 } });
+  const kickerIn = spring({ frame: frame - Math.round(0.3 * fps), fps, config: { damping: 16 } });
   const kickerY = interpolate(kickerIn, [0, 1], [18, 0]);
 
   // ── Wordmark: per-word spring reveal ──────────────────────────────────
   const words = title.toUpperCase().split(/\s+/).filter(Boolean);
-  const wordStart = Math.round(1.5 * fps);
+  const wordStart = Math.round(0.9 * fps);
   const wordStagger = Math.round(0.18 * fps);
 
   // ── Accent beam under the wordmark (draws L→R) ────────────────────────

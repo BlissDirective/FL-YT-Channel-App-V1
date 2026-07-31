@@ -235,7 +235,10 @@ export const IntroSting: React.FC<VideoProps> = ({
               display: "flex",
               flexWrap: "wrap",
               justifyContent: "center",
-              gap: "0 0.28em",
+              // Word gap must be in px derived from the phrase size: an `em` gap
+              // resolves against the flex container's inherited font-size (~16px),
+              // not the large word size, collapsing the words together.
+              gap: `0 ${Math.round(phraseSize * 0.28)}px`,
               lineHeight: 1.06,
             }}
           >
