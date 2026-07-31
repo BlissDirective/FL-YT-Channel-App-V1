@@ -72,7 +72,10 @@ import {
   generateAvatarVideo,
   getAvatarModel,
   isSyncLive,
+  pollAvatarJob,
   resyncLipsync,
+  submitAvatarJob,
+  type AvatarJob,
 } from "@/lib/adapters/avatar";
 import { buildVisualBible } from "@/lib/adapters/visual-bible";
 import { planShots, mockBeatIntents } from "@/lib/adapters/shot-planner";
@@ -3199,6 +3202,149 @@ function mockAvatarRow(videoId: string, beatIdx: number, modelId: string, durati
     meta: { isVideo: true, avatar: true, model: modelId, durationSec },
     cost_usd: 0,
   };
+}
+
+/**
+ * Async avatar — part 1: SUBMIT. Same setup + money rails as generateBeatAvatar,
+ * but instead of waiting out the (slow) fal render inside one request, it submits
+ * the job to the fal queue and parks the poll URLs on a placeholder `clip` asset
+ * (provider "fal-avatar-pending"). finishBeatAvatar picks it up later. This is
+ * what makes avatar generation survive clips that render longer than any single
+ * request can wait.
+ */
+export async function submitBeatAvatar(opts: {
+  videoId: string;
+  beatIdx: number;
+  modelId?: string;
+}): Promise<{ ok: boolean; error?: string; pending?: boolean }> {
+  const db = await createClient();
+  const loaded = await projectOfVideo(db, opts.videoId);
+  if (!loaded.ok) return loaded;
+  const { video, project } = loaded;
+
+  const model = getAvatarModel(opts.modelId ?? DEFAULT_AVATAR_MODEL_ID);
+  if (!model) return { ok: false, error: "Unknown avatar model." };
+
+  const presenterPath = await resolvePresenterImagePath(
+    db,
+    project as { id: string; presenter_image_path?: string | null },
+    (video as { style_id?: string | null }).style_id ?? null,
+  );
+  if (!presenterPath) return { ok: false, error: "No presenter image set for this project." };
+
+  const { data: vo } = await db
+    .from("assets")
+    .select("storage_path, meta")
+    .eq("video_id", video.id)
+    .eq("kind", "vo")
+    .eq("beat_index", opts.beatIdx)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!vo?.storage_path) return { ok: false, error: "No VO for this beat yet." };
+  const durationSec = Math.max(1, Number((vo.meta as { durationSec?: number })?.durationSec ?? 8));
+
+  const est = estimateAvatarCost(model, durationSec);
+  const guard = await checkBudget(db, project, video, est);
+  if (!guard.ok) return { ok: false, error: guard.reason };
+
+  const [imageUrl, audioUrl] = await Promise.all([
+    getSignedMediaUrl(presenterPath),
+    getSignedMediaUrl(vo.storage_path),
+  ]);
+
+  const replacePendingWith = async (row: Record<string, unknown>) => {
+    await archiveAssetVersions(db, video.id, "clip", opts.beatIdx);
+    await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", opts.beatIdx);
+    await db.from("assets").insert(row);
+  };
+
+  if (!imageUrl || !audioUrl) {
+    await replacePendingWith(mockAvatarRow(video.id, opts.beatIdx, model.id, durationSec));
+    return { ok: true };
+  }
+
+  const job = await submitAvatarJob({ model, imageUrl, audioUrl });
+  if (!job) {
+    // mock mode (no FAL_KEY) — record the mock shot so the flow completes.
+    await replacePendingWith(mockAvatarRow(video.id, opts.beatIdx, model.id, durationSec));
+    return { ok: true };
+  }
+
+  await replacePendingWith({
+    video_id: video.id,
+    kind: "clip",
+    provider: "fal-avatar-pending",
+    storage_path: "",
+    beat_index: opts.beatIdx,
+    meta: { avatar: true, pending: true, model: model.id, durationSec, job },
+    cost_usd: 0,
+  });
+  return { ok: true, pending: true };
+}
+
+/**
+ * Async avatar — part 2: FINISH. Polls the parked fal job ONCE. Still rendering
+ * → { pending:true }. Done → downloads the mp4, swaps the placeholder clip for
+ * the real avatar clip, and records the spend. Idempotent and safe to call
+ * repeatedly until it returns done.
+ */
+export async function finishBeatAvatar(opts: {
+  videoId: string;
+  beatIdx: number;
+}): Promise<{ ok: boolean; error?: string; pending?: boolean; done?: boolean }> {
+  const db = await createClient();
+  const video = await getVideo(db, opts.videoId);
+  if (!video) return { ok: false, error: "Video not found" };
+
+  const { data: asset } = await db
+    .from("assets")
+    .select("id, meta")
+    .eq("video_id", video.id)
+    .eq("kind", "clip")
+    .eq("beat_index", opts.beatIdx)
+    .eq("provider", "fal-avatar-pending")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!asset) return { ok: false, error: "No pending avatar job for this beat — submit it first." };
+
+  const meta = (asset.meta ?? {}) as { model?: string; durationSec?: number; job?: AvatarJob };
+  if (!meta.job?.statusUrl) return { ok: false, error: "Pending avatar has no job info." };
+
+  let poll: { done: false } | { done: true; video: Buffer };
+  try {
+    poll = await pollAvatarJob(meta.job);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+  if (!poll.done) return { ok: true, pending: true, done: false };
+
+  const modelId = meta.model ?? DEFAULT_AVATAR_MODEL_ID;
+  const durationSec = Number(meta.durationSec ?? 8);
+  const model = getAvatarModel(modelId);
+  const cost = model ? estimateAvatarCost(model, durationSec) : 0;
+  const path = `avatars/${video.id}/beat-${opts.beatIdx}-${Date.now().toString(36)}.mp4`;
+  await uploadMedia(path, poll.video, "video/mp4");
+  await db
+    .from("assets")
+    .update({
+      provider: "fal-avatar",
+      storage_path: path,
+      meta: { isVideo: true, avatar: true, model: modelId, durationSec },
+      cost_usd: cost,
+    })
+    .eq("id", asset.id);
+
+  if (cost > 0) {
+    await recordCost(
+      db,
+      video,
+      { provider: "fal-avatar", usd: cost, description: `${model?.label ?? modelId}, beat ${opts.beatIdx + 1}` },
+      `avatar beat ${opts.beatIdx + 1}`,
+    );
+  }
+  return { ok: true, done: true };
 }
 
 /**

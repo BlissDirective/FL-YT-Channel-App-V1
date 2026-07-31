@@ -182,6 +182,74 @@ export async function generateAvatarVideo(opts: {
 }
 
 /* ------------------------------------------------------------------ */
+/* Async job flow — submit once, poll across separate requests. Needed  */
+/* because a full avatar clip can render longer than any single request  */
+/* can wait, so the sync generateAvatarVideo above times out. Submit     */
+/* returns the fal queue URLs; a later poll fetches the result when ready.*/
+/* ------------------------------------------------------------------ */
+
+export type AvatarJob = { statusUrl: string; responseUrl: string };
+
+/** Submit an avatar job to the fal queue and return its poll URLs. Does NOT
+    wait for completion. Throws on a bad submit; returns null in mock mode. */
+export async function submitAvatarJob(opts: {
+  model: AvatarModel;
+  imageUrl: string;
+  audioUrl: string;
+}): Promise<AvatarJob | null> {
+  if (!isFalLive()) return null;
+  const headers = {
+    Authorization: `Key ${process.env.FAL_KEY}`,
+    "content-type": "application/json",
+  };
+  const input: Record<string, unknown> = {
+    image_url: opts.imageUrl,
+    audio_url: opts.audioUrl,
+    ...(opts.model.extraInput ?? {}),
+  };
+  let submit: Response | null = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    submit = await fetch(`https://queue.fal.run/${opts.model.endpoint}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(input),
+    });
+    if (submit.ok || (submit.status !== 429 && submit.status < 500) || attempt === 3) break;
+    await sleep(600 * Math.pow(3, attempt - 1) + Math.floor(Math.random() * 400));
+  }
+  if (!submit || !submit.ok) {
+    throw new Error(`fal ${opts.model.endpoint} submit ${submit?.status}: ${((await submit?.text()) ?? "").slice(0, 200)}`);
+  }
+  const queued = (await submit.json()) as { status_url?: string; response_url?: string };
+  if (!queued.status_url || !queued.response_url) throw new Error("fal queue returned no status/response URL");
+  return { statusUrl: queued.status_url, responseUrl: queued.response_url };
+}
+
+/** Poll a submitted avatar job ONCE. Returns {done:false} while it's still
+    rendering, {done:true, video} when finished (downloads the mp4), or throws
+    on a reported failure. */
+export async function pollAvatarJob(
+  job: AvatarJob,
+): Promise<{ done: false } | { done: true; video: Buffer }> {
+  const headers = { Authorization: `Key ${process.env.FAL_KEY}`, "content-type": "application/json" };
+  const st = await fetch(job.statusUrl, { headers, cache: "no-store" });
+  if (!st.ok) return { done: false };
+  const status = (await st.json()) as { status?: string };
+  if (status.status === "FAILED" || status.status === "ERROR") {
+    throw new Error("fal reported the avatar job failed");
+  }
+  if (status.status !== "COMPLETED") return { done: false };
+  const resp = await fetch(job.responseUrl, { headers, cache: "no-store" });
+  if (!resp.ok) throw new Error(`fal result ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+  const result = (await resp.json()) as { video?: { url?: string } };
+  const url = result.video?.url;
+  if (!url) throw new Error("fal returned no video URL");
+  const dl = await fetch(url);
+  if (!dl.ok) throw new Error(`avatar download failed (${dl.status})`);
+  return { done: true, video: Buffer.from(await dl.arrayBuffer()) };
+}
+
+/* ------------------------------------------------------------------ */
 /* sync.so — cheap re-sync of an existing avatar clip to new audio     */
 /* ------------------------------------------------------------------ */
 
