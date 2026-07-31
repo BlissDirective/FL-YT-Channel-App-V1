@@ -607,7 +607,7 @@ async function buildProps(
       introPhrase: scriptMeta.thumbPhrase?.trim() || video.title,
       introVoUrl: introVoUrl ?? undefined,
       songUrl: songUrl ?? undefined,
-      channelIntro: resolveChannelIntro(project),
+      channelIntro: await resolveChannelIntro(project, sign),
     },
     project,
     video,
@@ -618,17 +618,30 @@ async function buildProps(
     projects.brand_kit.heroIntro. Shape: { enabled, title?, tagline?, seconds? }.
     Defaults: title = channel name, ~13s, clamped to a 6-20s sane range.
     Returns undefined when not enabled so every other channel is byte-identical. */
-function resolveChannelIntro(project: {
-  name: string;
-  brand_kit?: { heroIntro?: { enabled?: boolean; title?: string; tagline?: string; seconds?: number } | null } | null;
-}): VideoProps["channelIntro"] {
+async function resolveChannelIntro(
+  project: {
+    name: string;
+    brand_kit?: {
+      heroIntro?: {
+        enabled?: boolean;
+        title?: string;
+        tagline?: string;
+        seconds?: number;
+        musicPath?: string;
+      } | null;
+    } | null;
+  },
+  sign: (path: string) => Promise<string | null>,
+): Promise<VideoProps["channelIntro"]> {
   const cfg = project.brand_kit?.heroIntro;
   if (!cfg?.enabled) return undefined;
   const seconds = Math.min(20, Math.max(6, Number(cfg.seconds) || 13));
+  const musicUrl = cfg.musicPath ? ((await sign(cfg.musicPath)) ?? undefined) : undefined;
   return {
     title: (cfg.title?.trim() || project.name).trim(),
     tagline: cfg.tagline?.trim() || undefined,
     seconds,
+    musicUrl,
   };
 }
 

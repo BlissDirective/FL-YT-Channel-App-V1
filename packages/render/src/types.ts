@@ -162,8 +162,9 @@ export type VideoProps = {
   songUrl?: string;
   /** Reusable branded channel intro (projects.brand_kit.heroIntro). When set,
       a procedural motion-graphics open plays FIRST, before the topic sting, for
-      `seconds` — the same component brands every video of the channel. */
-  channelIntro?: { title: string; tagline?: string; seconds: number };
+      `seconds` — the same component brands every video of the channel.
+      `musicUrl` (optional) is a signed instrumental sting played over the open. */
+  channelIntro?: { title: string; tagline?: string; seconds: number; musicUrl?: string };
 };
 
 export const FPS = RENDER_FPS;

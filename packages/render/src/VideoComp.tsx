@@ -59,6 +59,21 @@ export const LongForm: React.FC<VideoProps> = (props) => {
       {props.channelIntro && (
         <Sequence durationInFrames={Math.round(props.channelIntro.seconds * FPS)}>
           <ChannelIntro title={props.channelIntro.title} tagline={props.channelIntro.tagline} brand={props.brand} />
+          {props.channelIntro.musicUrl && (
+            <Audio
+              src={props.channelIntro.musicUrl}
+              volume={(f) => {
+                // Quick fade-in, hold, then a short fade-out so the sting hands
+                // off cleanly to the first beat's narration.
+                const total = Math.round(props.channelIntro!.seconds * FPS);
+                const inN = Math.round(0.4 * FPS);
+                const outN = Math.round(0.8 * FPS);
+                if (f < inN) return Math.max(0, f / inN);
+                if (f > total - outN) return Math.max(0, (total - f) / outN);
+                return 1;
+              }}
+            />
+          )}
         </Sequence>
       )}
       {/* Song videos: one sung track under the entire piece (after the open). */}
