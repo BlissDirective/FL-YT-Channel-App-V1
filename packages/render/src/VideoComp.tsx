@@ -39,6 +39,7 @@ import {
   motionStyle,
 } from "./scenes";
 import { EddVideo } from "./edd/EddVideo";
+import { ChannelIntro } from "./ChannelIntro";
 
 /** Long-form 16:9 composition: branded intro sting → beat sequencer
     (visuals cut to VO with word captions) → CTA lower-third at 70% →
@@ -47,13 +48,26 @@ import { EddVideo } from "./edd/EddVideo";
 export const LongForm: React.FC<VideoProps> = (props) => {
   if (props.edd) return <EddVideo {...props} />;
   const total = longFormDurationSec(props);
-  let cursor = INTRO_SEC;
+  // Reusable branded channel open plays first (when configured); everything
+  // else shifts back by its length. Song audio, if any, starts with the topic
+  // content (after the branded open), not under the logo animation.
+  const introLead = props.channelIntro?.seconds ?? 0;
+  let cursor = introLead + INTRO_SEC;
   return (
     <AbsoluteFill style={{ backgroundColor: props.brand.secondary, fontFamily: FONT }}>
       <HighlightFonts />
-      {/* Song videos: one sung track under the entire piece. */}
-      {props.songUrl && <Audio src={props.songUrl} />}
-      <Sequence durationInFrames={Math.round(INTRO_SEC * FPS)}>
+      {props.channelIntro && (
+        <Sequence durationInFrames={Math.round(props.channelIntro.seconds * FPS)}>
+          <ChannelIntro title={props.channelIntro.title} tagline={props.channelIntro.tagline} brand={props.brand} />
+        </Sequence>
+      )}
+      {/* Song videos: one sung track under the entire piece (after the open). */}
+      {props.songUrl && (
+        <Sequence from={Math.round(introLead * FPS)}>
+          <Audio src={props.songUrl} />
+        </Sequence>
+      )}
+      <Sequence from={Math.round(introLead * FPS)} durationInFrames={Math.round(INTRO_SEC * FPS)}>
         <IntroSting {...props} />
       </Sequence>
       {props.beats.map((beat) => {

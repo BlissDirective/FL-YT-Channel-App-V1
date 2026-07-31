@@ -607,9 +607,28 @@ async function buildProps(
       introPhrase: scriptMeta.thumbPhrase?.trim() || video.title,
       introVoUrl: introVoUrl ?? undefined,
       songUrl: songUrl ?? undefined,
+      channelIntro: resolveChannelIntro(project),
     },
     project,
     video,
+  };
+}
+
+/** Reusable branded channel open, opt-in per channel via
+    projects.brand_kit.heroIntro. Shape: { enabled, title?, tagline?, seconds? }.
+    Defaults: title = channel name, ~13s, clamped to a 6-20s sane range.
+    Returns undefined when not enabled so every other channel is byte-identical. */
+function resolveChannelIntro(project: {
+  name: string;
+  brand_kit?: { heroIntro?: { enabled?: boolean; title?: string; tagline?: string; seconds?: number } | null } | null;
+}): VideoProps["channelIntro"] {
+  const cfg = project.brand_kit?.heroIntro;
+  if (!cfg?.enabled) return undefined;
+  const seconds = Math.min(20, Math.max(6, Number(cfg.seconds) || 13));
+  return {
+    title: (cfg.title?.trim() || project.name).trim(),
+    tagline: cfg.tagline?.trim() || undefined,
+    seconds,
   };
 }
 

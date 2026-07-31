@@ -160,13 +160,18 @@ export type VideoProps = {
       across the WHOLE video. Beats carry no VO in this mode — the song is
       the audio — so visuals are cut to the song instead of to narration. */
   songUrl?: string;
+  /** Reusable branded channel intro (projects.brand_kit.heroIntro). When set,
+      a procedural motion-graphics open plays FIRST, before the topic sting, for
+      `seconds` — the same component brands every video of the channel. */
+  channelIntro?: { title: string; tagline?: string; seconds: number };
 };
 
 export const FPS = RENDER_FPS;
 
 export function longFormDurationSec(props: VideoProps): number {
-  if (props.edd) return introOutroRuntime(props.edd.doc);
+  if (props.edd) return introOutroRuntime(props.edd.doc) + (props.channelIntro?.seconds ?? 0);
   return (
+    (props.channelIntro?.seconds ?? 0) +
     INTRO_SEC +
     props.beats.reduce((s, b) => s + Math.max(1, b.durationSec), 0) +
     OUTRO_SEC
@@ -188,7 +193,7 @@ export function beatTimeline(
   props: VideoProps,
 ): { idx: number; start: number; end: number }[] {
   if (props.edd) return eddTimeline(props.edd.doc);
-  let t = INTRO_SEC;
+  let t = INTRO_SEC + (props.channelIntro?.seconds ?? 0);
   return props.beats.map((b) => {
     const start = t;
     t += Math.max(1, b.durationSec);

@@ -14,6 +14,7 @@ import { StickPreview, stickPreviewDuration } from "./stick/StickPreview";
 import { StickSheet } from "./stick/StickSheet";
 import { StickShowcase, STICK_SHOWCASE_FRAMES } from "./stick/StickShowcase";
 import { StickShortSample, STICK_SAMPLE } from "./stick/StickShortSample";
+import { ChannelIntro } from "./ChannelIntro";
 
 const DEFAULT_PROPS: VideoProps = {
   title: "Sample Video",
@@ -99,6 +100,19 @@ export const RemotionRoot: React.FC = () => (
         `RENDER_DEV_COMPS=1 pnpm studio` to eyeball them. */}
     {process.env.RENDER_DEV_COMPS === "1" && (
       <>
+    <Composition
+      id="ChannelIntroPreview"
+      component={ChannelIntro}
+      fps={FPS}
+      width={1920}
+      height={1080}
+      durationInFrames={Math.round(13 * FPS)}
+      defaultProps={{
+        title: "The Silicon Layer",
+        tagline: "Investing in the AI economy",
+        brand: { primary: "#5BB98C", secondary: "#0F1F18" },
+      }}
+    />
     <Composition
       id="HighlightPreview"
       component={HighlightPreview}
