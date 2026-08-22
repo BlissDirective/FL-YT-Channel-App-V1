@@ -84,7 +84,7 @@ export function EditorTour() {
               <div
                 key={i}
                 className="rounded"
-                style={{ width: `${w}%`, background: i === 3 ? "rgba(52,211,153,0.35)" : "rgba(125,211,252,0.16)" }}
+                style={{ width: `${w}%`, background: i === 3 ? "rgba(16,212,142,0.3)" : "rgba(125,211,252,0.14)" }}
               />
             ))}
           </div>

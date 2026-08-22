@@ -47,7 +47,7 @@ export function CaptureForm({ source, size = "md" }: { source: string; size?: "m
           href={shareUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] px-4 py-2 text-sm font-medium text-[var(--m-ink)] transition-colors hover:bg-black/5"
+          className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] px-4 py-2 text-sm font-medium text-[var(--m-ink)] transition-colors hover:bg-white/5"
         >
           Share it →
         </a>
@@ -88,7 +88,7 @@ export function CaptureForm({ source, size = "md" }: { source: string; size?: "m
           placeholder="you@channel.com"
           autoComplete="email"
           aria-label="Email address"
-          className={`flex-1 rounded-full border border-[var(--m-line)] bg-[var(--m-card)] px-5 text-[var(--m-ink)] shadow-sm outline-none placeholder:text-[var(--m-muted)] focus:border-[var(--m-amber)]/50 focus:ring-2 focus:ring-[var(--m-amber)]/20 ${
+          className={`flex-1 rounded-full border border-[var(--m-line)] bg-black/30 px-5 text-[var(--m-ink)] outline-none placeholder:text-[var(--m-muted)] focus:border-[var(--m-amber)]/50 focus:ring-2 focus:ring-[var(--m-amber)]/20 ${
             size === "lg" ? "py-3.5 text-base" : "py-3 text-sm"
           }`}
         />
@@ -110,7 +110,7 @@ export function CaptureForm({ source, size = "md" }: { source: string; size?: "m
             size === "lg" ? "py-3.5 text-base" : "py-3 text-sm"
           }`}
         >
-          {pending ? "Joining…" : "Join the beta"}
+          {pending ? "Joining…" : <span className="m-shiny">Join the beta</span>}
         </button>
       </div>
       {error && (

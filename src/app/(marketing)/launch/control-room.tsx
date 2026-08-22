@@ -45,6 +45,35 @@ function prefersReduced(): boolean {
   return typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
 }
 
+/** DecryptedText (react-bits style): the status line scrambles into place on
+    every stage change — the machinery made visible. Plain text under
+    prefers-reduced-motion. */
+function Scramble({ text }: { text: string }) {
+  const [shown, setShown] = useState(text);
+  useEffect(() => {
+    if (prefersReduced()) {
+      setShown(text);
+      return;
+    }
+    const CHARS = "!<>-_\\/[]{}—=+*^?#";
+    let i = 0;
+    const t = setInterval(() => {
+      i += 2;
+      if (i >= text.length) {
+        setShown(text);
+        clearInterval(t);
+        return;
+      }
+      setShown(
+        text.slice(0, i) +
+          Array.from({ length: Math.min(10, text.length - i) }, () => CHARS[(Math.random() * CHARS.length) | 0]).join(""),
+      );
+    }, 28);
+    return () => clearInterval(t);
+  }, [text]);
+  return <>{shown}</>;
+}
+
 export function ControlRoom() {
   const [i, setI] = useState(0); // 0..STAGES.length ; === length means "done, holding"
   const [playing, setPlaying] = useState(false);
@@ -95,7 +124,7 @@ export function ControlRoom() {
           </div>
           <button
             onClick={toggle}
-            className="flex items-center gap-1.5 rounded-full border border-[var(--m-line)] px-3 py-1 text-xs font-medium text-[var(--m-ink)] transition-colors hover:bg-black/5"
+            className="flex items-center gap-1.5 rounded-full border border-[var(--m-line)] px-3 py-1 text-xs font-medium text-[var(--m-ink)] transition-colors hover:bg-white/5"
             aria-label={playing ? "Pause" : "Play"}
           >
             {playing ? <Pause className="size-3" /> : <Play className="size-3" />}
@@ -121,7 +150,7 @@ export function ControlRoom() {
                   className={`relative z-10 grid size-10 place-items-center rounded-xl border transition-all duration-500 ${state === "active" ? "stage-live" : ""}`}
                   style={{
                     borderColor: state === "queued" ? "var(--m-line)" : "var(--m-amber)",
-                    background: state === "done" ? "rgba(4,120,87,0.12)" : state === "active" ? "rgba(4,120,87,0.07)" : "rgba(14,21,38,0.03)",
+                    background: state === "done" ? "rgba(16,212,142,0.16)" : state === "active" ? "rgba(16,212,142,0.10)" : "rgba(255,255,255,0.02)",
                     color: state === "queued" ? "var(--m-muted)" : "var(--m-amber)",
                   }}
                 >
@@ -158,7 +187,7 @@ export function ControlRoom() {
                 <span className="text-[var(--m-violet)]">{current?.agent}</span>
                 <span className="text-[var(--m-muted)]"> · {current?.label.toLowerCase()}</span>
                 <br />
-                <span className="text-[var(--m-muted)]">↳ {current?.note}</span>
+                <span className="text-[var(--m-muted)]">↳ {current ? <Scramble text={current.note} /> : null}</span>
               </p>
             )}
           </div>
@@ -168,7 +197,7 @@ export function ControlRoom() {
               <p className="font-mono text-sm text-[var(--m-ink)]">${spent.toFixed(2)} <span className="text-[var(--m-muted)]">/ ${CAP.toFixed(2)}</span></p>
             </div>
             <div className="h-9 w-24">
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/10">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
                 <div className="h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${Math.min(100, (spent / CAP) * 100)}%`, background: "linear-gradient(90deg, var(--m-violet), var(--m-amber))" }} />
               </div>
               <p className="mt-1 text-right text-[10px] font-mono text-[var(--m-muted)]">{gatesPassed}/4 gates</p>

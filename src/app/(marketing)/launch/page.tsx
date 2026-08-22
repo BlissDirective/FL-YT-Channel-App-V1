@@ -15,7 +15,8 @@ import {
   Music4,
 } from "lucide-react";
 import { Reveal, WordReveal, CountUp, Aurora } from "@/components/bits/motion";
-import { SpotlightCard, Magnetic } from "@/components/bits/interactive";
+import { Magnetic } from "@/components/bits/interactive";
+import { ControlGrid, ClickSpark, BentoCard, TiltGlare } from "@/components/bits/fx";
 import { CaptureForm } from "./capture-form";
 import { ControlRoom } from "./control-room";
 import { CrewBoard } from "./crew-board";
@@ -125,18 +126,19 @@ const STATS = [
   { to: 0, suffix: "", label: "videos shipped under your floor" },
 ] as const;
 
-/** By-the-numbers chips under the stat band — the reach + breadth stats. */
+/** The capability loop — verified reach + breadth stats, marqueed (LogoLoop
+    with our own numbers instead of borrowed logos). */
 const REACH = [
-  "8 visual mediums (5 free)",
-  "7 AI video models",
-  "5 lip-sync avatar models",
-  "3 original-song models",
-  "10-stage hands-off path",
-  "7 platforms · 5 aspect ratios",
-  "8 dub languages",
-  "18 agent editing verbs",
-  "7 learning loops",
-  "$ hard caps in code",
+  ["8", " visual mediums (5 free)"],
+  ["7", " AI video models"],
+  ["5", " lip-sync avatar models"],
+  ["3", " original-song models"],
+  ["10", "-stage hands-off path"],
+  ["7", " platforms · 5 aspect ratios"],
+  ["8", " dub languages"],
+  ["18", " agent editing verbs"],
+  ["7", " learning loops"],
+  ["$", " hard caps in code"],
 ] as const;
 
 const FAQ = [
@@ -169,14 +171,18 @@ const FAQ = [
 export default function LaunchPage() {
   return (
     <main id="top" className="relative overflow-clip">
+      {/* Effect layer: film grain over everything + emerald click sparks. */}
+      <div className="m-noise" aria-hidden="true" />
+      <ClickSpark />
+
       {/* ── 1. Hero ─────────────────────────────────────────────────────── */}
       <section className="relative flex min-h-[92vh] flex-col items-center justify-center px-5 pb-16 pt-24 text-center">
+        <ControlGrid />
         <Aurora />
-        <div className="m-grid-bg pointer-events-none absolute inset-0" />
         <div className="relative z-10 mx-auto max-w-4xl">
           <Reveal>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] bg-[var(--m-card)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--m-muted)] shadow-sm">
-              <span className="size-1.5 rounded-full bg-[var(--m-amber)]" />
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] bg-[#0e1422]/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--m-muted)] backdrop-blur-sm">
+              <span className="size-1.5 rounded-full bg-[var(--m-amber)] shadow-[0_0_10px_var(--m-amber)]" />
               Beta opens September 14
             </span>
           </Reveal>
@@ -203,6 +209,8 @@ export default function LaunchPage() {
           </Reveal>
         </div>
 
+        {/* Soft blur where the hero hands off to content. */}
+        <div className="m-gblur z-[5]" aria-hidden="true" />
         <a
           href="#watch"
           className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-[var(--m-muted)] transition-colors hover:text-[var(--m-ink)]"
@@ -234,9 +242,9 @@ export default function LaunchPage() {
       </section>
 
       {/* ── 1c. The real product (Track B — authentic screenshot) ────────── */}
-      <section className="mx-auto max-w-6xl px-5 pb-16">
+      <section className="mx-auto max-w-6xl px-5 pb-10">
         <Reveal>
-          <div className="m-star-border overflow-hidden p-2">
+          <TiltGlare className="m-star-border overflow-hidden p-2">
             <Image
               src="/marketing/product-board.png"
               alt="The live Backlot production board — every asset from first spark to published, with stage counts, QC scores, and per-video spend."
@@ -245,7 +253,7 @@ export default function LaunchPage() {
               sizes="(max-width: 1152px) 100vw, 1152px"
               className="w-full rounded-xl"
             />
-          </div>
+          </TiltGlare>
           <p className="mt-3 text-center text-xs text-[var(--m-muted)]">
             Not a mockup — the live Backlot board. Every asset from first spark to
             published, with stage counts, QC scores, and per-video spend.
@@ -253,7 +261,17 @@ export default function LaunchPage() {
         </Reveal>
       </section>
 
-      <div className="m-ticks mx-auto max-w-5xl" />
+      {/* ── 1d. Capability loop — verified numbers on an infinite marquee ── */}
+      <div className="m-loop" aria-hidden="true">
+        <div className="m-loop-track">
+          {[...REACH, ...REACH].map(([n, rest], i) => (
+            <span key={i} className="m-loop-chip">
+              <b>{n}</b>
+              {rest}
+            </span>
+          ))}
+        </div>
+      </div>
 
       {/* ── 2. Feature showcase ─────────────────────────────────────────── */}
       <section className="mx-auto max-w-6xl px-5 py-20">
@@ -273,11 +291,11 @@ export default function LaunchPage() {
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f, i) => (
             <Reveal key={f.title} delay={(i % 4) * 80}>
-              <SpotlightCard className="group h-full p-5">
+              <BentoCard className="group h-full p-5">
                 <div className="flex items-start justify-between">
                   <f.icon className="size-6 text-[var(--m-amber)]" strokeWidth={1.75} />
                   {f.isNew && (
-                    <span className="rounded-full bg-[var(--m-amber)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--m-on-accent)]">
+                    <span className="rounded-full bg-[var(--m-amber)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--m-on-accent)] shadow-[0_0_16px_-4px_var(--m-amber)]">
                       New
                     </span>
                   )}
@@ -291,7 +309,7 @@ export default function LaunchPage() {
                 <p className="mt-2 text-sm leading-relaxed text-[var(--m-muted)]">
                   {f.body}
                 </p>
-              </SpotlightCard>
+              </BentoCard>
             </Reveal>
           ))}
         </div>
@@ -362,7 +380,7 @@ export default function LaunchPage() {
       <div className="m-ticks mx-auto max-w-5xl" />
 
       {/* ── 3. Stat band ────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-y border-[var(--m-line)] bg-[var(--m-bg-2)] px-5 py-16">
+      <section className="relative overflow-hidden border-y border-[var(--m-line)] bg-black/30 px-5 py-16">
         <div className="relative z-10 mx-auto grid max-w-5xl gap-8 text-center sm:grid-cols-4">
           {STATS.map((s) => (
             <Reveal key={s.label}>
@@ -373,16 +391,7 @@ export default function LaunchPage() {
             </Reveal>
           ))}
         </div>
-        <div className="relative z-10 mx-auto mt-10 flex max-w-3xl flex-wrap justify-center gap-2">
-          {REACH.map((chip) => (
-            <Reveal key={chip}>
-              <span className="rounded-full border border-[var(--m-line)] bg-[var(--m-bg)] px-3 py-1.5 text-xs font-medium text-[var(--m-muted)]">
-                {chip}
-              </span>
-            </Reveal>
-          ))}
-        </div>
-        <p className="relative z-10 mx-auto mt-8 max-w-2xl text-center text-sm text-[var(--m-muted)]">
+        <p className="relative z-10 mx-auto mt-10 max-w-2xl text-center text-sm text-[var(--m-muted)]">
           Costs are enforced by ledgers and hard caps in code, not by hope. Exact
           per-video pricing and plans go to the beta list first.
         </p>
@@ -423,7 +432,7 @@ export default function LaunchPage() {
         <div className="mt-12 space-y-3">
           {FAQ.map((item) => (
             <Reveal key={item.q}>
-              <details className="group rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-5 py-4 shadow-sm">
+              <details className="group rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-5 py-4">
                 <summary className="flex cursor-pointer list-none items-center justify-between text-[var(--m-ink)] [&::-webkit-details-marker]:hidden">
                   <span className="font-medium">{item.q}</span>
                   <span className="ml-4 text-[var(--m-muted)] transition-transform group-open:rotate-45">
@@ -439,10 +448,10 @@ export default function LaunchPage() {
         </div>
       </section>
 
-      {/* ── 6. Final capture ────────────────────────────────────────────── */}
+      {/* ── 6. Final capture — the one loud element: ElectricBorder ──────── */}
       <section className="relative overflow-hidden px-5 py-24 text-center">
+        <ControlGrid />
         <Aurora />
-        <div className="m-grid-bg pointer-events-none absolute inset-0" />
         <div className="relative z-10 mx-auto max-w-2xl">
           <Reveal>
             <h2 className="font-[family-name:var(--font-display)] text-[clamp(2rem,5vw,3.25rem)] font-bold leading-tight text-[var(--m-ink)]">
@@ -454,7 +463,7 @@ export default function LaunchPage() {
             </p>
           </Reveal>
           <Reveal delay={120}>
-            <div className="m-star-border mx-auto mt-8 max-w-lg p-5">
+            <div className="m-electric mx-auto mt-8 max-w-lg p-5">
               <CaptureForm source="final" size="lg" />
             </div>
           </Reveal>

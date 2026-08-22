@@ -233,8 +233,12 @@ describe("render + surface wiring", () => {
     const types = readFileSync("packages/render/src/types.ts", "utf8");
     expect(types).toMatch(/songUrl\?: string/);
     const comp = readFileSync("packages/render/src/VideoComp.tsx", "utf8");
-    // Root-level (non-Sequence) audio in both compositions.
-    expect(comp.match(/props\.songUrl && <Audio src=\{props\.songUrl\} \/>/g)?.length).toBe(2);
+    // Short: root-level audio from frame 0. LongForm: the song starts after the
+    // branded channel-intro lead (a Sequence at introLead), not under it.
+    expect(comp).toMatch(/props\.songUrl && <Audio src=\{props\.songUrl\} \/>/);
+    expect(comp).toMatch(
+      /props\.songUrl && \(\s*<Sequence from=\{Math\.round\(introLead \* FPS\)\}>\s*<Audio src=\{props\.songUrl\} \/>/,
+    );
     const queue = readFileSync("packages/render/src/render-queue.ts", "utf8");
     // A song satisfies the "not silent" readiness check.
     expect(queue).toMatch(/if \(!songUrl && !beats\.some\(\(b\) => b\.voUrl\)\) return null;/);
