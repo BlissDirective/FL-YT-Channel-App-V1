@@ -95,7 +95,7 @@ export function CrewBoard() {
   return (
     <div ref={rootRef} className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
       {/* Lanes */}
-      <div className="space-y-3 rounded-2xl border border-[var(--m-line)] bg-white/[0.015] p-4">
+      <div className="space-y-3 rounded-2xl border border-[var(--m-line)] bg-[var(--m-card)] p-4 shadow-sm">
         {LANES.map((lane) => (
           <div key={lane.label} className="flex flex-wrap items-center gap-2">
             <span className="w-20 shrink-0 text-[10px] font-semibold uppercase tracking-wide" style={{ color: lane.tint }}>
@@ -109,7 +109,7 @@ export function CrewBoard() {
                   className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all duration-300 ${active ? "stage-live" : ""}`}
                   style={{
                     borderColor: active ? lane.tint : "var(--m-line)",
-                    background: active ? "rgba(16,212,142,0.12)" : "rgba(255,255,255,0.02)",
+                    background: active ? "rgba(4,120,87,0.09)" : "rgba(14,21,38,0.02)",
                     color: active ? "var(--m-ink)" : "var(--m-muted)",
                     transform: active ? "scale(1.05)" : "none",
                   }}
@@ -126,7 +126,7 @@ export function CrewBoard() {
       </div>
 
       {/* Tool-call log */}
-      <div className="rounded-2xl border border-[var(--m-line)] bg-black/40 p-3">
+      <div className="m-terminal rounded-2xl p-3">
         <div className="mb-2 flex items-center gap-1.5 font-mono text-xs text-[var(--m-muted)]">
           <Terminal className="size-3.5" /> orchestration log
         </div>

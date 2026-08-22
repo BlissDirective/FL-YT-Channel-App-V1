@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Faceless Studio — Full automation. Zero blind trust.",
   description:
-    "Script, voice, visuals, effects, and the final cut — one brief, one crew, your call on every gate. An autonomous studio for faceless YouTube channels.",
+    "Script, voice, visuals, music, and the final cut — one brief, one crew, your call on every gate. An autonomous studio for YouTube channels. Beta opens September 14.",
   openGraph: {
     title: "Faceless Studio — Full automation. Zero blind trust.",
     description:
-      "An agent crew scripts, voices, renders, cuts, and QCs faceless YouTube videos end-to-end. You keep the veto on every gate.",
+      "An agent crew scripts, voices, renders, cuts, and QCs YouTube videos end-to-end. You keep the veto on every gate. Beta opens September 14.",
     type: "website",
   },
 };

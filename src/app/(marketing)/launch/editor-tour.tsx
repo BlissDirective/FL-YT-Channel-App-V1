@@ -33,7 +33,7 @@ export function EditorTour() {
     <div className="grid items-center gap-8 lg:grid-cols-[1.4fr_1fr]">
       <TiltedCard className="m-star-border relative aspect-[16/10] w-full overflow-hidden p-3">
         {/* Editor chrome */}
-        <div className="flex h-full flex-col gap-2 rounded-lg bg-black/40 p-3">
+        <div className="m-terminal flex h-full flex-col gap-2 rounded-lg p-3">
           {/* top bar: version chips */}
           <div className="flex items-center gap-1.5 text-[10px] font-mono">
             <span className="rounded bg-white/5 px-1.5 py-0.5 text-[var(--m-muted)]">v3 compiler</span>
@@ -45,7 +45,7 @@ export function EditorTour() {
             {/* preview */}
             <div className="relative flex-1 rounded-md bg-gradient-to-br from-white/[0.06] to-transparent ring-1 ring-white/5">
               <div className="absolute inset-0 grid place-items-center">
-                <span className="grid size-9 place-items-center rounded-full bg-[var(--m-amber)]/90 text-[#04140e]">
+                <span className="grid size-9 place-items-center rounded-full bg-[var(--m-amber)]/90 text-[var(--m-on-accent)]">
                   <Play className="size-4" fill="currentColor" />
                 </span>
               </div>
@@ -57,7 +57,7 @@ export function EditorTour() {
                     className="rounded px-1.5 py-0.5 text-[9px] font-semibold"
                     style={
                       i === 3
-                        ? { background: "var(--m-amber)", color: "#04140e" }
+                        ? { background: "var(--m-amber)", color: "var(--m-on-accent)" }
                         : { background: "rgba(255,255,255,0.08)", color: "var(--m-muted)" }
                     }
                   >
@@ -84,7 +84,7 @@ export function EditorTour() {
               <div
                 key={i}
                 className="rounded"
-                style={{ width: `${w}%`, background: i === 3 ? "rgba(16, 212, 142,0.3)" : "rgba(125,211,252,0.14)" }}
+                style={{ width: `${w}%`, background: i === 3 ? "rgba(52,211,153,0.35)" : "rgba(125,211,252,0.16)" }}
               />
             ))}
           </div>
@@ -99,7 +99,7 @@ export function EditorTour() {
               aria-label={h.label}
             >
               <span className="absolute inline-flex size-5 rounded-full bg-[var(--m-amber)]/50 m-ping" />
-              <span className="relative grid size-4 place-items-center rounded-full bg-[var(--m-amber)] text-[9px] font-bold text-[#04140e]">
+              <span className="relative grid size-4 place-items-center rounded-full bg-[var(--m-amber)] text-[9px] font-bold text-[var(--m-on-accent)]">
                 {h.n}
               </span>
             </button>

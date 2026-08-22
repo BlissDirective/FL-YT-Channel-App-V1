@@ -9,6 +9,10 @@ import {
   AudioLines,
   Brain,
   ArrowDown,
+  UserRound,
+  Users,
+  Tv,
+  Music4,
 } from "lucide-react";
 import { Reveal, WordReveal, CountUp, Aurora } from "@/components/bits/motion";
 import { SpotlightCard, Magnetic } from "@/components/bits/interactive";
@@ -24,63 +28,100 @@ export const metadata: Metadata = {
   title: "Faceless Studio — Full automation. Zero blind trust.",
 };
 
-/** The eight distinguishing systems — each an accurate, specific hook grounded
-    in a real subsystem (counts verified against the codebase). */
+/** The twelve distinguishing systems — each an accurate, specific hook grounded
+    in a real subsystem (counts verified against the codebase). `isNew` marks
+    capabilities added since the last hero revision. */
 const FEATURES = [
   {
     icon: ShieldCheck,
     title: "Four gates, fifty-plus checks",
     body: "IDEA, SCRIPT, ASSETS, and FINAL each need a green light — and behind them 50+ automated checks (a 20-point rubric, a 14-point self-watch, 7 media checks, a 7-dimension provider score) grade every video against a floor you set. Nothing ships under the bar.",
     tag: "Quality control",
+    isNew: false,
   },
   {
     icon: Coins,
     title: "Spends like a director",
     body: "A router picks the cheapest of 8 visual mediums — 5 of them essentially free — that still lands each beat. Premium generative video (7 models on tap) is saved for the 1–3 hero beats that earn it, under a hard monthly cap.",
     tag: "Cost & medium routing",
+    isNew: false,
   },
   {
     icon: Workflow,
     title: "Idea to upload, on autopilot",
     body: "A 10-stage path — seed, research, script, fact-check, shot-plan, generate, render, auto-fix, QC, publish — runs end-to-end from one brief, behind a mechanical kill switch that stops every paid action at once.",
     tag: "Agentic pipeline",
+    isNew: false,
+  },
+  {
+    icon: UserRound,
+    title: "A host who speaks your script",
+    body: "Approve one portrait and the studio casts it as your on-camera presenter — lip-synced by 5 avatar models (Kling, OmniHuman, InfiniTalk and more) to the exact narration audio. Mix host beats with b-roll on a per-beat call, or stay fully faceless.",
+    tag: "AI presenters",
+    isNew: true,
   },
   {
     icon: Network,
     title: "A crew of thirty, not a chatbot",
     body: "30+ autonomous roles — an operator, a cut agent, an art director, a shot planner, a panel of judges, a fact-checker, a librarian — each own their craft. Every move is versioned, budgeted, and answerable to your gates.",
     tag: "Multi-agent orchestration",
+    isNew: false,
+  },
+  {
+    icon: Users,
+    title: "A cast that never drifts off-model",
+    body: "Design your characters and styles once; reference-image generation keeps every scene, group shot, and thumbnail on-model after that — with 2–3 fresh images per beat, recurring characters actually recur.",
+    tag: "Character studio",
+    isNew: true,
+  },
+  {
+    icon: Tv,
+    title: "Every video opens like a show",
+    body: "A branded animated cold open — your wordmark, tagline, and colors over motion graphics, with a custom-generated music sting — renders in front of every upload automatically. Build it once; your channel has a signature.",
+    tag: "Branded intros",
+    isNew: true,
+  },
+  {
+    icon: Music4,
+    title: "Original songs, synced to the syllable",
+    body: "Three song models compose and sing full original tracks, then forced alignment pins every caption to the exact moment each word is sung. Sing-alongs stay karaoke-tight, and nothing ever drifts off the vocal.",
+    tag: "Music & sing-along",
+    isNew: true,
   },
   {
     icon: Workflow,
     title: "Twelve loops that never sleep",
     body: "The operator, build-runner, render farm, auto-fix, clean-house, intelligence and optimizer loops run the studio around the clock — 12 scheduled autonomous loops, each with its own budget and rails.",
     tag: "Always-on autonomy",
+    isNew: false,
   },
   {
     icon: Clapperboard,
     title: "You edit the same document the agent does",
     body: "A real timeline with version history — v3 compiler, v4 agent, v5 you. The agent works 18 editing verbs over the exact same validated ops your inspector uses. No export, no round-trip; revert anything.",
     tag: "Editing",
+    isNew: false,
   },
   {
     icon: AudioLines,
     title: "Narration that drives the cut",
     body: "Word-timestamped voiceover — ElevenLabs or 8 built-in voices — locks captions, emphasis, and clip timing to the exact syllable the line is spoken. Not a guess, and never drifting.",
     tag: "Voice",
+    isNew: false,
   },
   {
     icon: Brain,
     title: "It learns from your audience",
     body: "Every retention dip is traced to the cut that caused it. Seven learning loops turn outcomes into lessons — and a lesson only graduates once your own channel data proves it. An internet tip can never outvote your numbers.",
     tag: "Learning loops",
+    isNew: false,
   },
 ] as const;
 
 const STATS = [
   { to: 4, suffix: "", label: "approval gates in your hands" },
   { to: 50, suffix: "+", label: "automated quality checks per video" },
-  { to: 12, suffix: "", label: "autonomous agents running 24/7" },
+  { to: 12, suffix: "", label: "autonomous loops running 24/7" },
   { to: 0, suffix: "", label: "videos shipped under your floor" },
 ] as const;
 
@@ -88,6 +129,8 @@ const STATS = [
 const REACH = [
   "8 visual mediums (5 free)",
   "7 AI video models",
+  "5 lip-sync avatar models",
+  "3 original-song models",
   "10-stage hands-off path",
   "7 platforms · 5 aspect ratios",
   "8 dub languages",
@@ -106,39 +149,35 @@ const FAQ = [
     a: "The judgment calls — the brand, the taste, and the veto. You choose the orchestration mode (Autonomous, where the pipeline self-advances, or Director, where every stage waits for your press), and per gate you set the autonomy level — Assist (notify and wait), Copilot (auto-approve only high-scoring work), or Autopilot. The crew handles the labor; you stay the director.",
   },
   {
+    q: "Do my videos have to be faceless?",
+    a: "No — that's now a choice, not a constraint. Approve a single portrait and the studio casts it as a lip-synced on-camera host, mixing presenter beats with b-roll shot by shot. Skip it and every video stays fully faceless. Either way, the same gates grade the result.",
+  },
+  {
     q: "What does it cost to run?",
-    a: "Per-video production lands in a coffee-tier range that depends on length and how much premium video each script earns — enforced by ledgers and hard caps in code, not by hope. Exact pricing and plans go to the list first.",
+    a: "Per-video production lands in a coffee-tier range that depends on length and how much premium video each script earns — enforced by ledgers and hard caps in code, not by hope. Exact pricing and plans go to the beta list first.",
   },
   {
     q: "Is this affiliated with YouTube?",
     a: "No. Faceless Studio is an independent tool and is not affiliated with, endorsed by, or sponsored by YouTube or Google. Uploads stay under your own account and your control.",
   },
   {
-    q: "When does it launch?",
-    a: "Soon — and the list hears the date first, with founding-operator pricing locked in. Join below.",
+    q: "When can I get in?",
+    a: "The beta opens September 14th. Invites go out in list order, so join below to hold your place — founding-operator pricing is locked in for everyone on the list.",
   },
 ] as const;
 
 export default function LaunchPage() {
   return (
-    <main className="relative overflow-clip">
+    <main id="top" className="relative overflow-clip">
       {/* ── 1. Hero ─────────────────────────────────────────────────────── */}
       <section className="relative flex min-h-[92vh] flex-col items-center justify-center px-5 pb-16 pt-24 text-center">
         <Aurora />
-        {/* Track C — FLUX-generated ambient backdrop (identity-free). */}
-        <Image
-          src="/marketing/pipeline-nodes.png"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="pointer-events-none absolute inset-0 object-cover opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_78%)]"
-        />
+        <div className="m-grid-bg pointer-events-none absolute inset-0" />
         <div className="relative z-10 mx-auto max-w-4xl">
           <Reveal>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--m-muted)]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] bg-[var(--m-card)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--m-muted)] shadow-sm">
               <span className="size-1.5 rounded-full bg-[var(--m-amber)]" />
-              Faceless Studio — Pre-launch
+              Beta opens September 14
             </span>
           </Reveal>
 
@@ -154,7 +193,7 @@ export default function LaunchPage() {
           {/* Secondary tagline (#10) — Sora, smaller, different face */}
           <Reveal delay={520}>
             <p className="mx-auto mt-6 max-w-2xl font-[family-name:var(--font-display-alt)] text-[clamp(1rem,2.4vw,1.4rem)] font-light leading-snug text-[var(--m-muted)]">
-              Script, voice, visuals, effects, and the final cut — one brief, one
+              Script, voice, visuals, music, and the final cut — one brief, one
               crew, your call on every gate.
             </p>
           </Reveal>
@@ -164,12 +203,15 @@ export default function LaunchPage() {
           </Reveal>
         </div>
 
-        <div className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-[var(--m-muted)]">
+        <a
+          href="#watch"
+          className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-[var(--m-muted)] transition-colors hover:text-[var(--m-ink)]"
+        >
           <span className="flex flex-col items-center gap-1 text-[11px] uppercase tracking-[0.14em]">
             Watch it work
             <ArrowDown className="size-4 animate-bounce" />
           </span>
-        </div>
+        </a>
       </section>
 
       {/* ── 1b. Control-room loop (flagship) ─────────────────────────────── */}
@@ -220,7 +262,7 @@ export default function LaunchPage() {
             What makes it different
           </p>
           <h2 className="mt-3 font-[family-name:var(--font-display)] text-[clamp(1.8rem,4vw,2.8rem)] font-bold leading-tight text-[var(--m-ink)]">
-            Eight systems most tools don&apos;t have
+            Twelve systems most tools don&apos;t have
           </h2>
           <p className="mt-3 text-[var(--m-muted)]">
             Every claim below is backed by a system that exists — a gate, a cap, a
@@ -232,7 +274,14 @@ export default function LaunchPage() {
           {FEATURES.map((f, i) => (
             <Reveal key={f.title} delay={(i % 4) * 80}>
               <SpotlightCard className="group h-full p-5">
-                <f.icon className="size-6 text-[var(--m-amber)]" strokeWidth={1.75} />
+                <div className="flex items-start justify-between">
+                  <f.icon className="size-6 text-[var(--m-amber)]" strokeWidth={1.75} />
+                  {f.isNew && (
+                    <span className="rounded-full bg-[var(--m-amber)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--m-on-accent)]">
+                      New
+                    </span>
+                  )}
+                </div>
                 <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--m-muted)]">
                   {f.tag}
                 </p>
@@ -273,7 +322,7 @@ export default function LaunchPage() {
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.35fr]">
           <Reveal>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--m-amber)]">
-              Watch it work
+              Inside the edit
             </p>
             <h2 className="mt-3 font-[family-name:var(--font-display)] text-[clamp(1.8rem,4vw,2.6rem)] font-bold leading-tight text-[var(--m-ink)]">
               The agent cuts a real timeline
@@ -313,14 +362,7 @@ export default function LaunchPage() {
       <div className="m-ticks mx-auto max-w-5xl" />
 
       {/* ── 3. Stat band ────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-y border-[var(--m-line)] bg-black/30 px-5 py-16">
-        <Image
-          src="/marketing/gate-stack.png"
-          alt=""
-          width={1024}
-          height={576}
-          className="pointer-events-none absolute -right-24 top-1/2 hidden w-[46%] max-w-2xl -translate-y-1/2 object-contain opacity-25 [mask-image:linear-gradient(90deg,transparent,black_60%)] lg:block"
-        />
+      <section className="relative overflow-hidden border-y border-[var(--m-line)] bg-[var(--m-bg-2)] px-5 py-16">
         <div className="relative z-10 mx-auto grid max-w-5xl gap-8 text-center sm:grid-cols-4">
           {STATS.map((s) => (
             <Reveal key={s.label}>
@@ -334,7 +376,7 @@ export default function LaunchPage() {
         <div className="relative z-10 mx-auto mt-10 flex max-w-3xl flex-wrap justify-center gap-2">
           {REACH.map((chip) => (
             <Reveal key={chip}>
-              <span className="rounded-full border border-[var(--m-line)] bg-white/[0.02] px-3 py-1.5 text-xs font-medium text-[var(--m-muted)]">
+              <span className="rounded-full border border-[var(--m-line)] bg-[var(--m-bg)] px-3 py-1.5 text-xs font-medium text-[var(--m-muted)]">
                 {chip}
               </span>
             </Reveal>
@@ -342,7 +384,7 @@ export default function LaunchPage() {
         </div>
         <p className="relative z-10 mx-auto mt-8 max-w-2xl text-center text-sm text-[var(--m-muted)]">
           Costs are enforced by ledgers and hard caps in code, not by hope. Exact
-          per-video pricing and plans go to the list first.
+          per-video pricing and plans go to the beta list first.
         </p>
       </section>
 
@@ -350,10 +392,11 @@ export default function LaunchPage() {
       <section className="mx-auto max-w-2xl px-5 py-20 text-center">
         <Reveal>
           <h2 className="font-[family-name:var(--font-display)] text-[clamp(1.6rem,4vw,2.4rem)] font-bold text-[var(--m-ink)]">
-            See it on your niche.
+            Be in the beta on day one.
           </h2>
           <p className="mx-auto mt-3 max-w-md text-[var(--m-muted)]">
-            Join the launch list and get early access the day it opens.
+            Doors open September 14th, and invites go out in list order. Sign up
+            now and yours is in the first wave.
           </p>
           <div className="mx-auto mt-6 max-w-lg">
             <CaptureForm source="mid" />
@@ -380,7 +423,7 @@ export default function LaunchPage() {
         <div className="mt-12 space-y-3">
           {FAQ.map((item) => (
             <Reveal key={item.q}>
-              <details className="group rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-5 py-4">
+              <details className="group rounded-xl border border-[var(--m-line)] bg-[var(--m-card)] px-5 py-4 shadow-sm">
                 <summary className="flex cursor-pointer list-none items-center justify-between text-[var(--m-ink)] [&::-webkit-details-marker]:hidden">
                   <span className="font-medium">{item.q}</span>
                   <span className="ml-4 text-[var(--m-muted)] transition-transform group-open:rotate-45">
@@ -399,20 +442,15 @@ export default function LaunchPage() {
       {/* ── 6. Final capture ────────────────────────────────────────────── */}
       <section className="relative overflow-hidden px-5 py-24 text-center">
         <Aurora />
-        <Image
-          src="/marketing/hero-controlroom.png"
-          alt=""
-          fill
-          sizes="100vw"
-          className="pointer-events-none absolute inset-0 object-cover opacity-20 [mask-image:radial-gradient(ellipse_at_center,black,transparent_72%)]"
-        />
+        <div className="m-grid-bg pointer-events-none absolute inset-0" />
         <div className="relative z-10 mx-auto max-w-2xl">
           <Reveal>
             <h2 className="font-[family-name:var(--font-display)] text-[clamp(2rem,5vw,3.25rem)] font-bold leading-tight text-[var(--m-ink)]">
               The first operators set the price forever.
             </h2>
             <p className="mx-auto mt-4 max-w-md text-[var(--m-muted)]">
-              Full automation. Zero blind trust. Get in before the doors open.
+              The beta opens September 14th. Sign up now — get in before the
+              doors do.
             </p>
           </Reveal>
           <Reveal delay={120}>

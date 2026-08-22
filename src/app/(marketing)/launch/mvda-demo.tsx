@@ -108,14 +108,14 @@ export function MvdaDemo() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-[var(--m-muted)]">
-              <span className={`rounded px-1.5 py-0.5 font-mono ${ready ? "bg-[var(--m-amber)]/20 text-[var(--m-amber)]" : "bg-white/5"}`}>
+              <span className={`rounded px-1.5 py-0.5 font-mono ${ready ? "bg-[var(--m-amber)]/15 text-[var(--m-amber)]" : "bg-black/5"}`}>
                 {ready ? "v4 · agent" : "v3 · compiler"}
               </span>
               <span>edit timeline</span>
             </div>
             <button
               onClick={toggle}
-              className="flex items-center gap-1.5 rounded-full border border-[var(--m-line)] px-3 py-1 text-xs font-medium text-[var(--m-ink)] transition-colors hover:bg-white/5"
+              className="flex items-center gap-1.5 rounded-full border border-[var(--m-line)] px-3 py-1 text-xs font-medium text-[var(--m-ink)] transition-colors hover:bg-black/5"
               aria-label={playing ? "Pause demo" : "Play demo"}
             >
               {playing ? <Pause className="size-3" /> : <Play className="size-3" />}
@@ -135,9 +135,9 @@ export function MvdaDemo() {
                     className="m-clip relative grid place-items-center overflow-hidden rounded text-[10px] font-medium"
                     style={{
                       width: `${w}%`,
-                      backgroundColor: touched ? "rgba(16, 212, 142,0.25)" : "rgba(125,211,252,0.14)",
+                      backgroundColor: touched ? "rgba(4,120,87,0.16)" : "rgba(3,105,161,0.10)",
                       color: touched ? "var(--m-amber)" : "var(--m-muted)",
-                      boxShadow: touched ? "inset 0 0 0 1px rgba(16, 212, 142,0.5)" : "inset 0 0 0 1px rgba(255,255,255,0.06)",
+                      boxShadow: touched ? "inset 0 0 0 1px rgba(4,120,87,0.45)" : "inset 0 0 0 1px rgba(14,21,38,0.08)",
                     }}
                   >
                     {c.label}
@@ -164,8 +164,8 @@ export function MvdaDemo() {
                     key={t}
                     className="m-token rounded px-1.5 py-0.5 text-[11px] font-medium"
                     style={{
-                      color: hot ? "#04140e" : "var(--m-muted)",
-                      backgroundColor: hot ? "var(--m-amber)" : "rgba(255,255,255,0.05)",
+                      color: hot ? "var(--m-on-accent)" : "var(--m-muted)",
+                      backgroundColor: hot ? "var(--m-amber)" : "rgba(14,21,38,0.05)",
                       transform: hot ? "scale(1.08)" : "none",
                     }}
                   >
@@ -177,14 +177,14 @@ export function MvdaDemo() {
           </Lane>
 
           {/* Judge score dial */}
-          <div className="mt-4 rounded-lg border border-[var(--m-line)] bg-black/20 p-3">
+          <div className="mt-4 rounded-lg border border-[var(--m-line)] bg-[var(--m-card)] p-3 shadow-sm">
             <div className="flex items-center justify-between text-xs text-[var(--m-muted)]">
               <span>frame-critic judge</span>
               <span className={judged ? "font-mono text-[var(--m-ink)]" : "font-mono opacity-40"}>
                 {judged ? "7.4" : "—"} / floor 7.0
               </span>
             </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/10">
               <div
                 className="h-full rounded-full transition-[width] duration-1000 ease-out"
                 style={{
@@ -197,7 +197,7 @@ export function MvdaDemo() {
         </div>
 
         {/* ── Right: the tool log ────────────────────────────────────── */}
-        <div className="mt-5 rounded-lg border border-[var(--m-line)] bg-black/40 p-3 font-mono text-xs lg:mt-0">
+        <div className="m-terminal mt-5 rounded-lg p-3 font-mono text-xs lg:mt-0">
           <div className="mb-2 flex items-center gap-1.5 text-[var(--m-muted)]">
             <Terminal className="size-3.5" />
             mvda cut session

@@ -95,7 +95,7 @@ export function ControlRoom() {
           </div>
           <button
             onClick={toggle}
-            className="flex items-center gap-1.5 rounded-full border border-[var(--m-line)] px-3 py-1 text-xs font-medium text-[var(--m-ink)] transition-colors hover:bg-white/5"
+            className="flex items-center gap-1.5 rounded-full border border-[var(--m-line)] px-3 py-1 text-xs font-medium text-[var(--m-ink)] transition-colors hover:bg-black/5"
             aria-label={playing ? "Pause" : "Play"}
           >
             {playing ? <Pause className="size-3" /> : <Play className="size-3" />}
@@ -121,7 +121,7 @@ export function ControlRoom() {
                   className={`relative z-10 grid size-10 place-items-center rounded-xl border transition-all duration-500 ${state === "active" ? "stage-live" : ""}`}
                   style={{
                     borderColor: state === "queued" ? "var(--m-line)" : "var(--m-amber)",
-                    background: state === "done" ? "rgba(16,212,142,0.16)" : state === "active" ? "rgba(16,212,142,0.10)" : "rgba(255,255,255,0.02)",
+                    background: state === "done" ? "rgba(4,120,87,0.12)" : state === "active" ? "rgba(4,120,87,0.07)" : "rgba(14,21,38,0.03)",
                     color: state === "queued" ? "var(--m-muted)" : "var(--m-amber)",
                   }}
                 >
@@ -131,7 +131,7 @@ export function ControlRoom() {
                       className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full text-[8px] font-bold"
                       style={{
                         background: idx < shown ? "var(--m-amber)" : "var(--m-bg-2)",
-                        color: idx < shown ? "#04140e" : "var(--m-muted)",
+                        color: idx < shown ? "var(--m-on-accent)" : "var(--m-muted)",
                         border: "1px solid var(--m-line)",
                       }}
                       title={`${s.gate} gate`}
@@ -150,7 +150,7 @@ export function ControlRoom() {
 
         {/* Live readout: current agent + note + spend */}
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
-          <div className="rounded-lg border border-[var(--m-line)] bg-black/30 p-3 font-mono text-xs">
+          <div className="m-terminal rounded-lg p-3 font-mono text-xs">
             {done ? (
               <p className="text-[var(--m-amber)]">✓ published · tracking — 4/4 gates passed · session ${spent.toFixed(2)} / ${CAP.toFixed(2)} cap</p>
             ) : (
@@ -168,7 +168,7 @@ export function ControlRoom() {
               <p className="font-mono text-sm text-[var(--m-ink)]">${spent.toFixed(2)} <span className="text-[var(--m-muted)]">/ ${CAP.toFixed(2)}</span></p>
             </div>
             <div className="h-9 w-24">
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/10">
                 <div className="h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${Math.min(100, (spent / CAP) * 100)}%`, background: "linear-gradient(90deg, var(--m-violet), var(--m-amber))" }} />
               </div>
               <p className="mt-1 text-right text-[10px] font-mono text-[var(--m-muted)]">{gatesPassed}/4 gates</p>

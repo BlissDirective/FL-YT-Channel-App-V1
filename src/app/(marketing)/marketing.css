@@ -1,24 +1,25 @@
 /*
- * Marketing / launch page design system — "cinema dark", intentionally
- * separate from the app's warm-light control-panel tokens. Scoped to
- * .marketing so it never leaks into the app shell. Font faces (Space Grotesk /
- * Sora) are loaded in the (marketing) layout via fontsource.
+ * Marketing / launch page design system — "studio light": porcelain surfaces,
+ * deep-navy ink, emerald action, violet support. Intentionally separate from
+ * the app's control-panel tokens and scoped to .marketing so it never leaks
+ * into the app shell. Font faces (Space Grotesk / Sora) are loaded in the
+ * (marketing) layout via fontsource.
  */
 
 .marketing {
-  /* Matches the app colourway v2 — navy neutral, emerald action, deep purple
-     support. `--m-amber` keeps its name (used across the hero markup) but now
-     carries the emerald accent. */
-  --m-bg: #0a0d16;
-  --m-bg-2: #151b29;
-  --m-ink: #f5f7fc;
-  --m-muted: #9da7bd;
-  --m-line: rgba(180, 196, 224, 0.14);
-  --m-amber: #10d48e; /* action / CTA — shining emerald */
-  --m-on-accent: #04140e; /* dark text on emerald */
-  --m-violet: #7c5cff; /* deep purple — secondary structure */
-  --m-sky: #38bdf8; /* human / "you" / info */
-  --m-card: rgba(255, 255, 255, 0.03);
+  /* Light colourway — `--m-amber` keeps its historical name (used across the
+     hero markup) but carries the emerald accent, dark enough to pass AA as
+     text on the porcelain background. */
+  --m-bg: #f6f8fb;
+  --m-bg-2: #ffffff;
+  --m-ink: #0e1526;
+  --m-muted: #55617a;
+  --m-line: rgba(14, 21, 38, 0.1);
+  --m-amber: #047857; /* action / CTA — deep emerald */
+  --m-on-accent: #ffffff; /* text on emerald fills */
+  --m-violet: #6d28d9; /* violet — secondary structure */
+  --m-sky: #0369a1; /* human / "you" / info */
+  --m-card: #ffffff;
 
   background-color: var(--m-bg);
   color: var(--m-ink);
@@ -27,8 +28,33 @@
 }
 
 .marketing ::selection {
-  background: rgba(16, 212, 142, 0.3);
-  color: #fff;
+  background: rgba(4, 120, 87, 0.22);
+  color: var(--m-ink);
+}
+
+/* ── Terminal panels: the one deliberately dark surface. Local re-assignment
+   of the ink/muted tokens means everything inside stays legible without
+   per-child overrides. ─────────────────────────────────────────────────── */
+.m-terminal {
+  --m-ink: #eef2f9;
+  --m-muted: #8e9bb4;
+  --m-line: rgba(255, 255, 255, 0.1);
+  --m-amber: #34d399;
+  --m-violet: #a78bfa;
+  --m-sky: #7dd3fc;
+  --m-on-accent: #06281c;
+  background: #0c1220;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--m-ink);
+}
+
+/* ── Subtle dot grid for hero / closing sections (replaces the old dark
+   backdrop renders, which don't read on a light ground) ─────────────────── */
+.m-grid-bg {
+  background-image: radial-gradient(rgba(14, 21, 38, 0.1) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse at center, black, transparent 74%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black, transparent 74%);
 }
 
 /* ── Entrance: everything enters once, on scroll, ≤24px travel ───────────── */
@@ -64,7 +90,7 @@
 
 /* ── Animated gradient text ─────────────────────────────────────────────── */
 .m-gradient-text {
-  background: linear-gradient(100deg, var(--m-amber), #7cf5c8, var(--m-violet), var(--m-amber));
+  background: linear-gradient(100deg, var(--m-amber), #0ea5a3, var(--m-violet), var(--m-amber));
   background-size: 300% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -76,9 +102,9 @@
   50% { background-position: 100% 50%; }
 }
 
-/* ── Shiny sweep (CTA text) ─────────────────────────────────────────────── */
+/* ── Shiny sweep (CTA text on the emerald button) ───────────────────────── */
 .m-shiny {
-  background: linear-gradient(110deg, #04140e 40%, #2f7d63 50%, #04140e 60%);
+  background: linear-gradient(110deg, #ffffff 40%, #a7f3d0 50%, #ffffff 60%);
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -89,7 +115,7 @@
   to { background-position: -220% 0; }
 }
 
-/* ── Aurora background (blurred drifting blobs) ─────────────────────────── */
+/* ── Aurora background (blurred drifting pastel blobs) ──────────────────── */
 .m-aurora {
   position: absolute;
   inset: 0;
@@ -104,19 +130,19 @@
   height: 60vw;
   border-radius: 50%;
   filter: blur(90px);
-  opacity: 0.22;
+  opacity: 0.16;
 }
 .m-aurora::before {
-  background: radial-gradient(circle, var(--m-violet), transparent 60%);
+  background: radial-gradient(circle, #8b5cf6, transparent 60%);
   top: -20%;
   left: -10%;
   animation: m-drift-a 18s ease-in-out infinite alternate;
 }
 .m-aurora::after {
-  background: radial-gradient(circle, var(--m-amber), transparent 60%);
+  background: radial-gradient(circle, #10b981, transparent 60%);
   top: -10%;
   right: -10%;
-  opacity: 0.16;
+  opacity: 0.14;
   animation: m-drift-b 22s ease-in-out infinite alternate;
 }
 @keyframes m-drift-a {
@@ -133,6 +159,9 @@
   border: 1px solid var(--m-line);
   border-radius: 1rem;
   overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(14, 21, 38, 0.04),
+    0 12px 32px -18px rgba(14, 21, 38, 0.12);
 }
 .m-spotlight::before {
   content: "";
@@ -142,7 +171,7 @@
   transition: opacity 0.3s;
   background: radial-gradient(
     240px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(16, 212, 142, 0.14),
+    rgba(4, 120, 87, 0.08),
     transparent 70%
   );
 }
@@ -155,6 +184,9 @@
   position: relative;
   border-radius: 1rem;
   background: var(--m-bg-2);
+  box-shadow:
+    0 1px 2px rgba(14, 21, 38, 0.04),
+    0 16px 40px -20px rgba(14, 21, 38, 0.14);
 }
 .m-star-border::after {
   content: "";
@@ -162,7 +194,7 @@
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(120deg, var(--m-amber), transparent 40%, var(--m-violet), transparent 80%, var(--m-amber));
+  background: linear-gradient(120deg, #10b981, transparent 40%, #8b5cf6, transparent 80%, #10b981);
   background-size: 300% 100%;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
@@ -183,7 +215,7 @@
   display: inline-block;
   width: 0.5rem;
   height: 1rem;
-  background: var(--m-amber);
+  background: #34d399;
   animation: m-blink 1s steps(2) infinite;
   vertical-align: text-bottom;
 }

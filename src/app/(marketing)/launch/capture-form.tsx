@@ -12,7 +12,7 @@ import { UTM_KEYS } from "@/lib/launch/validate";
  */
 
 const SHARE_TEXT =
-  "Full automation. Zero blind trust. Faceless Studio runs a YouTube channel end-to-end — and you keep the veto.";
+  "Full automation. Zero blind trust. Faceless Studio runs a YouTube channel end-to-end — and you keep the veto. Beta opens September 14.";
 
 function readUtm(): Record<string, string> {
   if (typeof window === "undefined") return {};
@@ -37,16 +37,17 @@ export function CaptureForm({ source, size = "md" }: { source: string; size?: "m
     return (
       <div className="rounded-2xl border border-[var(--m-line)] bg-[var(--m-card)] p-5 text-center">
         <p className="text-lg font-semibold text-[var(--m-ink)]">
-          {done.already ? "You're already on the list ✓" : "You're on the list ✓"}
+          {done.already ? "You're already on the beta list ✓" : "You're on the beta list ✓"}
         </p>
         <p className="mt-1 text-sm text-[var(--m-muted)]">
-          Watch for the build-log email this week — founding-operator pricing is locked for the list.
+          The beta opens September 14th — watch your inbox for the invite.
+          Founding-operator pricing is locked for the list.
         </p>
         <a
           href={shareUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] px-4 py-2 text-sm font-medium text-[var(--m-ink)] transition-colors hover:bg-white/5"
+          className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--m-line)] px-4 py-2 text-sm font-medium text-[var(--m-ink)] transition-colors hover:bg-black/5"
         >
           Share it →
         </a>
@@ -87,7 +88,7 @@ export function CaptureForm({ source, size = "md" }: { source: string; size?: "m
           placeholder="you@channel.com"
           autoComplete="email"
           aria-label="Email address"
-          className={`flex-1 rounded-full border border-[var(--m-line)] bg-black/30 px-5 text-[var(--m-ink)] outline-none placeholder:text-[var(--m-muted)] focus:border-[var(--m-amber)]/50 focus:ring-2 focus:ring-[var(--m-amber)]/20 ${
+          className={`flex-1 rounded-full border border-[var(--m-line)] bg-[var(--m-card)] px-5 text-[var(--m-ink)] shadow-sm outline-none placeholder:text-[var(--m-muted)] focus:border-[var(--m-amber)]/50 focus:ring-2 focus:ring-[var(--m-amber)]/20 ${
             size === "lg" ? "py-3.5 text-base" : "py-3 text-sm"
           }`}
         />
@@ -105,11 +106,11 @@ export function CaptureForm({ source, size = "md" }: { source: string; size?: "m
         <button
           type="submit"
           disabled={pending}
-          className={`rounded-full bg-[var(--m-amber)] px-6 font-semibold text-[#04140e] shadow-[0_0_30px_-8px_var(--m-amber)] transition-transform hover:scale-[1.02] disabled:opacity-60 ${
+          className={`rounded-full bg-[var(--m-amber)] px-6 font-semibold text-[var(--m-on-accent)] shadow-[0_0_30px_-8px_var(--m-amber)] transition-transform hover:scale-[1.02] disabled:opacity-60 ${
             size === "lg" ? "py-3.5 text-base" : "py-3 text-sm"
           }`}
         >
-          {pending ? "Joining…" : "Get early access"}
+          {pending ? "Joining…" : "Join the beta"}
         </button>
       </div>
       {error && (
@@ -118,7 +119,8 @@ export function CaptureForm({ source, size = "md" }: { source: string; size?: "m
         </p>
       )}
       <p className="mt-2 text-xs text-[var(--m-muted)]">
-        Founding-operator pricing locked for the list. No spam — one launch email + a couple of build-log notes.
+        Sign up for the beta — doors open <span className="font-medium text-[var(--m-ink)]">September 14th</span>, and
+        founding-operator pricing is locked for the list. No spam — your invite plus a couple of build-log notes.
         By joining you agree to our{" "}
         <a href="/legal/privacy" className="underline hover:text-[var(--m-ink)]">
           Privacy Policy
