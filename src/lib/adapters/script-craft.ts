@@ -1,74 +1,70 @@
 /**
- * Script-craft knowledge base — the operator's Hook Laws (48 operating
- * principles, distilled from their retention data doc) as permanent prompt
- * blocks for the script agent. This file IS the knowledge base: version-
- * controlled, always injected, testable — every script generation carries it
- * (script.ts), unlike a database blob that can silently drift.
+ * Script-craft knowledge base — the direct-response marketing laws as
+ * permanent prompt blocks for the GTM script agent. This file IS the knowledge
+ * base: version-controlled, always injected, testable — every script
+ * generation carries it (script.ts), unlike a database blob that can silently
+ * drift.
  *
- * Only the OPERATIVE writing laws are injected (hooks, retention mechanics,
- * pacing, authenticity, structure/outro). The strategy-level laws (format
- * ceilings, AVR economics, mindset) inform the system's design rather than
- * per-script prompts: point order + mid-roll placement are encoded below,
- * format choice lives with idea/format selection, and "the retention graph
- * is the test" is the outcome loop (exemplars.ts).
+ * The export names keep the engine's original shape (HOOK/RETENTION/PACING/
+ * AUTHENTICITY/STRUCTURE) so the prompt wiring and tests stay stable; the
+ * content is the GTM studio's ad craft: scroll-stopping hooks, persuasion
+ * mechanics, feed-native pacing, UGC authenticity + claim compliance, and the
+ * single-CTA close.
  */
 
-/** Laws 1–8 — hook construction. */
-export const HOOK_LAWS = `HOOK LAWS — the first 15 seconds is a trust check, not a topic introduction:
-- Name the VIEWER'S SITUATION before you name your topic (viewers decide to stay before the topic is named).
-- Build the hook as a SPECIFIC information gap — "the one mistake costing you 40% of your audience" beats any vague tease. Specific gaps outperform vague ones by ~27 points at 0:30.
-- NEVER open with greetings or throat-clearing ("hey guys, welcome back" burns 8 seconds saying nothing and loses 40% of viewers).
-- Stack TWO psychological mechanisms in the first 50 words: curiosity gap + expectation confirmation, or pattern interrupt + concrete data. One mechanism is baseline; two is elite.
-- A pattern interrupt must be a GENUINE contradiction (numbers that don't reconcile: "I made $14,400 from 225 views"), never a manufactured tease ("you won't believe what happened next").
-- The hook must contain at least one specific number, date, or named detail — concrete data forces cognitive work and sunk-cost makes leaving feel wasteful.
-- Do NOT confirm the topic and open the curiosity gap in the SAME sentence — confirmation (relief) and gap (tension) must land as separate beats so they collide.
-- The hook is a PROMISE the script must fulfil, never a summary. A hook whose payoff the script doesn't deliver is a betrayal that costs the viewer's lifetime value.`;
+/** Hook laws — the first 3 seconds decide whether the ad exists at all. */
+export const HOOK_LAWS = `HOOK LAWS — the first 3 seconds is a scroll check, not a brand introduction:
+- Name the BUYER'S PAIN before you name the product (viewers decide to stay before they know what's being sold).
+- Build the hook as a SPECIFIC pattern interrupt — a cost they didn't know they were paying, a "you're doing X wrong", a number that doesn't reconcile. Specific beats vague every time.
+- NEVER open with the product name, "Introducing", a logo sting, or any greeting — those read as an ad and get swiped instantly.
+- The hook must contain at least one specific number, scenario, or named detail the target buyer recognizes from their own week.
+- For a UGC ad, the first line must sound like a person mid-discovery ("okay, I have to show you this") — never like a brand speaking.
+- Do NOT reveal the product and open the curiosity in the SAME line — pain/pattern-interrupt first, the reveal lands as the payoff.
+- The hook is a PROMISE the ad must pay off: if the CTA's offer doesn't deliver what the hook implied, it's bait — fix one of them.
+- Write hooks to be SWAPPED: each alternate hook takes a genuinely different angle (pain, outcome, contrarian, social proof) so variants actually test something.`;
 
-/** Laws 9–16 — retention mechanics across the body. */
-export const RETENTION_LAWS = `RETENTION MECHANICS:
-- Open a new curiosity gap every 30–45 seconds of script time; a gap must open at the moment the previous one closes.
-- After every mini payoff, plant the NEXT setup within 10 seconds — the payoff void (a stretch with nothing unresolved) is where 40% of mid-video loss happens.
-- POINT ORDER: second-best point FIRST, best point in the MIDDLE, third-best LAST. Never lead with your best point — everything after reads as decline.
-- Foreshadow the grand payoff at least three times: in the hook, around the one-third mark, and around the two-thirds mark.
-- NEVER use a rhetorical question as a section transition ("so what does this mean?" signals the script is reorganising). Transition with declarative statements.
-- Every section needs at least one specific data point (a date, a number, a named example) — an all-abstract section reads as empty and bleeds 8–12% of the audience.
-- The viewer must never be able to predict the next sentence — break every pattern you establish.
-- END EVERY SECTION ON INCOMPLETION: an unresolved question, a new implication, or a hint that the next section reframes what they just absorbed. Completion kills retention.`;
+/** Persuasion mechanics across the body. */
+export const RETENTION_LAWS = `PERSUASION MECHANICS:
+- Follow the spine: PAIN → STAKES → MECHANISM → PROOF → CTA. Every beat sits on the spine; anything else is filler.
+- Make the cost of the status quo CONCRETE within 10 seconds of naming the pain — hours lost, dollars burned, pipeline missed. Abstract pain doesn't convert.
+- MECHANISM before features: show the ONE thing this product does differently, tied to something visible on screen. A feature list is where attention dies.
+- One PROOF point, made concrete: a number, a before/after, a named outcome. One believable proof beats three vague ones.
+- Answer the buyer's loudest objection head-on in one line ("yes, it works with your stack", "no, you don't migrate anything") — the unspoken objection kills the click.
+- Never use a rhetorical question as a transition ("so what does this mean for you?" reads as ad-speak). Transition with declarative statements.
+- The viewer must never be able to predict the next sentence — break every pattern you establish, especially mid-ad where swipe-away peaks.`;
 
-/** Laws 17–22 — pacing. */
+/** Pacing laws — feed-native rhythm. */
 export const PACING_LAWS = `PACING:
-- Cycle through three modes: COMPRESSION (dense, rapid, fact-heavy), EXPANSION (slower, story-driven, experiential), SHOCK (sudden pattern violation). Complete the cycle at least twice per 10 minutes.
-- Never stay in one pacing mode longer than ~90 seconds — the brain calibrates to any sustained rhythm and attention drops.
-- Place SHOCK moments immediately BEFORE major payoffs — the shock resets attention to maximum exactly when the script needs it.
-- Sentence-length variation is mandatory: never three consecutive sentences of similar length. One short punch, then a longer explanation, then a medium transition.
-- The FIRST sentence of each section sets that section's energy — open sections compressed, specific, and high-stakes.`;
+- Cycle three modes: PUNCH (short, bold, claim or number), SHOW (the product doing the job, narrated), TALK (human, first-person, conversational). Complete the cycle at least once per 30 seconds.
+- Never stay in one mode longer than ~20 seconds in a UGC ad or ~45 seconds in a demo — feed attention recalibrates fast.
+- Sentence-length variation is mandatory: never three consecutive sentences of similar length. One short punch, then a longer explanation, then a medium bridge.
+- Place the product reveal immediately AFTER the stakes peak — the reveal is the release of the tension the hook built.
+- The first sentence of each beat re-earns attention — open beats concrete, high-stakes, and mid-thought.`;
 
-/** Laws 23–28 + 39–40 — authenticity and the close. */
-export const AUTHENTICITY_LAWS = `AUTHENTICITY (the transcript is what gets classified, and what viewers feel):
-- Editorial direction comes BEFORE information: the narrator has a specific perspective and finds specific things fascinating — write from that stance, not from "write about topic".
-- The "would a generic prompt produce this exact phrasing?" test: if yes, rewrite it.
-- Specificity is the proof of human involvement: "a creator I audited had 42% retention at 0:30 and switched niche three times" beats "many creators struggle with this" — every time.
-- The narrator expresses a GENUINE opinion at least once per major section ("this is the part that gets me", "the data here contradicts everything the gurus teach").
-CLOSE (the last 20 seconds decide subscription and session time):
-- The final beat delivers a powerful FINAL INSIGHT that makes the viewer feel "I need more of this person's perspective" — never a bare thanks-for-watching.
-- The outro opens a curiosity gap toward the NEXT video (session time), then makes its single warm ask.`;
+/** Authenticity + compliance laws — the UGC voice, and the claims bar. */
+export const AUTHENTICITY_LAWS = `AUTHENTICITY & COMPLIANCE (the transcript is what ad reviewers read — and what buyers feel):
+- UGC means a PERSON, not a brand: first person, contractions, the occasional imperfect aside. The "would a brand's social team write this exact line?" test: if yes, rewrite it.
+- No ad-speak, ever: "revolutionary", "seamless", "game-changing", "supercharge", "unleash" are instant tells. Specifics are the proof of honesty.
+- CLAIM COMPLIANCE IS NON-NEGOTIABLE: every stated result must be typical-case honest and substantiable. No invented testimonials, no fabricated metrics, no "guaranteed" outcomes, no fake urgency ("only 3 left").
+- Comparative claims name what's actually compared; "faster" means faster than something specific and true.
+- The narrator has a GENUINE opinion at least once ("honestly, this part sold me") — opinion is what separates a creator from a script.
+CLOSE (the last 5 seconds decide whether the view becomes a click):
+- The final beat is ONE clear call-to-action tied to the offer — start free, book a demo, grab the template — stated as the action plus its immediate payoff.
+- One CTA only: never stack "follow for more" onto the offer CTA — a split ask halves both.`;
 
-/**
- * Laws 41–42 (+37) — structural discipline injected with the block.
- * The remaining mindset/AVR laws shape the SYSTEM (outcome loop, formats),
- * not individual prompts.
- */
+/** Structural discipline for ad + demo scripts. */
 export const STRUCTURE_LAWS = `STRUCTURAL DISCIPLINE:
-- Every sentence has a job: confirm the click, open a gap, close a gap, vary pacing, escalate stakes, deliver a payoff, or foreshadow the grand payoff. A sentence doing none of these is filler — cut it.
-- The script is finished when there is nothing left to REMOVE. A compressed script that holds beats a longer script that doesn't earn its length.
-- For longer videos, the strongest retention section must surround the first third of the runtime (where the first mid-roll lands) — never let the energy dip there.`;
+- Every sentence has a job: stop the scroll, make the pain concrete, raise the stakes, show the mechanism, land the proof, kill an objection, or drive the CTA. A sentence doing none of these is filler — cut it.
+- The ad is finished when there is nothing left to REMOVE. A 25-second ad that holds beats a 40-second ad that doesn't earn its length.
+- In a demo, every claim in the narration must have a visible on-screen counterpart — say it while showing it, never before or instead.
+- Deliver alternate hooks as true VARIANTS (different angle, same offer) so the A/B test measures the angle, not the phrasing.`;
 
 /** The full craft block the script prompt injects (order: most load-bearing first). */
-export const SCRIPT_CRAFT_LAWS = `\n\nSCRIPT CRAFT LAWS — non-negotiable operating principles (retention-data-backed; violations show in the retention graph):\n${HOOK_LAWS}\n\n${RETENTION_LAWS}\n\n${PACING_LAWS}\n\n${AUTHENTICITY_LAWS}\n\n${STRUCTURE_LAWS}`;
+export const SCRIPT_CRAFT_LAWS = `\n\nAD CRAFT LAWS — non-negotiable operating principles (performance-data-backed; violations show in hook rate and CTR):\n${HOOK_LAWS}\n\n${RETENTION_LAWS}\n\n${PACING_LAWS}\n\n${AUTHENTICITY_LAWS}\n\n${STRUCTURE_LAWS}`;
 
 /**
- * Law 26 — the AI-tell vocabulary cluster. Merged into the writer's banned
- * list (script.ts VOICE_SYSTEM already bans several; these complete the set).
+ * The AI-tell vocabulary cluster. Merged into the writer's banned list
+ * (script.ts VOICE_SYSTEM already bans several; these complete the set).
  */
 export const AI_TELL_WORDS = [
   "delve",

@@ -32,8 +32,8 @@ consistency, Agent-SDK editor (`packages/agent/*`), MCP server
 |---|---|---|---|
 | 1 | Product identity | `package.json`, `README.md` | ✅ done |
 | 2 | Script/generation brain | `src/lib/pipeline/templates.ts` | ✅ done (DR marketing script, ugc_ad + product_demo, hook/CTA structure) |
-| 3 | Craft laws override | `src/lib/adapters/script-craft.ts` | ⬜ pending (swap retention laws → direct-response laws) |
-| 4 | Judge rubrics | `src/lib/pipeline/rubrics.ts` | ⬜ pending (hook-rate, clarity, CTA, brand-safety) |
+| 3 | Craft laws override | `src/lib/adapters/script-craft.ts` | ✅ done (retention laws → direct-response ad craft: 3-second hooks, pain→stakes→mechanism→proof→CTA spine, punch/show/talk pacing, UGC voice + claim compliance, single-CTA close) |
+| 4 | Judge rubrics | `src/lib/pipeline/rubrics.ts` | ✅ done (IDEA→ICP fit/pain evidence/angle/hook potential/offer coherence; SCRIPT→hook×2, offer delivery×2, spine economy, claim compliance×2, native voice, CTA clarity; ASSETS→product visibility; FINAL→feed-ready; qc.ts gate briefs = performance creative director) |
 | 5 | KPIs | `src/lib/pipeline/monetization.ts` | ✅ done (YPP → campaign growth targets: AUDIENCE_GOAL / CONSIDERATION_HOURS_GOAL / AD_VIEWS_GOAL; mix = ad variants vs demos; function signatures unchanged; queries/panel/telegram/tests updated) |
 | 6 | Variant fan-out stage | `packages/core`, `engine.ts` asset stage | ⬜ pending (N ad cuts from one brief) |
 | 7 | Intelligence source | `src/lib/adapters/youtube.ts`, `intelligence.ts`, `scout.ts` | ⬜ pending (competitor-ad research / winning-hook mining) |
@@ -43,9 +43,10 @@ consistency, Agent-SDK editor (`packages/agent/*`), MCP server
 
 ## Known follow-ups from increment 1
 
-- The outro contract changed from a "subscribe" line to a CTA beat. Check for a
-  hardcoded subscribe-outro assertion in `src/lib/adapters/script.ts`
-  (`hardRules`) and QC (`rubrics.ts`) and update to CTA validation.
+- ✅ Resolved: the closing contract is now a single offer-CTA end-to-end —
+  `hardRules` closing-beat rule, `ensureCtaBeat` fallback, `isCtaLike` offer
+  patterns (start free / book a demo / get the template), the mock script's
+  final beat, and the SCRIPT rubric's `cta_clarity` criterion all agree.
 - `monetization.ts` exports (`desiredMixShortsPct`, `nearerPath`, `mixReason`)
   are imported by the engine/operator/UI — reinterpret semantics but keep names
   stable, or provide shims, so the build stays green.

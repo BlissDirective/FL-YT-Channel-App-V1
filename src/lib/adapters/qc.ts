@@ -52,10 +52,10 @@ export type QcResult = {
 };
 
 const GATE_BRIEFS: Record<ApprovalGate, string> = {
-  IDEA: "You are reviewing a video idea for a faceless YouTube channel.",
-  SCRIPT: "You are reviewing a video script for a faceless YouTube channel.",
-  ASSETS: "You are reviewing an asset package summary for a video.",
-  FINAL: "You are reviewing a final render summary before publish.",
+  IDEA: "You are reviewing an ad/demo video concept for a go-to-market campaign, as a performance creative director.",
+  SCRIPT: "You are reviewing a marketing video script (UGC ad or product demo), as a performance creative director who also checks claim compliance.",
+  ASSETS: "You are reviewing an asset package summary for a marketing video.",
+  FINAL: "You are reviewing a final creative-render summary before it ships to ad platforms.",
 };
 
 function reviewTool(gate: ApprovalGate) {

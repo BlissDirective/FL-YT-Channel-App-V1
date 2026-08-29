@@ -31,7 +31,7 @@ export function mockScript(opts: {
     `${hook} Today we're unpacking ${opts.topic || opts.title.toLowerCase()} — and by the end, you'll see it differently.`,
     `First, the part everyone skips: the mechanics. Here's what actually happens behind the scenes, step by step, in plain language.`,
     `Now the twist — the data tells a different story than the advice you usually hear. Three numbers make this obvious.`,
-    `So what do you do with this? Two small changes this week, one habit for the long run. Subscribe for the next deep dive.`,
+    `So if this is the exact wall you keep hitting — grab the link below and start free. It takes about two minutes to see it on your own data.`,
   ];
 
   const beats: ScriptBeat[] = beatTexts.map((text, idx) => ({

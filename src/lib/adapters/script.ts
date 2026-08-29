@@ -76,7 +76,7 @@ export function capScriptToBudget(beats: ScriptBeat[], targetLengthSec: number):
     narrow test caught) — otherwise the safety-net below bolts on a SECOND outro
     and the script closes on two redundant sign-offs (a recurring QC failure). */
 export function isCtaLike(text: string): boolean {
-  return /\b(subscrib|comment below|in the comments|drop a comment|leave a comment|hit (the )?like|smash (that )?like|like this video|let me know|see you (in|next)|next (video|breakdown|one|time)|thanks for watching|catch you|until next time|ring the bell|turn on notifications|hit that bell)\b/i.test(
+  return /\b(subscrib|comment below|in the comments|drop a comment|leave a comment|hit (the )?like|smash (that )?like|like this video|let me know|see you (in|next)|next (video|breakdown|one|time)|thanks for watching|catch you|until next time|ring the bell|turn on notifications|hit that bell|start free|book a demo|get the template|grab the (link|template)|link (below|in bio)|try it (free|now|today)|start your (trial|free))\b/i.test(
     text,
   );
 }
@@ -106,10 +106,10 @@ export function ensureCtaBeat(beats: ScriptBeat[], niche: string): ScriptBeat[] 
   const cta: ScriptBeat = {
     idx: out.length,
     text:
-      `If that changed how you see ${topic}, subscribe — the next breakdown drops soon. ` +
-      `Tell me in the comments what to dig into next.`,
+      `Want this working on your own ${topic} by tomorrow? Grab the link below and start free — ` +
+      `it takes about two minutes to see it on your data.`,
     visualPrompt:
-      "A calm, premium closing scene — soft abstract gradient light with a sense of forward momentum. No text, no logos, no people.",
+      "A clean closing frame — the product's end state on screen with the offer as a simple text card, soft light, forward momentum. No stock people.",
     shotType: "broll",
   };
   return reindex([...out, cta]);
@@ -121,7 +121,7 @@ export function ensureCtaBeat(beats: ScriptBeat[], niche: string): ScriptBeat[] 
  * tells that make scripts sound machine-written. Tone (per project) decides
  * how edgy/hype vs. sharp/measured the delivery is.
  */
-const VOICE_SYSTEM = `You write YouTube scripts that sound like a sharp human creator talking to one viewer — never like an AI essay or a press release.
+const VOICE_SYSTEM = `You write marketing video scripts that sound like a sharp human talking to one buyer — a real creator in a UGC ad, a confident practitioner in a demo — never like an AI essay, a brand deck, or a press release.
 
 Hard rules:
 - BANNED phrases (never use, in any form): "delve", "dive in/into", "in today's video", "buckle up", "without further ado", "let's get started", "that's right, folks", "in conclusion", "the world of", "when it comes to", "it's important to note", "needless to say", "look no further", "game-changer", "at the end of the day", "rest assured", "embark", "tapestry", "navigate the", "unlock the secrets", "realm", "foster", "furthermore", "shed light", "illuminate", "testament".
@@ -375,7 +375,7 @@ export async function generateScript(opts: {
     `- Deliver every chapter, section, and timestamp your metadata promises — never reference content you didn't actually write.\n` +
     `- Each beat must advance the argument; do not restate the same point across multiple beats.\n` +
     `- CLAIM HYGIENE: do not invent false precision. A specific figure (a percent, a dollar amount, a count, a lead-time) is allowed ONLY if it is genuinely well-known or you hedge it in the narration itself ("roughly", "on the order of", "reports suggest", "ballpark"). Never state an unsourced exact number as hard fact — reviewers reject suspiciously tidy figures. Prefer a hedged range over a fake-precise point value.\n` +
-    `- EXACTLY ONE closing beat: end on a SINGLE short (~10–15s) call-to-action where the narrator asks viewers to like and subscribe and to comment a suggested ${opts.niche} topic for the next video — warm and confident, not desperate. Do NOT write two sign-off beats, and do not repeat the channel-niche phrase more than once. The beat BEFORE it must be real content (a final insight or takeaway), never a second outro.\n` +
+    `- EXACTLY ONE closing beat: end on a SINGLE short (~5–10s) call-to-action driving ONE low-friction action tied to the offer (start free, book a demo, get the template) — the action plus its immediate payoff, confident, never desperate, and NEVER "like and subscribe" or a stacked second ask. Do not repeat the ${opts.niche} product phrase more than once. The beat BEFORE it must be real content (the proof or the objection kill), never a second sign-off.\n` +
     `- VISUAL VARIETY: adjacent beats must not all be the same shot type — vary hero/broll/stock so the picture changes at least every ~40 seconds. Reserve "hero" for the 1–3 highest-impact moments (the hook and the biggest reveals), not most beats.`;
   const lessons =
     opts.qcLessons && opts.qcLessons.length > 0
