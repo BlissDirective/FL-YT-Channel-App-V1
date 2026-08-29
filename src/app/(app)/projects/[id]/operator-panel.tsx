@@ -222,15 +222,15 @@ export function OperatorPanel({
       {live && view.hasAnalytics && (
         <div className="mt-4 space-y-2.5 rounded-xl border border-line bg-canvas/50 p-3">
           <div className="flex flex-wrap items-center justify-between gap-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Monetization · YPP</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Growth · Program targets</p>
             <span className="text-[11px] text-muted">
-              {Math.round(view.mixShortsPct * 100)}% shorts · {view.mixReason}
+              {Math.round(view.mixShortsPct * 100)}% micro-lessons · {view.mixReason}
             </span>
           </div>
-          <Goal label="Subscribers" value={view.subs} goal={view.subsGoal} fmt={compact} />
-          <Goal label="Watch-hours · 365d" value={view.watchHours} goal={view.watchGoal} fmt={(n) => n.toFixed(0)} highlight={view.nearerPath === "watch"} />
+          <Goal label="Learners" value={view.subs} goal={view.subsGoal} fmt={compact} />
+          <Goal label="Lesson watch-hours · 365d" value={view.watchHours} goal={view.watchGoal} fmt={(n) => n.toFixed(0)} highlight={view.nearerPath === "watch"} />
           {view.shortsViews > 0 && (
-            <Goal label="Shorts views · 90d" value={view.shortsViews} goal={view.shortsGoal} fmt={compact} highlight={view.nearerPath === "shorts"} />
+            <Goal label="Preview views · 90d" value={view.shortsViews} goal={view.shortsGoal} fmt={compact} highlight={view.nearerPath === "shorts"} />
           )}
           {(view.retentionPct > 0 || view.dailyCap > 0) && (
             <p className="text-[11px] text-muted">

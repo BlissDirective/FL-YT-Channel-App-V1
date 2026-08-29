@@ -36,7 +36,7 @@ Remotion render farm (`packages/render/*`), embeddings + pgvector
 | 2 | Script/generation brain | `src/lib/pipeline/templates.ts` | ✅ done (instructional lesson script: objective hook, teach-in-steps, worked example, CoU, recap; concept/walkthrough/recap formats) |
 | 3 | Craft laws override | `src/lib/adapters/script-craft.ts` | ⬜ pending (retention laws → instructional-design laws) |
 | 4 | Judge rubrics | `src/lib/pipeline/rubrics.ts` | ⬜ pending (objective coverage, accuracy, pedagogical clarity) |
-| 5 | KPIs | `src/lib/pipeline/monetization.ts` | ⬜ pending (replace YPP with completion/pass-rate; keep signatures to avoid breaking imports) |
+| 5 | KPIs | `src/lib/pipeline/monetization.ts` | ✅ done (YPP → program growth targets: LEARNERS_GOAL / COMPLETION_HOURS_GOAL / PREVIEW_VIEWS_GOAL; mix = micro-lessons vs full lessons; function signatures unchanged; queries/panel/telegram/tests updated) |
 | 6 | Course structure stage | `packages/core`, `engine.ts` | ⬜ pending (module→lesson→chapter tree; quiz cards) |
 | 7 | Intelligence source | `src/lib/adapters/youtube.ts`, `intelligence.ts`, `scout.ts` | ⬜ pending (doc-ingest + RAG structuring via `embeddings.ts` + pgvector) |
 | 8 | Render compositions | `packages/render/*` | ⬜ pending (slide + instructor-avatar + lower-thirds; chapter cards) |
