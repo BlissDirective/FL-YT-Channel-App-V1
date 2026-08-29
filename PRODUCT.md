@@ -34,7 +34,7 @@ consistency, Agent-SDK editor (`packages/agent/*`), MCP server
 | 2 | Script/generation brain | `src/lib/pipeline/templates.ts` | ✅ done (DR marketing script, ugc_ad + product_demo, hook/CTA structure) |
 | 3 | Craft laws override | `src/lib/adapters/script-craft.ts` | ⬜ pending (swap retention laws → direct-response laws) |
 | 4 | Judge rubrics | `src/lib/pipeline/rubrics.ts` | ⬜ pending (hook-rate, clarity, CTA, brand-safety) |
-| 5 | KPIs | `src/lib/pipeline/monetization.ts` | ⬜ pending (replace YPP with hook-rate/CTR/ROAS; keep signatures to avoid breaking imports) |
+| 5 | KPIs | `src/lib/pipeline/monetization.ts` | ✅ done (YPP → campaign growth targets: AUDIENCE_GOAL / CONSIDERATION_HOURS_GOAL / AD_VIEWS_GOAL; mix = ad variants vs demos; function signatures unchanged; queries/panel/telegram/tests updated) |
 | 6 | Variant fan-out stage | `packages/core`, `engine.ts` asset stage | ⬜ pending (N ad cuts from one brief) |
 | 7 | Intelligence source | `src/lib/adapters/youtube.ts`, `intelligence.ts`, `scout.ts` | ⬜ pending (competitor-ad research / winning-hook mining) |
 | 8 | Render compositions | `packages/render/*` | ⬜ pending (UGC vertical talking-head + demo screen/captions) |

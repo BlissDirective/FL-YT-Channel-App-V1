@@ -23,14 +23,14 @@ import type {
   VideoIntel,
 } from "./types";
 import {
-  YPP_SUBS,
-  YPP_WATCH_HOURS,
-  YPP_SHORTS_VIEWS,
+  AUDIENCE_GOAL,
+  CONSIDERATION_HOURS_GOAL,
+  AD_VIEWS_GOAL,
   desiredMixShortsPct,
   effectiveDailyCap,
   mixReason,
   nearerPath,
-  type YppPath,
+  type GrowthPath,
 } from "@/lib/pipeline/monetization";
 
 export async function getProjects(): Promise<Project[]> {
@@ -70,7 +70,9 @@ export type OperatorView = {
   postingTz: string;
   /** Autonomy level (Tier 8A) — defaults to autopilot when unset. */
   autonomy: "copilot" | "autopilot";
-  /** Monetization (YPP) progress — present once analytics has been pulled. */
+  /** Campaign growth progress — present once analytics has been pulled.
+      subs = brand-account audience; watchHours = demo watch-hours
+      (consideration); shortsViews = short ad-variant views (reach). */
   hasAnalytics: boolean;
   subs: number;
   subsGoal: number;
@@ -79,7 +81,7 @@ export type OperatorView = {
   shortsViews: number;
   shortsGoal: number;
   retentionPct: number;
-  nearerPath: YppPath;
+  nearerPath: GrowthPath;
   mixShortsPct: number;
   mixReason: string;
   dailyCap: number;
@@ -116,8 +118,8 @@ export async function getOperatorView(projectId: string): Promise<OperatorView> 
     budgetUsd: 60, spentUsd: 0, remainingUsd: 60,
     videosThisCycle: 0, seededToday: 0, postingHour: 13, postingTz: "America/Chicago",
     autonomy: "autopilot",
-    hasAnalytics: false, subs: 0, subsGoal: YPP_SUBS, watchHours: 0, watchGoal: YPP_WATCH_HOURS,
-    shortsViews: 0, shortsGoal: YPP_SHORTS_VIEWS, retentionPct: 0,
+    hasAnalytics: false, subs: 0, subsGoal: AUDIENCE_GOAL, watchHours: 0, watchGoal: CONSIDERATION_HOURS_GOAL,
+    shortsViews: 0, shortsGoal: AD_VIEWS_GOAL, retentionPct: 0,
     nearerPath: "watch", mixShortsPct: 0.75, mixReason: "default mix", dailyCap: 1,
     calendar: [],
   };
@@ -157,11 +159,11 @@ export async function getOperatorView(projectId: string): Promise<OperatorView> 
     autonomy: cfg.autonomy === "copilot" ? "copilot" : "autopilot",
     hasAnalytics: Boolean(ch),
     subs: ch?.subs ?? 0,
-    subsGoal: YPP_SUBS,
+    subsGoal: AUDIENCE_GOAL,
     watchHours: ch?.watchHours365 ?? 0,
-    watchGoal: YPP_WATCH_HOURS,
+    watchGoal: CONSIDERATION_HOURS_GOAL,
     shortsViews: ch?.shortsViews90 ?? strat?.formatPerf?.short?.views ?? 0,
-    shortsGoal: YPP_SHORTS_VIEWS,
+    shortsGoal: AD_VIEWS_GOAL,
     retentionPct: ch?.retentionPct ?? 0,
     nearerPath: nearerPath(strat),
     mixShortsPct: desiredMixShortsPct(baseMix, strat),
