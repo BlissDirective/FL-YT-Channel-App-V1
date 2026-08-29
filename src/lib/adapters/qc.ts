@@ -52,10 +52,10 @@ export type QcResult = {
 };
 
 const GATE_BRIEFS: Record<ApprovalGate, string> = {
-  IDEA: "You are reviewing a video idea for a faceless YouTube channel.",
-  SCRIPT: "You are reviewing a video script for a faceless YouTube channel.",
-  ASSETS: "You are reviewing an asset package summary for a video.",
-  FINAL: "You are reviewing a final render summary before publish.",
+  IDEA: "You are reviewing a lesson idea for a video course, as an instructional-design lead.",
+  SCRIPT: "You are reviewing a video lesson script for a course, as an instructional-design lead.",
+  ASSETS: "You are reviewing an asset package summary for a video lesson.",
+  FINAL: "You are reviewing a final lesson-render summary before it ships to learners.",
 };
 
 function reviewTool(gate: ApprovalGate) {

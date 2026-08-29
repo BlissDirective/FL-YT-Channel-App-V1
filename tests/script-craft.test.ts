@@ -1,8 +1,8 @@
 /**
- * Hook Laws knowledge base (operator's retention doc, 48 laws): the distilled
- * operative laws must ride into EVERY script generation. Pins the content of
- * the craft block, the prompt wiring, and the completed AI-tell ban list so a
- * later prompt refactor can't silently drop the knowledge base.
+ * Lesson-craft knowledge base: the instructional-design laws must ride into
+ * EVERY lesson-script generation. Pins the content of the craft block, the
+ * prompt wiring, and the completed AI-tell ban list so a later prompt refactor
+ * can't silently drop the knowledge base.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
@@ -16,41 +16,48 @@ import {
   STRUCTURE_LAWS,
 } from "@/lib/adapters/script-craft";
 
-describe("script-craft knowledge base (Hook Laws)", () => {
-  it("hook laws carry the eight operative rules", () => {
-    expect(HOOK_LAWS).toContain("trust check");
-    expect(HOOK_LAWS).toContain("viewer's situation".toUpperCase().slice(0, 0) + "VIEWER'S SITUATION");
+describe("script-craft knowledge base (lesson craft laws)", () => {
+  it("objective-hook laws carry the operative rules", () => {
+    expect(HOOK_LAWS).toContain("motivation check");
+    expect(HOOK_LAWS).toContain("LEARNER'S SITUATION");
     expect(HOOK_LAWS).toMatch(/never open with greetings/i);
-    expect(HOOK_LAWS).toMatch(/two psychological mechanisms/i);
-    expect(HOOK_LAWS).toMatch(/genuine contradiction/i);
-    expect(HOOK_LAWS).toMatch(/specific number, date, or named detail/i);
-    expect(HOOK_LAWS).toMatch(/same sentence/i);
+    expect(HOOK_LAWS).toMatch(/dictionary definition/i);
+    expect(HOOK_LAWS).toMatch(/what they can DO differently/);
+    expect(HOOK_LAWS).toMatch(/real cost or stake/i);
     expect(HOOK_LAWS).toMatch(/promise/i);
+    expect(HOOK_LAWS).toMatch(/you can now do this/i);
   });
 
-  it("retention laws carry gap cadence, point order, foreshadowing, incompletion", () => {
-    expect(RETENTION_LAWS).toMatch(/30–45 seconds/);
+  it("cognitive-load laws carry one-idea beats, sequencing, definitions, signposting", () => {
+    expect(RETENTION_LAWS).toMatch(/ONE idea per beat/);
+    expect(RETENTION_LAWS).toMatch(/Prerequisite before dependent/i);
+    expect(RETENTION_LAWS).toMatch(/prior knowledge/i);
+    expect(RETENTION_LAWS).toMatch(/FIRST time it appears/);
+    expect(RETENTION_LAWS).toMatch(/Signpost/i);
     expect(RETENTION_LAWS).toMatch(/within 10 seconds/);
-    expect(RETENTION_LAWS).toMatch(/second-best point FIRST, best point in the MIDDLE/);
-    expect(RETENTION_LAWS).toMatch(/foreshadow/i);
-    expect(RETENTION_LAWS).toMatch(/rhetorical question/i);
-    expect(RETENTION_LAWS).toMatch(/INCOMPLETION/);
+    expect(RETENTION_LAWS).toMatch(/HANDLE/);
   });
 
-  it("pacing laws carry the compression/expansion/shock cycle and the 90-second cap", () => {
-    expect(PACING_LAWS).toMatch(/COMPRESSION/);
-    expect(PACING_LAWS).toMatch(/EXPANSION/);
-    expect(PACING_LAWS).toMatch(/SHOCK/);
-    expect(PACING_LAWS).toMatch(/90 seconds/);
+  it("pacing laws carry the explain/show/check cycle and the 60-second cap", () => {
+    expect(PACING_LAWS).toMatch(/EXPLAIN/);
+    expect(PACING_LAWS).toMatch(/SHOW/);
+    expect(PACING_LAWS).toMatch(/CHECK/);
+    expect(PACING_LAWS).toMatch(/60 seconds/);
     expect(PACING_LAWS).toMatch(/Sentence-length variation/i);
   });
 
-  it("authenticity laws carry editorial direction, specificity, opinion, and the close", () => {
-    expect(AUTHENTICITY_LAWS).toMatch(/Editorial direction comes BEFORE/i);
+  it("teaching-authenticity laws carry accuracy, visible thinking, opinion, and the close", () => {
+    expect(AUTHENTICITY_LAWS).toMatch(/ACCURACY IS NON-NEGOTIABLE/);
+    expect(AUTHENTICITY_LAWS).toMatch(/invisible thinking visible/i);
     expect(AUTHENTICITY_LAWS).toMatch(/generic prompt/i);
-    expect(AUTHENTICITY_LAWS).toMatch(/GENUINE opinion/);
-    expect(AUTHENTICITY_LAWS).toMatch(/FINAL INSIGHT/);
-    expect(AUTHENTICITY_LAWS).toMatch(/curiosity gap toward the NEXT video/i);
+    expect(AUTHENTICITY_LAWS).toMatch(/GENUINE point of view/);
+    expect(AUTHENTICITY_LAWS).toMatch(/RECAP/);
+    expect(AUTHENTICITY_LAWS).toMatch(/BRIDGE/);
+  });
+
+  it("structure laws carry the worked example and the quiz-card seed", () => {
+    expect(STRUCTURE_LAWS).toMatch(/worked example/i);
+    expect(STRUCTURE_LAWS).toMatch(/check-for-understanding/i);
   });
 
   it("the combined block includes every section and stays prompt-sized", () => {
@@ -67,7 +74,7 @@ describe("script-craft knowledge base (Hook Laws)", () => {
     expect(src).toMatch(/\$\{prompt\}\$\{hardRules\}\$\{SCRIPT_CRAFT_LAWS\}\$\{lessons\}/);
   });
 
-  it("law 26: the full AI-tell vocabulary cluster is banned in the writer's system prompt", () => {
+  it("the full AI-tell vocabulary cluster is banned in the writer's system prompt", () => {
     const src = readFileSync("src/lib/adapters/script.ts", "utf8");
     const banLine = src.split("\n").find((l) => l.includes("BANNED phrases"))!;
     for (const word of AI_TELL_WORDS) {

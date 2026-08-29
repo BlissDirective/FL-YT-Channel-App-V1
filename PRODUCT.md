@@ -34,8 +34,8 @@ Remotion render farm (`packages/render/*`), embeddings + pgvector
 |---|---|---|---|
 | 1 | Product identity | `package.json`, `README.md` | ✅ done |
 | 2 | Script/generation brain | `src/lib/pipeline/templates.ts` | ✅ done (instructional lesson script: objective hook, teach-in-steps, worked example, CoU, recap; concept/walkthrough/recap formats) |
-| 3 | Craft laws override | `src/lib/adapters/script-craft.ts` | ⬜ pending (retention laws → instructional-design laws) |
-| 4 | Judge rubrics | `src/lib/pipeline/rubrics.ts` | ⬜ pending (objective coverage, accuracy, pedagogical clarity) |
+| 3 | Craft laws override | `src/lib/adapters/script-craft.ts` | ✅ done (retention laws → instructional-design laws: objective hooks, cognitive load, explain/show/check pacing, accuracy, recap+bridge close) |
+| 4 | Judge rubrics | `src/lib/pipeline/rubrics.ts` | ✅ done (IDEA→objective/scope/sequence/assessment; SCRIPT→objective hook, delivery, stepwise clarity, worked example, accuracy×2, CoU, recap; ASSETS→teaching support; FINAL→classroom-ready; qc.ts gate briefs retargeted) |
 | 5 | KPIs | `src/lib/pipeline/monetization.ts` | ✅ done (YPP → program growth targets: LEARNERS_GOAL / COMPLETION_HOURS_GOAL / PREVIEW_VIEWS_GOAL; mix = micro-lessons vs full lessons; function signatures unchanged; queries/panel/telegram/tests updated) |
 | 6 | Course structure stage | `packages/core`, `engine.ts` | ⬜ pending (module→lesson→chapter tree; quiz cards) |
 | 7 | Intelligence source | `src/lib/adapters/youtube.ts`, `intelligence.ts`, `scout.ts` | ⬜ pending (doc-ingest + RAG structuring via `embeddings.ts` + pgvector) |
@@ -46,10 +46,10 @@ Remotion render farm (`packages/render/*`), embeddings + pgvector
 
 ## Known follow-ups from increment 1
 
-- The outro contract changed from a "subscribe" line to a recap+bridge beat.
-  Check for a hardcoded subscribe-outro assertion in
-  `src/lib/adapters/script.ts` (`hardRules`) and QC (`rubrics.ts`) and update
-  to recap validation.
+- ✅ Resolved: the outro contract is now recap+bridge end-to-end — `hardRules`
+  closing-beat rule, `ensureCtaBeat` fallback, `isCtaLike` recap patterns,
+  the mock script's final beat, and the SCRIPT rubric's `recap_bridge`
+  criterion all agree.
 - `monetization.ts` exports (`desiredMixShortsPct`, `nearerPath`, `mixReason`)
   are imported by the engine/operator/UI — reinterpret semantics but keep names
   stable, or provide shims, so the build stays green.
