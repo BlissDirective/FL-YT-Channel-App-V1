@@ -580,6 +580,9 @@ export type Script = {
     description?: string;
     tags?: string[];
     chapters?: { at: number; label: string }[];
+    /** Course studio: quiz cards mined from the lesson's check-for-understanding
+        beat (see src/lib/pipeline/course.ts extractQuizCards). */
+    quizCards?: { question: string; answer: string; sourceBeatIdx: number }[];
   };
   created_at: string;
 };

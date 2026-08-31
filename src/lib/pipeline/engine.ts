@@ -32,6 +32,7 @@ import { curateHighlights, defaultHighlightCount } from "@/lib/adapters/highligh
 import type { CuratedHighlight } from "@/lib/db/types";
 import { COPILOT_AUTO_APPROVE_SCORE, isQcLive, reviewGate } from "@/lib/adapters/qc";
 import { finalGateScore } from "@/lib/pipeline/rubrics";
+import { attachQuizCards } from "@/lib/pipeline/course";
 import { editorialGuard } from "@/lib/adapters/guardrails";
 import { factCheckScript, isFactCheckLive } from "@/lib/adapters/fact-check";
 import { pickBestVariant } from "@/lib/adapters/variant-judge";
@@ -721,7 +722,9 @@ async function runScripting(db: Db, video: Video, project: Project) {
     body: draft.body,
     beats: draft.beats,
     runtime_sec: draft.runtimeSec,
-    metadata: draft.metadata,
+    // Course studio: extract quiz cards from the lesson's check-for-understanding
+    // beat and persist them alongside the script (no-op when a script yields none).
+    metadata: attachQuizCards(draft.metadata, draft.beats),
   });
   await recordCost(
     db,

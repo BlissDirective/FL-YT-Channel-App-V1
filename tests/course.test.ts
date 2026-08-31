@@ -7,10 +7,13 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_LESSONS_PER_MODULE,
   MAX_MODULES,
+  attachQuizCards,
   buildCourseTree,
   extractQuizCards,
   flattenLessons,
   lessonCount,
+  lessonSeedRows,
+  parseOutlineText,
 } from "@/lib/pipeline/course";
 import type { ScriptBeat } from "@/lib/db/types";
 
@@ -90,6 +93,94 @@ describe("flattenLessons", () => {
       [1, "M1", "B"],
       [2, "M2", "C"],
     ]);
+  });
+});
+
+describe("parseOutlineText", () => {
+  it("parses title, modules, and lessons with optional objective/format", () => {
+    const outline = parseOutlineText(
+      [
+        "# Intro to SQL",
+        "Foundations",
+        "  - SELECT basics | You can write a filtered SELECT | walkthrough",
+        "  - Filtering | You can narrow a result set",
+        "Joins",
+        "  * Inner joins",
+      ].join("\n"),
+    );
+    expect(outline.title).toBe("Intro to SQL");
+    expect(outline.modules).toHaveLength(2);
+    expect(outline.modules![0]).toEqual({
+      title: "Foundations",
+      lessons: [
+        { title: "SELECT basics", objective: "You can write a filtered SELECT", format: "walkthrough" },
+        { title: "Filtering", objective: "You can narrow a result set" },
+      ],
+    });
+    expect(outline.modules![1].lessons).toEqual([{ title: "Inner joins" }]);
+  });
+
+  it("opens an implicit 'Lessons' module for a lesson before any module, and ignores blanks", () => {
+    const outline = parseOutlineText("\n  - Orphan lesson\n\nModule A\n  - Real\n");
+    expect(outline.modules![0].title).toBe("Lessons");
+    expect(outline.modules![0].lessons).toEqual([{ title: "Orphan lesson" }]);
+    // Feeds cleanly into the tree builder.
+    const tree = buildCourseTree(outline);
+    expect(lessonCount(tree)).toBe(2);
+  });
+});
+
+describe("lessonSeedRows", () => {
+  it("produces one IDEA video row per lesson in production order, objective as topic", () => {
+    const tree = buildCourseTree({
+      title: "SQL",
+      modules: [
+        { title: "M1", lessons: [{ title: "SELECT", objective: "You can filter rows", format: "walkthrough" }] },
+        { title: "M2", lessons: [{ title: "Joins" }] },
+      ],
+    });
+    const rows = lessonSeedRows("proj-1", tree);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toEqual({
+      project_id: "proj-1",
+      idea_id: null,
+      title: "SELECT",
+      topic: "You can filter rows",
+      format: "walkthrough",
+      status: "IDEA",
+      metadata: { module: "M1", moduleIdx: 0, objective: "You can filter rows" },
+    });
+    // Second lesson carries its module provenance and derived objective.
+    expect(rows[1].title).toBe("Joins");
+    expect(rows[1].topic).toBe("You can explain joins");
+    expect(rows[1].metadata.module).toBe("M2");
+    expect(rows.every((r) => r.status === "IDEA" && r.idea_id === null)).toBe(true);
+  });
+});
+
+describe("attachQuizCards", () => {
+  const beat = (idx: number, text: string): ScriptBeat => ({
+    idx,
+    text,
+    visualPrompt: "v",
+    shotType: idx === 0 ? "hero" : "broll",
+  });
+
+  it("adds quizCards to metadata when a check-for-understanding beat exists", () => {
+    const beats = [
+      beat(0, "Hook."),
+      beat(1, "The rule. So which wins, scan or seek? The seek — fewer pages."),
+    ];
+    const md = attachQuizCards({ titles: ["T"] }, beats);
+    expect(md.titles).toEqual(["T"]);
+    expect(md.quizCards).toHaveLength(1);
+    expect(md.quizCards?.[0].question).toBe("So which wins, scan or seek?");
+  });
+
+  it("leaves metadata untouched (no quizCards key) when nothing is extractable", () => {
+    const md = attachQuizCards({ titles: ["T"] }, [beat(0, "Just a statement.")]);
+    expect(md).toEqual({ titles: ["T"] });
+    expect("quizCards" in md).toBe(false);
   });
 });
 

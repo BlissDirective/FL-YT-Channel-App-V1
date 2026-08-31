@@ -19,6 +19,7 @@ import { RunIntelligenceButton } from "@/components/dashboard/run-intelligence-b
 import { RunDemoButton } from "@/components/dashboard/run-demo-button";
 import { NewAsset } from "./new-asset";
 import { DirectorIdeaGenerator } from "./director-idea-generator";
+import { CourseSeeder } from "./course-seeder";
 import { ProjectComposer } from "./project-composer";
 import {
   ArchiveAllPublishedButton,
@@ -187,6 +188,7 @@ export default async function LibraryPage({
           <div className="space-y-3">
             <NewAsset projectId={project.id} />
             <RunIntelligenceButton projectId={project.id} />
+            <CourseSeeder projectId={project.id} />
           </div>
         )}
       </CollapsibleSection>

@@ -45,6 +45,52 @@ export type CourseOutlineInput = {
 };
 
 /**
+ * Parse a plain-text outline into a CourseOutlineInput (pure, testable), so the
+ * UI can accept a pasted outline and doc-ingestion (roadmap item 7) can reuse
+ * the same shape. Grammar (forgiving):
+ *   `# Course title`         → the course title (optional, anywhere)
+ *   `Module title`           → a top-level line starts a module
+ *   `  - Lesson | objective | format`  → an indented or bulleted line is a
+ *                              lesson under the current module; the objective
+ *                              and format after `|` are optional.
+ * A lesson appearing before any module opens an implicit "Lessons" module.
+ * `format` is validated downstream by buildCourseTree (unknown → concept).
+ */
+export function parseOutlineText(text: string): CourseOutlineInput {
+  const out: CourseOutlineInput = { modules: [] };
+  const modules = out.modules!;
+  const ensureModule = (title: string) => {
+    const m = { title, lessons: [] as NonNullable<CourseOutlineInput["modules"]>[number]["lessons"] };
+    modules.push(m);
+    return m;
+  };
+  let current: ReturnType<typeof ensureModule> | null = null;
+
+  for (const rawLine of text.split(/\r?\n/)) {
+    if (!rawLine.trim()) continue;
+    const titleMatch = rawLine.match(/^\s*#\s+(.*)$/);
+    if (titleMatch) {
+      out.title = titleMatch[1].trim();
+      continue;
+    }
+    const indented = /^\s+/.test(rawLine) || /^\s*[-*]\s+/.test(rawLine);
+    const line = rawLine.replace(/^\s*[-*]\s+/, "").trim();
+    if (!indented) {
+      current = ensureModule(line);
+      continue;
+    }
+    if (!current) current = ensureModule("Lessons");
+    const [title, objective, format] = line.split("|").map((s) => s.trim());
+    current.lessons!.push({
+      title,
+      ...(objective ? { objective } : {}),
+      ...(format ? { format } : {}),
+    });
+  }
+  return out;
+}
+
+/**
  * Normalize a loose outline into a valid CourseTree:
  *  - trims titles; drops lessons with no title and modules with no lessons;
  *  - defaults a missing/unknown format to "concept";
@@ -139,4 +185,50 @@ export function extractQuizCards(beats: ScriptBeat[]): QuizCard[] {
 /** Total lessons in a tree (dashboard + budget planning). */
 export function lessonCount(tree: CourseTree): number {
   return tree.modules.reduce((n, m) => n + m.lessons.length, 0);
+}
+
+/**
+ * The `videos`-insert rows that seed one pipeline video per lesson, in
+ * production order. Mirrors the intelligence seed shape
+ * (src/lib/actions/intelligence.ts): a fresh IDEA-status video with the
+ * lesson's title as the video title and its objective as the topic (which the
+ * script template reads as {{topic}}), plus the lesson format. `idea_id` is
+ * null — a course lesson is authored from the outline, not an idea card.
+ * `module` rides in metadata for grouping in the library.
+ */
+export function lessonSeedRows(
+  projectId: string,
+  tree: CourseTree,
+): Array<{
+  project_id: string;
+  idea_id: null;
+  title: string;
+  topic: string;
+  format: LessonFormat;
+  status: "IDEA";
+  metadata: { module: string; moduleIdx: number; objective: string };
+}> {
+  return flattenLessons(tree).map((f) => ({
+    project_id: projectId,
+    idea_id: null,
+    title: f.lesson.title,
+    topic: f.lesson.objective,
+    format: f.lesson.format,
+    status: "IDEA" as const,
+    metadata: { module: f.moduleTitle, moduleIdx: f.moduleIdx, objective: f.lesson.objective },
+  }));
+}
+
+/**
+ * Attach quiz cards extracted from a lesson's beats to its script metadata,
+ * without disturbing the existing metadata fields. Pure so the engine's
+ * scripting path (engine.ts) can call it inline and it stays unit-tested.
+ * Omits the key entirely when a lesson yields no card (keeps metadata clean).
+ */
+export function attachQuizCards<T extends Record<string, unknown>>(
+  metadata: T,
+  beats: ScriptBeat[],
+): T & { quizCards?: QuizCard[] } {
+  const quizCards = extractQuizCards(beats);
+  return quizCards.length > 0 ? { ...metadata, quizCards } : metadata;
 }

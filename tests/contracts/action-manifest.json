@@ -55,6 +55,9 @@
     "pauseCleanHouse(projectId: string, runId: string)",
     "cancelCleanHouse(projectId: string, runId: string)"
   ],
+  "course": [
+    "seedCourseFromOutlineAction(projectId: string, outline: CourseOutlineInput,)"
+  ],
   "diagnostics": [
     "testCredentialAction(service: string)"
   ],
