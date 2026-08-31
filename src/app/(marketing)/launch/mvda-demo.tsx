@@ -202,7 +202,10 @@ export function MvdaDemo() {
             <Terminal className="size-3.5" />
             mvda cut session
           </div>
-          <div className="space-y-1.5">
+          {/* min-height reserves the fully-populated log height so the panel
+              never grows or collapses as steps reveal/reset each loop — this
+              was the primary cause of the page's autonomous vertical jitter. */}
+          <div className="space-y-1.5 min-h-[21rem]">
             <p className="text-[var(--m-muted)]">
               <span className="text-[var(--m-sky)]">you</span> · brief → v3 compiled · $0.00
             </p>

@@ -179,7 +179,10 @@ export function ControlRoom() {
 
         {/* Live readout: current agent + note + spend */}
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
-          <div className="m-terminal rounded-lg p-3 font-mono text-xs">
+          {/* min-height reserves the two-line running state so the readout
+              doesn't shrink to one line when the loop finishes, which
+              otherwise nudged the surrounding layout each cycle. */}
+          <div className="m-terminal min-h-[4.5rem] rounded-lg p-3 font-mono text-xs">
             {done ? (
               <p className="text-[var(--m-amber)]">✓ published · tracking — 4/4 gates passed · session ${spent.toFixed(2)} / ${CAP.toFixed(2)} cap</p>
             ) : (

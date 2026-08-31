@@ -130,7 +130,10 @@ export function CrewBoard() {
         <div className="mb-2 flex items-center gap-1.5 font-mono text-xs text-[var(--m-muted)]">
           <Terminal className="size-3.5" /> orchestration log
         </div>
-        <div ref={logRef} className="max-h-56 space-y-1.5 overflow-hidden font-mono text-[11px] leading-relaxed">
+        {/* Fixed height (not max-height) keeps the log box constant as the
+            sequence wraps 15 → 0, so it never collapses to a single line and
+            shoves the page below it. Auto-scrolls to the bottom. */}
+        <div ref={logRef} className="h-56 space-y-1.5 overflow-hidden font-mono text-[11px] leading-relaxed">
           {visibleLog.map((s, i) => (
             <p key={`${s.id}-${i}`} className="m-logline text-[var(--m-ink)]">
               <span className="text-[var(--m-muted)]">›</span> {s.log}
