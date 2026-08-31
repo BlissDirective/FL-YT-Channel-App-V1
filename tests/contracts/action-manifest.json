@@ -187,6 +187,9 @@
     "batchPublishAction(projectId: string, videoIds: string[],)",
     "batchReReviewAction(projectId: string, videoIds: string[],)"
   ],
+  "variants": [
+    "deriveVariantsAction(projectId: string, parentVideoId: string, opts: { max?: number },)"
+  ],
   "workspace": [
     "sendComposerMessage(opts: { projectId: string; videoId: string; text: string; mode: ComposerMode; focused?: RouteContext[\"focused\"]; modelId?: string; durationSec?: number; })",
     "confirmComposerAction(opts: { projectId: string; videoId: string; action: string; params: Record<string, unknown>; })",

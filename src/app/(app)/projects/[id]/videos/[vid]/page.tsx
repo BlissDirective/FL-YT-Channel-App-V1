@@ -49,6 +49,7 @@ import { StepBackStage } from "./step-back";
 import { VideoGen } from "./video-gen";
 import { PublishKit, type PublishRender } from "./publish-kit";
 import { DeriveShorts, type DerivedShortRow } from "./derive-shorts";
+import { DeriveVariants } from "./derive-variants";
 import { StickScenesEditor, type StickSceneRow } from "./stick-scenes-editor";
 import { VisionReview } from "./vision-review";
 import { AutofixPanel } from "./autofix-panel";
@@ -619,6 +620,10 @@ export default async function VideoDetailPage({
           defaultSmart={project.derive_shorts_smart ?? true}
           shorts={derivedShorts}
         />
+      )}
+
+      {v.kind !== "short" && v.parent_video_id == null && beats.length >= 2 && (
+        <DeriveVariants projectId={id} parentVideoId={vid} />
       )}
 
       {!s ? (
