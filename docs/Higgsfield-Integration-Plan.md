@@ -16,9 +16,9 @@ These supersede the model recommendations in §1 below.
 
 | Role | Locked model | Endpoint | Status |
 |---|---|---|---|
-| **All video sections (hero + b-roll)** | **Cinema Studio 4.0** | `higgsfield/cinema-studio/4.0` | ✅ Built: `VIDEO_MODELS[0]`, every AI tier locked to it, Cinema tier = every section |
+| **All video sections (hero + b-roll)** | **Cinema Studio 4.0** (default) **or Seedance 2.5**, per project | `higgsfield/cinema-studio/4.0` · `bytedance/seedance-2.5/{image,text}-to-video` | ✅ Built: Settings → "Video model (locked for every section)"; `projects.preferred_video_model` |
 | **In-video images** | **SOUL Standard** | `higgsfield-ai/soul/standard` | ✅ Built: engine stills route through `adapters/media.ts`; FLUX fallback |
-| **Avatar animation (The Silicon Layer)** | **Genjutsu motion-transfer** | `higgsfield/genjutsu/motion-transfer/v1.0` | ◐ Adapter built (`animateWithGenjutsu`); pipeline wiring waits on the driving-video decision (below) |
+| **Avatar (The Silicon Layer ONLY)** | **Genjutsu motion-transfer** | `higgsfield/genjutsu/motion-transfer/v1.0` | ✅ Built: `projects.avatar_engine = 'genjutsu'` (migration 0078 sets it only on The Silicon Layer). Motion source = the channel's **existing locked-avatar videos**; identity = the locked presenter image; lip-synced to the beat VO via sync.so when `SYNC_SO_API_KEY` is set |
 | Fallback | fal (Seedance 2.0 → Kling 2.5 → Seedance Fast; FLUX) | — | ✅ Scored fallback chain + per-provider circuit breakers |
 
 **Built in this pass**
@@ -59,8 +59,12 @@ These supersede the model recommendations in §1 below.
 - Tests: `tests/higgsfield.test.ts` and `tests/higgsfield-lock.test.ts`. Legacy
   tier and cap tests are scoped to lock-off / caps-on.
 
+**Auto mode cadence:** the fixed 1 video/day is gone. The Auto Pilot panel
+has a **Videos per day** selector (1–48; the cron seeds one video per 30-min
+tick). Seeding also respects the working-library size limit in Settings.
+
 **Open items**
-1. **Genjutsu driving video.** The API is video-to-video: it needs a source
+1. ~~**Genjutsu driving video.**~~ Resolved: the channel's existing avatar videos drive it. The API is video-to-video: it needs a source
    clip of 4s or more (trimmed to 30s) plus 1–8 avatar images. It is **not**
    audio-driven, so the mouth won't lip-sync to the ElevenLabs narration.
    Options:

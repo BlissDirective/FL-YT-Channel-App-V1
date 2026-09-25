@@ -261,7 +261,37 @@ export function cinemaStudioInput(opts: {
   return input;
 }
 
-/** Generate one clip on a Higgsfield video model (Cinema Studio 4.0). */
+/** Endpoint + body for a Higgsfield video model. Cinema Studio takes the
+    keyframe as a reference (`image_urls`); Seedance 2.5 uses its dedicated
+    image-to-video endpoint where the keyframe is the literal first frame. */
+export function higgsfieldVideoRequest(
+  model: VideoModel,
+  opts: { prompt: string; durationSec: number; imageUrl?: string; aspectRatio?: "16:9" | "9:16" },
+): { endpoint: string; input: Record<string, unknown> } {
+  const duration = Math.max(4, Math.min(30, Math.round(opts.durationSec)));
+  if (model.id === "hf-seedance-2-5") {
+    return opts.imageUrl
+      ? {
+          endpoint: model.i2v,
+          input: { prompt: opts.prompt, image_url: opts.imageUrl, duration, resolution: "720p" },
+        }
+      : {
+          endpoint: model.t2v,
+          input: { prompt: opts.prompt, duration, resolution: "720p", aspect_ratio: opts.aspectRatio ?? "16:9" },
+        };
+  }
+  return {
+    endpoint: model.t2v,
+    input: cinemaStudioInput({
+      prompt: opts.prompt,
+      durationSec: duration,
+      imageUrls: opts.imageUrl ? [opts.imageUrl] : [],
+      aspectRatio: opts.aspectRatio,
+    }),
+  };
+}
+
+/** Generate one clip on a Higgsfield video model (Cinema Studio 4.0 / Seedance 2.5). */
 export async function generateHiggsfieldVideo(opts: {
   model: VideoModel;
   prompt: string;
@@ -271,13 +301,7 @@ export async function generateHiggsfieldVideo(opts: {
   timeoutMs?: number;
 }): Promise<{ video: Buffer; costUsd: number; durationSec: number; requestId: string }> {
   const durationSec = clampDuration(opts.model, opts.durationSec);
-  const endpoint = opts.model.t2v;
-  const input = cinemaStudioInput({
-    prompt: opts.prompt,
-    durationSec,
-    imageUrls: opts.imageUrl ? [opts.imageUrl] : [],
-    aspectRatio: opts.aspectRatio,
-  });
+  const { endpoint, input } = higgsfieldVideoRequest(opts.model, { ...opts, durationSec });
   const quoted = await hfEstimate(endpoint, input);
   const estimate = quoted?.usd ?? estimateClipCost(opts.model, durationSec);
   const handle = await hfSubmit(endpoint, input);

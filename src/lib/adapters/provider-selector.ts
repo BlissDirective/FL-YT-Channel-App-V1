@@ -12,8 +12,8 @@ import {
   clampDuration,
   getVideoModel,
   isVideoModelLocked,
-  LOCKED_VIDEO_MODEL_ID,
   modelProvider,
+  resolveLockedModelId,
   VIDEO_MODELS,
   type VideoModel,
 } from "./video-models";
@@ -118,10 +118,12 @@ export function selectBeatModel(opts: {
   needsAudio?: boolean;
   custom?: CustomSpec;
   health?: ModelHealth;
+  /** The project's locked model (Cinema Studio 4.0 or Seedance 2.5). */
+  lockedModelId?: string | null;
 }): BeatModelChoice {
   const locked = lockedBeatChoice(opts);
   if (locked) return locked;
-  const poolIds = new Set(tierCandidateIds(opts.tier, opts.custom));
+  const poolIds = new Set(tierCandidateIds(opts.tier, opts.custom, opts.lockedModelId));
   poolIds.add(opts.fallbackModel); // the tier default always competes
   const candidates = [...poolIds]
     .map((id) => getVideoModel(id))
@@ -196,12 +198,12 @@ function targetFor(model: VideoModel, targetSec: number): number {
  */
 function lockedBeatChoice(opts: Parameters<typeof selectBeatModel>[0]): BeatModelChoice | null {
   if (opts.tier === "custom" || opts.tier === "base" || !isVideoModelLocked()) return null;
-  const model = getVideoModel(LOCKED_VIDEO_MODEL_ID);
+  const model = getVideoModel(resolveLockedModelId(opts.lockedModelId));
   if (!model) return null;
   const family = modelFamily(model.id);
   if ((opts.health?.[family] ?? 1) < 0.2) return null; // provider down → score the fallbacks
 
-  const fallbacks = tierCandidateIds(opts.tier, opts.custom)
+  const fallbacks = tierCandidateIds(opts.tier, opts.custom, opts.lockedModelId)
     .filter((id) => id !== model.id)
     .map((id) => getVideoModel(id))
     .filter((m): m is VideoModel => Boolean(m))

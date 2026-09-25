@@ -8,7 +8,7 @@ import {
   getVideoModel,
   isVideoModelLocked,
   LOCKED_FALLBACK_MODEL_IDS,
-  LOCKED_VIDEO_MODEL_ID,
+  resolveLockedModelId,
   type VideoModel,
 } from "./video-models";
 
@@ -63,11 +63,11 @@ export function toCandidate(m: VideoModel): ProviderCandidate {
 
 /** The candidate pool a tier draws from (keeps Economy cheap; premium tiers can
     reach the hero models). Always includes the tier's own default. */
-export function tierCandidateIds(tier: AutoTier, custom?: CustomSpec): string[] {
-  // Model lock: the locked Higgsfield model leads every AI tier; the fal
-  // fallbacks follow so the scored chain can walk to them on an outage.
+export function tierCandidateIds(tier: AutoTier, custom?: CustomSpec, lockedModelId?: string | null): string[] {
+  // Model lock: the project's locked Higgsfield model leads every AI tier; the
+  // fal fallbacks follow so the scored chain can walk to them on an outage.
   if (tier !== "custom" && tier !== "base" && isVideoModelLocked()) {
-    return [LOCKED_VIDEO_MODEL_ID, ...LOCKED_FALLBACK_MODEL_IDS];
+    return [resolveLockedModelId(lockedModelId), ...LOCKED_FALLBACK_MODEL_IDS];
   }
   switch (tier) {
     case "economy":
@@ -78,7 +78,7 @@ export function tierCandidateIds(tier: AutoTier, custom?: CustomSpec): string[] 
     case "director":
       return ["seedance-2-fast", "seedance-2", "kling-2-5-turbo", "ltx-2", "wan-2-2", "veo-3-1"];
     case "cinema":
-      return [LOCKED_VIDEO_MODEL_ID, ...LOCKED_FALLBACK_MODEL_IDS];
+      return [resolveLockedModelId(lockedModelId), ...LOCKED_FALLBACK_MODEL_IDS];
     case "custom":
       return [custom?.heroModel, custom?.brollModel].filter((x): x is string => Boolean(x));
     default:

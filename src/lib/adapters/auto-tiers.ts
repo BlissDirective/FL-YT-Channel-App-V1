@@ -1,5 +1,5 @@
 import type { CustomSpec } from "@/lib/db/types";
-import { clampDuration, getVideoModel, isVideoModelLocked, LOCKED_VIDEO_MODEL_ID } from "./video-models";
+import { clampDuration, getVideoModel, isVideoModelLocked, resolveLockedModelId } from "./video-models";
 
 /** Full Auto-Generate quality tiers (smart mix; stock stays free).
     base → economy → premium → platinum climb the AI-video spend; custom is
@@ -53,14 +53,14 @@ function tierBookends(tier: AutoTier): boolean {
 /** Model-lock override: every non-custom AI tier renders on the locked model
     (Cinema Studio 4.0), hero and b-roll alike. Durations keep the tier's
     pacing; the locked model takes up to 30s per generation. */
-function lockedJob(job: SectionJob | null, tier: AutoTier): SectionJob | null {
+function lockedJob(job: SectionJob | null, tier: AutoTier, lockedModelId: string): SectionJob | null {
   if (!job || tier === "custom" || !isVideoModelLocked()) return job;
-  const model = getVideoModel(LOCKED_VIDEO_MODEL_ID);
+  const model = getVideoModel(lockedModelId);
   if (!model) return job;
   // A section longer than one generation keeps its full length — the worker
   // stitches it seamlessly — otherwise snap to what the model accepts.
   const targetSec = job.targetSec > model.maxDurationSec ? job.targetSec : clampDuration(model, job.targetSec);
-  return { ...job, model: LOCKED_VIDEO_MODEL_ID, targetSec };
+  return { ...job, model: lockedModelId, targetSec };
 }
 
 /** Pick n items spread evenly across an array (preserves order, no dupes). */
@@ -89,8 +89,11 @@ export function tierJobForSection(
   scriptSec: number,
   totalSec = 0,
   custom?: CustomSpec,
+  /** The project's locked model (Cinema Studio 4.0 or Seedance 2.5). */
+  lockedModelId?: string | null,
 ): SectionJob | null {
-  return lockedJob(baseTierJob(tier, shotType, scriptSec, totalSec, custom), tier);
+  const locked = resolveLockedModelId(lockedModelId);
+  return lockedJob(baseTierJob(tier, shotType, scriptSec, totalSec, custom, locked), tier, locked);
 }
 
 function baseTierJob(
@@ -98,12 +101,13 @@ function baseTierJob(
   shotType: string,
   scriptSec: number,
   totalSec: number,
-  custom?: CustomSpec,
+  custom: CustomSpec | undefined,
+  lockedModelId: string,
 ): SectionJob | null {
   // Cinema animates every section, stock included (full coverage).
   if (tier === "cinema") {
     const sec = Math.max(4, Math.round(scriptSec));
-    return { model: LOCKED_VIDEO_MODEL_ID, targetSec: sec, heroHold: shotType === "hero" };
+    return { model: lockedModelId, targetSec: sec, heroHold: shotType === "hero" };
   }
   if (shotType === "stock") return null;
   const sec = Math.max(4, Math.round(scriptSec));
@@ -198,7 +202,7 @@ const costOf = (job: SectionJob): number => {
 export function selectClipBeats(
   tier: AutoTier,
   beats: { idx: number; shotType: string; scriptSec: number }[],
-  opts?: { clipCap?: number; maxUsd?: number; custom?: CustomSpec; shortMode?: boolean },
+  opts?: { clipCap?: number; maxUsd?: number; custom?: CustomSpec; shortMode?: boolean; lockedModelId?: string | null },
 ): ClipSelection {
   const empty: ClipSelection = { clips: [], totalUsd: 0, requestedUsd: 0, overBudget: false };
   if (tier === "base" || beats.length === 0) return empty;
@@ -235,7 +239,7 @@ export function selectClipBeats(
   // 3) Build the full plan: heroes first (priority), then evenly-spread b-roll.
   type Cand = { idx: number; shotType: string; job: SectionJob; costUsd: number };
   const build = (b: (typeof eligible)[number], shot: string): Cand | null => {
-    const job = tierJobForSection(tier, shot, b.scriptSec, totalSec, opts?.custom);
+    const job = tierJobForSection(tier, shot, b.scriptSec, totalSec, opts?.custom, opts?.lockedModelId);
     return job ? { idx: b.idx, shotType: shot, job, costUsd: costOf(job) } : null;
   };
   const heroCands = eligible.filter((b) => heroIdx.has(b.idx)).map((b) => build(b, "hero"));
@@ -266,7 +270,7 @@ export function selectClipBeats(
 export function estimateTierCost(
   tier: AutoTier,
   beats: { shotType: string; scriptSec: number }[],
-  opts?: { clipCap?: number; maxUsd?: number; custom?: CustomSpec; shortMode?: boolean },
+  opts?: { clipCap?: number; maxUsd?: number; custom?: CustomSpec; shortMode?: boolean; lockedModelId?: string | null },
 ): number {
   return selectClipBeats(
     tier,

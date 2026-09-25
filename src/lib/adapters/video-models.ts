@@ -65,6 +65,24 @@ export const VIDEO_MODELS: VideoModel[] = [
     bestFor: "Locked default — cinematic hero & b-roll, camera/lens/genre controls, 4–30s",
   },
   {
+    // The other operator-approved lock choice (per project). True
+    // image-to-video from our keyframe (image_url = first frame) or
+    // text-to-video; 4–30s. Priced at list ($0.2057/s); the promo rate
+    // ($0.144/s until 2026-10-01) is picked up by the /estimate quote.
+    id: "hf-seedance-2-5",
+    label: "Higgsfield Seedance 2.5",
+    provider: "higgsfield",
+    i2v: "bytedance/seedance-2.5/image-to-video",
+    t2v: "bytedance/seedance-2.5/text-to-video",
+    usdPerSec: 0.2057,
+    quality: "premium",
+    minDurationSec: 4,
+    maxDurationSec: 30,
+    durationStyle: "num",
+    audio: true,
+    bestFor: "Lock option — keyframe-faithful i2v, native audio, 4–30s",
+  },
+  {
     id: "seedance-2-fast",
     label: "Seedance 2.0 Fast",
     i2v: "bytedance/seedance-2.0/fast/image-to-video",
@@ -175,8 +193,20 @@ export function modelProvider(model: Pick<VideoModel, "provider">): VideoProvide
 
 // ── Locked defaults (operator decision) ───────────────────────────────
 
-/** The model every AI-video section (hero + b-roll) uses while the lock is on. */
+/** The model every AI-video section (hero + b-roll) uses while the lock is on,
+    unless the project picked the other approved lock model. */
 export const LOCKED_VIDEO_MODEL_ID = "hf-cinema-studio-4";
+
+/** Models a project may lock to (operator decision: Cinema Studio or Seedance 2.5). */
+export const LOCKABLE_VIDEO_MODEL_IDS = ["hf-cinema-studio-4", "hf-seedance-2-5"] as const;
+
+/** The project's locked model — its preference when it is an approved lock
+    model, else the global default (Cinema Studio 4.0). */
+export function resolveLockedModelId(preferred?: string | null): string {
+  return preferred && (LOCKABLE_VIDEO_MODEL_IDS as readonly string[]).includes(preferred)
+    ? preferred
+    : LOCKED_VIDEO_MODEL_ID;
+}
 
 /** fal models the lock falls back to (in order) when Higgsfield is down or a
     Higgsfield job fails. Cheapest-reliable first so an outage can't run up a

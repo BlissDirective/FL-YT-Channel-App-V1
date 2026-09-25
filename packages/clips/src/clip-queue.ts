@@ -53,6 +53,7 @@ const VIDEO_MONTHLY_CAP_USD = 100;
 /** Models served by Higgsfield (mirror src/lib/adapters/video-models). */
 const HF_ENDPOINT: Record<string, string> = {
   "hf-cinema-studio-4": "higgsfield/cinema-studio/4.0",
+  "hf-seedance-2-5": "bytedance/seedance-2.5/text-to-video",
 };
 const isHfModel = (model: string) => model in HF_ENDPOINT;
 const ledgerProviderFor = (model: string) => (isHfModel(model) ? HF_VIDEO_PROVIDER : VIDEO_PROVIDER);
@@ -60,6 +61,7 @@ const ledgerProviderFor = (model: string) => (isHfModel(model) ? HF_VIDEO_PROVID
 // Per-second price estimates (mirror src/lib/adapters/video-models).
 const PRICE_PER_SEC: Record<string, number> = {
   "hf-cinema-studio-4": 0.2057,
+  "hf-seedance-2-5": 0.2057,
   "seedance-2-fast": 0.022,
   "seedance-2": 0.07,
   "kling-2-5-turbo": 0.07,
@@ -70,6 +72,7 @@ const PRICE_PER_SEC: Record<string, number> = {
 };
 const SEG_MAX: Record<string, number> = {
   "hf-cinema-studio-4": 30,
+  "hf-seedance-2-5": 30,
   "seedance-2-fast": 15,
   "seedance-2": 15,
   "kling-2-5-turbo": 10,
@@ -136,14 +139,30 @@ function hfHeaders() {
   return { Authorization: `Key ${HF_CRED}`, "content-type": "application/json" };
 }
 
-/** Cinema Studio input: reference-to-video when a keyframe is supplied. */
-function hfInput(prompt: string, sec: number, imageUrl: string | null): Record<string, unknown> {
+/** Endpoint + body per Higgsfield model (mirrors higgsfieldVideoRequest in
+    src/lib/adapters/higgsfield.ts). Cinema Studio: the keyframe is a reference
+    (image_urls). Seedance 2.5: dedicated i2v endpoint, keyframe = first frame. */
+function hfRequest(
+  model: string,
+  prompt: string,
+  sec: number,
+  imageUrl: string | null,
+): { endpoint: string; input: Record<string, unknown> } {
+  const duration = Math.max(4, Math.min(30, Math.round(sec)));
+  if (model === "hf-seedance-2-5") {
+    return imageUrl
+      ? { endpoint: "bytedance/seedance-2.5/image-to-video", input: { prompt, image_url: imageUrl, duration, resolution: "720p" } }
+      : { endpoint: "bytedance/seedance-2.5/text-to-video", input: { prompt, duration, resolution: "720p", aspect_ratio: "16:9" } };
+  }
   return {
-    prompt: imageUrl ? `Open on <<<image_1>>> and keep its subject, palette and composition. ${prompt}` : prompt,
-    duration: Math.max(4, Math.min(30, Math.round(sec))),
-    resolution: "720p",
-    aspect_ratio: "16:9",
-    ...(imageUrl ? { image_urls: [imageUrl] } : {}),
+    endpoint: HF_ENDPOINT[model] ?? HF_ENDPOINT["hf-cinema-studio-4"],
+    input: {
+      prompt: imageUrl ? `Open on <<<image_1>>> and keep its subject, palette and composition. ${prompt}` : prompt,
+      duration,
+      resolution: "720p",
+      aspect_ratio: "16:9",
+      ...(imageUrl ? { image_urls: [imageUrl] } : {}),
+    },
   };
 }
 
@@ -188,7 +207,10 @@ async function hfPoll(h: HfHandle): Promise<string> {
 
 /** Provider-agnostic one-shot generate (multi-segment chains). */
 async function genOnce(model: string, prompt: string, sec: number, imageUrl: string | null): Promise<string> {
-  if (isHfModel(model)) return hfPoll(await hfSubmit(HF_ENDPOINT[model], hfInput(prompt, sec, imageUrl)));
+  if (isHfModel(model)) {
+    const req = hfRequest(model, prompt, sec, imageUrl);
+    return hfPoll(await hfSubmit(req.endpoint, req.input));
+  }
   const endpoint = ENDPOINT_I2V[model] ?? ENDPOINT_I2V["seedance-2-fast"];
   return falOnce(endpoint, {
     prompt,
@@ -214,7 +236,8 @@ async function hfResumable(job: Job, prompt: string, sec: number, imageUrl: stri
       // fall through to a fresh submit
     }
   }
-  const h = await hfSubmit(HF_ENDPOINT[job.model], hfInput(prompt, sec, imageUrl));
+  const req = hfRequest(job.model, prompt, sec, imageUrl);
+  const h = await hfSubmit(req.endpoint, req.input);
   await db
     .from("clip_jobs")
     .update({ provider: "higgsfield", provider_request_id: h.requestId, provider_status_url: h.statusUrl })

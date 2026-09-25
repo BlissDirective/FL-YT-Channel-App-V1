@@ -94,7 +94,14 @@ import {
   type Lexicon,
 } from "@/lib/adapters/pronunciation";
 import { isFalLive } from "@/lib/adapters/fal";
-import { isHiggsfieldLive } from "@/lib/adapters/higgsfield";
+import {
+  animateWithGenjutsu,
+  genjutsuUsdPerSec,
+  HF_ENDPOINTS,
+  hfStatus,
+  hfSubmit,
+  isHiggsfieldLive,
+} from "@/lib/adapters/higgsfield";
 import {
   generateImage,
   generateVideo,
@@ -111,6 +118,7 @@ import {
   getVideoModel,
   VIDEO_MONTHLY_CAP_USD,
   VIDEO_LEDGER_PROVIDERS,
+  resolveLockedModelId,
   videoLedgerProvider,
 } from "@/lib/adapters/video-models";
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
@@ -240,6 +248,12 @@ async function postWorkspaceNote(
   } catch (err) {
     console.error("workspace note failed (non-blocking):", err);
   }
+}
+
+/** The project's locked video model id (Cinema Studio 4.0 default, or the
+    project's approved alternative — Seedance 2.5). */
+function projectLockedModel(project: { preferred_video_model?: string | null }): string {
+  return resolveLockedModelId(project.preferred_video_model ?? null);
 }
 
 /** Human label for a rendered still's model (ledger descriptions). */
@@ -3105,6 +3119,275 @@ export async function resingSong(opts: {
   return { ok: true };
 }
 
+// ── Genjutsu avatar (The Silicon Layer only) ──────────────────────────
+
+/** Genjutsu is reserved for projects flagged avatar_engine = 'genjutsu'
+    (migration 0078 sets it on The Silicon Layer only). */
+function usesGenjutsu(project: { avatar_engine?: string | null }): boolean {
+  return project.avatar_engine === "genjutsu" && isHiggsfieldLive();
+}
+
+/** Ledger tag for Genjutsu avatar spend. */
+const GENJUTSU_PROVIDER = "higgsfield-genjutsu";
+
+type GenjutsuJob = {
+  requestId: string;
+  statusUrl: string;
+  voPath: string;
+  drivingPath: string;
+  durationSec: number;
+  estUsd: number;
+};
+
+/**
+ * Pick the DRIVING clip for a Genjutsu avatar shot from the channel's own
+ * existing videos featuring the locked avatar (the fal talking-avatar clips
+ * already produced). Prefers the shortest clip that covers the beat's VO;
+ * rotates among near-equal candidates so consecutive beats don't reuse the
+ * same motion. Genjutsu needs ≥4s and trims past 30s.
+ */
+async function pickGenjutsuDrivingClip(
+  db: Db,
+  projectId: string,
+  needSec: number,
+  seed: number,
+): Promise<{ path: string; durationSec: number } | null> {
+  const { data: vids } = await db
+    .from("videos")
+    .select("id")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false })
+    .limit(300);
+  const ids = ((vids ?? []) as { id: string }[]).map((v) => v.id);
+  if (!ids.length) return null;
+  const { data: rows } = await db
+    .from("assets")
+    .select("storage_path, meta")
+    .in("video_id", ids)
+    .eq("provider", "fal-avatar")
+    .limit(500);
+  const clips = ((rows ?? []) as { storage_path: string; meta: { avatar?: boolean; durationSec?: number } | null }[])
+    .filter((r) => r.storage_path && !r.storage_path.startsWith("mock") && r.meta?.avatar)
+    .map((r) => ({ path: r.storage_path, durationSec: Number(r.meta?.durationSec ?? 0) }))
+    .filter((c) => c.durationSec >= 4);
+  if (!clips.length) return null;
+  const covering = clips.filter((c) => c.durationSec >= Math.min(needSec, 30)).sort((a, b) => a.durationSec - b.durationSec);
+  const pool = covering.length ? covering.slice(0, 5) : clips.sort((a, b) => b.durationSec - a.durationSec).slice(0, 5);
+  return pool[Math.abs(seed) % pool.length];
+}
+
+/** Shared setup: validate, pick the driving clip, sign the URLs. */
+async function prepareGenjutsu(
+  db: Db,
+  video: Video,
+  project: Project,
+  beatIdx: number,
+  presenterPath: string,
+  durationSec: number,
+): Promise<
+  | { ok: false; error: string }
+  | { ok: true; driving: { path: string; durationSec: number }; imageUrl: string; drivingUrl: string; estUsd: number }
+> {
+  if (durationSec > 30) {
+    return { ok: false, error: `This beat's VO runs ${Math.round(durationSec)}s but Genjutsu caps at 30s per clip — split the beat.` };
+  }
+  const seed = beatIdx + [...video.id].reduce((a, ch) => a + ch.charCodeAt(0), 0);
+  const driving = await pickGenjutsuDrivingClip(db, project.id, durationSec, seed);
+  if (!driving) {
+    return {
+      ok: false,
+      error: "Genjutsu needs at least one existing avatar video (≥4s) on this channel to use as the motion reference — none found.",
+    };
+  }
+  const estUsd = Math.round(genjutsuUsdPerSec() * Math.min(30, driving.durationSec) * 100) / 100;
+  const guard = await checkBudget(db, project, video, estUsd);
+  if (!guard.ok) return { ok: false, error: guard.reason };
+  const [imageUrl, drivingUrl] = await Promise.all([
+    getSignedMediaUrl(presenterPath),
+    getSignedMediaUrl(driving.path),
+  ]);
+  if (!imageUrl || !drivingUrl) return { ok: false, error: "Could not sign the avatar image / driving clip URLs." };
+  return { ok: true, driving, imageUrl, drivingUrl, estUsd };
+}
+
+/** Lip-sync a Genjutsu clip to the beat's VO via sync.so when available. */
+async function lipsyncGenjutsu(
+  videoId: string,
+  beatIdx: number,
+  clip: Buffer,
+  voPath: string,
+  durationSec: number,
+): Promise<{ video: Buffer; syncUsd: number; lipsynced: boolean }> {
+  if (!isSyncLive()) return { video: clip, syncUsd: 0, lipsynced: false };
+  const tmp = `avatars/${videoId}/beat-${beatIdx}-genjutsu-raw-${Date.now().toString(36)}.mp4`;
+  await uploadMedia(tmp, clip, "video/mp4");
+  const [videoUrl, audioUrl] = await Promise.all([getSignedMediaUrl(tmp), getSignedMediaUrl(voPath)]);
+  if (!videoUrl || !audioUrl) return { video: clip, syncUsd: 0, lipsynced: false };
+  const synced = await resyncLipsync({ videoUrl, audioUrl, durationSec });
+  if (synced.provider !== "sync.so") return { video: clip, syncUsd: 0, lipsynced: false };
+  return { video: synced.video, syncUsd: synced.costUsd, lipsynced: true };
+}
+
+/** Save a finished Genjutsu avatar clip as the beat's clip + ledger it. */
+async function saveGenjutsuClip(
+  db: Db,
+  video: Video,
+  beatIdx: number,
+  out: { video: Buffer; genjutsuUsd: number; syncUsd: number; lipsynced: boolean; durationSec: number; drivingPath: string },
+  replaceAssetId?: string,
+): Promise<void> {
+  const path = `avatars/${video.id}/beat-${beatIdx}-genjutsu-${Date.now().toString(36)}.mp4`;
+  await uploadMedia(path, out.video, "video/mp4");
+  const row = {
+    video_id: video.id,
+    kind: "clip",
+    provider: GENJUTSU_PROVIDER,
+    storage_path: path,
+    beat_index: beatIdx,
+    meta: {
+      isVideo: true,
+      avatar: true,
+      model: "genjutsu-motion-transfer",
+      durationSec: out.durationSec,
+      drivingClip: out.drivingPath,
+      lipsynced: out.lipsynced,
+    },
+    cost_usd: out.genjutsuUsd + out.syncUsd,
+  };
+  if (replaceAssetId) {
+    await db.from("assets").update(row).eq("id", replaceAssetId);
+  } else {
+    await archiveAssetVersions(db, video.id, "clip", beatIdx);
+    await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", beatIdx);
+    await db.from("assets").insert(row);
+  }
+  if (out.genjutsuUsd > 0) {
+    await recordCost(db, video, { provider: GENJUTSU_PROVIDER, usd: out.genjutsuUsd, description: `Genjutsu avatar, beat ${beatIdx + 1}` }, `avatar beat ${beatIdx + 1}`);
+  }
+  if (out.syncUsd > 0) {
+    await recordCost(db, video, { provider: "sync.so", usd: out.syncUsd, description: `Genjutsu avatar lip-sync, beat ${beatIdx + 1}` }, `avatar beat ${beatIdx + 1}`);
+  }
+  await postWorkspaceNote(
+    db,
+    video,
+    `Beat ${beatIdx + 1} is now a Genjutsu avatar shot${out.lipsynced ? " (lip-synced to the VO)" : " — not lip-synced (set SYNC_SO_API_KEY to sync it to the VO)"}, $${(out.genjutsuUsd + out.syncUsd).toFixed(2)}.`,
+    { event: "avatar_generated", beatIdx, model: "genjutsu-motion-transfer" },
+  );
+}
+
+/** Synchronous Genjutsu avatar shot (workspace "make this beat an avatar"). */
+async function generateGenjutsuAvatarBeat(
+  db: Db,
+  video: Video,
+  project: Project,
+  beatIdx: number,
+  presenterPath: string,
+  voPath: string,
+  durationSec: number,
+): Promise<EngineResult> {
+  const prep = await prepareGenjutsu(db, video, project, beatIdx, presenterPath, durationSec);
+  if (!prep.ok) return prep;
+  const gen = await animateWithGenjutsu({
+    characterImageUrls: [prep.imageUrl],
+    drivingVideoUrl: prep.drivingUrl,
+    drivingSec: prep.driving.durationSec,
+    prompt: "Keep the presenter's identity, wardrobe and framing exactly; natural presenter motion.",
+  });
+  const synced = await lipsyncGenjutsu(video.id, beatIdx, gen.video, voPath, durationSec);
+  await saveGenjutsuClip(db, video, beatIdx, {
+    video: synced.video,
+    genjutsuUsd: gen.costUsd,
+    syncUsd: synced.syncUsd,
+    lipsynced: synced.lipsynced,
+    durationSec: gen.durationSec,
+    drivingPath: prep.driving.path,
+  });
+  return { ok: true };
+}
+
+/** Async Genjutsu — SUBMIT: park the Higgsfield request on a pending clip. */
+async function submitGenjutsuAvatarBeat(
+  db: Db,
+  video: Video,
+  project: Project,
+  beatIdx: number,
+  presenterPath: string,
+  durationSec: number,
+): Promise<{ ok: boolean; error?: string; pending?: boolean }> {
+  const { data: vo } = await db
+    .from("assets")
+    .select("storage_path")
+    .eq("video_id", video.id)
+    .eq("kind", "vo")
+    .eq("beat_index", beatIdx)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!vo?.storage_path) return { ok: false, error: "No VO for this beat yet." };
+  const prep = await prepareGenjutsu(db, video, project, beatIdx, presenterPath, durationSec);
+  if (!prep.ok) return prep;
+  const handle = await hfSubmit(HF_ENDPOINTS.genjutsuMotion, {
+    video_url: prep.drivingUrl,
+    image_urls: [prep.imageUrl],
+    prompt: "Keep the presenter's identity, wardrobe and framing exactly; natural presenter motion.",
+    resolution: "720p",
+  });
+  const job: GenjutsuJob = {
+    requestId: handle.requestId,
+    statusUrl: handle.statusUrl,
+    voPath: vo.storage_path,
+    drivingPath: prep.driving.path,
+    durationSec,
+    estUsd: prep.estUsd,
+  };
+  await archiveAssetVersions(db, video.id, "clip", beatIdx);
+  await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", beatIdx);
+  await db.from("assets").insert({
+    video_id: video.id,
+    kind: "clip",
+    provider: "fal-avatar-pending", // shared pending marker finishBeatAvatar looks up
+    storage_path: "",
+    beat_index: beatIdx,
+    meta: { avatar: true, pending: true, model: "genjutsu-motion-transfer", durationSec, genjutsu: job },
+    cost_usd: 0,
+  });
+  return { ok: true, pending: true };
+}
+
+/** Async Genjutsu — FINISH: poll once; on completion lip-sync + save. */
+async function finishGenjutsuAvatarBeat(
+  db: Db,
+  video: Video,
+  beatIdx: number,
+  assetId: string,
+  job: GenjutsuJob,
+): Promise<{ ok: boolean; error?: string; pending?: boolean; done?: boolean }> {
+  const st = await hfStatus({ statusUrl: job.statusUrl });
+  if (!st || st.status === "queued" || st.status === "in_progress") return { ok: true, pending: true, done: false };
+  if (st.status !== "completed" || !st.video?.url) {
+    return { ok: false, error: `Genjutsu job ${st.status}${st.error ? `: ${st.error}` : ""}` };
+  }
+  const dl = await fetch(st.video.url);
+  if (!dl.ok) return { ok: false, error: `Genjutsu download failed (${dl.status})` };
+  const clip = Buffer.from(await dl.arrayBuffer());
+  const synced = await lipsyncGenjutsu(video.id, beatIdx, clip, job.voPath, job.durationSec);
+  await saveGenjutsuClip(
+    db,
+    video,
+    beatIdx,
+    {
+      video: synced.video,
+      genjutsuUsd: job.estUsd,
+      syncUsd: synced.syncUsd,
+      lipsynced: synced.lipsynced,
+      durationSec: job.durationSec,
+      drivingPath: job.drivingPath,
+    },
+    assetId,
+  );
+  return { ok: true, done: true };
+}
+
 /**
  * AI Avatar (build phase A): render one beat as a talking-presenter shot.
  * The presenter is the project's fixed presenter image (identity by
@@ -3154,6 +3437,11 @@ export async function generateBeatAvatar(opts: {
     return { ok: false, error: "No VO for this beat yet — the avatar lip-syncs to the beat's voiceover, so generate assets (or the VO) first." };
   }
   const durationSec = Math.max(1, Number((vo.meta as { durationSec?: number })?.durationSec ?? 8));
+  // The Silicon Layer (avatar_engine = 'genjutsu') animates its locked avatar
+  // with Higgsfield Genjutsu instead of the fal talking-avatar models.
+  if (usesGenjutsu(project)) {
+    return generateGenjutsuAvatarBeat(db, video, project, opts.beatIdx, presenterPath, vo.storage_path, durationSec);
+  }
   if (durationSec > model.maxClipSec) {
     return {
       ok: false,
@@ -3273,6 +3561,10 @@ export async function submitBeatAvatar(opts: {
   if (!vo?.storage_path) return { ok: false, error: "No VO for this beat yet." };
   const durationSec = Math.max(1, Number((vo.meta as { durationSec?: number })?.durationSec ?? 8));
 
+  if (usesGenjutsu(project)) {
+    return submitGenjutsuAvatarBeat(db, video, project, opts.beatIdx, presenterPath, durationSec);
+  }
+
   const est = estimateAvatarCost(model, durationSec);
   const guard = await checkBudget(db, project, video, est);
   if (!guard.ok) return { ok: false, error: guard.reason };
@@ -3338,7 +3630,8 @@ export async function finishBeatAvatar(opts: {
     .maybeSingle();
   if (!asset) return { ok: false, error: "No pending avatar job for this beat — submit it first." };
 
-  const meta = (asset.meta ?? {}) as { model?: string; durationSec?: number; job?: AvatarJob };
+  const meta = (asset.meta ?? {}) as { model?: string; durationSec?: number; job?: AvatarJob; genjutsu?: GenjutsuJob };
+  if (meta.genjutsu) return finishGenjutsuAvatarBeat(db, video, opts.beatIdx, asset.id, meta.genjutsu);
   if (!meta.job?.statusUrl) return { ok: false, error: "Pending avatar has no job info." };
 
   let poll: { done: false } | { done: true; video: Buffer };
@@ -4126,6 +4419,7 @@ export async function fullAutoGenerate(
       custom,
       // Native Shorts animate densely (motion the whole way through).
       shortMode: video.kind === "short",
+      lockedModelId: projectLockedModel(project),
     },
   );
   // Custom pauses (does not silently downgrade) when the plan exceeds the cap.
@@ -4217,6 +4511,7 @@ export async function fullAutoGenerate(
         needsAudio: c.shotType === "hero" && opts.tier !== "economy",
         custom,
         health,
+        lockedModelId: projectLockedModel(project),
       });
       remainingUsd = Math.max(0, remainingUsd - choice.selection.estCostUsd);
       preferredFamily ??= choice.family;
@@ -4470,6 +4765,7 @@ export async function estimateBuildCost(
     maxUsd,
     custom: cfg.custom,
     shortMode: cfg.kind === "short",
+    lockedModelId: projectLockedModel(project),
   });
   const perVideoUsd = Math.round((perVideoClipUsd + nonClipCostUsd(midSec)) * 100) / 100;
   const batchClipUsd = Math.round(perVideoClipUsd * count * 100) / 100;

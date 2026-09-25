@@ -130,3 +130,39 @@ describe("spend caps + lean Claude profile", () => {
     expect(nonCriticalAiAllowed("video-intel", { AI_SPEND_PROFILE: "full" })).toBe(true);
   });
 });
+
+describe("per-project lock model (Cinema Studio or Seedance 2.5)", () => {
+  it("resolves the project's choice and ignores anything not approved", async () => {
+    const { resolveLockedModelId } = await import("@/lib/adapters/video-models");
+    expect(resolveLockedModelId("hf-seedance-2-5")).toBe("hf-seedance-2-5");
+    expect(resolveLockedModelId(null)).toBe("hf-cinema-studio-4");
+    expect(resolveLockedModelId("veo-3-1")).toBe("hf-cinema-studio-4");
+  });
+
+  it("a Seedance 2.5 project renders every section on Seedance 2.5", () => {
+    const sel = selectClipBeats("cinema", [beat(0, 10, "hero"), beat(1, 12)], {
+      maxUsd: Number.POSITIVE_INFINITY,
+      lockedModelId: "hf-seedance-2-5",
+    });
+    expect(sel.clips.every((c) => c.job.model === "hf-seedance-2-5")).toBe(true);
+    const choice = selectBeatModel({
+      tier: "cinema",
+      shot: "broll",
+      targetSec: 12,
+      budgetRemainingUsd: Number.POSITIVE_INFINITY,
+      fallbackModel: "hf-seedance-2-5",
+      lockedModelId: "hf-seedance-2-5",
+    });
+    expect(choice.modelId).toBe("hf-seedance-2-5");
+  });
+});
+
+describe("auto-mode videos per day", () => {
+  it("the operator's chosen count is a floor the ramp can't pull down", async () => {
+    const { effectiveDailyCap, MAX_VIDEOS_PER_DAY } = await import("@/lib/pipeline/monetization");
+    expect(effectiveDailyCap({ baseCap: 8, maxCap: 2, rampEnabled: true, ageDays: 30, subs: 500 })).toBe(8);
+    expect(effectiveDailyCap({ baseCap: 5, maxCap: 2, rampEnabled: false, ageDays: 0, subs: 0 })).toBe(5);
+    expect(effectiveDailyCap({ baseCap: 1, maxCap: 2, rampEnabled: true, ageDays: 30, subs: 500 })).toBe(2);
+    expect(MAX_VIDEOS_PER_DAY).toBe(48);
+  });
+});

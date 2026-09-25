@@ -47,6 +47,8 @@ const CYCLE_MS = 30 * 24 * 60 * 60 * 1000; // 30-day budget cycle
 const DEFAULTS: Required<OperatorConfig> = {
   postingHour: 13, // 1:00 PM
   postingTz: "America/Chicago", // CST/CDT
+  // Videos seeded per day in auto mode — operator-selectable from the Auto
+  // Pilot panel (1..MAX_VIDEOS_PER_DAY). No longer a fixed 1/day ceiling.
   dailyCap: 1,
   mixShortsPct: 0.75,
   shortsCapUsd: 1.0,

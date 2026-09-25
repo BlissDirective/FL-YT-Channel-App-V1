@@ -141,3 +141,18 @@ describe("lifecycle", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe("Seedance 2.5 request", () => {
+  it("uses the dedicated i2v endpoint with the keyframe as the first frame", async () => {
+    const { higgsfieldVideoRequest } = await import("@/lib/adapters/higgsfield");
+    const { getVideoModel } = await import("@/lib/adapters/video-models");
+    const m = getVideoModel("hf-seedance-2-5")!;
+    const i2v = higgsfieldVideoRequest(m, { prompt: "p", durationSec: 40, imageUrl: "https://x/k.jpg" });
+    expect(i2v.endpoint).toBe("bytedance/seedance-2.5/image-to-video");
+    expect(i2v.input).toMatchObject({ image_url: "https://x/k.jpg", duration: 30 });
+    const t2v = higgsfieldVideoRequest(m, { prompt: "p", durationSec: 6 });
+    expect(t2v.endpoint).toBe("bytedance/seedance-2.5/text-to-video");
+    const cs = higgsfieldVideoRequest(getVideoModel("hf-cinema-studio-4")!, { prompt: "p", durationSec: 6 });
+    expect(cs.endpoint).toBe("higgsfield/cinema-studio/4.0");
+  });
+});

@@ -13,6 +13,7 @@ import {
   regenerateCalendarFor,
 } from "@/lib/pipeline/operator";
 import { getProject } from "@/lib/db/queries";
+import { MAX_VIDEOS_PER_DAY } from "@/lib/pipeline/monetization";
 import type { Project } from "@/lib/db/types";
 
 type Result = { ok: boolean; error?: string };
@@ -76,6 +77,31 @@ export async function regenerateCalendarAction(projectId: string): Promise<Resul
     const r = await regenerateCalendarFor(await admin(), projectId);
     revalidatePath(`/projects/${projectId}`);
     return { ok: r.ok, error: r.error };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Set how many videos auto mode seeds per day (operator-selected, replaces
+    the fixed 1/day). Also lifts the ramp ceiling so it can't cap the choice. */
+export async function setOperatorDailyCapAction(projectId: string, perDay: number): Promise<Result> {
+  try {
+    const n = Math.round(Number(perDay));
+    if (!Number.isFinite(n) || n < 1 || n > MAX_VIDEOS_PER_DAY) {
+      return { ok: false, error: `Choose between 1 and ${MAX_VIDEOS_PER_DAY} videos per day.` };
+    }
+    const db = await admin();
+    const run = await getOperatorRun(db, projectId);
+    if (!run) return { ok: false, error: "Operator is not running — start it first." };
+    const prev = (run.config ?? {}) as { maxDailyCap?: number };
+    const config = { ...(run.config ?? {}), dailyCap: n, maxDailyCap: Math.max(n, Number(prev.maxDailyCap ?? 0)) };
+    const { error } = await db
+      .from("operator_runs")
+      .update({ config, updated_at: new Date().toISOString() })
+      .eq("id", run.id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/projects/${projectId}`);
+    return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
