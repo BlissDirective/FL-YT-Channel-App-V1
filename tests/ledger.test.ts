@@ -3,7 +3,7 @@
  * paid path consults; recordCost is the only ledger writer. Tested against a
  * minimal fake of the Supabase query-builder chains these functions use.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { checkBudget, monthSpend, recordCost } from "@/lib/pipeline/ledger";
 
 type Row = Record<string, unknown>;
@@ -44,6 +44,11 @@ const project = (perVideoUsd?: number, monthlyUsd?: number) =>
   ({ id: "p1", budget: { perVideoUsd, monthlyUsd } }) as never;
 
 describe("checkBudget", () => {
+  // Caps are suspended by default (operator decision) — these cases pin the
+  // enforcement behaviour for when the operator re-authorizes them.
+  beforeEach(() => vi.stubEnv("SPEND_CAPS_ENABLED", "true"));
+  afterEach(() => vi.unstubAllEnvs());
+
   it("passes under both caps", async () => {
     const db = fakeDb([{ usd: 1 }]);
     const res = await checkBudget(db as never, project(5, 100), { total_cost_usd: 1 });
@@ -108,5 +113,19 @@ describe("monthSpend", () => {
   it("sums ledger rows (null-safe)", async () => {
     const db = fakeDb([{ usd: 1.5 }, { usd: 2 }, { usd: null as unknown as number }]);
     expect(await monthSpend(db as never, "p1")).toBe(3.5);
+  });
+});
+
+describe("checkBudget with spend caps suspended (the default)", () => {
+  it("never blocks — spend is still ledgered, only the check is skipped", async () => {
+    vi.stubEnv("SPEND_CAPS_ENABLED", "");
+    const r = await checkBudget(
+      {} as never,
+      { id: "p1", budget: { perVideoUsd: 1, monthlyUsd: 1 } } as never,
+      { total_cost_usd: 999 } as never,
+      50,
+    );
+    expect(r.ok).toBe(true);
+    vi.unstubAllEnvs();
   });
 });

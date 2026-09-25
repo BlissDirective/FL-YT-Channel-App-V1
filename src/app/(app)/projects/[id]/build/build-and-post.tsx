@@ -18,7 +18,7 @@ import type { BuildCostEstimate, ChannelPlaybook } from "@/lib/pipeline/engine";
 
 type IdeaOption = { id: string; title: string; angle: string };
 type Kind = "long" | "short";
-type Tier = "base" | "economy" | "premium" | "platinum" | "director";
+type Tier = "base" | "economy" | "premium" | "platinum" | "director" | "cinema";
 type ScheduleMode = "all_at_once" | "multi_day" | "staggered";
 
 const TIERS: { id: Tier; label: string; blurb: string }[] = [
@@ -27,6 +27,7 @@ const TIERS: { id: Tier; label: string; blurb: string }[] = [
   { id: "premium", label: "Premium", blurb: "Hero bookends + Seedance b-roll (~1/min)" },
   { id: "platinum", label: "Platinum", blurb: "Kling hero bookends + Seedance 2.0 b-roll" },
   { id: "director", label: "Director", blurb: "Platinum visuals + the MVDA agent edits the cut" },
+  { id: "cinema", label: "Cinema (default)", blurb: "Every section is a Higgsfield Cinema Studio 4.0 clip" },
 ];
 
 const THUMB_STYLES: { id: string; label: string }[] = [
@@ -79,7 +80,7 @@ function BuildModal({
   const [shortMin, setShortMin] = useState<number>(30);
   const [shortMax, setShortMax] = useState<number>(60);
   const [thumbStyle, setThumbStyle] = useState("bold-bottom");
-  const [tier, setTier] = useState<Tier>("economy");
+  const [tier, setTier] = useState<Tier>("cinema");
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("staggered");
   const [perDay, setPerDay] = useState(2);
   const [error, setError] = useState<string>();

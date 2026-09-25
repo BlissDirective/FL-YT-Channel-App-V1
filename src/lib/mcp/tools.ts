@@ -372,17 +372,17 @@ export const TOOLS: Tool[] = [
   {
     name: "full_auto_generate",
     description:
-      "Run Full Auto-Generate on a SCRIPT_READY video: classify shot types, approve the script (VO + free stock + keyframes), enqueue a budget-capped smart mix of clip jobs, and auto-finish to render (pauses at Final review). tier = base | economy | premium | platinum (default base — free equivalent, no AI video; the custom tier is configured in the app, not here). The per-video budget and AI-clip cap are taken from the project.",
+      "Run Full Auto-Generate on a SCRIPT_READY video: classify shot types, approve the script (VO + free stock + keyframes), enqueue a budget-capped smart mix of clip jobs, and auto-finish to render (pauses at Final review). tier = base | economy | premium | platinum | director | cinema (default cinema — the locked default: every section is a Higgsfield Cinema Studio 4.0 clip; the custom tier is configured in the app, not here). The per-video budget and AI-clip cap are taken from the project.",
     inputSchema: obj(
       {
         videoId: { type: "string", description: "Video at the Script gate (SCRIPT_READY)." },
-        tier: { type: "string", description: "base | economy | premium | platinum | director (default base)." },
+        tier: { type: "string", description: "base | economy | premium | platinum | director | cinema (default cinema)." },
       },
       ["videoId"],
     ),
     handler: async (a, db) => {
       await refuseIfDirector(db, { videoId: str(a.videoId) });
-      const tier = (["base", "economy", "premium", "platinum", "director"].includes(str(a.tier)) ? str(a.tier) : "base") as AutoTier;
+      const tier = (["base", "economy", "premium", "platinum", "director", "cinema"].includes(str(a.tier)) ? str(a.tier) : "cinema") as AutoTier;
       return fullAutoGenerate({ videoId: str(a.videoId), tier }, db as never);
     },
   },

@@ -47,6 +47,25 @@ export async function testCredential(service: TestableService): Promise<TestResu
         );
         return done(r.ok, r.ok ? "Authenticated" : `HTTP ${r.status}`);
       }
+      case "higgsfield": {
+        const { higgsfieldCredential } = await import("./higgsfield");
+        const k = higgsfieldCredential();
+        if (!k) return done(false, "Not configured");
+        if (!k.includes(":")) return done(false, "Value must be KEY_ID:KEY_SECRET");
+        // Status of a non-existent request: 401 = credential rejected,
+        // 403 = out of credits, anything else (404/400) = accepted.
+        const r = await fetch(
+          "https://api.higgsfield.ai/requests/00000000-0000-0000-0000-000000000000/status",
+          { headers: { Authorization: `Key ${k}` } },
+        );
+        if (r.status === 401) return done(false, "Credential rejected (HTTP 401)");
+        if (r.status === 403) return done(false, "Out of credits (HTTP 403)");
+        if (r.status !== 401) {
+          const { markProviderUp } = await import("@/lib/pipeline/provider-health");
+          await markProviderUp("higgsfield");
+        }
+        return done(true, "Credential accepted");
+      }
       case "fal": {
         const k = key("FAL_KEY");
         if (!k) return done(false, "Not configured");

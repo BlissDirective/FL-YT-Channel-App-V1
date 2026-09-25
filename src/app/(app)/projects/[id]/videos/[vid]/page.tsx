@@ -19,6 +19,7 @@ import {
   getVideoSnapshots,
 } from "@/lib/db/queries";
 import { VIDEO_MONTHLY_CAP_USD } from "@/lib/adapters/video-models";
+import { spendCapsEnabled } from "@/lib/spend-caps";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
 import { attributionsFromAssets, buildAttributionBlock } from "@/lib/attribution";
@@ -750,7 +751,7 @@ export default async function VideoDetailPage({
             targetSec: j.target_sec,
           }))}
           monthSpent={monthVideoSpent}
-          cap={VIDEO_MONTHLY_CAP_USD}
+          cap={spendCapsEnabled() ? VIDEO_MONTHLY_CAP_USD : Number.POSITIVE_INFINITY}
           confirmOverUsd={Number(project.clip_confirm_usd ?? 3)}
           customDefault={project.custom_spec ?? null}
         />

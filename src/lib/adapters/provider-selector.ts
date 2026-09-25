@@ -8,7 +8,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { providerOutage } from "@/lib/pipeline/provider-health";
 import type { AutoTier } from "./auto-tiers";
 import type { CustomSpec } from "@/lib/db/types";
-import { clampDuration, getVideoModel, type VideoModel } from "./video-models";
+import {
+  clampDuration,
+  getVideoModel,
+  isVideoModelLocked,
+  LOCKED_VIDEO_MODEL_ID,
+  modelProvider,
+  VIDEO_MODELS,
+  type VideoModel,
+} from "./video-models";
 import {
   modelFamily,
   tierCandidateIds,
@@ -50,15 +58,18 @@ export type ModelHealth = Record<string, number>;
  */
 export async function videoModelHealth(db: SupabaseClient): Promise<ModelHealth> {
   const health: ModelHealth = {};
-  try {
-    const outage = await providerOutage(db, "fal");
-    if (outage.down) {
-      // All these models route through fal — bench the lot until it recovers.
-      for (const f of ["seedance", "kling", "veo", "ltx", "wan"]) health[f] = 0.05;
-      return health;
+  // Per-provider breakers: a fal outage benches only fal families and a
+  // Higgsfield outage only Higgsfield — the other provider keeps working.
+  for (const provider of ["fal", "higgsfield"] as const) {
+    try {
+      const outage = await providerOutage(db, provider);
+      if (!outage.down) continue;
+      for (const m of VIDEO_MODELS) {
+        if (modelProvider(m) === provider) health[modelFamily(m.id)] = 0.05;
+      }
+    } catch {
+      /* breaker unavailable → treat as healthy */
     }
-  } catch {
-    /* breaker unavailable → treat as healthy */
   }
   try {
     // Per-model reliability from the last ~120 finished jobs (error rate → 0..1).
@@ -108,6 +119,8 @@ export function selectBeatModel(opts: {
   custom?: CustomSpec;
   health?: ModelHealth;
 }): BeatModelChoice {
+  const locked = lockedBeatChoice(opts);
+  if (locked) return locked;
   const poolIds = new Set(tierCandidateIds(opts.tier, opts.custom));
   poolIds.add(opts.fallbackModel); // the tier default always competes
   const candidates = [...poolIds]
@@ -164,6 +177,63 @@ export function selectBeatModel(opts: {
         .slice(0, 3)
         .map((a) => ({ id: a.id, label: a.label, total: a.total, estCostUsd: a.estCostUsd })),
       operatorLocked,
+    },
+  };
+}
+
+/** Snap to the model's accepted durations — except a section longer than one
+    generation, which the worker stitches at full length. */
+function targetFor(model: VideoModel, targetSec: number): number {
+  return targetSec > model.maxDurationSec ? Math.round(targetSec) : clampDuration(model, targetSec);
+}
+
+/**
+ * Model lock (operator decision): while the lock is on and the locked model's
+ * provider is healthy, EVERY non-custom beat runs on it — no cost trade-off
+ * can outvote the operator. The remaining pool is still scored so the logged
+ * alternatives form the fallback chain the worker walks on failure.
+ * Returns null when the lock doesn't apply (custom tier, lock off, outage).
+ */
+function lockedBeatChoice(opts: Parameters<typeof selectBeatModel>[0]): BeatModelChoice | null {
+  if (opts.tier === "custom" || opts.tier === "base" || !isVideoModelLocked()) return null;
+  const model = getVideoModel(LOCKED_VIDEO_MODEL_ID);
+  if (!model) return null;
+  const family = modelFamily(model.id);
+  if ((opts.health?.[family] ?? 1) < 0.2) return null; // provider down → score the fallbacks
+
+  const fallbacks = tierCandidateIds(opts.tier, opts.custom)
+    .filter((id) => id !== model.id)
+    .map((id) => getVideoModel(id))
+    .filter((m): m is VideoModel => Boolean(m))
+    .map(toCandidate);
+  const ranked = fallbacks.length
+    ? scoreProviders(fallbacks, {
+        shot: opts.shot,
+        targetSec: opts.targetSec,
+        needsAudio: opts.needsAudio,
+        budgetRemainingUsd: Number.POSITIVE_INFINITY,
+        health: opts.health,
+      })
+    : null;
+  const alternatives = ranked
+    ? [ranked.winner, ...ranked.alternatives]
+        .slice(0, 3)
+        .map((a) => ({ id: a.id, label: a.label, total: a.total, estCostUsd: a.estCostUsd }))
+    : [];
+  const targetSec = targetFor(model, opts.targetSec);
+  return {
+    modelId: model.id,
+    targetSec,
+    family,
+    selection: {
+      model: model.id,
+      rationale: `Locked default: ${model.label} for every section (operator decision). Fallbacks: ${alternatives.map((a) => a.label).join(" → ") || "none"}.`,
+      score: 1,
+      estCostUsd: Math.round(model.usdPerSec * targetSec * 100) / 100,
+      dims: {} as SelectionLog["dims"],
+      weights: (ranked?.weights ?? {}) as SelectionLog["weights"],
+      alternatives,
+      operatorLocked: true,
     },
   };
 }

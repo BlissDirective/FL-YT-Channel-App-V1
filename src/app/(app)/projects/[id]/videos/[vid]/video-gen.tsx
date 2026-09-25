@@ -316,10 +316,12 @@ export function VideoGen({
             <p className="mb-2 flex items-center justify-between text-sm text-muted">
               <span>Video budget this month</span>
               <span className="font-semibold text-ink">
-                ${spent.toFixed(2)} / ${cap.toFixed(0)}
+                ${spent.toFixed(2)} / {Number.isFinite(cap) ? `$${cap.toFixed(0)}` : "no cap (suspended)"}
               </span>
             </p>
-            <ProgressBar percent={cap > 0 ? (spent / cap) * 100 : 0} label={`$${remaining.toFixed(0)} left`} />
+            {Number.isFinite(cap) && (
+              <ProgressBar percent={cap > 0 ? (spent / cap) * 100 : 0} label={`$${remaining.toFixed(0)} left`} />
+            )}
           </div>
 
           {/* Bulk actions */}
@@ -627,7 +629,8 @@ function FullAutoPanel({
   shortMode?: boolean;
   onRun: (tier: AutoTier, est: number, custom?: CustomSpec) => void;
 }) {
-  const [tier, setTier] = useState<AutoTier>("base");
+  // Locked default (Sep 2026): Cinema Studio 4.0 on every section.
+  const [tier, setTier] = useState<AutoTier>("cinema");
   const [custom, setCustom] = useState<CustomSpec>(customDefault ?? DEFAULT_CUSTOM);
   const [saving, startSave] = useTransition();
   const [saved, setSaved] = useState(false);

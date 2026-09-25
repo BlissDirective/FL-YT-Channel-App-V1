@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   planCostFor,
   selectClipBeats,
@@ -8,6 +8,11 @@ import {
 import type { CustomSpec } from "@/lib/db/types";
 
 const beat = (idx: number, scriptSec = 60, shotType = "broll") => ({ idx, shotType, scriptSec });
+
+// The legacy per-tier model mix (lock off). The locked Cinema Studio default
+// is covered in tests/higgsfield-lock.test.ts.
+beforeAll(() => vi.stubEnv("VIDEO_MODEL_LOCK", "off"));
+afterAll(() => vi.unstubAllEnvs());
 
 describe("tierJobForSection", () => {
   it("returns null for the base tier and for stock shots on every tier", () => {

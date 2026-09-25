@@ -348,6 +348,15 @@ async function reapStaleRunning() {
 }
 
 async function main() {
+  // Lean Claude profile (src/lib/ai-spend.ts): competitor video-intel is
+  // non-critical and paused unless AI_SPEND_PROFILE=full or
+  // AI_ENABLE_JOBS includes "video-intel".
+  const profile = (process.env.AI_SPEND_PROFILE ?? "").toLowerCase();
+  const enabled = (process.env.AI_ENABLE_JOBS ?? "").toLowerCase().split(",").map((s) => s.trim());
+  if (profile !== "full" && !enabled.includes("video-intel")) {
+    console.log("video-intel paused by AI_SPEND_PROFILE=lean");
+    return;
+  }
   await reapStaleRunning();
   // Claim queued jobs one at a time (single-worker concurrency in the workflow).
   for (let i = 0; i < 5; i++) {

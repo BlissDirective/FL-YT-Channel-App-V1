@@ -42,7 +42,13 @@ export const CAPABILITIES: Capability[] = [
     unlock: ["Set ANTHROPIC_API_KEY (console.anthropic.com)"],
   },
   {
-    id: "ai-video", label: "AI video clips", category: "Visuals",
+    id: "higgsfield-video", label: "Higgsfield Cinema Studio (primary)", category: "Visuals",
+    description: "Locked default: Cinema Studio 4.0 clips for every section, SOUL stills, Genjutsu avatar animation.",
+    requires: ["higgsfield"], effort: "env", stability: "production",
+    unlock: ["Set HIGGSFIELD_API_KEY to KEY_ID:KEY_SECRET (console.higgsfield.ai)"],
+  },
+  {
+    id: "ai-video", label: "AI video clips (fal fallback)", category: "Visuals",
     description: "Generate Seedance / Kling / Veo / LTX / Wan clips per beat.",
     requires: ["fal"], effort: "env", stability: "production",
     unlock: ["Set FAL_KEY (fal.ai/dashboard/keys)"],

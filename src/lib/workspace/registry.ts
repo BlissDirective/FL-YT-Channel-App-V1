@@ -222,14 +222,14 @@ const ACTIONS: WorkspaceAction[] = [
       "Autopilot this video end-to-end (idea to render) with QC-gated auto-approval.",
     params: {
       videoId: { type: "string", required: true, description: "Video id" },
-      tier: { type: "string", description: "Auto tier (base/economy/premium/platinum); default base" },
+      tier: { type: "string", description: "Auto tier (base/economy/premium/platinum/director/cinema); default cinema" },
     },
     costBearing: true,
     estimate: () => estimateStageCost({ status: "SCRIPT_READY", targetLengthSec: 300 }),
     execute: async (p) =>
       fullAutoGenerate({
         videoId: str(p.videoId)!,
-        tier: (str(p.tier) ?? "base") as AutoTier,
+        tier: (str(p.tier) ?? "cinema") as AutoTier,
       }),
   },
   {

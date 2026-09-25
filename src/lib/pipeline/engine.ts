@@ -93,14 +93,25 @@ import {
   toSpokenText,
   type Lexicon,
 } from "@/lib/adapters/pronunciation";
-import { generateImage, generateVideo, isFalLive, FalVideoTimeoutError } from "@/lib/adapters/fal";
+import { isFalLive } from "@/lib/adapters/fal";
+import { isHiggsfieldLive } from "@/lib/adapters/higgsfield";
+import {
+  generateImage,
+  generateVideo,
+  isVisualLive,
+  stillCacheSalt,
+  FalVideoTimeoutError,
+  HiggsfieldTimeoutError,
+} from "@/lib/adapters/media";
+import { spendCapsEnabled } from "@/lib/spend-caps";
 import { alignLyricsToAudio } from "@/lib/adapters/align";
 import {
   clampDuration,
   estimateClipCost,
   getVideoModel,
   VIDEO_MONTHLY_CAP_USD,
-  VIDEO_PROVIDER,
+  VIDEO_LEDGER_PROVIDERS,
+  videoLedgerProvider,
 } from "@/lib/adapters/video-models";
 import { estimateTierCost, selectClipBeats, type AutoTier } from "@/lib/adapters/auto-tiers";
 import {
@@ -231,6 +242,14 @@ async function postWorkspaceNote(
   }
 }
 
+/** Human label for a rendered still's model (ledger descriptions). */
+function stillModelLabel(model: string): string {
+  if (model === "flux/dev") return "FLUX dev";
+  if (model === "flux/schnell") return "FLUX schnell";
+  if (model === "soul/standard") return "Higgsfield SOUL Standard";
+  return model;
+}
+
 /** Budget guard — runs before every paid stage (standing rule 6). Returns
     a pause reason when a cap would be exceeded, null when clear. Thin wrapper
     over the shared ledger checkBudget (Phase 2: one budget system). */
@@ -239,9 +258,15 @@ async function budgetPause(
   video: Video,
   project: Project,
 ): Promise<string | null> {
-  const outage = await providerOutage(db, "fal");
-  if (outage.down && isFalLive()) {
-    return `fal is paused (${outage.reason.slice(0, 120)}) — fix the account, then Test in Settings`;
+  // Visual providers: pause only when EVERY live provider is down — with
+  // Higgsfield primary and fal as fallback, one outage must not stop the line.
+  const falOut = isFalLive() ? await providerOutage(db, "fal") : { down: true as const, reason: "not configured" };
+  const hfOut = isHiggsfieldLive()
+    ? await providerOutage(db, "higgsfield")
+    : { down: true as const, reason: "not configured" };
+  if (isVisualLive() && falOut.down && hfOut.down) {
+    const why = [hfOut, falOut].map((o) => (o.down ? o.reason.slice(0, 80) : "")).join(" · ");
+    return `Visual providers paused (${why}) — fix the account(s), then Test in Settings`;
   }
   const check = await checkBudget(db, project, video);
   return check.ok ? null : check.reason;
@@ -1606,7 +1631,7 @@ export async function extraStillsForBeat(
   } catch {
     /* stock is optional */
   }
-  if (opts.allowFlux && images.length < MULTI_IMAGE_EXTRA && isFalLive()) {
+  if (opts.allowFlux && images.length < MULTI_IMAGE_EXTRA && isVisualLive()) {
     const need = MULTI_IMAGE_EXTRA - images.length;
     for (let i = 0; i < need; i++) {
       try {
@@ -1623,7 +1648,7 @@ export async function extraStillsForBeat(
           await recordCost(
             db,
             video,
-            { provider: "fal.ai", usd: img.costUsd, description: "Multi-image extra still (FLUX schnell)" },
+            { provider: img.provider, usd: img.costUsd, description: `Multi-image extra still (${img.model})` },
             `beat ${beat.idx + 1}`,
           );
         }
@@ -1766,7 +1791,7 @@ export async function makeBeatClip(
       }
       // No stock match → fall through to a generated still.
     }
-    if (isFalLive()) {
+    if (isVisualLive()) {
       // Validate the prompt BEFORE paying FLUX. Weak prompt → one cheap re-prompt;
       // if we can't refine (art-director unavailable), skip the paid render and
       // fall through to free stock/mock (fail-closed).
@@ -1813,8 +1838,11 @@ export async function makeBeatClip(
         // byte-for-byte so every existing cache entry still hits.
         const castModelId = project.character_image_model ?? DEFAULT_REF_IMAGE_MODEL_ID;
         const useCast = castRefPaths.length > 0;
+        // SOUL (Higgsfield) stills salt the key so they never collide with a
+        // cached FLUX render of the same prompt; FLUX keys are unchanged.
+        const salt = useCast ? "" : await stillCacheSalt();
         const cacheKey = createHash("sha256")
-          .update(useCast ? `${prompt}|${castModelId}|${castRefPaths.join(",")}` : `${prompt}|${quality}`)
+          .update((useCast ? `${prompt}|${castModelId}|${castRefPaths.join(",")}` : `${prompt}|${quality}`) + salt)
           .digest("hex");
         if (db && !opts?.forceRegen) {
           try {
@@ -1863,8 +1891,11 @@ export async function makeBeatClip(
           costUsd: number;
           endpoint: string;
           seed?: number | null;
+          provider?: string;
+          model?: string;
         } = castStill ?? (await generateImage({ prompt, quality }));
-        const renderedModel = castStill ? castStill.modelId : `flux/${quality}`;
+        const renderedModel = castStill ? castStill.modelId : (img.model ?? `flux/${quality}`);
+        const stillProvider = castStill ? "fal.ai" : (img.provider ?? "fal.ai");
         let genUsd = img.costUsd;
         // Pixel check (Tier 2): reject blank/solid/tiny renders. One re-roll; if
         // it's still bad, record the wasted spend and fall through to stock/mock.
@@ -1904,7 +1935,7 @@ export async function makeBeatClip(
             row: {
               video_id: video.id,
               kind: "clip",
-              provider: "fal.ai",
+              provider: stillProvider,
               storage_path: path,
               beat_index: beat.idx,
               meta: {
@@ -1916,7 +1947,7 @@ export async function makeBeatClip(
                 // Exact request needed to reproduce / re-roll this still (C2).
                 request: {
                   kind: "still",
-                  provider: "fal.ai",
+                  provider: stillProvider,
                   endpoint: img.endpoint,
                   prompt,
                   quality,
@@ -1928,13 +1959,11 @@ export async function makeBeatClip(
               cost_usd: genUsd,
             },
             cost: {
-              provider: "fal.ai",
+              provider: stillProvider,
               usd: genUsd,
               description: castStill
                 ? `Cast shot (${castStill.modelId}, ${castStill.refCount} ref${castStill.refCount === 1 ? "" : "s"})`
-                : quality === "dev"
-                  ? "Hero shot (FLUX dev)"
-                  : "B-roll still (FLUX schnell)",
+                : `In-video still (${stillModelLabel(renderedModel)})`,
             },
             extraCosts,
             ...(composition && hasCastInfo(composition) ? { cast: composition } : {}),
@@ -1942,7 +1971,7 @@ export async function makeBeatClip(
         }
         // Both renders were blank — record the paid-but-discarded spend so it is
         // not lost, then fall through to the free stock/mock fallback below.
-        extraCosts.push({ provider: "fal.ai", usd: genUsd, description: "Discarded blank FLUX renders" });
+        extraCosts.push({ provider: stillProvider, usd: genUsd, description: `Discarded blank ${renderedModel} renders` });
       }
     }
   } catch (err) {
@@ -3524,13 +3553,13 @@ export async function regenerateAsset(opts: {
   await db.from("assets").insert({
     video_id: video.id,
     kind: "clip",
-    provider: "fal.ai",
+    provider: img.provider,
     storage_path: path,
     beat_index: asset.beat_index,
     meta: {
       shotType: (asset.meta as { shotType?: string } | null)?.shotType ?? "broll",
       stillImage: true,
-      model: `flux/${quality}`,
+      model: img.model,
       regenerated: true,
       ...(phash ? { phash } : {}),
       request: { ...req, seed: img.seed, endpoint: img.endpoint },
@@ -3540,7 +3569,7 @@ export async function regenerateAsset(opts: {
   await recordCost(
     db,
     video,
-    { provider: "fal.ai", usd: img.costUsd, description: `Regenerate still — section ${Number(asset.beat_index) + 1}` },
+    { provider: img.provider, usd: img.costUsd, description: `Regenerate still — section ${Number(asset.beat_index) + 1}` },
     `regenerate beat ${Number(asset.beat_index) + 1}`,
   );
   await recordDecision(db, {
@@ -3927,8 +3956,8 @@ export async function enqueueLongClip(opts: {
   const db = await createClient();
   const video = await getVideo(db, opts.videoId);
   if (!video) return { ok: false, error: "Video not found" };
-  const spent = await monthVideoSpend(db);
-  if (spent + opts.estCostUsd > VIDEO_MONTHLY_CAP_USD) {
+  const spent = spendCapsEnabled() ? await monthVideoSpend(db) : 0;
+  if (spendCapsEnabled() && spent + opts.estCostUsd > VIDEO_MONTHLY_CAP_USD) {
     return {
       ok: false,
       error: `Monthly video budget reached ($${VIDEO_MONTHLY_CAP_USD}). $${spent.toFixed(2)} used; this clip needs ~$${opts.estCostUsd.toFixed(2)}.`,
@@ -4081,7 +4110,13 @@ export async function fullAutoGenerate(
   if (opts.tier === "custom" && !custom) {
     return { ok: false, error: "Custom tier needs a model recipe (hero, b-roll, lengths, price cap)." };
   }
-  const maxUsd = custom ? custom.maxUsd : Number(project.max_video_usd ?? 8);
+  // Caps suspended → the tier plan alone bounds clip count (no per-video trim).
+  // Custom keeps the operator's explicit per-run price cap.
+  const maxUsd = custom
+    ? custom.maxUsd
+    : spendCapsEnabled()
+      ? Number(project.max_video_usd ?? 8)
+      : Number.POSITIVE_INFINITY;
   const selection = selectClipBeats(
     opts.tier,
     beats.map((b) => ({ idx: b.idx, shotType: b.shotType, scriptSec: secFor(b) })),
@@ -4101,8 +4136,8 @@ export async function fullAutoGenerate(
     };
   }
   const { clips, totalUsd: estCostUsd } = selection;
-  const spent = await monthVideoSpend(db);
-  if (spent + estCostUsd > VIDEO_MONTHLY_CAP_USD) {
+  const spent = spendCapsEnabled() ? await monthVideoSpend(db) : 0;
+  if (spendCapsEnabled() && spent + estCostUsd > VIDEO_MONTHLY_CAP_USD) {
     return {
       ok: false,
       error: `This run (~$${estCostUsd.toFixed(2)}) would exceed the $${VIDEO_MONTHLY_CAP_USD}/mo cap ($${spent.toFixed(2)} used).`,
@@ -4189,7 +4224,11 @@ export async function fullAutoGenerate(
         video_id: opts.videoId,
         project_id: video.project_id,
         beat_idx: c.idx,
-        method: "stitch" as const,
+        // A section longer than one generation (Cinema Studio: 30s) chains
+        // last-frame → next keyframe so the stitched clip has no visible cut.
+        method: (choice.targetSec > (getVideoModel(choice.modelId)?.maxDurationSec ?? 15)
+          ? "stitch-seamless"
+          : "stitch") as "stitch" | "stitch-seamless",
         model: choice.modelId,
         target_sec: choice.targetSec,
         hero_hold: c.job.heroHold,
@@ -4421,7 +4460,11 @@ export async function estimateBuildCost(
   const hi = Math.max(lo, cfg.lengthMaxSec);
   const midSec = Math.round((lo + hi) / 2);
   const beats = syntheticBeats(midSec);
-  const maxUsd = cfg.custom ? cfg.custom.maxUsd : Number(project.max_video_usd ?? 8);
+  const maxUsd = cfg.custom
+    ? cfg.custom.maxUsd
+    : spendCapsEnabled()
+      ? Number(project.max_video_usd ?? 8)
+      : Number.POSITIVE_INFINITY;
   const perVideoClipUsd = estimateTierCost(cfg.tier, beats, {
     clipCap: cfg.tier === "economy" ? Number(project.ai_clip_cap ?? 3) : undefined,
     maxUsd,
@@ -4432,15 +4475,16 @@ export async function estimateBuildCost(
   const batchClipUsd = Math.round(perVideoClipUsd * count * 100) / 100;
   const batchUsd = Math.round(perVideoUsd * count * 100) / 100;
   const monthVideoSpendUsd = Math.round((await monthVideoSpend(db)) * 100) / 100;
-  const capRemainingUsd =
-    Math.round((VIDEO_MONTHLY_CAP_USD - monthVideoSpendUsd) * 100) / 100;
+  const capRemainingUsd = spendCapsEnabled()
+    ? Math.round((VIDEO_MONTHLY_CAP_USD - monthVideoSpendUsd) * 100) / 100
+    : Number.POSITIVE_INFINITY;
   return {
     perVideoUsd,
     batchUsd,
     perVideoClipUsd,
     batchClipUsd,
     monthVideoSpendUsd,
-    capUsd: VIDEO_MONTHLY_CAP_USD,
+    capUsd: spendCapsEnabled() ? VIDEO_MONTHLY_CAP_USD : Number.POSITIVE_INFINITY,
     capRemainingUsd,
     overCap: batchClipUsd > capRemainingUsd,
   };
@@ -5580,14 +5624,16 @@ async function monthVideoSpend(db: Db): Promise<number> {
   const { data } = await db
     .from("cost_ledger")
     .select("usd")
-    .eq("provider", VIDEO_PROVIDER)
+    .in("provider", VIDEO_LEDGER_PROVIDERS)
     .gte("at", monthStart);
   return (data ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
 }
 
 /** Generate an original video clip for one beat — image-to-video from our own
-    FLUX keyframe when present, else text-to-video. Guarded by the $100/mo video
-    cap; replaces the beat's existing clip asset and ledgers the spend. */
+    keyframe when present, else text-to-video. Routed by the model's provider
+    (Cinema Studio 4.0 on Higgsfield by default; fal models on fallback).
+    Guarded by the monthly video cap only while spend caps are enabled;
+    replaces the beat's existing clip asset and ledgers the spend. */
 export async function generateBeatVideo(opts: {
   videoId: string;
   beatIdx: number;
@@ -5595,11 +5641,18 @@ export async function generateBeatVideo(opts: {
   durationSec: number;
 }): Promise<VideoGenResult> {
   const db = await createClient();
-  if (!isFalLive()) {
-    return { ok: false, error: "Video generation needs FAL_KEY (currently mock mode)." };
+  if (!isVisualLive()) {
+    return { ok: false, error: "Video generation needs HIGGSFIELD_API_KEY or FAL_KEY (currently mock mode)." };
   }
   const model = getVideoModel(opts.modelId);
   if (!model) return { ok: false, error: "Unknown video model." };
+  if (model.provider === "higgsfield" && !isHiggsfieldLive()) {
+    return { ok: false, error: `${model.label} needs HIGGSFIELD_API_KEY.` };
+  }
+  if (model.provider !== "higgsfield" && !isFalLive()) {
+    return { ok: false, error: `${model.label} needs FAL_KEY.` };
+  }
+  const ledgerProvider = videoLedgerProvider(model);
   const dur = clampDuration(model, opts.durationSec);
 
   const video = await getVideo(db, opts.videoId);
@@ -5607,10 +5660,10 @@ export async function generateBeatVideo(opts: {
   const project = await getProject(db, video.project_id);
   if (!project) return { ok: false, error: "Project not found" };
 
-  // $100/mo portfolio cap (estimate-gated before we spend).
+  // Portfolio monthly cap (estimate-gated) — only while caps are enabled.
   const est = estimateClipCost(model, dur);
-  const spent = await monthVideoSpend(db);
-  if (spent + est > VIDEO_MONTHLY_CAP_USD) {
+  const spent = spendCapsEnabled() ? await monthVideoSpend(db) : 0;
+  if (spendCapsEnabled() && spent + est > VIDEO_MONTHLY_CAP_USD) {
     return {
       ok: false,
       error: `Monthly video budget reached ($${VIDEO_MONTHLY_CAP_USD}). $${spent.toFixed(2)} used this month; this clip needs ~$${est.toFixed(2)}.`,
@@ -5650,11 +5703,11 @@ export async function generateBeatVideo(opts: {
   } catch (err) {
     // A queue timeout still bills — the job keeps running server-side. Ledger
     // the estimate so spend guards see it (Phase 2: no untracked spend).
-    if (err instanceof FalVideoTimeoutError) {
+    if (err instanceof FalVideoTimeoutError || err instanceof HiggsfieldTimeoutError) {
       await recordCost(
         db,
         video,
-        { provider: VIDEO_PROVIDER, usd: err.estCostUsd, description: `AI video clip (${model.label}) — timed out; spend estimated, unverified` },
+        { provider: ledgerProvider, usd: err.estCostUsd, description: `AI video clip (${model.label}) — timed out; spend estimated, unverified` },
         `beat ${opts.beatIdx + 1}`,
       );
     }
@@ -5673,7 +5726,7 @@ export async function generateBeatVideo(opts: {
   await db.from("assets").insert({
     video_id: video.id,
     kind: "clip",
-    provider: VIDEO_PROVIDER,
+    provider: ledgerProvider,
     storage_path: path,
     beat_index: opts.beatIdx,
     meta: {
@@ -5688,7 +5741,7 @@ export async function generateBeatVideo(opts: {
   await recordCost(
     db,
     video,
-    { provider: VIDEO_PROVIDER, usd: out.costUsd, description: `AI video clip (${model.label})` },
+    { provider: ledgerProvider, usd: out.costUsd, description: `AI video clip (${model.label})` },
     `beat ${opts.beatIdx + 1}`,
   );
 

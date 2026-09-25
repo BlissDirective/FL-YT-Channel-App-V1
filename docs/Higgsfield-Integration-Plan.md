@@ -4,8 +4,75 @@
 > with the **top Higgsfield model selected by default**. fal.ai stays as an automatic
 > fallback. Credential: GitHub Actions secret **`HIGGSFIELD_API_KEY`**.
 >
-> Status: **Plan only, not implemented.** Researched 2026-09-25 against
-> docs.higgsfield.ai, the official SDKs and a full audit of this repo's fal usage.
+> Status: **Core integration built (Phases 1–4).** Researched 2026-09-25
+> against docs.higgsfield.ai, the official SDKs and a full audit of this repo's
+> fal usage. Cost assessment: [Production-Cost-Estimate-480.md](Production-Cost-Estimate-480.md).
+
+---
+
+## Locked decisions (operator, 2026-09-25) and build status
+
+These supersede the model recommendations in §1 below.
+
+| Role | Locked model | Endpoint | Status |
+|---|---|---|---|
+| **All video sections (hero + b-roll)** | **Cinema Studio 4.0** | `higgsfield/cinema-studio/4.0` | ✅ Built: `VIDEO_MODELS[0]`, every AI tier locked to it, Cinema tier = every section |
+| **In-video images** | **SOUL Standard** | `higgsfield-ai/soul/standard` | ✅ Built: engine stills route through `adapters/media.ts`; FLUX fallback |
+| **Avatar animation (The Silicon Layer)** | **Genjutsu motion-transfer** | `higgsfield/genjutsu/motion-transfer/v1.0` | ◐ Adapter built (`animateWithGenjutsu`); pipeline wiring waits on the driving-video decision (below) |
+| Fallback | fal (Seedance 2.0 → Kling 2.5 → Seedance Fast; FLUX) | — | ✅ Scored fallback chain + per-provider circuit breakers |
+
+**Built in this pass**
+- `src/lib/adapters/higgsfield.ts`:
+  - Auth is the combined `HIGGSFIELD_API_KEY` (plus SDK aliases).
+  - Submit only retries when nothing was queued. There is no blind re-POST.
+  - Polling backs off from 2s to 10s.
+  - `/estimate` pricing is ledgered.
+  - 401/403 trips the breaker; `nsfw`/`failed` surface as errors.
+- `src/lib/adapters/media.ts` is the provider router: Higgsfield first, then fal.
+- Registry and selection:
+  - `VideoModel.provider`, plus the lock (`VIDEO_MODEL_LOCK`, on by default).
+  - Locked beats always pick Cinema Studio, with scored fal alternatives as the fallback chain.
+  - Per-provider health: a fal outage no longer benches Higgsfield, and vice versa.
+- New **Cinema** tier covers every section, stock included, at the section's
+  length. Sections over 30s stitch seamlessly. The operator, UI, MCP and
+  workspace all default to it.
+- Clip worker (`packages/clips`):
+  - Higgsfield submit/poll.
+  - Resumable request ids (migration `0077`), and no fallback while a billed
+    Higgsfield job is still running.
+  - **Parallel lanes** (`CLIP_CONCURRENCY`, default 4) with a 22-minute run
+    budget. The old worker did 4 clips per 30 minutes.
+- **Spend caps suspended** (`src/lib/spend-caps.ts`). Re-enable with
+  `SPEND_CAPS_ENABLED=true`. This covers:
+  - the $100/mo video cap
+  - the per-video and monthly project budgets
+  - the per-video clip budget
+  - the operator's 30-day cycle budget
+- **Lean Claude profile** (`src/lib/ai-spend.ts`) pauses the intelligence,
+  optimizer, editing-research, librarian, video-intel and competitive-judge
+  jobs.
+- Secrets and observability:
+  - `verify-secrets` probes Higgsfield.
+  - `sync-vercel-env` pushes `HIGGSFIELD_API_KEY`; `clips.yml` passes it to the worker.
+  - Health, credential test, readiness, the capability menu, the system pulse
+    and cost-log labels all include Higgsfield.
+- Tests: `tests/higgsfield.test.ts` and `tests/higgsfield-lock.test.ts`. Legacy
+  tier and cap tests are scoped to lock-off / caps-on.
+
+**Open items**
+1. **Genjutsu driving video.** The API is video-to-video: it needs a source
+   clip of 4s or more (trimmed to 30s) plus 1–8 avatar images. It is **not**
+   audio-driven, so the mouth won't lip-sync to the ElevenLabs narration.
+   Options:
+   - (a) Record one real "presenter" driving clip and reuse it for
+     intro/outro/B-roll host moments.
+   - (b) Generate the driving clip once with Cinema Studio.
+   - (c) Keep lip-synced talking segments on the fal avatar models, and use
+     Genjutsu for non-speaking host shots.
+2. **Resolution.** Cinema Studio outputs **720p max**, and the render composites
+   and upscales to 1080p. Decide whether that's acceptable for long-form.
+3. §4 Phase 5–6 below: Higgsfield reference images in Character Studio,
+   stick-figure hybrid tuning, a webhook receiver, and an R2 retention soak test.
 
 ---
 

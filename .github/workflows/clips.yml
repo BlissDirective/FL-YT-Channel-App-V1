@@ -1,6 +1,7 @@
 name: Long Clip Worker
 
-# Produces long clips (Veo-3.1 extend / auto-stitch) for queued clip_jobs.
+# Produces AI clips for queued clip_jobs — Higgsfield Cinema Studio 4.0
+# (primary, locked default) with fal fallback; auto-stitch for long sections.
 on:
   workflow_dispatch:
   schedule:
@@ -63,4 +64,9 @@ jobs:
           SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
           FAL_KEY: ${{ secrets.FAL_KEY || secrets.FAL_AI_FULL_ACCESS_DEVELOPMENT_KEY }}
+          HIGGSFIELD_API_KEY: ${{ secrets.HIGGSFIELD_API_KEY }}
+          # Caps stay suspended unless the repo variable is set to "true".
+          SPEND_CAPS_ENABLED: ${{ vars.SPEND_CAPS_ENABLED }}
+          # Parallel lanes — match the Higgsfield console's concurrency limit.
+          CLIP_CONCURRENCY: ${{ vars.CLIP_CONCURRENCY || '4' }}
         run: pnpm clip-queue

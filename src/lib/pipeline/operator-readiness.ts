@@ -53,10 +53,13 @@ export async function operatorReadiness(
 
   // Visuals — the cheap stack needs stock and/or fal stills.
   const fal = env.FAL_KEY || env.FAL_AI_FULL_ACCESS_DEVELOPMENT_KEY || env.FAL_AI_KEY;
+  const higgsfield = env.HIGGSFIELD_API_KEY || env.HF_CREDENTIALS;
   checks.push(
-    env.PEXELS_API_KEY || fal
-      ? ok("vis", "Visuals", env.PEXELS_API_KEY ? "stock + stills ready" : "stills ready")
-      : warn("vis", "Visuals", "no Pexels/fal key — visuals fall back to mock"),
+    higgsfield
+      ? ok("vis", "Visuals", `Higgsfield primary (Cinema Studio + SOUL)${fal ? ", fal fallback" : ""}`)
+      : env.PEXELS_API_KEY || fal
+        ? warn("vis", "Visuals", "no HIGGSFIELD_API_KEY — running on the fal/stock fallback")
+        : warn("vis", "Visuals", "no Higgsfield/Pexels/fal key — visuals fall back to mock"),
   );
 
   // YouTube publishing.

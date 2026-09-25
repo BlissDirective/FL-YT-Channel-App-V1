@@ -83,5 +83,8 @@ jobs:
           SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Lean Claude profile pauses this queue unless re-enabled.
+          AI_SPEND_PROFILE: ${{ vars.AI_SPEND_PROFILE }}
+          AI_ENABLE_JOBS: ${{ vars.AI_ENABLE_JOBS }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: pnpm intel-queue
