@@ -43,7 +43,7 @@ jobs:
       - name: Queue empty — exit early
         if: github.event_name == 'schedule' && steps.peek.outputs.count == '0'
         run: echo "No cut sessions requested — skipping checkout/install."
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - uses: pnpm/action-setup@v4
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
