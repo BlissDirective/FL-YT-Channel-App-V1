@@ -2,9 +2,10 @@ import { getServiceHealth } from "@/lib/adapters/health";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/cn";
 
-const PULSE_PROVIDERS = ["anthropic", "elevenlabs", "fal", "youtube"] as const;
+const PULSE_PROVIDERS = ["anthropic", "elevenlabs", "higgsfield", "fal", "youtube"] as const;
 const SHORT_LABEL: Record<string, string> = {
   anthropic: "Claude",
+  higgsfield: "Higgsfield",
   elevenlabs: "ElevenLabs",
   fal: "fal",
   youtube: "YouTube",

@@ -8,12 +8,14 @@ import { StatusChip } from "@/components/ui/status-chip";
 import {
   pauseOperatorAction,
   setOperatorAutonomyAction,
+  setOperatorDailyCapAction,
   startOperatorAction,
   stopOperatorAction,
 } from "@/lib/actions/operator";
 import type { OperatorView } from "@/lib/db/queries";
 import type { Readiness } from "@/lib/pipeline/operator-readiness";
 import type { OperatorEvent } from "@/lib/db/types";
+import { MAX_VIDEOS_PER_DAY } from "@/lib/pipeline/monetization";
 
 const HOUR_LABEL = (h: number) => {
   const am = h < 12;
@@ -61,6 +63,7 @@ export function OperatorPanel({
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string>();
   const [autonomy, setAutonomy] = useState<"copilot" | "autopilot">(view.autonomy);
+  const [perDay, setPerDay] = useState<number>(Math.max(1, view.dailyCap || 1));
   const running = view.status === "active";
   const paused = view.status === "paused";
   const live = running || paused;
@@ -92,6 +95,21 @@ export function OperatorPanel({
       }
     });
 
+  const savePerDay = (n: number) =>
+    start(async () => {
+      const next = Math.max(1, Math.min(MAX_VIDEOS_PER_DAY, Math.round(n) || 1));
+      const prev = perDay;
+      setPerDay(next); // optimistic
+      setMsg(undefined);
+      const r = await setOperatorDailyCapAction(projectId, next);
+      if (!r.ok) {
+        setPerDay(prev);
+        setMsg(r.error ?? "Failed.");
+      } else {
+        setMsg(`Auto mode will produce ${next} video${next === 1 ? "" : "s"} per day.`);
+      }
+    });
+
   const pct = view.budgetUsd > 0 ? Math.min(100, (view.spentUsd / view.budgetUsd) * 100) : 0;
 
   return (
@@ -105,10 +123,10 @@ export function OperatorPanel({
             <CardTitle>Auto Pilot</CardTitle>
             <p className="text-xs text-muted">
               {running
-                ? `Running · posts 1/day at ${HOUR_LABEL(view.postingHour)} ${TZ_ABBR(view.postingTz)} · ${autonomy === "autopilot" ? "fully autonomous" : "co-pilot review"}`
+                ? `Running · ${perDay} video${perDay === 1 ? "" : "s"}/day from ${HOUR_LABEL(view.postingHour)} ${TZ_ABBR(view.postingTz)} · ${autonomy === "autopilot" ? "fully autonomous" : "co-pilot review"}`
                 : paused
                   ? "Paused · budget clock still elapsing"
-                  : "Autonomous channel operator — produces daily, holds for approval"}
+                  : "Autonomous channel operator — produces your chosen number of videos per day"}
             </p>
           </div>
         </div>
@@ -182,6 +200,47 @@ export function OperatorPanel({
       )}
 
       {live && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-canvas/50 p-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Videos per day</p>
+            <p className="mt-0.5 text-[11px] text-muted">
+              How many videos auto mode seeds each day (1–{MAX_VIDEOS_PER_DAY}). Seeding also pauses when the
+              working library reaches its size limit (Settings → Library size).
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {[1, 3, 5, 10].map((n) => (
+              <button
+                key={n}
+                type="button"
+                disabled={pending}
+                onClick={() => savePerDay(n)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                  perDay === n ? "bg-raised text-card" : "bg-card text-ink shadow-card hover:bg-canvas"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+            <input
+              type="number"
+              min={1}
+              max={MAX_VIDEOS_PER_DAY}
+              aria-label="Custom videos per day"
+              defaultValue={perDay}
+              key={perDay}
+              disabled={pending}
+              onBlur={(e) => {
+                const n = Number(e.currentTarget.value);
+                if (n !== perDay) savePerDay(n);
+              }}
+              className="input w-16 py-1 text-center text-xs"
+            />
+          </div>
+        </div>
+      )}
+
+      {live && (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat label="Status">
             <StatusChip tone={running ? "success" : "warning"}>{view.status}</StatusChip>
@@ -198,7 +257,7 @@ export function OperatorPanel({
           </Stat>
           <Stat label="Today">
             <span className="text-sm font-semibold tabular-nums">
-              {view.seededToday > 0 ? "seeded ✓" : "pending"}
+              {view.seededToday}/{perDay} seeded
             </span>
           </Stat>
         </div>

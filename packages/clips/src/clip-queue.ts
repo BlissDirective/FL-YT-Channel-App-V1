@@ -5,8 +5,13 @@
  *   • veo-extend       — Veo-3.1 i2v (8s) then chained extend-video to target
  *   • stitch           — N base clips concatenated (hard cuts)
  *   • stitch-seamless   — N base clips chained via last-frame → next keyframe
- * The result replaces the section's clip asset; cost is ledgered against the
- * $100/mo video cap. Bounded + guarded; analysis-free, generation only.
+ * The result replaces the section's clip asset; cost is ledgered (and checked
+ * against the $100/mo video cap only while SPEND_CAPS_ENABLED=true).
+ *
+ * Providers: Higgsfield (primary — Cinema Studio 4.0, the locked default) and
+ * fal (fallback). The model id decides the provider; a Higgsfield job's
+ * request id is persisted on submit so a timed-out poll resumes the same
+ * billed generation. Bounded + guarded; analysis-free, generation only.
  */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -25,6 +30,16 @@ import {
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const FAL_KEY = process.env.FAL_KEY;
+/** Combined `KEY_ID:KEY_SECRET` (HIGGSFIELD_API_KEY) or the SDK aliases. */
+const HF_CRED =
+  process.env.HIGGSFIELD_API_KEY?.trim() ||
+  process.env.HF_CREDENTIALS?.trim() ||
+  (process.env.HF_API_KEY_ID && process.env.HF_API_KEY_SECRET
+    ? `${process.env.HF_API_KEY_ID}:${process.env.HF_API_KEY_SECRET}`
+    : "");
+const HF_API = "https://api.higgsfield.ai";
+/** Monthly caps are suspended unless re-authorized (mirrors src/lib/spend-caps). */
+const SPEND_CAPS_ENABLED = (process.env.SPEND_CAPS_ENABLED ?? "").toLowerCase() === "true";
 if (!SUPABASE_URL || !SERVICE_KEY) {
   console.error("Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY");
   process.exit(1);
@@ -32,10 +47,21 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 const BUCKET = "media";
 const VIDEO_PROVIDER = "fal-video";
+const HF_VIDEO_PROVIDER = "higgsfield-video";
 const VIDEO_MONTHLY_CAP_USD = 100;
+
+/** Models served by Higgsfield (mirror src/lib/adapters/video-models). */
+const HF_ENDPOINT: Record<string, string> = {
+  "hf-cinema-studio-4": "higgsfield/cinema-studio/4.0",
+  "hf-seedance-2-5": "bytedance/seedance-2.5/text-to-video",
+};
+const isHfModel = (model: string) => model in HF_ENDPOINT;
+const ledgerProviderFor = (model: string) => (isHfModel(model) ? HF_VIDEO_PROVIDER : VIDEO_PROVIDER);
 
 // Per-second price estimates (mirror src/lib/adapters/video-models).
 const PRICE_PER_SEC: Record<string, number> = {
+  "hf-cinema-studio-4": 0.2057,
+  "hf-seedance-2-5": 0.2057,
   "seedance-2-fast": 0.022,
   "seedance-2": 0.07,
   "kling-2-5-turbo": 0.07,
@@ -45,6 +71,8 @@ const PRICE_PER_SEC: Record<string, number> = {
   "veo-3-1-extend": 0.4,
 };
 const SEG_MAX: Record<string, number> = {
+  "hf-cinema-studio-4": 30,
+  "hf-seedance-2-5": 30,
   "seedance-2-fast": 15,
   "seedance-2": 15,
   "kling-2-5-turbo": 10,
@@ -103,6 +131,134 @@ async function falPoll(h: FalHandle): Promise<string> {
   return out.video.url;
 }
 
+// ── Higgsfield (primary) ─────────────────────────────────────────────
+
+type HfHandle = { requestId: string; statusUrl: string };
+
+function hfHeaders() {
+  return { Authorization: `Key ${HF_CRED}`, "content-type": "application/json" };
+}
+
+/** Endpoint + body per Higgsfield model (mirrors higgsfieldVideoRequest in
+    src/lib/adapters/higgsfield.ts). Cinema Studio: the keyframe is a reference
+    (image_urls). Seedance 2.5: dedicated i2v endpoint, keyframe = first frame. */
+function hfRequest(
+  model: string,
+  prompt: string,
+  sec: number,
+  imageUrl: string | null,
+): { endpoint: string; input: Record<string, unknown> } {
+  const duration = Math.max(4, Math.min(30, Math.round(sec)));
+  if (model === "hf-seedance-2-5") {
+    return imageUrl
+      ? { endpoint: "bytedance/seedance-2.5/image-to-video", input: { prompt, image_url: imageUrl, duration, resolution: "720p" } }
+      : { endpoint: "bytedance/seedance-2.5/text-to-video", input: { prompt, duration, resolution: "720p", aspect_ratio: "16:9" } };
+  }
+  return {
+    endpoint: HF_ENDPOINT[model] ?? HF_ENDPOINT["hf-cinema-studio-4"],
+    input: {
+      prompt: imageUrl ? `Open on <<<image_1>>> and keep its subject, palette and composition. ${prompt}` : prompt,
+      duration,
+      resolution: "720p",
+      aspect_ratio: "16:9",
+      ...(imageUrl ? { image_urls: [imageUrl] } : {}),
+    },
+  };
+}
+
+/** Submit; retries only when nothing was queued (429 / concurrency-400 / 5xx). */
+async function hfSubmit(endpoint: string, input: Record<string, unknown>): Promise<HfHandle> {
+  let last = "";
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const res = await fetch(`${HF_API}/${endpoint}`, { method: "POST", headers: hfHeaders(), body: JSON.stringify(input) });
+    if (res.ok) {
+      const q = (await res.json()) as { request_id?: string; status_url?: string };
+      if (!q.request_id) throw new Error("higgsfield: no request_id");
+      return { requestId: q.request_id, statusUrl: q.status_url ?? `${HF_API}/requests/${q.request_id}/status` };
+    }
+    const body = (await res.text()).slice(0, 200);
+    last = `higgsfield ${endpoint} submit ${res.status}: ${body}`;
+    const concurrency = res.status === 429 || (res.status === 400 && /concurrent/i.test(body));
+    if (!(concurrency || res.status >= 500) || attempt === 4) throw new Error(last);
+    await sleep((concurrency ? 8000 : 1000) * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 750));
+  }
+  throw new Error(last);
+}
+
+async function hfPoll(h: HfHandle): Promise<string> {
+  const deadline = Date.now() + POLL_MS;
+  let wait = 2000;
+  for (;;) {
+    if (Date.now() > deadline) throw new Error("higgsfield job timed out");
+    await sleep(wait);
+    wait = Math.min(10_000, Math.round(wait * 1.5));
+    const st = await fetch(h.statusUrl, { headers: hfHeaders() });
+    if (!st.ok) continue;
+    const s = (await st.json()) as { status?: string; error?: string; video?: { url?: string } };
+    if (s.status === "completed") {
+      if (!s.video?.url) throw new Error("higgsfield returned no video url");
+      return s.video.url;
+    }
+    if (s.status === "failed" || s.status === "nsfw" || s.status === "canceled") {
+      throw new Error(`higgsfield job ${s.status}${s.error ? `: ${s.error}` : ""}`);
+    }
+  }
+}
+
+/** Provider-agnostic one-shot generate (multi-segment chains). */
+async function genOnce(model: string, prompt: string, sec: number, imageUrl: string | null): Promise<string> {
+  if (isHfModel(model)) {
+    const req = hfRequest(model, prompt, sec, imageUrl);
+    return hfPoll(await hfSubmit(req.endpoint, req.input));
+  }
+  const endpoint = ENDPOINT_I2V[model] ?? ENDPOINT_I2V["seedance-2-fast"];
+  return falOnce(endpoint, {
+    prompt,
+    duration: model.startsWith("veo") ? `${sec}s` : sec,
+    ...(imageUrl ? { image_url: imageUrl } : {}),
+  });
+}
+
+/** Single Higgsfield generation that survives a poll timeout: the request id
+    is persisted on submit, and a retry resumes it instead of paying twice. */
+async function hfResumable(job: Job, prompt: string, sec: number, imageUrl: string | null): Promise<string> {
+  if (job.provider === "higgsfield" && job.provider_request_id && job.provider_status_url) {
+    try {
+      const st = await fetch(job.provider_status_url, { headers: hfHeaders() });
+      if (st.ok) {
+        const s = (await st.json()) as { status?: string };
+        if (s.status === "queued" || s.status === "in_progress" || s.status === "completed") {
+          console.log(`↩️  ${job.id}: resuming in-flight Higgsfield job ${job.provider_request_id}`);
+          return await hfPoll({ requestId: job.provider_request_id, statusUrl: job.provider_status_url });
+        }
+      }
+    } catch {
+      // fall through to a fresh submit
+    }
+  }
+  const req = hfRequest(job.model, prompt, sec, imageUrl);
+  const h = await hfSubmit(req.endpoint, req.input);
+  await db
+    .from("clip_jobs")
+    .update({ provider: "higgsfield", provider_request_id: h.requestId, provider_status_url: h.statusUrl })
+    .eq("id", job.id);
+  return hfPoll(h);
+}
+
+/** True when this job's persisted Higgsfield request is still queued/running
+    (or already completed but not yet collected). */
+async function hfStillRunning(job: Job): Promise<boolean> {
+  if (job.provider !== "higgsfield" || !job.provider_request_id || !job.provider_status_url) return false;
+  try {
+    const st = await fetch(job.provider_status_url, { headers: hfHeaders() });
+    if (!st.ok) return false;
+    const s = (await st.json()) as { status?: string };
+    return s.status === "queued" || s.status === "in_progress" || s.status === "completed";
+  } catch {
+    return false;
+  }
+}
+
 /** Submit + wait. Used for multi-segment / veo chains (not resume-tracked). */
 async function falOnce(endpoint: string, input: Record<string, unknown>): Promise<string> {
   return falPoll(await falSubmit(endpoint, input));
@@ -156,7 +312,7 @@ async function monthVideoSpend(): Promise<number> {
   const { data } = await db
     .from("cost_ledger")
     .select("usd")
-    .eq("provider", VIDEO_PROVIDER)
+    .in("provider", [VIDEO_PROVIDER, HF_VIDEO_PROVIDER])
     .gte("at", monthStart);
   return (data ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
 }
@@ -173,6 +329,9 @@ type Job = {
   attempts: number;
   fal_request_id: string | null;
   fal_response_url: string | null;
+  provider?: string | null;
+  provider_request_id?: string | null;
+  provider_status_url?: string | null;
   /** Scored provider-selection log (#1) — carried onto the landed asset for
       regenerable-asset provenance. */
   selection?: unknown;
@@ -240,6 +399,12 @@ async function makeStitch(
   const segMax = SEG_MAX[model] ?? 15;
   const count = Math.max(1, Math.ceil(target / segMax));
   const endpoint = ENDPOINT_I2V[model] ?? ENDPOINT_I2V["seedance-2-fast"];
+  if (count === 1 && isHfModel(model)) {
+    const url = await hfResumable({ ...job, model }, prompt, target, imageUrl);
+    const out = join(dir, "out.mp4");
+    await download(url, out);
+    return out;
+  }
   if (count === 1) {
     const url = await genResumable(job, endpoint, {
       prompt,
@@ -253,12 +418,9 @@ async function makeStitch(
   const segPaths: string[] = [];
   let nextImage = imageUrl;
   for (let i = 0; i < count; i++) {
-    const segSec = Math.min(segMax, target - i * segMax);
-    const url = await falOnce(endpoint, {
-      prompt,
-      duration: model.startsWith("veo") ? `${segSec}s` : segSec,
-      ...(nextImage ? { image_url: nextImage } : {}),
-    });
+    // Every segment must meet the model's minimum (Cinema Studio: 4s).
+    const segSec = Math.max(4, Math.min(segMax, target - i * segMax));
+    const url = await genOnce(model, prompt, segSec, nextImage);
     const seg = join(dir, `seg${i}.mp4`);
     await download(url, seg);
     segPaths.push(seg);
@@ -281,11 +443,13 @@ async function makeStitch(
 }
 
 async function processJob(job: Job) {
-  if (!FAL_KEY) throw new Error("FAL_KEY not set in worker");
+  if (isHfModel(job.model) && !HF_CRED) throw new Error("HIGGSFIELD_API_KEY not set in worker");
+  if (!isHfModel(job.model) && !FAL_KEY) throw new Error("FAL_KEY not set in worker");
   const est = (PRICE_PER_SEC[job.model] ?? 0.05) * job.target_sec;
-  if ((await monthVideoSpend()) + est > VIDEO_MONTHLY_CAP_USD) {
+  if (SPEND_CAPS_ENABLED && (await monthVideoSpend()) + est > VIDEO_MONTHLY_CAP_USD) {
     throw new Error(`Monthly video budget reached ($${VIDEO_MONTHLY_CAP_USD})`);
   }
+  const ledgerProvider = ledgerProviderFor(job.model);
 
   const { data: video } = await db.from("videos").select("*").eq("id", job.video_id).maybeSingle();
   if (!video) throw new Error("Video not found");
@@ -347,7 +511,7 @@ async function processJob(job: Job) {
     await db.from("assets").insert({
       video_id: job.video_id,
       kind: "clip",
-      provider: VIDEO_PROVIDER,
+      provider: ledgerProvider,
       storage_path: path,
       beat_index: job.beat_idx,
       meta: { isVideo: true, longClip: true, heroHold: job.hero_hold, method: job.method, model: job.model, durationSec: job.target_sec, ...(spec ? { sourceSpec: spec } : {}), ...(job.selection ? { selection: job.selection } : {}) },
@@ -356,7 +520,7 @@ async function processJob(job: Job) {
     await db.from("cost_ledger").insert({
       project_id: job.project_id,
       video_id: job.video_id,
-      provider: VIDEO_PROVIDER,
+      provider: ledgerProvider,
       description: `Long clip (${job.method}, ${job.model}) — section ${job.beat_idx + 1}`,
       usd: costUsd,
     });
@@ -481,9 +645,34 @@ async function reapStaleRunning() {
   }
 }
 
+/** Parallel lanes (Higgsfield's per-model concurrency is typically 4 — the
+    console shows the account's limit) and a wall-clock budget that leaves
+    headroom under the workflow's 30-minute timeout. The old loop did 4 jobs
+    per run, far too slow for full-coverage (every-section) production. */
+const LANES = Math.max(1, Math.min(16, Number(process.env.CLIP_CONCURRENCY) || 4));
+const RUN_BUDGET_MS = Math.max(60_000, Number(process.env.CLIP_RUN_BUDGET_MS) || 22 * 60_000);
+
 async function main() {
   await reapStaleRunning();
-  for (let i = 0; i < 4; i++) {
+  const deadline = Date.now() + RUN_BUDGET_MS;
+  let processed = 0;
+  await Promise.all(
+    Array.from({ length: LANES }, async () => {
+      // Each lane keeps claiming until the queue is empty or the budget is
+      // spent (a job started near the deadline still has the poll window).
+      while (Date.now() < deadline) {
+        const more = await claimAndRun();
+        if (!more) return;
+        processed++;
+      }
+    }),
+  );
+  if (processed === 0) console.log("No queued clip jobs.");
+}
+
+/** Claim one queued job and run it. Returns false when the queue is empty. */
+async function claimAndRun(): Promise<boolean> {
+  for (let tries = 0; tries < 5; tries++) {
     const { data: job } = await db
       .from("clip_jobs")
       .select("*")
@@ -491,10 +680,7 @@ async function main() {
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
-    if (!job) {
-      if (i === 0) console.log("No queued clip jobs.");
-      return;
-    }
+    if (!job) return false;
     const attempts = Number(job.attempts ?? 0) + 1;
     // Atomic claim: only the worker that flips queued→running owns the job.
     const { data: claimed } = await db
@@ -503,13 +689,17 @@ async function main() {
       .eq("id", job.id)
       .eq("status", "queued")
       .select("id");
-    if (!claimed || claimed.length === 0) continue;
+    if (!claimed || claimed.length === 0) continue; // another lane won it — retry
 
     // Provider fallback chain (#11 / B1): on a RETRY (attempts ≥ 2), walk the
     // scored selection chain to the next-best model instead of hammering the
     // one that just failed. The substitution is logged as a fallback decision.
     let runJob = { ...(job as Job), attempts };
-    if (attempts >= 2) {
+    // A Higgsfield generation still in flight (our poll timed out) keeps
+    // running and bills — resume it on the SAME model rather than falling back
+    // and paying for a second render elsewhere.
+    const hfInFlight = attempts >= 2 && isHfModel(job.model) && (await hfStillRunning(job as Job));
+    if (attempts >= 2 && !hfInFlight) {
       const chain = buildFallbackChain(job.selection as FallbackSelection | null);
       const step = fallbackForAttempt(chain, attempts);
       if (step && step.model && step.model !== job.model) {
@@ -542,7 +732,9 @@ async function main() {
         await maybeFinish(job.video_id);
       }
     }
+    return true;
   }
+  return true; // lost every claim race — others are working; try again
 }
 
 /** Log a model substitution to the decision audit trail (#9) from the worker. */

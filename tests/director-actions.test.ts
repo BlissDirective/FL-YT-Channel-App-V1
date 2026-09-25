@@ -109,6 +109,8 @@ function seededDb(
 }
 
 beforeEach(() => {
+  // Money-rail tests pin cap enforcement for when caps are re-authorized.
+  vi.stubEnv("SPEND_CAPS_ENABLED", "true");
   qcMock.live = false;
   qcMock.score = 0;
   falMock.live = false;

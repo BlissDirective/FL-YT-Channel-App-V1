@@ -17,7 +17,9 @@ import {
 } from "@/lib/adapters/youtube-analytics";
 import { desiredMixShortsPct, effectiveDailyCap } from "@/lib/pipeline/monetization";
 import { sampleFormatDecision } from "@/lib/pipeline/format-bandit";
-import { planCostFor, type AutoTier } from "@/lib/adapters/auto-tiers";
+import { LOCKED_TIER, planCostFor, type AutoTier } from "@/lib/adapters/auto-tiers";
+import { isVideoModelLocked } from "@/lib/adapters/video-models";
+import { spendCapsEnabled } from "@/lib/spend-caps";
 import { activeLibraryCount, isOverLibraryLimit } from "@/lib/db/library";
 import type { FrameCritique } from "@/lib/stick-types";
 import type {
@@ -45,12 +47,15 @@ const CYCLE_MS = 30 * 24 * 60 * 60 * 1000; // 30-day budget cycle
 const DEFAULTS: Required<OperatorConfig> = {
   postingHour: 13, // 1:00 PM
   postingTz: "America/Chicago", // CST/CDT
+  // Videos seeded per day in auto mode — operator-selectable from the Auto
+  // Pilot panel (1..MAX_VIDEOS_PER_DAY). No longer a fixed 1/day ceiling.
   dailyCap: 1,
   mixShortsPct: 0.75,
   shortsCapUsd: 1.0,
   longCapUsd: 4.5,
-  shortsTier: "base",
-  longTier: "economy",
+  // Locked default (Sep 2026): Cinema Studio 4.0 on every section.
+  shortsTier: "cinema",
+  longTier: "cinema",
   shortLenMin: 30,
   shortLenMax: 180,
   longLenMin: 180,
@@ -338,7 +343,11 @@ export async function tickOperator(db: Db, run: OperatorRun, project: Project): 
 
   const cfg = operatorConfig(run);
   const spent = await cycleSpentUsd(db, run);
-  const remaining = Number(run.cycle_budget_usd) - spent;
+  // Spend caps suspended (operator decision) → the 30-day cycle budget no
+  // longer blocks or downgrades production; spend is still tracked.
+  const remaining = spendCapsEnabled()
+    ? Number(run.cycle_budget_usd) - spent
+    : Number.POSITIVE_INFINITY;
   if (remaining <= 0) {
     await alertBudgetOnce(db, run, project, spent);
     return { acted: false, reason: "budget-exhausted", spentUsd: spent };
@@ -516,6 +525,9 @@ async function seedVideo(
   // back to the per-format default. Then downgrade at seed time if the slot's
   // estimate no longer fits the remaining cycle budget (protects day-30 output).
   let tier = ((slot?.tier as AutoTier | undefined) ?? (isShort ? cfg.shortsTier : cfg.longTier)) as AutoTier;
+  // Model lock (operator decision): autonomous production renders every
+  // section on Cinema Studio 4.0 regardless of the calendar's tier mix.
+  if (isVideoModelLocked()) tier = LOCKED_TIER;
   const STEP: AutoTier[] = ["director", "platinum", "premium", "economy", "base"];
   // Phase 8 — earn the premium tiers: spending Premium/Platinum money on an
   // unproven format is the fastest way to burn a cycle budget. Until this

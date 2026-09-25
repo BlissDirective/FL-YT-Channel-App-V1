@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Project, Video } from "@/lib/db/types";
+import { spendCapsEnabled } from "@/lib/spend-caps";
 
 /**
  * The one spend module (Enhancement Plan Phase 2). Every paid provider call
@@ -141,6 +142,9 @@ export async function checkBudget(
   video: Pick<Video, "total_cost_usd">,
   aboutToSpendUsd = 0,
 ): Promise<SpendCheck> {
+  // Operator decision (Sep 2026): per-video + monthly caps are suspended until
+  // re-authorized. Spend is still ledgered; only the blocking check is skipped.
+  if (!spendCapsEnabled()) return { ok: true };
   const perVideo = Number(project.budget?.perVideoUsd ?? Infinity);
   if (Number(video.total_cost_usd) + aboutToSpendUsd > perVideo) {
     return { ok: false, reason: `Per-video budget reached ($${perVideo})` };

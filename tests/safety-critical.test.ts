@@ -103,6 +103,8 @@ const revisionRow = (decided_by: string) => ({
 });
 
 beforeEach(() => {
+  // Money-rail tests pin cap enforcement for when caps are re-authorized.
+  vi.stubEnv("SPEND_CAPS_ENABLED", "true");
   invalidateQualityGateCache();
   qcMock.live = false;
   qcMock.impl = null;

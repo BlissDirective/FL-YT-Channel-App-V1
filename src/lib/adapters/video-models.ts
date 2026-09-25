@@ -17,12 +17,17 @@ export type VideoQuality = "draft" | "standard" | "premium";
 /** How a model wants the `duration` value encoded in the request. */
 export type DurationStyle = "num" | "str" | "secs"; // 8 | "8" | "8s"
 
+/** Which API a model runs on. Absent = fal (every legacy entry). */
+export type VideoProvider = "fal" | "higgsfield";
+
 export type VideoModel = {
   id: string;
   label: string;
-  /** fal endpoint for image-to-video (preferred — from our own keyframe). */
+  /** Provider that serves the endpoints below. Absent = "fal". */
+  provider?: VideoProvider;
+  /** Endpoint for image-to-video (preferred — from our own keyframe). */
   i2v: string;
-  /** fal endpoint for text-to-video (no keyframe). */
+  /** Endpoint for text-to-video (no keyframe). */
   t2v: string;
   usdPerSec: number;
   quality: VideoQuality;
@@ -39,6 +44,44 @@ export type VideoModel = {
 };
 
 export const VIDEO_MODELS: VideoModel[] = [
+  {
+    // LOCKED DEFAULT (operator decision, Sep 2026): every AI-video section —
+    // hero and b-roll — renders on Cinema Studio 4.0. One endpoint serves both
+    // modes: text-to-video without references, reference-to-video when the
+    // keyframe rides image_urls. 4–30s native, so long sections need no
+    // extend-chaining. Price is Higgsfield's "from" rate; the adapter ledgers
+    // the exact /estimate quote when available.
+    id: "hf-cinema-studio-4",
+    label: "Higgsfield Cinema Studio 4.0",
+    provider: "higgsfield",
+    i2v: "higgsfield/cinema-studio/4.0",
+    t2v: "higgsfield/cinema-studio/4.0",
+    usdPerSec: 0.2057,
+    quality: "premium",
+    minDurationSec: 4,
+    maxDurationSec: 30,
+    durationStyle: "num",
+    audio: true,
+    bestFor: "Locked default — cinematic hero & b-roll, camera/lens/genre controls, 4–30s",
+  },
+  {
+    // The other operator-approved lock choice (per project). True
+    // image-to-video from our keyframe (image_url = first frame) or
+    // text-to-video; 4–30s. Priced at list ($0.2057/s); the promo rate
+    // ($0.144/s until 2026-10-01) is picked up by the /estimate quote.
+    id: "hf-seedance-2-5",
+    label: "Higgsfield Seedance 2.5",
+    provider: "higgsfield",
+    i2v: "bytedance/seedance-2.5/image-to-video",
+    t2v: "bytedance/seedance-2.5/text-to-video",
+    usdPerSec: 0.2057,
+    quality: "premium",
+    minDurationSec: 4,
+    maxDurationSec: 30,
+    durationStyle: "num",
+    audio: true,
+    bestFor: "Lock option — keyframe-faithful i2v, native audio, 4–30s",
+  },
   {
     id: "seedance-2-fast",
     label: "Seedance 2.0 Fast",
@@ -144,6 +187,38 @@ export function getVideoModel(id: string): VideoModel | undefined {
   return VIDEO_MODELS.find((m) => m.id === id);
 }
 
+export function modelProvider(model: Pick<VideoModel, "provider">): VideoProvider {
+  return model.provider ?? "fal";
+}
+
+// ── Locked defaults (operator decision) ───────────────────────────────
+
+/** The model every AI-video section (hero + b-roll) uses while the lock is on,
+    unless the project picked the other approved lock model. */
+export const LOCKED_VIDEO_MODEL_ID = "hf-cinema-studio-4";
+
+/** Models a project may lock to (operator decision: Cinema Studio or Seedance 2.5). */
+export const LOCKABLE_VIDEO_MODEL_IDS = ["hf-cinema-studio-4", "hf-seedance-2-5"] as const;
+
+/** The project's locked model — its preference when it is an approved lock
+    model, else the global default (Cinema Studio 4.0). */
+export function resolveLockedModelId(preferred?: string | null): string {
+  return preferred && (LOCKABLE_VIDEO_MODEL_IDS as readonly string[]).includes(preferred)
+    ? preferred
+    : LOCKED_VIDEO_MODEL_ID;
+}
+
+/** fal models the lock falls back to (in order) when Higgsfield is down or a
+    Higgsfield job fails. Cheapest-reliable first so an outage can't run up a
+    premium bill on the fallback provider. */
+export const LOCKED_FALLBACK_MODEL_IDS = ["seedance-2", "kling-2-5-turbo", "seedance-2-fast"];
+
+/** The model lock is ON unless explicitly disabled (VIDEO_MODEL_LOCK=off).
+    Custom-tier runs still honour the operator's per-run picks. */
+export function isVideoModelLocked(env: Record<string, string | undefined> = process.env): boolean {
+  return (env.VIDEO_MODEL_LOCK ?? "on").toLowerCase() !== "off";
+}
+
 /** Snap a requested duration to what the model actually accepts. */
 export function clampDuration(model: VideoModel, n: number): number {
   if (model.durations?.length) {
@@ -163,11 +238,24 @@ export function encodeDuration(model: VideoModel, n: number): string | number {
   return d;
 }
 
-/** Portfolio-wide monthly ceiling on AI video generation (operator-set). */
+/** Portfolio-wide monthly ceiling on AI video generation (operator-set).
+    NOTE: only enforced while spend caps are enabled — see src/lib/spend-caps.ts
+    (suspended by default until the operator re-authorizes them). */
 export const VIDEO_MONTHLY_CAP_USD = 100;
 
-/** Ledger provider tag for generated video, used by the cap query. */
+/** Ledger provider tag for fal-generated video. */
 export const VIDEO_PROVIDER = "fal-video";
+
+/** Ledger provider tag for Higgsfield-generated video. */
+export const HF_VIDEO_PROVIDER = "higgsfield-video";
+
+/** Every ledger tag that counts as AI video spend (cap + dashboard queries). */
+export const VIDEO_LEDGER_PROVIDERS = [VIDEO_PROVIDER, HF_VIDEO_PROVIDER];
+
+/** The ledger tag for a clip made by this model. */
+export function videoLedgerProvider(model: Pick<VideoModel, "provider">): string {
+  return modelProvider(model) === "higgsfield" ? HF_VIDEO_PROVIDER : VIDEO_PROVIDER;
+}
 
 export function estimateClipCost(model: VideoModel, durationSec: number): number {
   return Math.round(model.usdPerSec * clampDuration(model, durationSec) * 100) / 100;

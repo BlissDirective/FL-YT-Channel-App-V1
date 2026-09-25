@@ -3,6 +3,7 @@ import { requireCronAuth } from "@/lib/cron-auth";
 import { runOptimizerAllProjects } from "@/lib/pipeline/optimizer";
 import { isKillSwitchOn } from "@/lib/pipeline/engine";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { leanSkip, nonCriticalAiAllowed } from "@/lib/ai-spend";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -16,6 +17,10 @@ async function handle(request: NextRequest) {
     // Emergency stop covers the paid weekly optimizer too.
     if (await isKillSwitchOn(createAdminClient())) {
       return NextResponse.json({ ok: true, skipped: "kill-switch" });
+    }
+    // Lean Claude profile: the weekly optimizer is non-critical — paused.
+    if (!nonCriticalAiAllowed("optimizer")) {
+      return NextResponse.json(leanSkip("optimizer"));
     }
     const { created, projects } = await runOptimizerAllProjects();
     return NextResponse.json({ ok: true, created, projects });

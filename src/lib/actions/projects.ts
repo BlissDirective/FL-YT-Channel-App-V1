@@ -154,6 +154,12 @@ export async function updateProject(
       voice_id: String(formData.get("voice_id") ?? "") || null,
       voice_name: String(formData.get("voice_name") ?? "") || null,
       preferred_song_model: String(formData.get("preferred_song_model") ?? "") || null,
+      // Only the two operator-approved lock models are accepted.
+      preferred_video_model: ["hf-cinema-studio-4", "hf-seedance-2-5"].includes(
+        String(formData.get("preferred_video_model") ?? ""),
+      )
+        ? String(formData.get("preferred_video_model"))
+        : "hf-cinema-studio-4",
       autonomy: parseAutonomy(formData),
       budget: parseBudget(formData),
       rpm_usd: Number(formData.get("rpm_usd") ?? 2),

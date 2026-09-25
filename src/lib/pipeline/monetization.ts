@@ -62,6 +62,11 @@ export function mixReason(strategy?: OperatorStrategy): string {
  * Daily cadence cap. Off by default (steady 1/day). When ramp is enabled it can
  * rise as the channel matures + proves out, hard-capped for ban-safety.
  */
+/** Upper bound for the operator-selected videos/day in auto mode. The
+    auto-pilot cron ticks every 30 min and each tick seeds one video, so
+    48/day is the real ceiling. */
+export const MAX_VIDEOS_PER_DAY = 48;
+
 export function effectiveDailyCap(opts: {
   baseCap: number;
   maxCap: number;
@@ -72,5 +77,7 @@ export function effectiveDailyCap(opts: {
   if (!opts.rampEnabled) return opts.baseCap;
   let cap = opts.baseCap;
   if (opts.ageDays >= 21 && opts.subs >= 100) cap = Math.max(cap, 2);
-  return Math.min(opts.maxCap, cap);
+  // The operator's chosen videos/day is a floor — the ramp may only raise it
+  // (bounded by maxCap), never pull a selected count back down.
+  return Math.max(opts.baseCap, Math.min(opts.maxCap, cap));
 }

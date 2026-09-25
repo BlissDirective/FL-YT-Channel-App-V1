@@ -4,6 +4,7 @@ import { runIntelligenceAllProjects } from "@/lib/pipeline/intelligence";
 import { runOperatorSignalMining } from "@/lib/pipeline/operator-signal";
 import { isKillSwitchOn } from "@/lib/pipeline/engine";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { leanSkip, nonCriticalAiAllowed } from "@/lib/ai-spend";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -17,6 +18,10 @@ async function handle(request: NextRequest) {
     // Emergency stop covers paid daily scouting too.
     if (await isKillSwitchOn(createAdminClient())) {
       return NextResponse.json({ ok: true, skipped: "kill-switch" });
+    }
+    // Lean Claude profile: daily scouting is non-critical — paused.
+    if (!nonCriticalAiAllowed("intelligence")) {
+      return NextResponse.json(leanSkip("intelligence"));
     }
     const { created, projects } = await runIntelligenceAllProjects();
     // Operator-signal learning (Director Mode §7.2): mine the decision ledger

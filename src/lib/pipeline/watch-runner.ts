@@ -5,6 +5,7 @@ import { getQualityGateConfig } from "@/lib/pipeline/quality-gates";
 import { recordCost as ledgerRecordCost } from "@/lib/pipeline/ledger";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { judgeCompetitiveFit, type CompetitiveContext } from "@/lib/adapters/competitive-judge";
+import { nonCriticalAiAllowed } from "@/lib/ai-spend";
 import { assessTransitions, isTemporalLive } from "@/lib/adapters/transition-critic";
 import {
   assembleVerdict,
@@ -218,7 +219,9 @@ export async function runWatchGate(
     // autofix pass.
     let competitive: CompetitiveInput | null = null;
     if (opts?.competitive) {
-      try {
+      // Lean Claude profile pauses the LLM competitive judge (non-critical);
+      // the free structural + temporal passes still run.
+      if (nonCriticalAiAllowed("competitive-judge")) try {
         competitive = await judgeCompetitive(db, video, project, scriptBeats, inputs.beats.length, cfg.competitiveFloor);
       } catch {
         /* competitive judge is best-effort */

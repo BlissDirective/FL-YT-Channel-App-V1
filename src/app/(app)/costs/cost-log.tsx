@@ -36,7 +36,9 @@ function spendType(provider: string): string {
   if (p.includes("claude") || p.includes("anthropic")) return "Script · Claude";
   if (p.includes("gemini")) return "Video intel · Gemini";
   if (p.includes("eleven")) return "Voiceover";
-  if (p.includes("fal-video")) return "AI video clip";
+  if (p.includes("higgsfield-video")) return "AI video clip · Higgsfield";
+  if (p.includes("higgsfield")) return "Stills / avatar · Higgsfield";
+  if (p.includes("fal-video")) return "AI video clip · fal";
   if (p.includes("fal")) return "Video / image gen";
   if (p.includes("pexels") || p.includes("pixabay")) return "Stock footage";
   if (p.includes("youtube")) return "Research / stats";

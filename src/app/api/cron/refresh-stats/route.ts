@@ -6,6 +6,7 @@ import { runOutcomeAuditAllProjects } from "@/lib/pipeline/outcome-audit";
 import { runLibrarian } from "@/lib/pipeline/memory-service";
 import { runOutcomeLoop } from "@/lib/pipeline/exemplars";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { nonCriticalAiAllowed } from "@/lib/ai-spend";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -43,7 +44,8 @@ async function handle(request: NextRequest) {
     // (≥3-channel technique lessons) + a decayed-lesson retire sweep.
     let librarian = { promotedGlobal: 0, retired: 0, synthesized: 0 };
     try {
-      librarian = await runLibrarian(createAdminClient());
+      // Lean Claude profile: lesson synthesis is non-critical — paused.
+      if (nonCriticalAiAllowed("librarian")) librarian = await runLibrarian(createAdminClient());
     } catch (err) {
       console.error("librarian pass failed:", err);
     }

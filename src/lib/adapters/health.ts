@@ -47,8 +47,15 @@ export function getServiceHealth(): ServiceHealth[] {
       required: false,
     },
     {
+      key: "higgsfield",
+      label: "Higgsfield (primary: Cinema Studio 4.0 video, SOUL stills, Genjutsu avatars)",
+      phase: "5",
+      present: has("HIGGSFIELD_API_KEY") || has("HF_CREDENTIALS") || (has("HF_API_KEY_ID") && has("HF_API_KEY_SECRET")),
+      required: false,
+    },
+    {
       key: "fal",
-      label: "fal.ai (video clips, thumbnails)",
+      label: "fal.ai (fallback video/stills, TTS, songs, lip-sync avatars)",
       phase: "5",
       present: has("FAL_KEY"),
       required: false,
@@ -81,6 +88,7 @@ export function getServiceHealth(): ServiceHealth[] {
 export const TESTABLE_SERVICES = [
   "anthropic",
   "elevenlabs",
+  "higgsfield",
   "fal",
   "pexels",
   "youtube",

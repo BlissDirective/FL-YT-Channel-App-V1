@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedMediaUrl } from "@/lib/storage";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
 import { COPILOT_AUTO_APPROVE_SCORE } from "@/lib/adapters/qc";
-import { VIDEO_PROVIDER } from "@/lib/adapters/video-models";
+import { VIDEO_LEDGER_PROVIDERS } from "@/lib/adapters/video-models";
 import type {
   AnalyticsSnapshot,
   Asset,
@@ -525,7 +525,7 @@ export async function getMonthlyVideoSpendUsd(): Promise<number> {
   const { data } = await supabase
     .from("cost_ledger")
     .select("usd")
-    .eq("provider", VIDEO_PROVIDER)
+    .in("provider", VIDEO_LEDGER_PROVIDERS)
     .gte("at", monthStart);
   return (data ?? []).reduce((s, r) => s + Number(r.usd ?? 0), 0);
 }

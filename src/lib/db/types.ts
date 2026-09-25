@@ -108,6 +108,13 @@ export type Project = {
   /** Channel default song/voice model for sing-along videos (re-lockable).
       Null → the built-in DEFAULT_SONG_MODEL_ID. */
   preferred_song_model?: string | null;
+  /** Locked AI-video model for every section (operator decision, Sep 2026):
+      'hf-cinema-studio-4' (default when null) or 'hf-seedance-2-5'. */
+  preferred_video_model?: string | null;
+  /** Avatar engine. 'genjutsu' = Higgsfield Genjutsu motion transfer driven by
+      the channel's existing locked-avatar videos (The Silicon Layer only).
+      Null = the fal talking-avatar models. */
+  avatar_engine?: string | null;
   /** Optimizer proposals auto-apply as a canary template version (Phase 4.3). */
   auto_apply_insights: boolean;
   /** Which auto-fix strategy runs for this channel (off until chosen). */

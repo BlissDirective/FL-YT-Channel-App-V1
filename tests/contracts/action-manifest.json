@@ -111,6 +111,7 @@
     "stopOperatorAction(projectId: string)",
     "skipCalendarSlotAction(projectId: string, day: number)",
     "regenerateCalendarAction(projectId: string)",
+    "setOperatorDailyCapAction(projectId: string, perDay: number)",
     "setOperatorAutonomyAction(projectId: string, mode: \"copilot\" | \"autopilot\",)"
   ],
   "pipeline": [

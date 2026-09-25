@@ -298,6 +298,21 @@ export function SettingsForm({
           )}
         </Field>
 
+        <Field label="Video model (locked for every section)">
+          <select
+            name="preferred_video_model"
+            defaultValue={project.preferred_video_model ?? "hf-cinema-studio-4"}
+            className="input"
+          >
+            <option value="hf-cinema-studio-4">Higgsfield Cinema Studio 4.0 — cinematic, camera/lens controls (default)</option>
+            <option value="hf-seedance-2-5">Higgsfield Seedance 2.5 — keyframe-faithful image-to-video</option>
+          </select>
+          <p className="mt-1 text-xs text-muted">
+            Every AI-video section (hero and b-roll) renders on this model. fal
+            models only step in automatically if Higgsfield fails or is down.
+          </p>
+        </Field>
+
         <Field label="Preferred song model (sing-along channels)">
           <select
             name="preferred_song_model"

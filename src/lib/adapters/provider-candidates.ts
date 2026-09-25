@@ -3,7 +3,14 @@ import {
 } from "@studio/core";
 import type { AutoTier } from "./auto-tiers";
 import type { CustomSpec } from "@/lib/db/types";
-import { VIDEO_MODELS, getVideoModel, type VideoModel } from "./video-models";
+import {
+  VIDEO_MODELS,
+  getVideoModel,
+  isVideoModelLocked,
+  LOCKED_FALLBACK_MODEL_IDS,
+  resolveLockedModelId,
+  type VideoModel,
+} from "./video-models";
 
 /**
  * Client-safe half of the scored provider selector (#1): the pure mapping from
@@ -15,6 +22,7 @@ import { VIDEO_MODELS, getVideoModel, type VideoModel } from "./video-models";
 
 /** Provider family for continuity + health keying (derived from the model id). */
 export function modelFamily(id: string): string {
+  if (id.startsWith("hf-")) return "higgsfield";
   if (id.startsWith("seedance")) return "seedance";
   if (id.startsWith("kling")) return "kling";
   if (id.startsWith("veo")) return "veo";
@@ -55,7 +63,12 @@ export function toCandidate(m: VideoModel): ProviderCandidate {
 
 /** The candidate pool a tier draws from (keeps Economy cheap; premium tiers can
     reach the hero models). Always includes the tier's own default. */
-export function tierCandidateIds(tier: AutoTier, custom?: CustomSpec): string[] {
+export function tierCandidateIds(tier: AutoTier, custom?: CustomSpec, lockedModelId?: string | null): string[] {
+  // Model lock: the project's locked Higgsfield model leads every AI tier; the
+  // fal fallbacks follow so the scored chain can walk to them on an outage.
+  if (tier !== "custom" && tier !== "base" && isVideoModelLocked()) {
+    return [resolveLockedModelId(lockedModelId), ...LOCKED_FALLBACK_MODEL_IDS];
+  }
   switch (tier) {
     case "economy":
       return ["seedance-2-fast", "ltx-2"];
@@ -64,6 +77,8 @@ export function tierCandidateIds(tier: AutoTier, custom?: CustomSpec): string[] 
     case "platinum":
     case "director":
       return ["seedance-2-fast", "seedance-2", "kling-2-5-turbo", "ltx-2", "wan-2-2", "veo-3-1"];
+    case "cinema":
+      return [resolveLockedModelId(lockedModelId), ...LOCKED_FALLBACK_MODEL_IDS];
     case "custom":
       return [custom?.heroModel, custom?.brollModel].filter((x): x is string => Boolean(x));
     default:

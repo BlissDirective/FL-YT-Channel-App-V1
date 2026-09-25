@@ -43,6 +43,8 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           FAL_KEY: ${{ secrets.FAL_KEY || secrets.FAL_AI_FULL_ACCESS_DEVELOPMENT_KEY }}
+          # Higgsfield (primary visual provider) — combined KEY_ID:KEY_SECRET.
+          HIGGSFIELD_API_KEY: ${{ secrets.HIGGSFIELD_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           STUDIO_MCP_TOKEN: ${{ secrets.STUDIO_MCP_TOKEN }}
@@ -101,6 +103,7 @@ jobs:
           upsert ANTHROPIC_API_KEY "$ANTHROPIC_API_KEY"
           upsert ELEVENLABS_API_KEY "$ELEVENLABS_API_KEY"
           upsert FAL_KEY "$FAL_KEY"
+          upsert HIGGSFIELD_API_KEY "$HIGGSFIELD_API_KEY"
           upsert PEXELS_API_KEY "$PEXELS_API_KEY"
           upsert CRON_SECRET "$CRON_SECRET"
           upsert STUDIO_MCP_TOKEN "$STUDIO_MCP_TOKEN"
