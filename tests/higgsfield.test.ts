@@ -156,3 +156,31 @@ describe("Seedance 2.5 request", () => {
     expect(cs.endpoint).toBe("higgsfield/cinema-studio/4.0");
   });
 });
+
+describe("channel Cinema Studio defaults", () => {
+  it("whitelists enums and palette slugs, dropping anything that would 422", async () => {
+    const { sanitizeCinemaControls } = await import("@/lib/adapters/higgsfield");
+    expect(
+      sanitizeCinemaControls({
+        genre: "epic",
+        pacing: "warp-speed",
+        camera_lens: "anamorphic",
+        color_palette: "twilight-fable",
+        era: 1990,
+        evil: "x",
+      }),
+    ).toEqual({ genre: "epic", camera_lens: "anamorphic", color_palette: "twilight-fable" });
+    expect(sanitizeCinemaControls({ color_palette: "Robert'); DROP" })).toEqual({});
+    expect(sanitizeCinemaControls(null)).toEqual({});
+  });
+
+  it("reach Cinema Studio requests but never Seedance 2.5", async () => {
+    const { higgsfieldVideoRequest } = await import("@/lib/adapters/higgsfield");
+    const { getVideoModel } = await import("@/lib/adapters/video-models");
+    const controls = { genre: "epic" as const, color_palette: "static-noon" };
+    const cs = higgsfieldVideoRequest(getVideoModel("hf-cinema-studio-4")!, { prompt: "p", durationSec: 8, controls });
+    expect(cs.input).toMatchObject(controls);
+    const sd = higgsfieldVideoRequest(getVideoModel("hf-seedance-2-5")!, { prompt: "p", durationSec: 8, controls });
+    expect(sd.input).not.toHaveProperty("genre");
+  });
+});

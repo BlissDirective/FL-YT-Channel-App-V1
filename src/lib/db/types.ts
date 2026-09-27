@@ -8,6 +8,9 @@ export type BrandKit = {
   secondary: string;
   thumbnailStyle: string;
   font: string;
+  /** Channel-wide Higgsfield Cinema Studio defaults (genre, pacing,
+      camera_model, camera_lens, era, color_palette). Sanitized before use. */
+  cinemaControls?: Record<string, string>;
 };
 
 /** Operator-chosen recipe for the Custom Full-Auto tier. Hero beats bookend

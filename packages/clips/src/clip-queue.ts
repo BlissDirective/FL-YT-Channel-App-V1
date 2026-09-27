@@ -142,11 +142,32 @@ function hfHeaders() {
 /** Endpoint + body per Higgsfield model (mirrors higgsfieldVideoRequest in
     src/lib/adapters/higgsfield.ts). Cinema Studio: the keyframe is a reference
     (image_urls). Seedance 2.5: dedicated i2v endpoint, keyframe = first frame. */
+const CINEMA_ENUMS: Record<string, readonly string[]> = {
+  genre: ["epic", "drama", "noir", "comedy", "horror", "action"],
+  pacing: ["chaotic", "dynamic", "calm", "single-shot"],
+  camera_model: ["modern", "35mm-film", "8mm-film", "dv-camcorder"],
+  camera_lens: ["clean-sharp", "anamorphic", "vintage-anamorphic", "warm-vintage", "halation-vintage"],
+  era: ["1960s", "1980s", "1990s", "2000s", "2020s"],
+};
+
+/** Whitelist the channel's Cinema Studio defaults (mirrors
+    sanitizeCinemaControls in src/lib/adapters/higgsfield.ts). */
+function cinemaControls(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof v !== "string" || !v) continue;
+    if (k === "color_palette" ? /^[a-z0-9-]{2,60}$/.test(v) : CINEMA_ENUMS[k]?.includes(v)) out[k] = v;
+  }
+  return out;
+}
+
 function hfRequest(
   model: string,
   prompt: string,
   sec: number,
   imageUrl: string | null,
+  controls: Record<string, string> = {},
 ): { endpoint: string; input: Record<string, unknown> } {
   const duration = Math.max(4, Math.min(30, Math.round(sec)));
   if (model === "hf-seedance-2-5") {
@@ -162,6 +183,7 @@ function hfRequest(
       resolution: "720p",
       aspect_ratio: "16:9",
       ...(imageUrl ? { image_urls: [imageUrl] } : {}),
+      ...controls,
     },
   };
 }
@@ -206,9 +228,15 @@ async function hfPoll(h: HfHandle): Promise<string> {
 }
 
 /** Provider-agnostic one-shot generate (multi-segment chains). */
-async function genOnce(model: string, prompt: string, sec: number, imageUrl: string | null): Promise<string> {
+async function genOnce(
+  model: string,
+  prompt: string,
+  sec: number,
+  imageUrl: string | null,
+  controls: Record<string, string> = {},
+): Promise<string> {
   if (isHfModel(model)) {
-    const req = hfRequest(model, prompt, sec, imageUrl);
+    const req = hfRequest(model, prompt, sec, imageUrl, controls);
     return hfPoll(await hfSubmit(req.endpoint, req.input));
   }
   const endpoint = ENDPOINT_I2V[model] ?? ENDPOINT_I2V["seedance-2-fast"];
@@ -236,7 +264,7 @@ async function hfResumable(job: Job, prompt: string, sec: number, imageUrl: stri
       // fall through to a fresh submit
     }
   }
-  const req = hfRequest(job.model, prompt, sec, imageUrl);
+  const req = hfRequest(job.model, prompt, sec, imageUrl, job.cinema ?? {});
   const h = await hfSubmit(req.endpoint, req.input);
   await db
     .from("clip_jobs")
@@ -332,6 +360,8 @@ type Job = {
   provider?: string | null;
   provider_request_id?: string | null;
   provider_status_url?: string | null;
+  /** The channel's Cinema Studio defaults, attached in processJob (not a DB column). */
+  cinema?: Record<string, string>;
   /** Scored provider-selection log (#1) — carried onto the landed asset for
       regenerable-asset provenance. */
   selection?: unknown;
@@ -420,7 +450,7 @@ async function makeStitch(
   for (let i = 0; i < count; i++) {
     // Every segment must meet the model's minimum (Cinema Studio: 4s).
     const segSec = Math.max(4, Math.min(segMax, target - i * segMax));
-    const url = await genOnce(model, prompt, segSec, nextImage);
+    const url = await genOnce(model, prompt, segSec, nextImage, job.cinema ?? {});
     const seg = join(dir, `seg${i}.mp4`);
     await download(url, seg);
     segPaths.push(seg);
@@ -464,6 +494,7 @@ async function processJob(job: Job) {
   const beat = ((script?.beats ?? []) as { idx: number; visualPrompt: string }[]).find((b) => b.idx === job.beat_idx);
   if (!beat) throw new Error("Section not found");
   const style = (project?.brand_kit as { thumbnailStyle?: string })?.thumbnailStyle ?? "cinematic";
+  const controls = cinemaControls((project?.brand_kit as { cinemaControls?: unknown })?.cinemaControls);
   // VCE V1 — condition the clip prompt on the Visual Bible too (parity with stills).
   const bible = (video as { visual_bible?: Parameters<typeof buildVisualPrompt>[2] }).visual_bible ?? null;
   const prompt = buildVisualPrompt(beat.visualPrompt, style, bible);
@@ -486,7 +517,7 @@ async function processJob(job: Job) {
     const file =
       job.method === "veo-extend"
         ? await makeVeoExtend(prompt, imageUrl, job.target_sec, dir)
-        : await makeStitch(job, prompt, job.model, imageUrl, job.target_sec, job.method === "stitch-seamless", dir);
+        : await makeStitch({ ...job, cinema: controls }, prompt, job.model, imageUrl, job.target_sec, job.method === "stitch-seamless", dir);
 
     // Source-media inspection (#7): probe the generated clip and REJECT a
     // malformed/truncated render (no video stream, zero-length, cut to under

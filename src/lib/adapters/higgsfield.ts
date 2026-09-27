@@ -232,7 +232,36 @@ export type CinemaStudioControls = {
   camera_model?: "modern" | "35mm-film" | "8mm-film" | "dv-camcorder";
   camera_lens?: "clean-sharp" | "anamorphic" | "vintage-anamorphic" | "warm-vintage" | "halation-vintage";
   era?: "1960s" | "1980s" | "1990s" | "2000s" | "2020s";
+  /** Named look preset (e.g. "twilight-fable", "static-noon"). */
+  color_palette?: string;
 };
+
+const CINEMA_ENUMS: Record<string, readonly string[]> = {
+  genre: ["epic", "drama", "noir", "comedy", "horror", "action"],
+  pacing: ["chaotic", "dynamic", "calm", "single-shot"],
+  camera_model: ["modern", "35mm-film", "8mm-film", "dv-camcorder"],
+  camera_lens: ["clean-sharp", "anamorphic", "vintage-anamorphic", "warm-vintage", "halation-vintage"],
+  era: ["1960s", "1980s", "1990s", "2000s", "2020s"],
+};
+
+/**
+ * Whitelist a channel's stored Cinema Studio defaults
+ * (projects.brand_kit.cinemaControls) so a bad value can never 422 a paid
+ * request: unknown keys/values are dropped; color_palette must be a slug.
+ */
+export function sanitizeCinemaControls(raw: unknown): CinemaStudioControls {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof v !== "string" || !v) continue;
+    if (k === "color_palette") {
+      if (/^[a-z0-9-]{2,60}$/.test(v)) out[k] = v;
+    } else if (CINEMA_ENUMS[k]?.includes(v)) {
+      out[k] = v;
+    }
+  }
+  return out as CinemaStudioControls;
+}
 
 /** Build the Cinema Studio request. With a keyframe it becomes
     reference-to-video: the still rides `image_urls` and the prompt anchors it
@@ -266,7 +295,14 @@ export function cinemaStudioInput(opts: {
     image-to-video endpoint where the keyframe is the literal first frame. */
 export function higgsfieldVideoRequest(
   model: VideoModel,
-  opts: { prompt: string; durationSec: number; imageUrl?: string; aspectRatio?: "16:9" | "9:16" },
+  opts: {
+    prompt: string;
+    durationSec: number;
+    imageUrl?: string;
+    aspectRatio?: "16:9" | "9:16";
+    /** Channel look defaults — Cinema Studio only (Seedance has no such controls). */
+    controls?: CinemaStudioControls;
+  },
 ): { endpoint: string; input: Record<string, unknown> } {
   const duration = Math.max(4, Math.min(30, Math.round(opts.durationSec)));
   if (model.id === "hf-seedance-2-5") {
@@ -287,6 +323,7 @@ export function higgsfieldVideoRequest(
       durationSec: duration,
       imageUrls: opts.imageUrl ? [opts.imageUrl] : [],
       aspectRatio: opts.aspectRatio,
+      controls: opts.controls,
     }),
   };
 }
@@ -298,6 +335,7 @@ export async function generateHiggsfieldVideo(opts: {
   imageUrl?: string;
   durationSec: number;
   aspectRatio?: "16:9" | "9:16";
+  controls?: CinemaStudioControls;
   timeoutMs?: number;
 }): Promise<{ video: Buffer; costUsd: number; durationSec: number; requestId: string }> {
   const durationSec = clampDuration(opts.model, opts.durationSec);

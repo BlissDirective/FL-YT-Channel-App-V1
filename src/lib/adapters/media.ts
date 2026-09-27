@@ -10,6 +10,7 @@ import {
   generateHiggsfieldVideo,
   HiggsfieldTimeoutError,
   isHiggsfieldLive,
+  type CinemaStudioControls,
 } from "./higgsfield";
 import { providerOutage } from "@/lib/pipeline/provider-health";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -58,13 +59,16 @@ export async function generateVideo(opts: {
   imageUrl?: string;
   durationSec: number;
   timeoutMs?: number;
+  /** Channel Cinema Studio defaults (brand_kit.cinemaControls), sanitized. */
+  controls?: CinemaStudioControls;
 }): Promise<GeneratedVideo> {
   if (modelProvider(opts.model) === "higgsfield") {
     if (!isHiggsfieldLive()) throw new Error("Higgsfield model selected but HIGGSFIELD_API_KEY is not set");
     const out = await generateHiggsfieldVideo(opts);
     return { video: out.video, costUsd: out.costUsd, durationSec: out.durationSec, provider: "higgsfield" };
   }
-  const out = await falGenerateVideo(opts);
+  const { controls: _controls, ...falOpts } = opts;
+  const out = await falGenerateVideo(falOpts);
   return { ...out, provider: "fal" };
 }
 
