@@ -7,6 +7,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 - A section over 30s is split into ceil(sec/30) balanced generations of at least 4s, chained seamlessly: the last frame of segment N becomes the keyframe of segment N+1.
 - Cost uses Higgsfield Cinema Studio 4.0 at $0.2057/s, 720p.
 - Long-form runtime = sections + the reusable 5s ident + the reusable 18s outro. Both are generated once per channel, so they are not in the per-video cost.
+- Inside a long-form entry, `S1…S12` means that entry's sections, not Short IDs. Inside a Short, `B1…` means its beats.
 - `‖` marks a deliberate hard cut. Every other section boundary uses the Remotion Earth-globe transition (Bible §4.3).
 - **Default Cinema controls:** genre `epic`, pacing `calm`, camera_model `modern`, camera_lens `anamorphic`, era `2020s`, color_palette `static-noon`, 16:9 for long-form and 9:16 for Shorts. Each entry lists only its overrides.
 - `[verify]` means the fact must be checked against a primary source before scripting; treat it as unverified [U]. `SPECULATIVE` and `MODEL EST.` must appear on screen (Bible §9).
@@ -17,7 +18,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 ## Part A: Long-form (5–15 min, 16:9)
 
 ### L01: What If the Moon Disappeared?
-**Alt title:** The Night the Moon Vanished: Hour by Hour · **Series:** WHAT IF · **Runtime:** ~9:03 (520s sections + ident + outro)
+**Alt title:** The Night the Moon Vanished: Hour by Hour · **Series:** WHAT IF · **Runtime:** ~11:08 (645s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "At 9:41 tonight, the Moon is gone. No explosion. No flash. Just — gone. And the oceans notice first."
 
@@ -25,18 +26,18 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Cold open: the empty sky** `T−0→T+0`, 25s (0:00–0:25): coastal night, Moon present then absent
-2. ‖ **Premise card + what the Moon does for us** `T−0`, 40s (0:25–1:05): orbital Earth-Moon system
-3. ‖ **First night: darkness and the tides** `T+1 hr`, 60s (1:05–2:05): moonless coast, stars explode in visibility
-4. **Tides shrink to one-third (solar only)** `T+1 day`, 60s (2:05–3:05): harbors, tidal flats never refill
-5. **Nocturnal life confused: corals, turtles, moths** `T+1 month`, 50s (3:05–3:55): macro reef spawning cue lost
-6. **Fewer eclipses, oceans re-balance** `T+1 yr`, 45s (3:55–4:40): orbital solar-tide bulge
-7. **Axial tilt starts to wander (chaotic obliquity)** `T+100K yrs`, 70s (4:40–5:50): Seedance tilt diagram
-8. **Climate swings: ice ages at odd latitudes** `T+500K yrs`, 60s (5:50–6:50): ice advancing on tropics edge
-9. **New equilibrium Earth** `T+1M yrs`, 55s (6:50–7:45): strange-seasoned planet
-10. ‖ **Twist: the day still lengthens (solar tides) — Moon was our brake** `Reflection`, 35s (7:45–8:20): time-lapse sun
-11. **CTA + next question** `End`, 20s (8:20–8:40): Earth turning
+2. ‖ **Premise card + what the Moon does for us** `T−0`, 50s (0:25–1:15): orbital Earth-Moon system
+3. ‖ **First night: darkness and the tides** `T+1 hr`, 75s (1:15–2:30): moonless coast, stars explode in visibility
+4. **Tides shrink to one-third (solar only)** `T+1 day`, 75s (2:30–3:45): harbors, tidal flats never refill
+5. **Nocturnal life confused: corals, turtles, moths** `T+1 month`, 65s (3:45–4:50): macro reef spawning cue lost
+6. **Fewer eclipses, oceans re-balance** `T+1 yr`, 55s (4:50–5:45): orbital solar-tide bulge
+7. **Axial tilt starts to wander (chaotic obliquity)** `T+100K yrs`, 90s (5:45–7:15): Seedance tilt diagram
+8. **Climate swings: ice ages at odd latitudes** `T+500K yrs`, 75s (7:15–8:30): ice advancing on tropics edge
+9. **New equilibrium Earth** `T+1M yrs`, 70s (8:30–9:40): strange-seasoned planet
+10. ‖ **Twist: the day still lengthens (solar tides) — Moon was our brake** `Reflection`, 45s (9:40–10:25): time-lapse sun
+11. **CTA + next question** `End`, 20s (10:25–10:45): Earth turning
 
-**Stitch plan:** 520s of generated video · **21 generations** (≤30s each) · ≈$106.96 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 40s→20+20, S3 60s→30+30, S4 60s→30+30, S5 50s→25+25, S6 45s→23+22, S7 70s→24+23+23, S8 60s→30+30, S9 55s→28+27, S10 35s→18+17. Deliberate hard cuts ‖: into S2 (premise slam); into S3 (darkness drop); into S10 (twist). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: Seedance i2v for S7: designed still of 23.4° tilt → end_image 40° tilt diagram.
+**Stitch plan:** 645s of generated video · **26 generations** (≤30s each) · ≈$132.68 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 75s→25+25+25, S4 75s→25+25+25, S5 65s→22+22+21, S6 55s→28+27, S7 90s→30+30+30, S8 75s→25+25+25, S9 70s→24+23+23, S10 45s→23+22. Deliberate hard cuts ‖: into S2 (premise slam); into S3 (darkness drop); into S10 (twist). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: Seedance i2v for S7: designed still of 23.4° tilt → end_image 40° tilt diagram.
 
 **Cinematography:** S1 low-angle anamorphic coastal night, Moon in upper third then gone between frames (the premise cut). S3 wide beach under Milky Way, lone figure. S4 time-lapse of a tidal flat that stays dry. S5 clean-sharp macro coral. S8 ice-front crane-up. Night stages palette after-dark; S8 the-grey-channel. *Control overrides:* S3 genre drama; S7 clean-sharp.
 
@@ -49,7 +50,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The first thing you'd notice without the Moon" (S3–S4, 60s) · (2) "Without the Moon, Earth's tilt goes wild" (S7, 45s) · (3) "Corals lose their calendar" (S5, 40s)
 
 ### L02: What If Earth Stopped Spinning?
-**Alt title:** Earth Stops Spinning: The First 24 Hours and Beyond · **Series:** WHAT IF · **Runtime:** ~8:23 (480s sections + ident + outro)
+**Alt title:** Earth Stops Spinning: The First 24 Hours and Beyond · **Series:** WHAT IF · **Runtime:** ~11:03 (640s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "The ground under your feet is moving at up to 1,670 kilometers an hour. Now imagine it stops."
 
@@ -57,18 +58,18 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: equator speed** `T−0`, 20s (0:00–0:20): orbital limb, rotation visible
-2. **Two ways to stop: instant vs slow** `T−0`, 35s (0:20–0:55): Seedance diagram split
-3. ‖ **Instant stop: atmosphere keeps moving** `T+1 sec`, 45s (0:55–1:40): supersonic winds over plains
-4. **Why that's (luckily) impossible — go to slow stop** `Pivot`, 25s (1:40–2:05): globe
-5. ‖ **Slow stop: days stretch to months** `T+100 yrs`, 50s (2:05–2:55): sun barely moving time-lapse
-6. **Oceans migrate poleward** `T+1K yrs`, 75s (2:55–4:10): Seedance morph coastline
-7. **Equatorial megacontinent emerges** `T+5K yrs`, 60s (4:10–5:10): new dry land belt, salt flats
-8. ‖ **Six-month day, six-month night** `T+10K yrs`, 60s (5:10–6:10): scorched day side / frozen night side
-9. **Magnetic field question** `Speculative`, 35s (6:10–6:45): aurora fading
-10. **Where life survives: the terminator belt** `T+1M yrs`, 55s (6:45–7:40): twilight habitable band
-11. **CTA: what if it spun faster?** `End`, 20s (7:40–8:00)
+2. **Two ways to stop: instant vs slow** `T−0`, 50s (0:20–1:10): Seedance diagram split
+3. ‖ **Instant stop: atmosphere keeps moving** `T+1 sec`, 60s (1:10–2:10): supersonic winds over plains
+4. **Why that's (luckily) impossible — go to slow stop** `Pivot`, 35s (2:10–2:45): globe
+5. ‖ **Slow stop: days stretch to months** `T+100 yrs`, 70s (2:45–3:55): sun barely moving time-lapse
+6. **Oceans migrate poleward** `T+1K yrs`, 100s (3:55–5:35): Seedance morph coastline
+7. **Equatorial megacontinent emerges** `T+5K yrs`, 80s (5:35–6:55): new dry land belt, salt flats
+8. ‖ **Six-month day, six-month night** `T+10K yrs`, 80s (6:55–8:15): scorched day side / frozen night side
+9. **Magnetic field question** `Speculative`, 50s (8:15–9:05): aurora fading
+10. **Where life survives: the terminator belt** `T+1M yrs`, 75s (9:05–10:20): twilight habitable band
+11. **CTA: what if it spun faster?** `End`, 20s (10:20–10:40)
 
-**Stitch plan:** 480s of generated video · **20 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 35s→18+17, S3 45s→23+22, S5 50s→25+25, S6 75s→25+25+25, S7 60s→30+30, S8 60s→30+30, S9 35s→18+17, S10 55s→28+27. Deliberate hard cuts ‖: into S3 (instant-stop smash); into S5 (pivot back to calm); into S8 (day/night reveal). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 and S6 on Seedance: designed stills of oblate vs spherical Earth ocean bulge; start/end frames for ocean migration.
+**Stitch plan:** 640s of generated video · **26 generations** (≤30s each) · ≈$131.65 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 60s→30+30, S4 35s→18+17, S5 70s→24+23+23, S6 100s→25+25+25+25, S7 80s→27+27+26, S8 80s→27+27+26, S9 50s→25+25, S10 75s→25+25+25. Deliberate hard cuts ‖: into S3 (instant-stop smash); into S5 (pivot back to calm); into S8 (day/night reveal). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 and S6 on Seedance: designed stills of oblate vs spherical Earth ocean bulge; start/end frames for ocean migration.
 
 **Cinematography:** S3 dynamic aerial over prairie, debris horizontal, generic town (no landmarks), industrial-fog. S5 locked time-lapse sun nearly stationary. S7 aerial of cracked seabed rising, mirage-at-noon. S8 split orbital terminator, clean-sharp. S10 golden-twilight crane-up, twilight-fable. *Control overrides:* S3 genre action, pacing chaotic (the single chaotic use).
 
@@ -81,7 +82,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "How fast are you actually moving?" (S1–S3, 50s) · (2) "The equator would become one giant continent" (S6–S7, 75s) · (3) "A day that lasts a year" (S8, 45s)
 
 ### L03: What If All the Ice Melted?
-**Alt title:** Earth With 70 Meters of Sea Level Rise · **Series:** WHAT IF · **Runtime:** ~8:53 (510s sections + ident + outro)
+**Alt title:** Earth With 70 Meters of Sea Level Rise · **Series:** WHAT IF · **Runtime:** ~10:53 (630s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Seventy meters. That's how high the sea would rise if every glacier and ice sheet melted. Here's what's left."
 
@@ -89,18 +90,18 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the 70 m number** `T−0`, 20s (0:00–0:20): lighthouse drowning scale
-2. ‖ **Reality check: 2100 vs 'all ice'** `REAL`, 45s (0:20–1:05): Readout IPCC range
-3. **Where the ice is: Antarctica, Greenland, glaciers** `REAL`, 50s (1:05–1:55): orbital ice sheets
-4. **Greenland goes first** `T+1K yrs`, 60s (1:55–2:55): meltwater canyons
-5. **Europe's new coast: Netherlands, Venice, Baltic** `T+3K yrs`, 60s (2:55–3:55): Seedance map morph
-6. **Americas: Florida, Gulf coast, Amazon sea** `T+4K yrs`, 75s (3:55–5:10): turquoise shallows
-7. **Asia: Bangladesh, Shanghai, new inland seas** `T+5K yrs`, 60s (5:10–6:10): monsoon delta drowned
-8. **Antarctica ice-free: land rebounds** `T+5K yrs`, 45s (6:10–6:55): new green coasts
-9. **Climate of an ice-free Earth** `Model est.`, 45s (6:55–7:40): hot greenhouse world
-10. ‖ **Reflection: we've been here (Eocene)** `REAL`, 30s (7:40–8:10): palm fossils in Arctic
-11. **CTA** `End`, 20s (8:10–8:30)
+2. ‖ **Reality check: 2100 vs 'all ice'** `REAL`, 55s (0:20–1:15): Readout IPCC range
+3. **Where the ice is: Antarctica, Greenland, glaciers** `REAL`, 65s (1:15–2:20): orbital ice sheets
+4. **Greenland goes first** `T+1K yrs`, 75s (2:20–3:35): meltwater canyons
+5. **Europe's new coast: Netherlands, Venice, Baltic** `T+3K yrs`, 75s (3:35–4:50): Seedance map morph
+6. **Americas: Florida, Gulf coast, Amazon sea** `T+4K yrs`, 95s (4:50–6:25): turquoise shallows
+7. **Asia: Bangladesh, Shanghai, new inland seas** `T+5K yrs`, 75s (6:25–7:40): monsoon delta drowned
+8. **Antarctica ice-free: land rebounds** `T+5K yrs`, 55s (7:40–8:35): new green coasts
+9. **Climate of an ice-free Earth** `Model est.`, 55s (8:35–9:30): hot greenhouse world
+10. ‖ **Reflection: we've been here (Eocene)** `REAL`, 40s (9:30–10:10): palm fossils in Arctic
+11. **CTA** `End`, 20s (10:10–10:30)
 
-**Stitch plan:** 510s of generated video · **20 generations** (≤30s each) · ≈$104.91 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 50s→25+25, S4 60s→30+30, S5 60s→30+30, S6 75s→25+25+25, S7 60s→30+30, S8 45s→23+22, S9 45s→23+22. Deliberate hard cuts ‖: into S2 (reality check); into S10 (Eocene twist). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S5, S6, S7 map morphs use Seedance start (today) → end (+70 m) frames from designed coastline stills (NatGeo/USGS-based).
+**Stitch plan:** 630s of generated video · **26 generations** (≤30s each) · ≈$129.59 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 55s→28+27, S3 65s→22+22+21, S4 75s→25+25+25, S5 75s→25+25+25, S6 95s→24+24+24+23, S7 75s→25+25+25, S8 55s→28+27, S9 55s→28+27, S10 40s→20+20. Deliberate hard cuts ‖: into S2 (reality check); into S10 (Eocene twist). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S5, S6, S7 map morphs use Seedance start (today) → end (+70 m) frames from designed coastline stills (NatGeo/USGS-based).
 
 **Cinematography:** Generic cities only (no identifiable skylines) for Cinema shots; real coastlines only in designed Seedance maps → label ON. S4 aerial of blue meltwater rivers, clean-sharp. S6 turquoise-mirage aerial of drowned suburbs rooftops (generic). S8 the-emerald-ambush Antarctic coast. *Control overrides:* Aftermath shots vintage-anamorphic.
 
@@ -113,7 +114,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "How high would the sea rise? (really)" (S1–S2, 60s) · (2) "Europe's new coastline" (S5, 60s) · (3) "What's under Antarctica's ice" (S8, 45s)
 
 ### L04: What If the Sahara Turned Green Again?
-**Alt title:** The Green Sahara: Earth's Wobble Explained · **Series:** REWIND EARTH · **Runtime:** ~7:53 (450s sections + ident + outro)
+**Alt title:** The Green Sahara: Earth's Wobble Explained · **Series:** REWIND EARTH · **Runtime:** ~8:33 (490s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Ten thousand years ago, hippos swam where the Sahara's dunes are now. And it could happen again."
 
@@ -121,17 +122,17 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: hippos in the desert** `Rewind −9K yrs`, 25s (0:00–0:25): lake with hippos, dunes behind
-2. ‖ **Today's Sahara** `T−0`, 35s (0:25–1:00): dunes, mirage-at-noon
-3. **The wobble: precession** `REAL`, 55s (1:00–1:55): Seedance orbit diagram
-4. **Monsoon pushes north** `−11K yrs`, 60s (1:55–2:55): storm walls over savanna
-5. **Lakes, rivers, Mega-Chad** `−9K yrs`, 60s (2:55–3:55): aerial lake
-6. **People of the Green Sahara: rock art** `−7K yrs`, 45s (3:55–4:40): cave art macro (no faces)
-7. ‖ **The collapse to desert** `−5K yrs`, 55s (4:40–5:35): time-lapse drying
-8. **Next Green Sahara: when?** `T+~10K yrs, model est.`, 50s (5:35–6:25): forward projection
-9. **Could we speed it up? Solar farms & rainfall studies** `Speculative`, 45s (6:25–7:10): speculative
-10. **CTA** `End`, 20s (7:10–7:30)
+2. ‖ **Today's Sahara** `T−0`, 40s (0:25–1:05): dunes, mirage-at-noon
+3. **The wobble: precession** `REAL`, 60s (1:05–2:05): Seedance orbit diagram
+4. **Monsoon pushes north** `−11K yrs`, 65s (2:05–3:10): storm walls over savanna
+5. **Lakes, rivers, Mega-Chad** `−9K yrs`, 65s (3:10–4:15): aerial lake
+6. **People of the Green Sahara: rock art** `−7K yrs`, 50s (4:15–5:05): cave art macro (no faces)
+7. ‖ **The collapse to desert** `−5K yrs`, 60s (5:05–6:05): time-lapse drying
+8. **Next Green Sahara: when?** `T+~10K yrs, model est.`, 55s (6:05–7:00): forward projection
+9. **Could we speed it up? Solar farms & rainfall studies** `Speculative`, 50s (7:00–7:50): speculative
+10. **CTA** `End`, 20s (7:50–8:10)
 
-**Stitch plan:** 450s of generated video · **18 generations** (≤30s each) · ≈$92.56 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 35s→18+17, S3 55s→28+27, S4 60s→30+30, S5 60s→30+30, S6 45s→23+22, S7 55s→28+27, S8 50s→25+25, S9 45s→23+22. Deliberate hard cuts ‖: into S2 (present-day smash); into S7 (collapse). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S3 precession diagram (designed still of perihelion in NH summer → winter).
+**Stitch plan:** 490s of generated video · **20 generations** (≤30s each) · ≈$100.79 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 40s→20+20, S3 60s→30+30, S4 65s→22+22+21, S5 65s→22+22+21, S6 50s→25+25, S7 60s→30+30, S8 55s→28+27, S9 50s→25+25. Deliberate hard cuts ‖: into S2 (present-day smash); into S7 (collapse). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S3 precession diagram (designed still of perihelion in NH summer → winter).
 
 **Cinematography:** 35mm-film camera_model for the past stages. S1 golden-hour lake with hippos, the-emerald-ambush. S4 dynamic storm front, industrial-fog. S7 locked time-lapse vegetation retreat, single-shot. *Control overrides:* camera_model 35mm-film for S1, S4–S7.
 
@@ -144,7 +145,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The Sahara had hippos" (S1, 30s + S5) · (2) "Earth's wobble turns deserts green" (S3, 55s) · (3) "When will the Sahara be green again?" (S8, 50s)
 
 ### L05: Earth in 1 Million Years
-**Alt title:** What Earth Will Look Like in 1,000,000 Years · **Series:** EARTH IN… · **Runtime:** ~7:43 (440s sections + ident + outro)
+**Alt title:** What Earth Will Look Like in 1,000,000 Years · **Series:** EARTH IN… · **Runtime:** ~11:08 (645s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "In one million years, the sky has new constellations, a volcano has erupted, and the Moon is 38 kilometers farther away."
 
@@ -152,17 +153,17 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: tonight's sky vs 1M-yr sky** `T+1M`, 25s (0:00–0:25): star field time-lapse
-2. ‖ **The clock** `T+0→`, 20s (0:25–0:45): T+ counter blasts
-3. **T+10K: next ice age (delayed?)** `T+10K`, 55s (0:45–1:40): glacier advance
-4. **T+50K: Niagara gone, new coastlines** `T+50K`, 50s (1:40–2:30): eroded falls
-5. **T+100K: supervolcano odds & star drift** `T+100K`, 60s (2:30–3:30): ash plume distant
-6. **T+250K: Loihi (Kamaʻehuakanaloa) surfaces as new Hawaiian island** `T+250K`, 50s (3:30–4:20): new island aerial
-7. ‖ **T+500K: asteroid odds** `T+500K`, 45s (4:20–5:05): orbital impact flash (distant)
-8. **T+1M: the Moon, the day, the sky** `T+1M`, 60s (5:05–6:05): slightly smaller Moon
-9. **Life in 1M years** `Speculative`, 55s (6:05–7:00): new animals, restrained
-10. **CTA** `End`, 20s (7:00–7:20)
+2. ‖ **The clock** `T+0→`, 30s (0:25–0:55): T+ counter blasts
+3. **T+10K: next ice age (delayed?)** `T+10K`, 85s (0:55–2:20): glacier advance
+4. **T+50K: Niagara gone, new coastlines** `T+50K`, 75s (2:20–3:35): eroded falls
+5. **T+100K: supervolcano odds & star drift** `T+100K`, 90s (3:35–5:05): ash plume distant
+6. **T+250K: Loihi (Kamaʻehuakanaloa) surfaces as new Hawaiian island** `T+250K`, 75s (5:05–6:20): new island aerial
+7. ‖ **T+500K: asteroid odds** `T+500K`, 70s (6:20–7:30): orbital impact flash (distant)
+8. **T+1M: the Moon, the day, the sky** `T+1M`, 90s (7:30–9:00): slightly smaller Moon
+9. **Life in 1M years** `Speculative`, 85s (9:00–10:25): new animals, restrained
+10. **CTA** `End`, 20s (10:25–10:45)
 
-**Stitch plan:** 440s of generated video · **17 generations** (≤30s each) · ≈$90.51 at $0.2057/s. Multi-segment (seamless last-frame chain): S3 55s→28+27, S4 50s→25+25, S5 60s→30+30, S6 50s→25+25, S7 45s→23+22, S8 60s→30+30, S9 55s→28+27. Deliberate hard cuts ‖: into S2 (clock launch); into S7 (impact). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S1 star-field diagram (constellation shapes today → 1M yrs) start/end frames.
+**Stitch plan:** 645s of generated video · **24 generations** (≤30s each) · ≈$132.68 at $0.2057/s. Multi-segment (seamless last-frame chain): S3 85s→29+28+28, S4 75s→25+25+25, S5 90s→30+30+30, S6 75s→25+25+25, S7 70s→24+23+23, S8 90s→30+30+30, S9 85s→29+28+28. Deliberate hard cuts ‖: into S2 (clock launch); into S7 (impact). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S1 star-field diagram (constellation shapes today → 1M yrs) start/end frames.
 
 **Cinematography:** Each stage uses a distinct palette: the-grey-channel (ice), the-morning-after-rain (Niagara), industrial-fog (volcano), turquoise-mirage (Hawaii), after-dark (sky). *Control overrides:* S7 pacing dynamic.
 
@@ -175,7 +176,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The sky in 1 million years" (S1+S8, 60s) · (2) "A new Hawaiian island is coming" (S6, 50s) · (3) "Niagara Falls will disappear" (S4, 50s)
 
 ### L06: What If Earth Had Rings Like Saturn?
-**Alt title:** Earth With Rings: What the Sky Would Look Like · **Series:** ALTERNATE EARTHS · **Runtime:** ~7:18 (415s sections + ident + outro)
+**Alt title:** Earth With Rings: What the Sky Would Look Like · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:28 (485s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Imagine looking up from your backyard and seeing a bright arc slicing the whole sky in two. Every night. Forever."
 
@@ -183,17 +184,17 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the arc over a town** `Alt`, 25s (0:00–0:25): backyard view
-2. **How rings form: Roche limit** `REAL`, 50s (0:25–1:15): Seedance diagram
-3. ‖ **A small moon breaks apart** `T+1 day`, 45s (1:15–2:00): orbital debris
-4. **The ring settles on the equator** `T+1K yrs`, 45s (2:00–2:45): thin bright ring
-5. **View from the equator: a thin line** `Alt`, 40s (2:45–3:25): edge-on
-6. **View from mid-latitudes: a giant arch** `Alt`, 50s (3:25–4:15): arch over mountains
-7. **Ring shadow = colder winters** `Model est.`, 55s (4:15–5:10): shadow band on Earth
-8. **Satellites and space travel with rings** `Speculative`, 40s (5:10–5:50): launch dodging
-9. ‖ **Did Earth once have rings? (466 Ma hypothesis)** `REAL-ish`, 45s (5:50–6:35): Ordovician
-10. **CTA** `End`, 20s (6:35–6:55)
+2. **How rings form: Roche limit** `REAL`, 60s (0:25–1:25): Seedance diagram
+3. ‖ **A small moon breaks apart** `T+1 day`, 55s (1:25–2:20): orbital debris
+4. **The ring settles on the equator** `T+1K yrs`, 55s (2:20–3:15): thin bright ring
+5. **View from the equator: a thin line** `Alt`, 45s (3:15–4:00): edge-on
+6. **View from mid-latitudes: a giant arch** `Alt`, 60s (4:00–5:00): arch over mountains
+7. **Ring shadow = colder winters** `Model est.`, 65s (5:00–6:05): shadow band on Earth
+8. **Satellites and space travel with rings** `Speculative`, 45s (6:05–6:50): launch dodging
+9. ‖ **Did Earth once have rings? (466 Ma hypothesis)** `REAL-ish`, 55s (6:50–7:45): Ordovician
+10. **CTA** `End`, 20s (7:45–8:05)
 
-**Stitch plan:** 415s of generated video · **18 generations** (≤30s each) · ≈$85.37 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 45s→23+22, S4 45s→23+22, S5 40s→20+20, S6 50s→25+25, S7 55s→28+27, S8 40s→20+20, S9 45s→23+22. Deliberate hard cuts ‖: into S3 (breakup); into S9 (hypothesis twist). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 Roche-limit diagram; S7 ring shadow on globe precise geometry.
+**Stitch plan:** 485s of generated video · **19 generations** (≤30s each) · ≈$99.76 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 60s→30+30, S3 55s→28+27, S4 55s→28+27, S5 45s→23+22, S6 60s→30+30, S7 65s→22+22+21, S8 45s→23+22, S9 55s→28+27. Deliberate hard cuts ‖: into S3 (breakup); into S9 (hypothesis twist). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 Roche-limit diagram; S7 ring shadow on globe precise geometry.
 
 **Cinematography:** S6 wide anamorphic landscape, a-dream-in-color. S5 equator dusk, twilight-fable. S3 orbital clean-sharp, calm. *Control overrides:* S1 & S6 genre epic, pacing single-shot.
 
@@ -206,7 +207,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "What Earth's rings would look like from your city" (S5–S6, 75s) · (2) "Earth may have had rings 466 million years ago" (S9, 45s) · (3) "How a moon becomes a ring" (S2–S3, 60s)
 
 ### L07: What If Earth Had No Tilt?
-**Alt title:** A World Without Seasons · **Series:** ALTERNATE EARTHS · **Runtime:** ~7:18 (415s sections + ident + outro)
+**Alt title:** A World Without Seasons · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:28 (485s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Every day of the year, the same weather. No summer. No winter. It sounds perfect. It isn't."
 
@@ -214,17 +215,17 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the endless equinox** `Alt`, 20s (0:00–0:20): meadow, same sun
-2. **What tilt does (23.4°)** `REAL`, 45s (0:20–1:05): Seedance tilt
-3. ‖ **Tilt straightens** `T+0`, 30s (1:05–1:35): globe
-4. **Poles: permanent twilight ice** `T+100 yrs`, 55s (1:35–2:30): sun skimming horizon
-5. **Mid-latitudes: eternal spring… or eternal autumn** `T+100 yrs`, 60s (2:30–3:30): frozen-in-time landscapes
-6. **Tropics: rainforest bands lock in place** `T+1K yrs`, 50s (3:30–4:20): stable ITCZ
-7. **Farming and migration without seasons** `Speculative`, 55s (4:20–5:15): birds with no cue
-8. **Ice sheets grow: a colder planet?** `Model est.`, 45s (5:15–6:00): glaciation
-9. ‖ **Reflection: Mars' tilt wanders; ours doesn't thanks to the Moon** `REAL`, 35s (6:00–6:35): Mars/Earth
-10. **CTA** `End`, 20s (6:35–6:55)
+2. **What tilt does (23.4°)** `REAL`, 55s (0:20–1:15): Seedance tilt
+3. ‖ **Tilt straightens** `T+0`, 35s (1:15–1:50): globe
+4. **Poles: permanent twilight ice** `T+100 yrs`, 65s (1:50–2:55): sun skimming horizon
+5. **Mid-latitudes: eternal spring… or eternal autumn** `T+100 yrs`, 70s (2:55–4:05): frozen-in-time landscapes
+6. **Tropics: rainforest bands lock in place** `T+1K yrs`, 60s (4:05–5:05): stable ITCZ
+7. **Farming and migration without seasons** `Speculative`, 65s (5:05–6:10): birds with no cue
+8. **Ice sheets grow: a colder planet?** `Model est.`, 55s (6:10–7:05): glaciation
+9. ‖ **Reflection: Mars' tilt wanders; ours doesn't thanks to the Moon** `REAL`, 40s (7:05–7:45): Mars/Earth
+10. **CTA** `End`, 20s (7:45–8:05)
 
-**Stitch plan:** 415s of generated video · **17 generations** (≤30s each) · ≈$85.37 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S4 55s→28+27, S5 60s→30+30, S6 50s→25+25, S7 55s→28+27, S8 45s→23+22, S9 35s→18+17. Deliberate hard cuts ‖: into S3 (straighten); into S9 (Mars link). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 tilt diagram start/end frames (23.4°→0°).
+**Stitch plan:** 485s of generated video · **21 generations** (≤30s each) · ≈$99.76 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 55s→28+27, S3 35s→18+17, S4 65s→22+22+21, S5 70s→24+23+23, S6 60s→30+30, S7 65s→22+22+21, S8 55s→28+27, S9 40s→20+20. Deliberate hard cuts ‖: into S3 (straighten); into S9 (Mars link). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 tilt diagram start/end frames (23.4°→0°).
 
 **Cinematography:** S4 low sun skimming polar ice, clean-sharp, the-grey-channel. S5 two hero landscapes with identical sun angles. S7 locked time-lapse of a field that never changes. *Control overrides:* None beyond defaults.
 
@@ -269,7 +270,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "Yellowstone's real odds" (S1+S10, 55s) · (2) "Where the ash would fall" (S6, 60s) · (3) "What a volcanic winter looks like" (S7, 60s)
 
 ### L09: Earth in 250 Million Years: The Next Supercontinent
-**Alt title:** Pangaea Ultima: Why Mammals Might Not Survive · **Series:** EARTH IN… · **Runtime:** ~7:58 (455s sections + ident + outro)
+**Alt title:** Pangaea Ultima: Why Mammals Might Not Survive · **Series:** EARTH IN… · **Runtime:** ~11:08 (645s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "In 250 million years, every continent collides into one. And a new study says it may be too hot for mammals."
 
@@ -277,17 +278,17 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: one continent** `T+250M`, 25s (0:00–0:25): orbital supercontinent
-2. ‖ **Plates move as fast as fingernails grow** `REAL`, 40s (0:25–1:05): GPS arrows
-3. **T+50M: Mediterranean closes, Alps rise** `T+50M`, 50s (1:05–1:55): mountain building
-4. **T+100M: Atlantic starts to shrink** `T+100M`, 55s (1:55–2:50): subduction
-5. **T+200M: Americas meet Afro-Eurasia** `T+200M`, 55s (2:50–3:45): collision
-6. **T+250M: Pangaea Ultima** `T+250M`, 60s (3:45–4:45): Seedance map
-7. ‖ **The heat: 40–50 °C interior** `Model est.`, 60s (4:45–5:45): desert furnace
-8. **Where mammals survive (8–16%)** `Model est.`, 50s (5:45–6:35): coastal refuges
-9. **Life that thrives** `Speculative`, 40s (6:35–7:15): reptiles, succulents
-10. **CTA** `End`, 20s (7:15–7:35)
+2. ‖ **Plates move as fast as fingernails grow** `REAL`, 60s (0:25–1:25): GPS arrows
+3. **T+50M: Mediterranean closes, Alps rise** `T+50M`, 75s (1:25–2:40): mountain building
+4. **T+100M: Atlantic starts to shrink** `T+100M`, 80s (2:40–4:00): subduction
+5. **T+200M: Americas meet Afro-Eurasia** `T+200M`, 80s (4:00–5:20): collision
+6. **T+250M: Pangaea Ultima** `T+250M`, 85s (5:20–6:45): Seedance map
+7. ‖ **The heat: 40–50 °C interior** `Model est.`, 85s (6:45–8:10): desert furnace
+8. **Where mammals survive (8–16%)** `Model est.`, 75s (8:10–9:25): coastal refuges
+9. **Life that thrives** `Speculative`, 60s (9:25–10:25): reptiles, succulents
+10. **CTA** `End`, 20s (10:25–10:45)
 
-**Stitch plan:** 455s of generated video · **18 generations** (≤30s each) · ≈$93.59 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 40s→20+20, S3 50s→25+25, S4 55s→28+27, S5 55s→28+27, S6 60s→30+30, S7 60s→30+30, S8 50s→25+25, S9 40s→20+20. Deliberate hard cuts ‖: into S2 (reset to today); into S7 (heat). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S6: Seedance morph from designed today-map → Pangaea Ultima map (Scotese-style).
+**Stitch plan:** 645s of generated video · **24 generations** (≤30s each) · ≈$132.68 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 60s→30+30, S3 75s→25+25+25, S4 80s→27+27+26, S5 80s→27+27+26, S6 85s→29+28+28, S7 85s→29+28+28, S8 75s→25+25+25, S9 60s→30+30. Deliberate hard cuts ‖: into S2 (reset to today); into S7 (heat). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S6: Seedance morph from designed today-map → Pangaea Ultima map (Scotese-style).
 
 **Cinematography:** Orbital stages share one camera path (single-shot pacing) so continents drift consistently between stages. S7 mirage-at-noon heat haze, anamorphic. S8 coast refuge the-emerald-ambush. *Control overrides:* S3–S6 pacing single-shot, lens clean-sharp.
 
@@ -300,7 +301,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "All continents will merge" (S5–S6, 60s) · (2) "Too hot for mammals" (S7–S8, 75s) · (3) "Plates move as fast as your nails grow" (S2, 40s)
 
 ### L10: What If the Sun Disappeared?
-**Alt title:** The Sun Vanishes: 8 Minutes of Ignorance · **Series:** WHAT IF · **Runtime:** ~6:53 (390s sections + ident + outro)
+**Alt title:** The Sun Vanishes: 8 Minutes of Ignorance · **Series:** WHAT IF · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "If the Sun vanished right now, you wouldn't know for eight minutes and twenty seconds."
 
@@ -308,16 +309,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the 8m20s delay** `T+0`, 25s (0:00–0:25): sunny park
-2. **Why the delay (light & gravity at c)** `REAL`, 40s (0:25–1:05): diagram
-3. ‖ **Darkness** `T+8m20s`, 40s (1:05–1:45): sunset that isn't
-4. **Earth leaves orbit in a straight line** `T+8m20s`, 45s (1:45–2:30): orbital tangent
-5. **First week: −17 °C** `T+1 week`, 55s (2:30–3:25): frost cities (generic)
-6. **First year: −73 °C, oceans freeze over** `T+1 yr`, 60s (3:25–4:25): ice-covered sea
-7. **Survivors: geothermal & deep-sea vents** `T+1K yrs`, 55s (4:25–5:20): black smokers
-8. ‖ **Rogue Earth drifting** `T+1M yrs`, 50s (5:20–6:10): planet in starfield
-9. **CTA** `End`, 20s (6:10–6:30)
+2. **Why the delay (light & gravity at c)** `REAL`, 50s (0:25–1:15): diagram
+3. ‖ **Darkness** `T+8m20s`, 50s (1:15–2:05): sunset that isn't
+4. **Earth leaves orbit in a straight line** `T+8m20s`, 55s (2:05–3:00): orbital tangent
+5. **First week: −17 °C** `T+1 week`, 70s (3:00–4:10): frost cities (generic)
+6. **First year: −73 °C, oceans freeze over** `T+1 yr`, 75s (4:10–5:25): ice-covered sea
+7. **Survivors: geothermal & deep-sea vents** `T+1K yrs`, 70s (5:25–6:35): black smokers
+8. ‖ **Rogue Earth drifting** `T+1M yrs`, 65s (6:35–7:40): planet in starfield
+9. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 390s of generated video · **16 generations** (≤30s each) · ≈$80.22 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 40s→20+20, S3 40s→20+20, S4 45s→23+22, S5 55s→28+27, S6 60s→30+30, S7 55s→28+27, S8 50s→25+25. Deliberate hard cuts ‖: into S3 (darkness); into S8 (rogue reveal). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 & S4 designed orbital-geometry stills.
+**Stitch plan:** 480s of generated video · **20 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 50s→25+25, S4 55s→28+27, S5 70s→24+23+23, S6 75s→25+25+25, S7 70s→24+23+23, S8 65s→22+22+21. Deliberate hard cuts ‖: into S3 (darkness); into S8 (rogue reveal). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 & S4 designed orbital-geometry stills.
 
 **Cinematography:** S3 golden park goes black: continuous single-shot (Cinema) with an abrupt light loss. S6 the-grey-channel, clean-sharp. S7 macro vent, horror genre subtle. S8 after-dark orbital. *Control overrides:* S7 genre horror (restrained).
 
@@ -330,7 +331,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "You wouldn't know for 8 minutes" (S1–S3, 60s) · (2) "Where life survives without the Sun" (S7, 55s) · (3) "Earth becomes a rogue planet" (S8, 50s)
 
 ### L11: What If Earth Had Two Moons?
-**Alt title:** Two Moons: Tides, Nights and Chaos · **Series:** ALTERNATE EARTHS · **Runtime:** ~6:43 (380s sections + ident + outro)
+**Alt title:** Two Moons: Tides, Nights and Chaos · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:18 (475s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Two moons rising over the same horizon. Brighter nights, stranger tides — and one of them won't last."
 
@@ -338,16 +339,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: double moonrise** `Alt`, 20s (0:00–0:20): horizon
-2. **How you'd even get a second moon** `Speculative`, 45s (0:20–1:05): capture diagram
-3. ‖ **Double tides** `T+1 month`, 55s (1:05–2:00): complex tides
-4. **Brighter nights, confused nocturnal life** `T+1 yr`, 50s (2:00–2:50): moonlit forest
-5. **Eclipses everywhere** `T+10 yrs`, 40s (2:50–3:30): eclipse sequence
-6. **Orbital instability** `T+10K yrs`, 55s (3:30–4:25): orbits crossing
-7. ‖ **Collision: debris & meteor showers** `T+1M yrs`, 55s (4:25–5:20): moons merge
-8. **New single, bigger Moon** `T+10M yrs`, 40s (5:20–6:00): post-merge
-9. **CTA** `End`, 20s (6:00–6:20)
+2. **How you'd even get a second moon** `Speculative`, 60s (0:20–1:20): capture diagram
+3. ‖ **Double tides** `T+1 month`, 70s (1:20–2:30): complex tides
+4. **Brighter nights, confused nocturnal life** `T+1 yr`, 65s (2:30–3:35): moonlit forest
+5. **Eclipses everywhere** `T+10 yrs`, 50s (3:35–4:25): eclipse sequence
+6. **Orbital instability** `T+10K yrs`, 70s (4:25–5:35): orbits crossing
+7. ‖ **Collision: debris & meteor showers** `T+1M yrs`, 70s (5:35–6:45): moons merge
+8. **New single, bigger Moon** `T+10M yrs`, 50s (6:45–7:35): post-merge
+9. **CTA** `End`, 20s (7:35–7:55)
 
-**Stitch plan:** 380s of generated video · **16 generations** (≤30s each) · ≈$78.17 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 55s→28+27, S4 50s→25+25, S5 40s→20+20, S6 55s→28+27, S7 55s→28+27, S8 40s→20+20. Deliberate hard cuts ‖: into S3 (tide onset); into S7 (collision). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 & S6 orbital diagrams (designed).
+**Stitch plan:** 475s of generated video · **20 generations** (≤30s each) · ≈$97.71 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 60s→30+30, S3 70s→24+23+23, S4 65s→22+22+21, S5 50s→25+25, S6 70s→24+23+23, S7 70s→24+23+23, S8 50s→25+25. Deliberate hard cuts ‖: into S3 (tide onset); into S7 (collision). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 & S6 orbital diagrams (designed).
 
 **Cinematography:** S1 twilight-fable horizon. S4 after-dark forest, anamorphic. S7 dynamic orbital impact from far distance, epic. *Control overrides:* S7 pacing dynamic.
 
@@ -360,7 +361,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "Two moons over one horizon" (S1+S4, 60s) · (2) "Double tides would be chaos" (S3, 55s) · (3) "Our Moon may be two moons merged" (S7–S8, 60s)
 
 ### L12: Earth in 1 Billion Years: The Last Ocean
-**Alt title:** When Will Earth Lose Its Oceans? · **Series:** EARTH IN… · **Runtime:** ~7:48 (445s sections + ident + outro)
+**Alt title:** When Will Earth Lose Its Oceans? · **Series:** EARTH IN… · **Runtime:** ~8:28 (485s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "The Sun is getting brighter — about ten percent every billion years. And that's enough to boil our oceans."
 
@@ -368,17 +369,17 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the brightening Sun** `T+0`, 25s (0:00–0:25): sun disc
-2. **Why the Sun brightens** `REAL`, 45s (0:25–1:10): core diagram
-3. **T+100M: warmer world, more weathering** `T+100M`, 50s (1:10–2:00): tropical everywhere
-4. ‖ **T+600M: CO₂ drops, plants struggle** `T+600M`, 60s (2:00–3:00): dying forests
-5. **T+800M: complex life fades** `T+800M`, 55s (3:00–3:55): microbial mats
-6. ‖ **T+1B: moist greenhouse, oceans steam** `T+1B`, 60s (3:55–4:55): steaming sea
-7. **The last ocean** `T+1.5B`, 50s (4:55–5:45): shrinking basin
-8. **A Venus-like Earth?** `T+3B, model est.`, 40s (5:45–6:25): orbital hot Earth
-9. **Escape plans (speculative)** `Speculative`, 40s (6:25–7:05): migration to Mars
-10. **CTA** `End`, 20s (7:05–7:25)
+2. **Why the Sun brightens** `REAL`, 50s (0:25–1:15): core diagram
+3. **T+100M: warmer world, more weathering** `T+100M`, 55s (1:15–2:10): tropical everywhere
+4. ‖ **T+600M: CO₂ drops, plants struggle** `T+600M`, 65s (2:10–3:15): dying forests
+5. **T+800M: complex life fades** `T+800M`, 60s (3:15–4:15): microbial mats
+6. ‖ **T+1B: moist greenhouse, oceans steam** `T+1B`, 65s (4:15–5:20): steaming sea
+7. **The last ocean** `T+1.5B`, 55s (5:20–6:15): shrinking basin
+8. **A Venus-like Earth?** `T+3B, model est.`, 45s (6:15–7:00): orbital hot Earth
+9. **Escape plans (speculative)** `Speculative`, 45s (7:00–7:45): migration to Mars
+10. **CTA** `End`, 20s (7:45–8:05)
 
-**Stitch plan:** 445s of generated video · **18 generations** (≤30s each) · ≈$91.54 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 50s→25+25, S4 60s→30+30, S5 55s→28+27, S6 60s→30+30, S7 50s→25+25, S8 40s→20+20, S9 40s→20+20. Deliberate hard cuts ‖: into S4 (plants dying); into S6 (steam). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 solar-core designed still.
+**Stitch plan:** 485s of generated video · **20 generations** (≤30s each) · ≈$99.76 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 55s→28+27, S4 65s→22+22+21, S5 60s→30+30, S6 65s→22+22+21, S7 55s→28+27, S8 45s→23+22, S9 45s→23+22. Deliberate hard cuts ‖: into S4 (plants dying); into S6 (steam). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 solar-core designed still.
 
 **Cinematography:** Palette progression: static-noon → mirage-at-noon → industrial-fog → a-dream-in-color. S7 slow crane-up over last ocean, vintage-anamorphic. *Control overrides:* S7 genre drama.
 
@@ -391,7 +392,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The Sun is getting brighter" (S1–S2, 60s) · (2) "When plants can no longer live" (S4, 60s) · (3) "The last ocean on Earth" (S7, 50s)
 
 ### L13: What If Snowball Earth Happened Again?
-**Alt title:** The Time Earth Froze Over — Completely · **Series:** REWIND EARTH · **Runtime:** ~7:23 (420s sections + ident + outro)
+**Alt title:** The Time Earth Froze Over — Completely · **Series:** REWIND EARTH · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Seven hundred million years ago, Earth froze from pole to equator. Oceans under a kilometer of ice."
 
@@ -399,17 +400,17 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: white planet** `−700M`, 25s (0:00–0:25): all-white orbital
-2. **How it starts: runaway ice-albedo** `REAL`, 50s (0:25–1:15): ice spread diagram
-3. ‖ **Ice reaches the tropics** `−717M`, 55s (1:15–2:10): equator ice
-4. **Life hides: vents & meltwater** `REAL`, 45s (2:10–2:55): microbes
-5. **Millions of years of frozen quiet** `−700M`, 40s (2:55–3:35): time-lapse
-6. **Volcanoes build CO₂** `−640M`, 50s (3:35–4:25): volcano through ice
-7. ‖ **The great thaw: hothouse** `−635M`, 55s (4:25–5:20): extreme melt
-8. **Aftermath: complex life appears** `−600M`, 45s (5:20–6:05): Ediacaran sea
-9. **Could it happen again?** `Speculative`, 35s (6:05–6:40)
-10. **CTA** `End`, 20s (6:40–7:00)
+2. **How it starts: runaway ice-albedo** `REAL`, 60s (0:25–1:25): ice spread diagram
+3. ‖ **Ice reaches the tropics** `−717M`, 65s (1:25–2:30): equator ice
+4. **Life hides: vents & meltwater** `REAL`, 50s (2:30–3:20): microbes
+5. **Millions of years of frozen quiet** `−700M`, 45s (3:20–4:05): time-lapse
+6. **Volcanoes build CO₂** `−640M`, 60s (4:05–5:05): volcano through ice
+7. ‖ **The great thaw: hothouse** `−635M`, 65s (5:05–6:10): extreme melt
+8. **Aftermath: complex life appears** `−600M`, 50s (6:10–7:00): Ediacaran sea
+9. **Could it happen again?** `Speculative`, 40s (7:00–7:40)
+10. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 420s of generated video · **18 generations** (≤30s each) · ≈$86.39 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 55s→28+27, S4 45s→23+22, S5 40s→20+20, S6 50s→25+25, S7 55s→28+27, S8 45s→23+22, S9 35s→18+17. Deliberate hard cuts ‖: into S3 (equator frozen); into S7 (thaw). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 ice-albedo designed diagram; S1→S3 orbital stills.
+**Stitch plan:** 480s of generated video · **20 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 60s→30+30, S3 65s→22+22+21, S4 50s→25+25, S5 45s→23+22, S6 60s→30+30, S7 65s→22+22+21, S8 50s→25+25, S9 40s→20+20. Deliberate hard cuts ‖: into S3 (equator frozen); into S7 (thaw). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 ice-albedo designed diagram; S1→S3 orbital stills.
 
 **Cinematography:** the-grey-channel for frozen stages, clean-sharp; S7 dynamic meltwater torrents; S8 turquoise-mirage underwater, 35mm-film. *Control overrides:* S6 pacing dynamic.
 
@@ -422,7 +423,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "Earth was once a snowball" (S1–S3, 60s) · (2) "How volcanoes saved Earth" (S6–S7, 60s) · (3) "Life under a kilometer of ice" (S4, 45s)
 
 ### L14: What If the Asteroid Missed the Dinosaurs?
-**Alt title:** Earth Without the Chicxulub Impact · **Series:** ALTERNATE EARTHS · **Runtime:** ~6:53 (390s sections + ident + outro)
+**Alt title:** Earth Without the Chicxulub Impact · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Sixty-six million years ago, a rock ten kilometers wide hit Mexico. What if it had missed by a few minutes?"
 
@@ -430,16 +431,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the near miss** `−66M`, 25s (0:00–0:25): asteroid passing
-2. ‖ **The real impact, briefly** `REAL`, 45s (0:25–1:10): distant impact
-3. ‖ **The miss: Cretaceous world continues** `Alt −66M`, 50s (1:10–2:00): forest with hadrosaurs
-4. **Deccan Traps still erupt** `REAL`, 45s (2:00–2:45): lava plains
-5. **Dinosaurs adapt to cooling** `Alt −30M`, 55s (2:45–3:40): feathered fauna
-6. **Mammals stay small** `Speculative`, 45s (3:40–4:25): night mammals
-7. **Grasslands: what eats them?** `Alt −10M`, 50s (4:25–5:15): savanna dinos
-8. **Today: an alternate 2026** `Alt`, 55s (5:15–6:10): no cities, big fauna
-9. **CTA** `End`, 20s (6:10–6:30)
+2. ‖ **The real impact, briefly** `REAL`, 55s (0:25–1:20): distant impact
+3. ‖ **The miss: Cretaceous world continues** `Alt −66M`, 65s (1:20–2:25): forest with hadrosaurs
+4. **Deccan Traps still erupt** `REAL`, 55s (2:25–3:20): lava plains
+5. **Dinosaurs adapt to cooling** `Alt −30M`, 70s (3:20–4:30): feathered fauna
+6. **Mammals stay small** `Speculative`, 55s (4:30–5:25): night mammals
+7. **Grasslands: what eats them?** `Alt −10M`, 65s (5:25–6:30): savanna dinos
+8. **Today: an alternate 2026** `Alt`, 70s (6:30–7:40): no cities, big fauna
+9. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 390s of generated video · **16 generations** (≤30s each) · ≈$80.22 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 50s→25+25, S4 45s→23+22, S5 55s→28+27, S6 45s→23+22, S7 50s→25+25, S8 55s→28+27. Deliberate hard cuts ‖: into S2 (real timeline); into S3 (divergence). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S1 orbital trajectory diagram (designed).
+**Stitch plan:** 480s of generated video · **20 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 55s→28+27, S3 65s→22+22+21, S4 55s→28+27, S5 70s→24+23+23, S6 55s→28+27, S7 65s→22+22+21, S8 70s→24+23+23. Deliberate hard cuts ‖: into S2 (real timeline); into S3 (divergence). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S1 orbital trajectory diagram (designed).
 
 **Cinematography:** Dinosaurs rendered naturalistically, feathered where evidence supports; 35mm-film for Cretaceous. S3 the-emerald-ambush. S8 a-dream-in-color. *Control overrides:* S2 genre action, pacing dynamic.
 
@@ -452,7 +453,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "If the asteroid had arrived minutes later" (S1, 30s + S3) · (2) "Dinosaurs in grasslands" (S7, 50s) · (3) "2026 if dinosaurs survived" (S8, 55s)
 
 ### L15: What If Earth's Magnetic Field Disappeared?
-**Alt title:** Earth Without Its Shield · **Series:** WHAT IF · **Runtime:** ~6:33 (370s sections + ident + outro)
+**Alt title:** Earth Without Its Shield · **Series:** WHAT IF · **Runtime:** ~8:18 (475s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "There's an invisible shield around Earth. Turn it off, and the first thing you'd see is auroras — at the equator."
 
@@ -460,16 +461,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: equator aurora** `T+1 day`, 25s (0:00–0:25): tropical beach aurora
-2. **What the field does** `REAL`, 45s (0:25–1:10): Seedance field diagram
-3. ‖ **Satellites & GPS glitches** `T+1 day`, 50s (1:10–2:00): orbital sats
-4. **Birds and turtles lose navigation** `T+1 month`, 45s (2:00–2:45): migrating birds
-5. **Radiation and ozone** `T+1 yr`, 50s (2:45–3:35): UV haze
-6. ‖ **Reversals happened before (Laschamp)** `REAL`, 45s (3:35–4:20): 42K yrs ago
-7. **Atmosphere slowly strips** `T+100M yrs, model est.`, 55s (4:20–5:15): thin atmosphere
-8. **Why Earth isn't Mars** `REAL`, 35s (5:15–5:50): Mars compare
-9. **CTA** `End`, 20s (5:50–6:10)
+2. **What the field does** `REAL`, 60s (0:25–1:25): Seedance field diagram
+3. ‖ **Satellites & GPS glitches** `T+1 day`, 65s (1:25–2:30): orbital sats
+4. **Birds and turtles lose navigation** `T+1 month`, 60s (2:30–3:30): migrating birds
+5. **Radiation and ozone** `T+1 yr`, 65s (3:30–4:35): UV haze
+6. ‖ **Reversals happened before (Laschamp)** `REAL`, 60s (4:35–5:35): 42K yrs ago
+7. **Atmosphere slowly strips** `T+100M yrs, model est.`, 75s (5:35–6:50): thin atmosphere
+8. **Why Earth isn't Mars** `REAL`, 45s (6:50–7:35): Mars compare
+9. **CTA** `End`, 20s (7:35–7:55)
 
-**Stitch plan:** 370s of generated video · **16 generations** (≤30s each) · ≈$76.11 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 50s→25+25, S4 45s→23+22, S5 50s→25+25, S6 45s→23+22, S7 55s→28+27, S8 35s→18+17. Deliberate hard cuts ‖: into S3 (tech failure); into S6 (Laschamp twist). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 magnetosphere diagram; S8 Earth/Mars side-by-side.
+**Stitch plan:** 475s of generated video · **19 generations** (≤30s each) · ≈$97.71 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 60s→30+30, S3 65s→22+22+21, S4 60s→30+30, S5 65s→22+22+21, S6 60s→30+30, S7 75s→25+25+25, S8 45s→23+22. Deliberate hard cuts ‖: into S3 (tech failure); into S6 (Laschamp twist). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 magnetosphere diagram; S8 Earth/Mars side-by-side.
 
 **Cinematography:** S1 after-dark tropical beach with aurora, anamorphic. S4 wide sky of birds, calm. S7 orbital limb thinning, clean-sharp. *Control overrides:* None.
 
@@ -482,7 +483,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "Auroras at the equator" (S1, 25s + S2 short) · (2) "The last time Earth's field collapsed" (S6, 45s) · (3) "Birds would get lost" (S4, 45s)
 
 ### L16: What If Earth Spun 10 Times Faster?
-**Alt title:** A 2.4-Hour Day · **Series:** WHAT IF · **Runtime:** ~6:23 (360s sections + ident + outro)
+**Alt title:** A 2.4-Hour Day · **Series:** WHAT IF · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "A sunrise every two hours and twenty-four minutes. That's Earth at ten times the speed. And the planet starts to change shape."
 
@@ -490,16 +491,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: sunrise every 2.4 hours** `Alt`, 25s (0:00–0:25): fast time-lapse sun
-2. **Spin-up** `T+0`, 35s (0:25–1:00): globe spin
-3. ‖ **Oceans rush to the equator** `T+1 day`, 55s (1:00–1:55): poles draining
-4. **You weigh less at the equator** `Model est.`, 40s (1:55–2:35): scale
-5. **Weather: stronger Coriolis, narrow storms** `T+1 yr`, 55s (2:35–3:30): banded clouds like Jupiter
-6. **Life on a 2.4-hr day** `Speculative`, 50s (3:30–4:20): sleep cycles
-7. ‖ **Breakup limit: ~1.4-hour day** `REAL physics`, 45s (4:20–5:05): diagram
-8. **Why Earth slows, not speeds** `REAL`, 35s (5:05–5:40): Moon brakes
-9. **CTA** `End`, 20s (5:40–6:00)
+2. **Spin-up** `T+0`, 50s (0:25–1:15): globe spin
+3. ‖ **Oceans rush to the equator** `T+1 day`, 75s (1:15–2:30): poles draining
+4. **You weigh less at the equator** `Model est.`, 55s (2:30–3:25): scale
+5. **Weather: stronger Coriolis, narrow storms** `T+1 yr`, 75s (3:25–4:40): banded clouds like Jupiter
+6. **Life on a 2.4-hr day** `Speculative`, 70s (4:40–5:50): sleep cycles
+7. ‖ **Breakup limit: ~1.4-hour day** `REAL physics`, 60s (5:50–6:50): diagram
+8. **Why Earth slows, not speeds** `REAL`, 50s (6:50–7:40): Moon brakes
+9. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 360s of generated video · **16 generations** (≤30s each) · ≈$74.05 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 35s→18+17, S3 55s→28+27, S4 40s→20+20, S5 55s→28+27, S6 50s→25+25, S7 45s→23+22, S8 35s→18+17. Deliberate hard cuts ‖: into S3 (flood); into S7 (breakup). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S7 designed diagram: gravity vs centrifugal at equator.
+**Stitch plan:** 480s of generated video · **19 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 75s→25+25+25, S4 55s→28+27, S5 75s→25+25+25, S6 70s→24+23+23, S7 60s→30+30, S8 50s→25+25. Deliberate hard cuts ‖: into S3 (flood); into S7 (breakup). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S7 designed diagram: gravity vs centrifugal at equator.
 
 **Cinematography:** S5 orbital banded clouds, clean-sharp. S3 dynamic aerial of ocean surge (generic coast), label ON. *Control overrides:* S3 pacing dynamic.
 
@@ -512,7 +513,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "A sunrise every 2 hours" (S1, 25s + S6) · (2) "At what speed would Earth break apart?" (S7, 45s) · (3) "Earth would get Jupiter's stripes" (S5, 55s)
 
 ### L17: What If the Gulf Stream Shut Down?
-**Alt title:** AMOC Collapse Explained: What Models Actually Say · **Series:** WHAT IF · **Runtime:** ~6:38 (375s sections + ident + outro)
+**Alt title:** AMOC Collapse Explained: What Models Actually Say · **Series:** WHAT IF · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "There's a current in the Atlantic that keeps Europe mild. Scientists are watching it closely. Here's what a shutdown would mean."
 
@@ -520,16 +521,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the ocean conveyor** `REAL`, 25s (0:00–0:25): orbital ocean currents
-2. **How AMOC works** `REAL`, 55s (0:25–1:20): Seedance current map
-3. **What's measured (RAPID array)** `REAL`, 45s (1:20–2:05): buoys
-4. ‖ **Scenario: shutdown begins** `Speculative`, 40s (2:05–2:45): cooling North Atlantic
-5. **Europe's winters** `Model est.`, 55s (2:45–3:40): generic north European coast in ice
-6. **Tropical rain belts shift** `Model est.`, 50s (3:40–4:30): Sahel drought/Amazon
-7. **Sea level on US East Coast** `Model est.`, 45s (4:30–5:15): generic coast
-8. **What IPCC says about likelihood** `REAL`, 40s (5:15–5:55): Readout
-9. **CTA** `End`, 20s (5:55–6:15)
+2. **How AMOC works** `REAL`, 70s (0:25–1:35): Seedance current map
+3. **What's measured (RAPID array)** `REAL`, 60s (1:35–2:35): buoys
+4. ‖ **Scenario: shutdown begins** `Speculative`, 55s (2:35–3:30): cooling North Atlantic
+5. **Europe's winters** `Model est.`, 70s (3:30–4:40): generic north European coast in ice
+6. **Tropical rain belts shift** `Model est.`, 65s (4:40–5:45): Sahel drought/Amazon
+7. **Sea level on US East Coast** `Model est.`, 60s (5:45–6:45): generic coast
+8. **What IPCC says about likelihood** `REAL`, 55s (6:45–7:40): Readout
+9. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 375s of generated video · **16 generations** (≤30s each) · ≈$77.14 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 55s→28+27, S3 45s→23+22, S4 40s→20+20, S5 55s→28+27, S6 50s→25+25, S7 45s→23+22, S8 40s→20+20. Deliberate hard cuts ‖: into S4 (scenario flag). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 current-map morph (designed start/end).
+**Stitch plan:** 480s of generated video · **19 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 70s→24+23+23, S3 60s→30+30, S4 55s→28+27, S5 70s→24+23+23, S6 65s→22+22+21, S7 60s→30+30, S8 55s→28+27. Deliberate hard cuts ‖: into S4 (scenario flag). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 current-map morph (designed start/end).
 
 **Cinematography:** Label ON. Generic coasts only; no real city destruction. the-grey-channel for cold stages. *Control overrides:* genre drama throughout; no action.
 
@@ -542,7 +543,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The Atlantic's hidden conveyor belt" (S2, 55s) · (2) "Europe's winters if it stopped (model)" (S5, 55s) · (3) "What scientists actually measure" (S3, 45s)
 
 ### L18: What If Earth Were Twice as Big?
-**Alt title:** Life on a Super-Earth · **Series:** ALTERNATE EARTHS · **Runtime:** ~6:38 (375s sections + ident + outro)
+**Alt title:** Life on a Super-Earth · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:18 (475s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Double the size of Earth, and you'd weigh twice as much. Trees would be shorter. Mountains, lower. And rockets? Almost impossible."
 
@@ -550,16 +551,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the heavy step** `Alt`, 25s (0:00–0:25): figure stepping
-2. **Double radius, same density = 2× gravity** `REAL physics`, 40s (0:25–1:05): diagram
-3. **Thicker atmosphere, weather** `Model est.`, 50s (1:05–1:55): heavy clouds
-4. **Flatter mountains, more ocean** `Model est.`, 50s (1:55–2:45): low relief
-5. **Plate tectonics & volcanism** `Speculative`, 45s (2:45–3:30): volcano chains
-6. **Life: squat, strong** `Speculative`, 55s (3:30–4:25): stocky animals
-7. ‖ **Rockets: escape velocity 1.4×** `REAL physics`, 55s (4:25–5:20): rocket fails
-8. **Super-Earths we've found** `REAL`, 35s (5:20–5:55): exoplanets
-9. **CTA** `End`, 20s (5:55–6:15)
+2. **Double radius, same density = 2× gravity** `REAL physics`, 55s (0:25–1:20): diagram
+3. **Thicker atmosphere, weather** `Model est.`, 65s (1:20–2:25): heavy clouds
+4. **Flatter mountains, more ocean** `Model est.`, 65s (2:25–3:30): low relief
+5. **Plate tectonics & volcanism** `Speculative`, 60s (3:30–4:30): volcano chains
+6. **Life: squat, strong** `Speculative`, 70s (4:30–5:40): stocky animals
+7. ‖ **Rockets: escape velocity 1.4×** `REAL physics`, 70s (5:40–6:50): rocket fails
+8. **Super-Earths we've found** `REAL`, 45s (6:50–7:35): exoplanets
+9. **CTA** `End`, 20s (7:35–7:55)
 
-**Stitch plan:** 375s of generated video · **16 generations** (≤30s each) · ≈$77.14 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 40s→20+20, S3 50s→25+25, S4 50s→25+25, S5 45s→23+22, S6 55s→28+27, S7 55s→28+27, S8 35s→18+17. Deliberate hard cuts ‖: into S7 (rocket). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 scale diagram (designed).
+**Stitch plan:** 475s of generated video · **20 generations** (≤30s each) · ≈$97.71 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 55s→28+27, S3 65s→22+22+21, S4 65s→22+22+21, S5 60s→30+30, S6 70s→24+23+23, S7 70s→24+23+23, S8 45s→23+22. Deliberate hard cuts ‖: into S7 (rocket). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 scale diagram (designed).
 
 **Cinematography:** S1 ground-level anamorphic, a-dream-in-color. S7 rocket pad generic, dynamic. *Control overrides:* S7 genre action.
 
@@ -572,7 +573,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "You'd weigh twice as much" (S1–S2, 60s) · (2) "Rockets couldn't leave" (S7, 55s) · (3) "Animals would be squat" (S6, 55s)
 
 ### L19: What If Humans Vanished Tomorrow?
-**Alt title:** Earth Without Us: 1 Day to 1 Million Years · **Series:** WHAT IF · **Runtime:** ~7:28 (425s sections + ident + outro)
+**Alt title:** Earth Without Us: 1 Day to 1 Million Years · **Series:** WHAT IF · **Runtime:** ~8:13 (470s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Tomorrow morning, every human is gone. Within two days, the lights start going out."
 
@@ -580,17 +581,17 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: empty morning** `T+0`, 25s (0:00–0:25): empty street, generic
-2. ‖ **T+1 day: lights go out** `T+1 day`, 45s (0:25–1:10): orbital night lights fading
-3. **T+1 month: subways flood, pets & livestock** `T+1 month`, 50s (1:10–2:00): flooded tunnel
-4. **T+1 yr: plants crack pavement** `T+1 yr`, 50s (2:00–2:50): weeds
-5. **T+25 yrs: cities green** `T+25 yrs`, 55s (2:50–3:45): vine-covered towers
-6. **T+300 yrs: bridges fall** `T+300 yrs`, 50s (3:45–4:35): collapsed bridge
-7. **T+10K yrs: what remains (stone, glass)** `T+10K yrs`, 50s (4:35–5:25): ruins
-8. **T+1M yrs: our fossil layer, plastics** `T+1M`, 50s (5:25–6:15): strata
-9. ‖ **Reflection** ``, 30s (6:15–6:45)
-10. **CTA** `End`, 20s (6:45–7:05)
+2. ‖ **T+1 day: lights go out** `T+1 day`, 50s (0:25–1:15): orbital night lights fading
+3. **T+1 month: subways flood, pets & livestock** `T+1 month`, 55s (1:15–2:10): flooded tunnel
+4. **T+1 yr: plants crack pavement** `T+1 yr`, 55s (2:10–3:05): weeds
+5. **T+25 yrs: cities green** `T+25 yrs`, 65s (3:05–4:10): vine-covered towers
+6. **T+300 yrs: bridges fall** `T+300 yrs`, 55s (4:10–5:05): collapsed bridge
+7. **T+10K yrs: what remains (stone, glass)** `T+10K yrs`, 55s (5:05–6:00): ruins
+8. **T+1M yrs: our fossil layer, plastics** `T+1M`, 55s (6:00–6:55): strata
+9. ‖ **Reflection** ``, 35s (6:55–7:30)
+10. **CTA** `End`, 20s (7:30–7:50)
 
-**Stitch plan:** 425s of generated video · **17 generations** (≤30s each) · ≈$87.42 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 50s→25+25, S4 50s→25+25, S5 55s→28+27, S6 50s→25+25, S7 50s→25+25, S8 50s→25+25. Deliberate hard cuts ‖: into S2 (lights out); into S9 (reflection). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 night-lights orbital start/end frames (today → dark).
+**Stitch plan:** 470s of generated video · **19 generations** (≤30s each) · ≈$96.68 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 55s→28+27, S4 55s→28+27, S5 65s→22+22+21, S6 55s→28+27, S7 55s→28+27, S8 55s→28+27, S9 35s→18+17. Deliberate hard cuts ‖: into S2 (lights out); into S9 (reflection). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 night-lights orbital start/end frames (today → dark).
 
 **Cinematography:** Generic cities only; no identifiable landmarks (avoid real-place alteration) — if a landmark is shown, label ON. Palette the-emerald-ambush progression. S5 slow crane-up vintage-anamorphic. *Control overrides:* genre drama.
 
@@ -603,7 +604,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The lights would go out in 48 hours" (S2, 45s) · (2) "Cities in 25 years without us" (S5, 55s) · (3) "What survives 1 million years" (S7–S8, 60s)
 
 ### L20: What If the Himalayas Never Formed?
-**Alt title:** Earth Without the Roof of the World · **Series:** ALTERNATE EARTHS · **Runtime:** ~6:33 (370s sections + ident + outro)
+**Alt title:** Earth Without the Roof of the World · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Remove the Himalayas, and two billion people lose the monsoon that waters their crops."
 
@@ -611,16 +612,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the monsoon clouds** `REAL`, 25s (0:00–0:25): clouds against peaks
-2. **India's journey north** `REAL`, 50s (0:25–1:15): Seedance plate map
-3. **The collision** `−50M`, 45s (1:15–2:00): mountain rise time-lapse
-4. ‖ **Alt: the collision never happens** `Alt`, 40s (2:00–2:40): flat plains
-5. **A weaker monsoon** `Model est.`, 55s (2:40–3:35): dry South Asia
-6. **Central Asia gets wetter?** `Model est.`, 45s (3:35–4:20): green steppe
-7. **Global cooling & weathering link** `REAL hypothesis`, 50s (4:20–5:10): Raymo–Ruddiman
-8. **Rivers: no Ganges, no Yangtze as we know them** `Speculative`, 40s (5:10–5:50): river maps
-9. **CTA** `End`, 20s (5:50–6:10)
+2. **India's journey north** `REAL`, 65s (0:25–1:30): Seedance plate map
+3. **The collision** `−50M`, 60s (1:30–2:30): mountain rise time-lapse
+4. ‖ **Alt: the collision never happens** `Alt`, 55s (2:30–3:25): flat plains
+5. **A weaker monsoon** `Model est.`, 75s (3:25–4:40): dry South Asia
+6. **Central Asia gets wetter?** `Model est.`, 60s (4:40–5:40): green steppe
+7. **Global cooling & weathering link** `REAL hypothesis`, 65s (5:40–6:45): Raymo–Ruddiman
+8. **Rivers: no Ganges, no Yangtze as we know them** `Speculative`, 55s (6:45–7:40): river maps
+9. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 370s of generated video · **16 generations** (≤30s each) · ≈$76.11 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 45s→23+22, S4 40s→20+20, S5 55s→28+27, S6 45s→23+22, S7 50s→25+25, S8 40s→20+20. Deliberate hard cuts ‖: into S4 (divergence). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 plate map morph.
+**Stitch plan:** 480s of generated video · **19 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 65s→22+22+21, S3 60s→30+30, S4 55s→28+27, S5 75s→25+25+25, S6 60s→30+30, S7 65s→22+22+21, S8 55s→28+27. Deliberate hard cuts ‖: into S4 (divergence). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 plate map morph.
 
 **Cinematography:** S1 epic anamorphic cloud wall, twilight-fable. S3 single-shot geologic time-lapse. *Control overrides:* S3 pacing single-shot.
 
@@ -633,7 +634,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "India crashed into Asia" (S2–S3, 75s) · (2) "No mountains, no monsoon" (S5, 55s) · (3) "Mountains may have cooled Earth" (S7, 50s)
 
 ### L21: What If a Rogue Planet Passed Through Our Solar System?
-**Alt title:** The Wandering World Arrives · **Series:** WHAT IF · **Runtime:** ~6:23 (360s sections + ident + outro)
+**Alt title:** The Wandering World Arrives · **Series:** WHAT IF · **Runtime:** ~8:18 (475s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "There may be more planets drifting between stars than orbiting them. What if one came here?"
 
@@ -641,16 +642,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: a dark disc blocks stars** `Speculative`, 25s (0:00–0:25): starfield occultation
-2. **Rogue planets are real** `REAL`, 45s (0:25–1:10): microlensing
-3. **Detection** `T−10 yrs`, 40s (1:10–1:50): observatory
-4. **Outer planets disturbed** `T−1 yr`, 50s (1:50–2:40): orbital paths
-5. ‖ **Close pass** `T+0`, 45s (2:40–3:25): planet crossing sky
-6. **Earth's orbit stretched: seasons change** `T+1 yr`, 55s (3:25–4:20): elliptical orbit diagram
-7. **Worst case: ejection** `Speculative`, 45s (4:20–5:05): Earth leaving
-8. ‖ **Real odds (tiny)** `REAL`, 35s (5:05–5:40)
-9. **CTA** `End`, 20s (5:40–6:00)
+2. **Rogue planets are real** `REAL`, 60s (0:25–1:25): microlensing
+3. **Detection** `T−10 yrs`, 55s (1:25–2:20): observatory
+4. **Outer planets disturbed** `T−1 yr`, 70s (2:20–3:30): orbital paths
+5. ‖ **Close pass** `T+0`, 60s (3:30–4:30): planet crossing sky
+6. **Earth's orbit stretched: seasons change** `T+1 yr`, 75s (4:30–5:45): elliptical orbit diagram
+7. **Worst case: ejection** `Speculative`, 60s (5:45–6:45): Earth leaving
+8. ‖ **Real odds (tiny)** `REAL`, 50s (6:45–7:35)
+9. **CTA** `End`, 20s (7:35–7:55)
 
-**Stitch plan:** 360s of generated video · **16 generations** (≤30s each) · ≈$74.05 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 40s→20+20, S4 50s→25+25, S5 45s→23+22, S6 55s→28+27, S7 45s→23+22, S8 35s→18+17. Deliberate hard cuts ‖: into S5 (close pass); into S8 (reality). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S4 & S6 orbital diagrams.
+**Stitch plan:** 475s of generated video · **18 generations** (≤30s each) · ≈$97.71 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 60s→30+30, S3 55s→28+27, S4 70s→24+23+23, S5 60s→30+30, S6 75s→25+25+25, S7 60s→30+30, S8 50s→25+25. Deliberate hard cuts ‖: into S5 (close pass); into S8 (reality). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S4 & S6 orbital diagrams.
 
 **Cinematography:** S5 night sky with growing disc, after-dark, horror genre restrained. *Control overrides:* S5 genre horror.
 
@@ -663,7 +664,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "Billions of planets have no star" (S2, 45s) · (2) "Earth's orbit after a flyby" (S6, 55s) · (3) "The real odds" (S8, 35s)
 
 ### L22: What If Earth Orbited a Red Dwarf?
-**Alt title:** Life Under a Red Sun · **Series:** ALTERNATE EARTHS · **Runtime:** ~6:28 (365s sections + ident + outro)
+**Alt title:** Life Under a Red Sun · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Most stars in the galaxy are red dwarfs. Move Earth to one, and one side faces the sun forever."
 
@@ -671,16 +672,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: a red sun that never sets** `Alt`, 25s (0:00–0:25): sun fixed
-2. **Red dwarfs: the galaxy's majority** `REAL`, 40s (0:25–1:05): star comparison
-3. ‖ **Close orbit → tidal lock** `REAL physics`, 50s (1:05–1:55): diagram
-4. **Eyeball Earth: ocean spot, ice elsewhere** `Model est.`, 55s (1:55–2:50): orbital eyeball
-5. **Flares & atmosphere** `REAL`, 45s (2:50–3:35): flare
-6. **Plants: dark leaves** `Speculative`, 45s (3:35–4:20): black foliage
-7. **Terminator civilizations?** `Speculative`, 45s (4:20–5:05): twilight belt
-8. **Real worlds like this: TRAPPIST-1, Proxima b** `REAL`, 40s (5:05–5:45): exoplanets
-9. **CTA** `End`, 20s (5:45–6:05)
+2. **Red dwarfs: the galaxy's majority** `REAL`, 55s (0:25–1:20): star comparison
+3. ‖ **Close orbit → tidal lock** `REAL physics`, 70s (1:20–2:30): diagram
+4. **Eyeball Earth: ocean spot, ice elsewhere** `Model est.`, 75s (2:30–3:45): orbital eyeball
+5. **Flares & atmosphere** `REAL`, 60s (3:45–4:45): flare
+6. **Plants: dark leaves** `Speculative`, 60s (4:45–5:45): black foliage
+7. **Terminator civilizations?** `Speculative`, 60s (5:45–6:45): twilight belt
+8. **Real worlds like this: TRAPPIST-1, Proxima b** `REAL`, 55s (6:45–7:40): exoplanets
+9. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 365s of generated video · **16 generations** (≤30s each) · ≈$75.08 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 40s→20+20, S3 50s→25+25, S4 55s→28+27, S5 45s→23+22, S6 45s→23+22, S7 45s→23+22, S8 40s→20+20. Deliberate hard cuts ‖: into S3 (lock). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S3 & S4 designed diagrams.
+**Stitch plan:** 480s of generated video · **18 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 55s→28+27, S3 70s→24+23+23, S4 75s→25+25+25, S5 60s→30+30, S6 60s→30+30, S7 60s→30+30, S8 55s→28+27. Deliberate hard cuts ‖: into S3 (lock). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S3 & S4 designed diagrams.
 
 **Cinematography:** Palette twilight-fable dominant; S6 the-emerald-ambush pushed to near-black; macro clean-sharp. *Control overrides:* None.
 
@@ -693,7 +694,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "A sun that never sets" (S1+S3, 60s) · (2) "Plants would be black" (S6, 45s) · (3) "TRAPPIST-1 is real" (S8, 40s)
 
 ### L23: What If the Amazon Became a Savanna?
-**Alt title:** The Amazon Tipping Point, Explained · **Series:** WHAT IF · **Runtime:** ~6:38 (375s sections + ident + outro)
+**Alt title:** The Amazon Tipping Point, Explained · **Series:** WHAT IF · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "The Amazon makes a lot of its own rain. Cut enough trees, and scientists warn the rain itself could fail."
 
@@ -701,16 +702,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: flying rivers** `REAL`, 25s (0:00–0:25): mist rising from canopy
-2. **How the forest makes rain** `REAL`, 50s (0:25–1:15): Seedance moisture diagram
-3. **What's measured** `REAL`, 45s (1:15–2:00): satellite deforestation
-4. ‖ **Scenario: tipping point crossed** `Speculative`, 40s (2:00–2:40): drier forest
-5. **Fire season lengthens** `Model est.`, 55s (2:40–3:35): generic forest fire distant
-6. **Savanna spreads** `Model est.`, 55s (3:35–4:30): grassland
-7. **Effects beyond Brazil: rainfall downwind** `Model est.`, 45s (4:30–5:15): southern farms
-8. **Recovery: what the science says works** `REAL`, 40s (5:15–5:55): reforestation
-9. **CTA** `End`, 20s (5:55–6:15)
+2. **How the forest makes rain** `REAL`, 65s (0:25–1:30): Seedance moisture diagram
+3. **What's measured** `REAL`, 60s (1:30–2:30): satellite deforestation
+4. ‖ **Scenario: tipping point crossed** `Speculative`, 55s (2:30–3:25): drier forest
+5. **Fire season lengthens** `Model est.`, 70s (3:25–4:35): generic forest fire distant
+6. **Savanna spreads** `Model est.`, 70s (4:35–5:45): grassland
+7. **Effects beyond Brazil: rainfall downwind** `Model est.`, 60s (5:45–6:45): southern farms
+8. **Recovery: what the science says works** `REAL`, 55s (6:45–7:40): reforestation
+9. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 375s of generated video · **16 generations** (≤30s each) · ≈$77.14 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 45s→23+22, S4 40s→20+20, S5 55s→28+27, S6 55s→28+27, S7 45s→23+22, S8 40s→20+20. Deliberate hard cuts ‖: into S4 (scenario flag). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 moisture recycling diagram.
+**Stitch plan:** 480s of generated video · **19 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 65s→22+22+21, S3 60s→30+30, S4 55s→28+27, S5 70s→24+23+23, S6 70s→24+23+23, S7 60s→30+30, S8 55s→28+27. Deliberate hard cuts ‖: into S4 (scenario flag). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 moisture recycling diagram.
 
 **Cinematography:** Label ON. No identifiable towns or people; restrained fire. the-emerald-ambush → mirage-at-noon. *Control overrides:* genre drama; no action.
 
@@ -723,7 +724,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The Amazon makes its own rain" (S2, 50s) · (2) "What a savanna Amazon would look like (model)" (S6, 55s) · (3) "What works to save it" (S8, 40s)
 
 ### L24: What If the Moon Were Twice as Close?
-**Alt title:** Giant Moon, Giant Tides · **Series:** ALTERNATE EARTHS · **Runtime:** ~5:58 (335s sections + ident + outro)
+**Alt title:** Giant Moon, Giant Tides · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:18 (475s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Halve the distance to the Moon, and the tides get eight times stronger. Coastlines would never be the same."
 
@@ -731,15 +732,15 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: a Moon four times the size in sky** `Alt`, 25s (0:00–0:25): huge moonrise
-2. **Tides scale with 1/distance³** `REAL physics`, 40s (0:25–1:05): diagram
-3. ‖ **Coastal tides of tens of meters** `Model est.`, 60s (1:05–2:05): tidal bore
-4. **Tidal flexing: more quakes & volcanism** `Speculative`, 45s (2:05–2:50): volcano
-5. **Day length & eclipses** `Model est.`, 45s (2:50–3:35): eclipse
-6. **Life in the huge intertidal zone** `Speculative`, 50s (3:35–4:25): tide pools
-7. ‖ **Earth's early Moon was closer** `REAL`, 50s (4:25–5:15): early Earth
-8. **CTA** `End`, 20s (5:15–5:35)
+2. **Tides scale with 1/distance³** `REAL physics`, 60s (0:25–1:25): diagram
+3. ‖ **Coastal tides of tens of meters** `Model est.`, 90s (1:25–2:55): tidal bore
+4. **Tidal flexing: more quakes & volcanism** `Speculative`, 65s (2:55–4:00): volcano
+5. **Day length & eclipses** `Model est.`, 65s (4:00–5:05): eclipse
+6. **Life in the huge intertidal zone** `Speculative`, 75s (5:05–6:20): tide pools
+7. ‖ **Earth's early Moon was closer** `REAL`, 75s (6:20–7:35): early Earth
+8. **CTA** `End`, 20s (7:35–7:55)
 
-**Stitch plan:** 335s of generated video · **14 generations** (≤30s each) · ≈$68.91 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 40s→20+20, S3 60s→30+30, S4 45s→23+22, S5 45s→23+22, S6 50s→25+25, S7 50s→25+25. Deliberate hard cuts ‖: into S3 (tidal bore); into S7 (real past). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 diagram.
+**Stitch plan:** 475s of generated video · **19 generations** (≤30s each) · ≈$97.71 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 60s→30+30, S3 90s→30+30+30, S4 65s→22+22+21, S5 65s→22+22+21, S6 75s→25+25+25, S7 75s→25+25+25. Deliberate hard cuts ‖: into S3 (tidal bore); into S7 (real past). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 diagram.
 
 **Cinematography:** S1 twilight-fable epic moonrise over sea. S3 dynamic long-lens tidal bore in estuary, generic. S7 35mm-film early Earth. *Control overrides:* S3 pacing dynamic.
 
@@ -752,7 +753,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "Moon twice as close = 8x tides" (S2–S3, 75s) · (2) "The Moon used to be closer" (S7, 50s) · (3) "Moonrise four times bigger" (S1, 25s + S5)
 
 ### L25: What If the Mediterranean Dried Up Again?
-**Alt title:** The Messinian Salinity Crisis and the Great Flood · **Series:** REWIND EARTH · **Runtime:** ~6:08 (345s sections + ident + outro)
+**Alt title:** The Messinian Salinity Crisis and the Great Flood · **Series:** REWIND EARTH · **Runtime:** ~8:18 (475s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Six million years ago, the Mediterranean Sea almost completely dried up. Then the Atlantic came back — fast."
 
@@ -760,15 +761,15 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: a salt valley kilometers deep** `−5.6M`, 25s (0:00–0:25): salt flats
-2. **Gibraltar closes** `−5.96M`, 45s (0:25–1:10): strait diagram
-3. **The sea evaporates** `−5.9M`, 55s (1:10–2:05): shrinking basin
-4. **Salt desert: kilometers below sea level** `−5.6M`, 50s (2:05–2:55): heat, brine lakes
-5. ‖ **The Zanclean flood** `−5.33M`, 60s (2:55–3:55): mega-waterfall
-6. **Refilling** `−5.33M`, 45s (3:55–4:40): basin filling
-7. **Could it happen again?** `T+ millions, speculative`, 45s (4:40–5:25): Africa-Europe collision
-8. **CTA** `End`, 20s (5:25–5:45)
+2. **Gibraltar closes** `−5.96M`, 65s (0:25–1:30): strait diagram
+3. **The sea evaporates** `−5.9M`, 80s (1:30–2:50): shrinking basin
+4. **Salt desert: kilometers below sea level** `−5.6M`, 70s (2:50–4:00): heat, brine lakes
+5. ‖ **The Zanclean flood** `−5.33M`, 85s (4:00–5:25): mega-waterfall
+6. **Refilling** `−5.33M`, 65s (5:25–6:30): basin filling
+7. **Could it happen again?** `T+ millions, speculative`, 65s (6:30–7:35): Africa-Europe collision
+8. **CTA** `End`, 20s (7:35–7:55)
 
-**Stitch plan:** 345s of generated video · **14 generations** (≤30s each) · ≈$70.97 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 55s→28+27, S4 50s→25+25, S5 60s→30+30, S6 45s→23+22, S7 45s→23+22. Deliberate hard cuts ‖: into S5 (flood). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 & S6 designed Mediterranean maps (start/end frames).
+**Stitch plan:** 475s of generated video · **20 generations** (≤30s each) · ≈$97.71 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 65s→22+22+21, S3 80s→27+27+26, S4 70s→24+23+23, S5 85s→29+28+28, S6 65s→22+22+21, S7 65s→22+22+21. Deliberate hard cuts ‖: into S5 (flood). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 & S6 designed Mediterranean maps (start/end frames).
 
 **Cinematography:** 35mm-film. S4 mirage-at-noon, anamorphic. S5 epic dynamic mega-cascade, hero shot. S6 time-lapse single-shot. *Control overrides:* S5 genre epic, pacing dynamic.
 
@@ -781,7 +782,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The Mediterranean dried up" (S3, 55s) · (2) "The biggest flood in history" (S5, 60s) · (3) "Will it happen again?" (S7, 45s)
 
 ### L26: Earth in 10,000 Years
-**Alt title:** What Happens Next: The Next 10 Millennia · **Series:** EARTH IN… · **Runtime:** ~6:18 (355s sections + ident + outro)
+**Alt title:** What Happens Next: The Next 10 Millennia · **Series:** EARTH IN… · **Runtime:** ~8:28 (485s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "In ten thousand years, Polaris won't be the North Star anymore. And that's the least of the changes."
 
@@ -789,16 +790,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: the drifting pole star** `T+10K`, 25s (0:00–0:25): star trails
-2. **Precession explained** `REAL`, 45s (0:25–1:10): Seedance
-3. ‖ **T+100 yrs: sea levels & glaciers (real projections)** `REAL`, 45s (1:10–1:55): glacier retreat
-4. **T+1K yrs: Scandinavia still rising** `REAL`, 45s (1:55–2:40): post-glacial rebound
-5. **T+3K yrs: rivers change course** `Model est.`, 45s (2:40–3:25): delta shift
-6. **T+5K yrs: Niagara farther upstream** `Model est.`, 40s (3:25–4:05): falls
-7. **T+10K yrs: the sky, Vega approaches pole** `REAL`, 50s (4:05–4:55): night sky
-8. **Humans in 10K years** `Speculative`, 40s (4:55–5:35)
-9. **CTA** `End`, 20s (5:35–5:55)
+2. **Precession explained** `REAL`, 65s (0:25–1:30): Seedance
+3. ‖ **T+100 yrs: sea levels & glaciers (real projections)** `REAL`, 65s (1:30–2:35): glacier retreat
+4. **T+1K yrs: Scandinavia still rising** `REAL`, 65s (2:35–3:40): post-glacial rebound
+5. **T+3K yrs: rivers change course** `Model est.`, 65s (3:40–4:45): delta shift
+6. **T+5K yrs: Niagara farther upstream** `Model est.`, 55s (4:45–5:40): falls
+7. **T+10K yrs: the sky, Vega approaches pole** `REAL`, 70s (5:40–6:50): night sky
+8. **Humans in 10K years** `Speculative`, 55s (6:50–7:45)
+9. **CTA** `End`, 20s (7:45–8:05)
 
-**Stitch plan:** 355s of generated video · **16 generations** (≤30s each) · ≈$73.02 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 45s→23+22, S4 45s→23+22, S5 45s→23+22, S6 40s→20+20, S7 50s→25+25, S8 40s→20+20. Deliberate hard cuts ‖: into S3 (reality check). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 precession diagram start/end.
+**Stitch plan:** 485s of generated video · **21 generations** (≤30s each) · ≈$99.76 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 65s→22+22+21, S3 65s→22+22+21, S4 65s→22+22+21, S5 65s→22+22+21, S6 55s→28+27, S7 70s→24+23+23, S8 55s→28+27. Deliberate hard cuts ‖: into S3 (reality check). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 precession diagram start/end.
 
 **Cinematography:** S1 & S7 after-dark long-exposure star trails, single-shot. S4 aerial coast, the-morning-after-rain. *Control overrides:* S1/S7 pacing single-shot.
 
@@ -811,7 +812,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "Polaris won't always be the North Star" (S1–S2, 70s) · (2) "Some land is still rising after the Ice Age" (S4, 45s) · (3) "Earth in 10,000 years, fast" (montage, 60s)
 
 ### L27: What If the Carrington Event Happened Today?
-**Alt title:** The Solar Storm That Could Knock Out the Grid · **Series:** WHAT IF · **Runtime:** ~6:18 (355s sections + ident + outro)
+**Alt title:** The Solar Storm That Could Knock Out the Grid · **Series:** WHAT IF · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "In 1859, auroras were seen as far south as the Caribbean, and telegraph wires sparked. What would that storm do today?"
 
@@ -819,16 +820,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: 1859 auroras** `REAL −1859`, 25s (0:00–0:25): period aurora
-2. **What happened in 1859** `REAL`, 45s (0:25–1:10): telegraph office (period)
-3. ‖ **CME launch** `T+0`, 40s (1:10–1:50): solar orbital view
-4. **Arrival: 17–18 hours** `T+17 hr`, 40s (1:50–2:30): magnetosphere
-5. **Auroras everywhere** `T+18 hr`, 45s (2:30–3:15): aurora over generic town
-6. **Grid & satellite impacts** `Model est.`, 55s (3:15–4:10): transformers, sats
-7. **Recovery** `Model est.`, 45s (4:10–4:55)
-8. **How we're prepared (NOAA SWPC)** `REAL`, 40s (4:55–5:35): monitoring
-9. **CTA** `End`, 20s (5:35–5:55)
+2. **What happened in 1859** `REAL`, 65s (0:25–1:30): telegraph office (period)
+3. ‖ **CME launch** `T+0`, 55s (1:30–2:25): solar orbital view
+4. **Arrival: 17–18 hours** `T+17 hr`, 55s (2:25–3:20): magnetosphere
+5. **Auroras everywhere** `T+18 hr`, 65s (3:20–4:25): aurora over generic town
+6. **Grid & satellite impacts** `Model est.`, 75s (4:25–5:40): transformers, sats
+7. **Recovery** `Model est.`, 65s (5:40–6:45)
+8. **How we're prepared (NOAA SWPC)** `REAL`, 55s (6:45–7:40): monitoring
+9. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 355s of generated video · **16 generations** (≤30s each) · ≈$73.02 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 40s→20+20, S4 40s→20+20, S5 45s→23+22, S6 55s→28+27, S7 45s→23+22, S8 40s→20+20. Deliberate hard cuts ‖: into S3 (CME launch). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S4 magnetosphere compression diagram.
+**Stitch plan:** 480s of generated video · **20 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 65s→22+22+21, S3 55s→28+27, S4 55s→28+27, S5 65s→22+22+21, S6 75s→25+25+25, S7 65s→22+22+21, S8 55s→28+27. Deliberate hard cuts ‖: into S3 (CME launch). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S4 magnetosphere compression diagram.
 
 **Cinematography:** Label ON. 35mm-film for 1859. No fake news graphics. after-dark aurora anamorphic. *Control overrides:* S3 genre epic, pacing dynamic.
 
@@ -841,7 +842,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The day telegraphs caught fire" (S2, 45s) · (2) "What a Carrington storm would do today" (S6, 55s) · (3) "How forecasters watch the Sun" (S8, 40s)
 
 ### L28: What If Pangaea Never Broke Apart?
-**Alt title:** One Supercontinent, Today · **Series:** ALTERNATE EARTHS · **Runtime:** ~6:38 (375s sections + ident + outro)
+**Alt title:** One Supercontinent, Today · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:23 (480s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Two hundred million years ago all land was one. What if it had stayed that way until today?"
 
@@ -849,16 +850,16 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: one continent from orbit** `Alt`, 25s (0:00–0:25): orbital
-2. **The real Pangaea and its breakup** `REAL`, 50s (0:25–1:15): map morph
-3. ‖ **Divergence: rifts fail** `Alt`, 40s (1:15–1:55): failed rift
-4. **Megamonsoon coasts** `Model est.`, 55s (1:55–2:50): storms
-5. **The interior: hottest desert ever** `Model est.`, 55s (2:50–3:45): red plains
-6. **Fewer species (isolation matters)** `REAL principle`, 45s (3:45–4:30): single fauna
-7. **Panthalassa: one ocean** `Model est.`, 45s (4:30–5:15): ocean
-8. **Humans on Pangaea?** `Speculative`, 40s (5:15–5:55)
-9. **CTA** `End`, 20s (5:55–6:15)
+2. **The real Pangaea and its breakup** `REAL`, 65s (0:25–1:30): map morph
+3. ‖ **Divergence: rifts fail** `Alt`, 55s (1:30–2:25): failed rift
+4. **Megamonsoon coasts** `Model est.`, 70s (2:25–3:35): storms
+5. **The interior: hottest desert ever** `Model est.`, 70s (3:35–4:45): red plains
+6. **Fewer species (isolation matters)** `REAL principle`, 60s (4:45–5:45): single fauna
+7. **Panthalassa: one ocean** `Model est.`, 60s (5:45–6:45): ocean
+8. **Humans on Pangaea?** `Speculative`, 55s (6:45–7:40)
+9. **CTA** `End`, 20s (7:40–8:00)
 
-**Stitch plan:** 375s of generated video · **16 generations** (≤30s each) · ≈$77.14 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 50s→25+25, S3 40s→20+20, S4 55s→28+27, S5 55s→28+27, S6 45s→23+22, S7 45s→23+22, S8 40s→20+20. Deliberate hard cuts ‖: into S3 (divergence). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 Pangaea → today map (end frame) morph, reversed for alt.
+**Stitch plan:** 480s of generated video · **19 generations** (≤30s each) · ≈$98.74 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 65s→22+22+21, S3 55s→28+27, S4 70s→24+23+23, S5 70s→24+23+23, S6 60s→30+30, S7 60s→30+30, S8 55s→28+27. Deliberate hard cuts ‖: into S3 (divergence). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 Pangaea → today map (end frame) morph, reversed for alt.
 
 **Cinematography:** S5 mirage-at-noon anamorphic; S4 dynamic storms; S7 turquoise-mirage. *Control overrides:* None.
 
@@ -871,23 +872,23 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "What if Pangaea never split?" (S1–S3, 75s) · (2) "The hottest desert ever" (S5, 55s) · (3) "Why islands make new species" (S6, 45s)
 
 ### L29: What If It Rained for 2 Million Years?
-**Alt title:** The Carnian Pluvial Episode · **Series:** REWIND EARTH · **Runtime:** ~5:58 (335s sections + ident + outro)
+**Alt title:** The Carnian Pluvial Episode · **Series:** REWIND EARTH · **Runtime:** ~8:18 (475s sections + ident + outro)
 
-**Hook (0–5s, verbatim VO):** "About two hundred thirty-four million years ago, it started raining — and, on and off, it didn't stop for about a million years or more."
+**Hook (0–5s, verbatim VO):** "About two hundred thirty-four million years ago, it started raining — and, on and off, it didn't stop for up to two million years."
 
 **Logline:** The Carnian Pluvial Episode: volcanism, a wet Triassic world, and the rise of the dinosaurs.
 
 **Outline (timeline escalation):**
 1. **Hook: the rain begins** `−234M`, 25s (0:00–0:25): rain over Triassic plain
-2. **Triassic world before** `−235M`, 45s (0:25–1:10): arid Pangaea
-3. ‖ **Wrangellia eruptions** `−234M`, 50s (1:10–2:00): volcanic province
-4. **The wet million years** `−233M`, 60s (2:00–3:00): swamps
-5. **Winners: dinosaurs, conifers** `−232M`, 55s (3:00–3:55): early dinos
-6. **Losers** `REAL`, 40s (3:55–4:35)
-7. **Could a pluvial happen now?** `Speculative`, 40s (4:35–5:15)
-8. **CTA** `End`, 20s (5:15–5:35)
+2. **Triassic world before** `−235M`, 65s (0:25–1:30): arid Pangaea
+3. ‖ **Wrangellia eruptions** `−234M`, 75s (1:30–2:45): volcanic province
+4. **The wet million years** `−233M`, 90s (2:45–4:15): swamps
+5. **Winners: dinosaurs, conifers** `−232M`, 80s (4:15–5:35): early dinos
+6. **Losers** `REAL`, 60s (5:35–6:35)
+7. **Could a pluvial happen now?** `Speculative`, 60s (6:35–7:35)
+8. **CTA** `End`, 20s (7:35–7:55)
 
-**Stitch plan:** 335s of generated video · **14 generations** (≤30s each) · ≈$68.91 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 45s→23+22, S3 50s→25+25, S4 60s→30+30, S5 55s→28+27, S6 40s→20+20, S7 40s→20+20. Deliberate hard cuts ‖: into S3 (eruption). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S3 map of Wrangellia on Pangaea.
+**Stitch plan:** 475s of generated video · **18 generations** (≤30s each) · ≈$97.71 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 65s→22+22+21, S3 75s→25+25+25, S4 90s→30+30+30, S5 80s→27+27+26, S6 60s→30+30, S7 60s→30+30. Deliberate hard cuts ‖: into S3 (eruption). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S3 map of Wrangellia on Pangaea.
 
 **Cinematography:** 35mm-film. S4 the-morning-after-rain, calm, vintage-anamorphic. S3 dynamic industrial-fog. *Control overrides:* S3 genre epic, pacing dynamic.
 
@@ -900,7 +901,7 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 **Vertical cut-downs (9:16, reframe from 9:16 regenerations of key beats):** (1) "The rain that lasted a million years" (S1+S4, 70s) · (2) "How rain helped dinosaurs win" (S5, 55s) · (3) "Volcanoes that changed the weather" (S3, 50s)
 
 ### L30: What If Earth Were Where Mars Is?
-**Alt title:** Earth at 1.5 AU · **Series:** ALTERNATE EARTHS · **Runtime:** ~5:48 (325s sections + ident + outro)
+**Alt title:** Earth at 1.5 AU · **Series:** ALTERNATE EARTHS · **Runtime:** ~8:13 (470s sections + ident + outro)
 
 **Hook (0–5s, verbatim VO):** "Move Earth out to Mars's orbit, and sunlight drops by more than half. Winter would last nearly a year."
 
@@ -908,15 +909,15 @@ Companion to `Channel-Bible.md`. There are **30 long-form (L01–L30)** and **30
 
 **Outline (timeline escalation):**
 1. **Hook: a smaller, dimmer Sun** `Alt`, 25s (0:00–0:25): sky with small sun
-2. **The move** `T+0`, 35s (0:25–1:00): orbital diagram
-3. **43% sunlight** `REAL physics`, 40s (1:00–1:40): Readout
-4. ‖ **First year: cooling, ice spreads** `T+1 yr`, 55s (1:40–2:35): ice
-5. **A 687-day year: long seasons** `Model est.`, 50s (2:35–3:25): long winter
-6. **Snowball threshold?** `Model est.`, 50s (3:25–4:15): white Earth
-7. **Could CO₂ keep it warm? (early Mars lesson)** `Speculative`, 50s (4:15–5:05)
-8. **CTA** `End`, 20s (5:05–5:25)
+2. **The move** `T+0`, 55s (0:25–1:20): orbital diagram
+3. **43% sunlight** `REAL physics`, 60s (1:20–2:20): Readout
+4. ‖ **First year: cooling, ice spreads** `T+1 yr`, 85s (2:20–3:45): ice
+5. **A 687-day year: long seasons** `Model est.`, 75s (3:45–5:00): long winter
+6. **Snowball threshold?** `Model est.`, 75s (5:00–6:15): white Earth
+7. **Could CO₂ keep it warm? (early Mars lesson)** `Speculative`, 75s (6:15–7:30)
+8. **CTA** `End`, 20s (7:30–7:50)
 
-**Stitch plan:** 325s of generated video · **14 generations** (≤30s each) · ≈$66.85 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 35s→18+17, S3 40s→20+20, S4 55s→28+27, S5 50s→25+25, S6 50s→25+25, S7 50s→25+25. Deliberate hard cuts ‖: into S4 (freeze onset). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 orbit diagram start/end; S6 orbital white Earth still.
+**Stitch plan:** 470s of generated video · **18 generations** (≤30s each) · ≈$96.68 at $0.2057/s. Multi-segment (seamless last-frame chain): S2 55s→28+27, S3 60s→30+30, S4 85s→29+28+28, S5 75s→25+25+25, S6 75s→25+25+25, S7 75s→25+25+25. Deliberate hard cuts ‖: into S4 (freeze onset). All other section boundaries use the Earth-globe transition (Remotion). Seedance 2.5: S2 orbit diagram start/end; S6 orbital white Earth still.
 
 **Cinematography:** the-grey-channel dominant, clean-sharp; S1 ground-level with visibly smaller sun disc. *Control overrides:* None.
 
@@ -980,11 +981,11 @@ Shorts reuse the same Cinema defaults at `9:16`. Each beat is one section/clip.
 **Cover text:** EARTH'S INVISIBLE SHIELD
 
 ### S04: What If Sea Level Dropped 120 Meters?
-**Hook:** "Twenty thousand years ago, you could walk from Britain to France." · **Runtime:** 66s
+**Hook:** "Twenty thousand years ago, you could walk from Britain to France." · **Runtime:** 152s
 
-**Beats:** B1 0–6s Hook: Doggerland walk · B2 6–20s Ice Age sea level −120 m · B3 20–45s Beringia, Sundaland appear · B4 45–60s Why it rose again · B5 60–66s Loop
+**Beats:** B1 0–6s Hook: Doggerland walk · B2 6–41s Ice Age sea level −120 m · B3 41–106s Beringia, Sundaland appear · B4 106–146s Why it rose again · B5 146–152s Loop
 
-**Stitch plan:** 66s · **5 generations** · ≈$13.58. Multi-segment: none. Hard cuts ‖: into B2 (reveal).
+**Stitch plan:** 152s · **9 generations** · ≈$31.27. Multi-segment: B2 35s→18+17, B3 65s→22+22+21, B4 40s→20+20. Hard cuts ‖: into B2 (reveal).
 
 **Vertical cinematography:** Seedance map morph (today → −120 m coastlines) in 9:16; ground shot of figure walking on grassland where North Sea is.
 
@@ -1055,11 +1056,11 @@ Shorts reuse the same Cinema defaults at `9:16`. Each beat is one section/clip.
 **Cover text:** NO CLOUDS?
 
 ### S09: What If Every Volcano Erupted at Once?
-**Hook:** "Around fifteen hundred potentially active volcanoes. All at once." · **Runtime:** 80s
+**Hook:** "About thirteen hundred fifty potentially active volcanoes. All erupting at once." · **Runtime:** 185s
 
-**Beats:** B1 0–6s Hook: global plume map · B2 6–26s Ash sky · B3 26–46s Volcanic winter · B4 46–66s CO₂ long-term warming · B5 66–76s Real reassurance · B6 76–80s Loop
+**Beats:** B1 0–6s Hook: global plume map · B2 6–56s Ash sky · B3 56–106s Volcanic winter · B4 106–156s CO₂ long-term warming · B5 156–181s Real reassurance · B6 181–185s Loop
 
-**Stitch plan:** 80s · **6 generations** · ≈$16.46. Multi-segment: none. Hard cuts ‖: into B2 (ash sky).
+**Stitch plan:** 185s · **9 generations** · ≈$38.05. Multi-segment: B2 50s→25+25, B3 50s→25+25, B4 50s→25+25. Hard cuts ‖: into B2 (ash sky).
 
 **Vertical cinematography:** Orbital dotted with plumes; ground shot grey sky. Label ON.
 
@@ -1130,11 +1131,11 @@ Shorts reuse the same Cinema defaults at `9:16`. Each beat is one section/clip.
 **Cover text:** 2X OCEANS
 
 ### S14: What's Under Antarctica's Ice?
-**Hook:** "Under Antarctica's ice are mountains, lakes, and land below sea level." · **Runtime:** 60s
+**Hook:** "Under Antarctica's ice are mountains, lakes, and land below sea level." · **Runtime:** 120s
 
-**Beats:** B1 0–6s Hook: ice peels away · B2 6–26s Bedrock (BedMachine) · B3 26–42s Subglacial lakes: Vostok · B4 42–56s Rebound when ice melts · B5 56–60s Loop
+**Beats:** B1 0–6s Hook: ice peels away · B2 6–51s Bedrock (BedMachine) · B3 51–86s Subglacial lakes: Vostok · B4 86–116s Rebound when ice melts · B5 116–120s Loop
 
-**Stitch plan:** 60s · **5 generations** · ≈$12.34. Multi-segment: none. Hard cuts ‖: none (all Remotion globe/whip transitions).
+**Stitch plan:** 120s · **7 generations** · ≈$24.68. Multi-segment: B2 45s→23+22, B3 35s→18+17. Hard cuts ‖: none (all Remotion globe/whip transitions).
 
 **Vertical cinematography:** Seedance start (ice) → end (bedrock) from designed stills.
 
@@ -1190,11 +1191,11 @@ Shorts reuse the same Cinema defaults at `9:16`. Each beat is one section/clip.
 **Cover text:** NO LAND
 
 ### S18: What If Iceland Split in Two?
-**Hook:** "Iceland sits on a crack between two continents. It's opening about two centimeters a year." · **Runtime:** 60s
+**Hook:** "Iceland sits on a crack between two continents. It's opening about two centimeters a year." · **Runtime:** 120s
 
-**Beats:** B1 0–6s Hook: the rift · B2 6–22s Mid-Atlantic Ridge · B3 22–42s T+1M years: new sea · B4 42–56s Real eruptions (Reykjanes) · B5 56–60s Loop
+**Beats:** B1 0–6s Hook: the rift · B2 6–41s Mid-Atlantic Ridge · B3 41–86s T+1M years: new sea · B4 86–116s Real eruptions (Reykjanes) · B5 116–120s Loop
 
-**Stitch plan:** 60s · **5 generations** · ≈$12.34. Multi-segment: none. Hard cuts ‖: into B3 (future).
+**Stitch plan:** 120s · **7 generations** · ≈$24.68. Multi-segment: B2 35s→18+17, B3 45s→23+22. Hard cuts ‖: into B3 (future).
 
 **Vertical cinematography:** Rift runs vertically through the frame; Seedance map for T+1M.
 
@@ -1280,11 +1281,11 @@ Shorts reuse the same Cinema defaults at `9:16`. Each beat is one section/clip.
 **Cover text:** MOON WITH AIR
 
 ### S24: What If Earth Had No Plate Tectonics?
-**Hook:** "Without moving plates, Earth might end up like Venus." · **Runtime:** 60s
+**Hook:** "Without moving plates, Earth might end up like Venus." · **Runtime:** 147s
 
-**Beats:** B1 0–6s Hook: frozen plates · B2 6–24s Carbon cycle stops · B3 24–40s Mountains erode flat · B4 40–54s Stagnant lid planets · B5 54–60s Loop
+**Beats:** B1 0–6s Hook: frozen plates · B2 6–56s Carbon cycle stops · B3 56–101s Mountains erode flat · B4 101–141s Stagnant lid planets · B5 141–147s Loop
 
-**Stitch plan:** 60s · **5 generations** · ≈$12.34. Multi-segment: none. Hard cuts ‖: none (all Remotion globe/whip transitions).
+**Stitch plan:** 147s · **8 generations** · ≈$30.24. Multi-segment: B2 50s→25+25, B3 45s→23+22, B4 40s→20+20. Hard cuts ‖: none (all Remotion globe/whip transitions).
 
 **Vertical cinematography:** Seedance plate diagram; aerial worn-down plains.
 
@@ -1355,11 +1356,11 @@ Shorts reuse the same Cinema defaults at `9:16`. Each beat is one section/clip.
 **Cover text:** EARTH'S RED SPOT
 
 ### S29: Earth in 100 Million Years
-**Hook:** "In one hundred million years, the map is unrecognizable." · **Runtime:** 76s
+**Hook:** "In one hundred million years, the map is unrecognizable." · **Runtime:** 172s
 
-**Beats:** B1 0–6s Hook: new map · B2 6–22s Atlantic wider · B3 22–40s Africa into Europe · B4 40–56s Australia into Asia · B5 56–70s New life · B6 70–76s Loop
+**Beats:** B1 0–6s Hook: new map · B2 6–46s Atlantic wider · B3 46–91s Africa into Europe · B4 91–131s Australia into Asia · B5 131–166s New life · B6 166–172s Loop
 
-**Stitch plan:** 76s · **6 generations** · ≈$15.63. Multi-segment: none. Hard cuts ‖: none (all Remotion globe/whip transitions).
+**Stitch plan:** 172s · **10 generations** · ≈$35.38. Multi-segment: B2 40s→20+20, B3 45s→23+22, B4 40s→20+20, B5 35s→18+17. Hard cuts ‖: none (all Remotion globe/whip transitions).
 
 **Vertical cinematography:** Seedance map morph vertical crop.
 
@@ -1388,7 +1389,7 @@ Shorts reuse the same Cinema defaults at `9:16`. Each beat is one section/clip.
 
 ## Budget roll-up
 
-- **Long-form (30):** 11,975s of video, 502 generations, ≈$2,463.26. That averages about $82.11 per video before re-rolls.
-- **Short-form (30):** 1,900s of video, 154 generations, ≈$390.83. That averages about $13.03 per Short.
+- **Long-form (30):** 15,165s of video, 611 generations, ≈$3,119.44. That averages about $103.98 per video before re-rolls.
+- **Short-form (30):** 2,394s of video, 172 generations, ≈$492.45. That averages about $16.41 per Short.
 - **Re-rolls:** budget an extra 10–15%.
 - **Cut-downs:** vertical cut-downs of long-form assume **fresh 9:16 regenerations** of the key beats. Cropping 16:9 is a fallback that the Bible discourages.
