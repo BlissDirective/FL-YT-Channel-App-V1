@@ -101,7 +101,7 @@ references look like [S1]. **[U]** marks a claim that is unverified or estimated
 | 4 | **ExplosmEntertainment** (Cyanide & Happiness) | ~3.6M [S29] [U: may be stale] | Stick-ish comedy shorts of 1–3 min, weekly Thursday drops | Punchline economy, a 3-beat setup/turn/punch, reliable schedule | Adult/dark humor, 2D. There is room for **PG action-comedy** with the same timing discipline. |
 | 5 | **Hyun's Dojo Community** | ~2.5M [S6] | Curated stick-fight collabs, 1–10 min | Choreography, impact frames, community collabs | No recurring story or characters, 2D. We bring *story* to stick fights. |
 | 6 | **Neural Viz** | ~238K (July 2026) [S24] | AI-generated mockumentary series (Monoverse), 3–15 min | Proves AI plus authored writing, a shared universe and recurring characters equals a fandom | Not action, not stick figures. It is the *production* model to emulate, not the genre. |
-| 7 | **StickVerse** (@StickVerse) | small [U] | "Epic stick figure battles, funny skits, animated stories" [S30] | Same premise words | Also an **name-conflict warning** (§3). |
+| 7 | **StickVerse** (@StickVerse) | small [U] | "Epic stick figure battles, funny skits, animated stories" [S30] | Same premise words | Also a **name-conflict warning** (§3). |
 | 8 | **AI stickman storytelling wave** (many channels, unnamed [U]) | 10K–500K [U] | Narrator plus simple stick visuals, crime/history stories, 10–30 min [S8][S9] | Cheap, fast, narration-led | Visually flat and templated, the **highest slop risk**. We are the premium opposite. |
 
 ### 2.1 Best video styles (what to steal structurally, not visually)
@@ -119,9 +119,9 @@ references look like [S1]. **[U]** marks a claim that is unverified or estimated
 - **Length sweet spots:**
   - **Long-form:** 8–15 min, ideally 9–12 (AvM's roughly 10-min norm [S3]). Put a set-piece every
     2–3 min, a comedic breather after each, and the climax at 75–85% of runtime.
-  - **Shorts:** 25–45s standalone gags and fights loop best. 60–90s "Part N" episodes follow the
-    micro-drama cadence [S13]. Use up to 3 min only for full-fight Shorts [U: Shorts allow up to
-    3 min since Oct 2024].
+  - **Shorts:** cut-downs from episodes at 20–45s loop best. Standalone originals and "Part N"
+    episodes run 60–90s, following the micro-drama cadence [S13]. Use up to 3 min only for full-fight Shorts [U: Shorts allow up to
+    3 min since Oct 2024]. Vertical mini-movies over 3 min go to TikTok/Reels.
 - **Thumbnails and titles:** one hero silhouette mid-action, a single huge threat, and ≤3 words.
   AvA titles are nearly bare ("Animation vs. X"). Glitch uses the episode name plus character art.
 
