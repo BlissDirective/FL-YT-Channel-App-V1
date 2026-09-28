@@ -89,6 +89,10 @@ export type VideoClip = {
       renderer sets playbackRate on video clips and loops the trim window to
       fill the clip. No effect on stills. Bounded 0.25–4×. */
   speed?: number;
+  /** Play the footage's own audio at this gain (dB). undefined = muted (the
+      default: VO/SFX/music are laid separately). Directed sections generated
+      with native ambience (Seedance generate_audio) set it. */
+  sourceAudioDb?: number;
 };
 
 export type AudioCue =
@@ -125,7 +129,21 @@ export type Overlay =
       maxLines?: number;
     }
   | { kind: "lowerThird"; text: string; sub?: string; startSec: number; durationSec: number }
-  | { kind: "progressBar"; style: string };
+  | { kind: "progressBar"; style: string }
+  // Directed production (directed.ts): composited on-screen text, the brand
+  // sting after the hook, the corner watermark bug, and a loop-safe outro beat.
+  | {
+      kind: "label";
+      text: string;
+      startSec: number;
+      durationSec: number;
+      position: "top" | "center" | "bottom" | "lower-third";
+      style: "label" | "title" | "caption-bold";
+      color?: string;
+    }
+  | { kind: "sting"; startSec: number; durationSec: number }
+  | { kind: "watermark"; text: string; opacity: number }
+  | { kind: "endBeat"; startSec: number; durationSec: number; cta?: string };
 
 // ── Named-style registries (validation context defaults) ──────────────
 // The render package owns the visual definitions; these are the NAMES the
@@ -157,7 +175,8 @@ export type EditDocument = {
     targetDurationSec: number;
   };
   intro: { sting: boolean; sec: number };
-  outro: { endCard: boolean; sec: number };
+  /** cta: optional end-card call to action (directed outros). */
+  outro: { endCard: boolean; sec: number; cta?: string };
   tracks: {
     video: VideoClip[];
     audio: AudioCue[];
@@ -274,6 +293,11 @@ export function validateEdd(doc: EditDocument, ctx: EddContext): EddValidation {
       validateAnchor(cue.at, runtimeSec, clipById, doc, w, "sfx.anchor", add);
     } else if (cue.kind === "music") {
       if (!ctx.musicEnabled) add("music.gated", w, "music is disabled in this version (D8)");
+      else {
+        const a = assetById.get(cue.assetId);
+        if (!a) add("music.asset", w, `music asset ${cue.assetId} missing`);
+        if (cue.start < 0 || cue.start > runtimeSec + FRAME) add("music.range", w, "music cue start out of runtime");
+      }
     }
   }
 
@@ -335,6 +359,12 @@ export function validateEdd(doc: EditDocument, ctx: EddContext): EddValidation {
       if (!(o.durationSec > 0)) add("overlay.lowerThird", w, "durationSec must be > 0");
     } else if (o.kind === "progressBar") {
       if (!ctx.overlayStyles.has(o.style)) add("overlay.progressBar", w, `unknown overlay style "${o.style}"`);
+    } else if (o.kind === "label" || o.kind === "sting" || o.kind === "endBeat") {
+      if (o.startSec < 0 || o.startSec > runtimeSec + FRAME) add(`overlay.${o.kind}`, w, "startSec out of runtime");
+      if (!(o.durationSec > 0)) add(`overlay.${o.kind}`, w, "durationSec must be > 0");
+      if (o.kind === "label" && !o.text.trim()) add("overlay.label", w, "label text is empty");
+    } else if (o.kind === "watermark") {
+      if (!(o.opacity > 0 && o.opacity <= 1)) add("overlay.watermark", w, "opacity must be in (0, 1]");
     }
   }
 

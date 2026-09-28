@@ -261,7 +261,7 @@ export function EddTimeline({
             const win =
               o.kind === "highlight"
                 ? { start: o.startMs / 1000, len: (o.endMs - o.startMs) / 1000 }
-                : o.kind === "lowerThird"
+                : "startSec" in o
                   ? { start: o.startSec, len: o.durationSec }
                   : { start: 0, len: runtime };
             return (
@@ -278,7 +278,7 @@ export function EddTimeline({
                 }}
                 title={o.kind}
               >
-                {o.kind !== "progressBar" && (o.kind === "highlight" ? o.text : o.text)}
+                {"text" in o ? o.text : o.kind === "progressBar" ? null : o.kind}
               </div>
             );
           })}

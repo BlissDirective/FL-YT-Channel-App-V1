@@ -19,6 +19,21 @@ import { runIntelligence } from "@/lib/pipeline/intelligence";
 import { recordOperatorDecision, directorStageForStatus } from "@/lib/pipeline/decisions";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
+import { parseDirectedScript } from "@studio/core";
+import {
+  directedMedia,
+  estimateDirected,
+  importDirectedScript,
+  loadDirected,
+  makeReferenceStill,
+  missingVoices,
+  reviseDirectedSections,
+  runDirectedAssets,
+  stageDirectedCut,
+  type SectionRevision,
+} from "@/lib/pipeline/directed";
+import { designVoice, saveDesignedVoice } from "@/lib/adapters/voice-design";
+import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 
 /**
  * studio-mcp tool registry (Phase 9). Each tool exposes a slice of the studio
@@ -539,6 +554,164 @@ export const TOOLS: Tool[] = [
       return { ok: true };
     },
   },
+
+  // ── Directed production (docs/production/directed-pipeline.md) — a brief
+  //    executed verbatim: exact seconds, per-character lines, literal prompts,
+  //    refs, end frames, SFX, music, labels, zooms, sting and outro.
+  {
+    name: "estimate_directed",
+    description: "Validate a directed script (the import_script shape) and return its pre-flight cost estimate and any errors. Read-only.",
+    inputSchema: obj({ script: { type: "object" } }, ["script"]),
+    handler: async (a) => {
+      const parsed = parseDirectedScript(a.script);
+      return parsed.ok ? { ok: true, estimate: estimateDirected(parsed.script) } : { ok: false, errors: parsed.errors };
+    },
+  },
+  {
+    name: "import_script",
+    description:
+      "Create a DIRECTED video from a brief's full section script, executed verbatim (no Claude rewrite, no art-director pass). script = { format: short|long, title, altTitles?, description?, tags?, cast?: {Speaker:{color}}, sections: [{ sec (4–120), lines: [{speaker, text, at}], videoPrompt, keyframePrompt?, endFrame?: {fromSection}|{prompt}, model?: hf-cinema-studio-4|hf-seedance-2-5, controls?, refs?: [storage paths], generateAudio?, sfx?: [{at, prompt, durationSec?, gainDb?}], labels?: [{at, durationSec, text, position?, style?, color?}], zooms?: [{at, toScale?, overSec?, holdSec?}], highlightWords?, transitionOut?: cut|whip|crossfade|dipToBlack, reuse?: {videoId, sectionIdx} }], music?: {prompt, gainDb?, underVoDb?}, sting?: {at, sec}, outro?: {mode: card|overlay, sec, cta?}, watermark?, captions?, qc? }. Lands at the Script gate; nothing is spent.",
+    inputSchema: obj({ projectId: { type: "string" }, script: { type: "object" } }, ["projectId", "script"]),
+    handler: async (a, db) => importDirectedScript(db, { projectId: str(a.projectId), script: a.script }),
+  },
+  {
+    name: "produce_directed",
+    description:
+      "Run (or continue) a directed video's asset stage: SOUL keyframes at native aspect, voiced lines (project voice cast), SFX, music bed, then queue one clip job per section with its exact spec. Chunked + idempotent — call again while done=false. maxUsd is REQUIRED on the first call: refuses when the pre-flight estimate exceeds it.",
+    inputSchema: obj(
+      {
+        videoId: { type: "string" },
+        maxUsd: { type: "number", description: "Spend authorization for this video (estimate must be ≤ this)." },
+      },
+      ["videoId"],
+    ),
+    handler: async (a, db) => {
+      const videoId = str(a.videoId);
+      const loaded = await loadDirected(db, videoId);
+      if ("error" in loaded) return { ok: false, error: loaded.error };
+      const { video, project, script } = loaded;
+      if (project.status !== "active") return { ok: false, error: "project is paused" };
+      const estimate = estimateDirected(script);
+      if (video.status === "SCRIPT_READY") {
+        const maxUsd = Number(a.maxUsd);
+        if (!(maxUsd > 0)) return { ok: false, error: "maxUsd required to start production", estimate };
+        if (estimate.totalUsd > maxUsd) return { ok: false, error: `estimate $${estimate.totalUsd} exceeds maxUsd $${maxUsd}`, estimate };
+        const missing = missingVoices(script, project);
+        if (missing.length) return { ok: false, error: `no voice for: ${missing.join(", ")}`, estimate };
+        await db.from("approvals").insert({ video_id: videoId, gate: "SCRIPT", decision: "approved", decided_by: "mcp", notes: `directed: authorized $${maxUsd}`, decided_at: new Date().toISOString() });
+        await db.from("videos").update({ status: "GENERATING_ASSETS", paused_reason: null }).eq("id", videoId);
+      }
+      const r = await runDirectedAssets(db, videoId, { budgetMs: 150_000 });
+      return { ...r, estimate };
+    },
+  },
+  {
+    name: "revise_sections",
+    description:
+      "One targeted revision round on a directed video (max 2 per video unless force): optionally replace a section's videoPrompt / keyframePrompt, re-roll its keyframe, and regenerate ONLY those sections' clips; the cut is re-compiled and re-rendered back to Final review. sections = [{idx, videoPrompt?, keyframePrompt?, rerollKeyframe?}].",
+    inputSchema: obj(
+      {
+        videoId: { type: "string" },
+        sections: { type: "array", items: { type: "object" } },
+        note: { type: "string", description: "Why — the QC finding being fixed." },
+        force: { type: "boolean" },
+      },
+      ["videoId", "sections", "note"],
+    ),
+    handler: async (a, db) =>
+      reviseDirectedSections(db, {
+        videoId: str(a.videoId),
+        sections: (Array.isArray(a.sections) ? a.sections : []) as SectionRevision[],
+        note: str(a.note),
+        force: a.force === true,
+      }),
+  },
+  {
+    name: "stage_directed_cut",
+    description: "Re-compile a directed video's cut from its current assets and send it to render (ASSEMBLING). Use after fixing an asset without regenerating clips.",
+    inputSchema: obj({ videoId: { type: "string" } }, ["videoId"]),
+    handler: async (a, db) => stageDirectedCut(db, str(a.videoId)),
+  },
+  {
+    name: "make_reference_still",
+    description: "Generate a SOUL Standard reference still (cast sheet, set plate) for a project; returns its storage path for a section's refs (Cinema Studio image_urls).",
+    inputSchema: obj(
+      {
+        projectId: { type: "string" },
+        name: { type: "string" },
+        prompt: { type: "string" },
+        aspect: { type: "string", description: "16:9 (default) | 9:16" },
+      },
+      ["projectId", "name", "prompt"],
+    ),
+    handler: async (a, db) =>
+      makeReferenceStill(db, {
+        projectId: str(a.projectId),
+        name: str(a.name),
+        prompt: str(a.prompt),
+        aspect: str(a.aspect) === "9:16" ? "9:16" : "16:9",
+      }),
+  },
+  {
+    name: "get_video_media",
+    description: "Signed URLs (2h) for a video's render(s), section clips, keyframes, voiced lines, SFX and music, plus its clip jobs with real Higgsfield quotes — for QC.",
+    inputSchema: obj({ videoId: { type: "string" } }, ["videoId"]),
+    handler: async (a, db) => directedMedia(db, str(a.videoId)),
+  },
+  {
+    name: "design_voice",
+    description: "ElevenLabs Voice Design: generate previews for a cast member from a description. Returns preview URLs + generatedVoiceIds; nothing is saved until save_voice.",
+    inputSchema: obj(
+      {
+        projectId: { type: "string" },
+        speaker: { type: "string", description: "Speaker name as used in scripts (N = narrator)." },
+        description: { type: "string" },
+        text: { type: "string", description: "Optional 100–1000 char sample line." },
+      },
+      ["projectId", "speaker", "description"],
+    ),
+    handler: async (a) => {
+      const projectId = str(a.projectId);
+      const slug = str(a.speaker).toLowerCase().replace(/[^a-z0-9]+/g, "-") || "voice";
+      const previews = await designVoice({ description: str(a.description), text: str(a.text) || undefined });
+      const out = [];
+      for (const [i, p] of previews.entries()) {
+        const path = `voices/${projectId}/${slug}-${Date.now().toString(36)}-${i + 1}.mp3`;
+        await uploadMedia(path, p.audio, p.contentType);
+        out.push({ generatedVoiceId: p.generatedVoiceId, url: await getSignedMediaUrl(path, 86_400), durationSec: p.durationSec });
+      }
+      return { ok: true, previews: out };
+    },
+  },
+  {
+    name: "save_voice",
+    description: "Save a designed preview as a permanent ElevenLabs voice and assign it to a speaker on the project's voice cast (brand_kit.voiceCast). Speaker N also becomes the project narrator.",
+    inputSchema: obj(
+      {
+        projectId: { type: "string" },
+        speaker: { type: "string" },
+        generatedVoiceId: { type: "string" },
+        name: { type: "string" },
+        description: { type: "string" },
+      },
+      ["projectId", "speaker", "generatedVoiceId", "name"],
+    ),
+    handler: async (a, db) => {
+      const projectId = str(a.projectId);
+      const { data: project } = await db.from("projects").select("brand_kit").eq("id", projectId).maybeSingle();
+      if (!project) return { ok: false, error: "project not found" };
+      const voiceId = await saveDesignedVoice({ name: str(a.name), description: str(a.description) || str(a.name), generatedVoiceId: str(a.generatedVoiceId) });
+      const brand = (project.brand_kit ?? {}) as Record<string, unknown>;
+      const cast = { ...((brand.voiceCast as Record<string, string> | undefined) ?? {}), [str(a.speaker)]: voiceId };
+      const patch: Record<string, unknown> = { brand_kit: { ...brand, voiceCast: cast } };
+      if (str(a.speaker) === "N") {
+        patch.voice_id = voiceId;
+        patch.voice_name = str(a.name);
+      }
+      const { error } = await db.from("projects").update(patch).eq("id", projectId);
+      return error ? { ok: false, error: error.message, voiceId } : { ok: true, voiceId, voiceCast: cast };
+    },
+  },
 ];
 
 /** Token scope: `control` (STUDIO_MCP_TOKEN) may call everything; `read`
@@ -561,6 +734,13 @@ const MUTATING_TOOLS = new Set([
   "director_advance",
   "director_revise",
   "director_rerender",
+  "import_script",
+  "produce_directed",
+  "revise_sections",
+  "stage_directed_cut",
+  "make_reference_still",
+  "design_voice",
+  "save_voice",
 ]);
 
 export function toolMutates(name: string): boolean {

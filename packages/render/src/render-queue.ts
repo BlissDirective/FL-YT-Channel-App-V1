@@ -308,9 +308,10 @@ async function resolveEddPayload(
       .eq("version", version);
   }
   const audio: Record<string, string> = {};
+  const audioDurations: Record<string, number> = {};
   for (const cue of doc.tracks.audio) {
     const ids =
-      cue.kind === "vo"
+      cue.kind === "vo" || cue.kind === "music"
         ? [cue.assetId]
         : cue.kind === "sfx" && cue.ref.source === "generated"
           ? [cue.ref.assetId]
@@ -320,6 +321,8 @@ async function resolveEddPayload(
       const asset = assetById.get(id);
       const url = asset?.storage_path ? await sign(asset.storage_path) : null;
       if (url) audio[id] = url;
+      const d = Number((asset?.meta as { durationSec?: unknown } | null | undefined)?.durationSec);
+      if (Number.isFinite(d) && d > 0) audioDurations[id] = d;
     }
   }
   return {
@@ -327,6 +330,7 @@ async function resolveEddPayload(
     doc,
     media,
     audio,
+    audioDurations,
     sfxLibrary: DEFAULT_SFX_LIBRARY,
     beatText: Object.fromEntries(scriptBeats.map((b) => [b.idx, b.text])),
   };
@@ -501,7 +505,9 @@ async function buildProps(
   }
 
   // A render with neither narration nor a song would be silent — not ready.
-  if (!songUrl && !beats.some((b) => b.voUrl)) return null;
+  // Directed videos render their explicit document (which may be SFX/music
+  // only — an ASMR short), so they are exempt.
+  if (!songUrl && !beats.some((b) => b.voUrl) && !video.directed) return null;
 
   // Sing-along captions. Song videos have no per-beat VO, so the caption layer
   // (which keys off word timings) had nothing to show. Two sources, best first:

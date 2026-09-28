@@ -38,3 +38,4 @@ export * from "./edd-critics";
 export * from "./emphasis";
 export * from "./highlight-timing";
 export * from "./safe-url";
+export * from "./directed";

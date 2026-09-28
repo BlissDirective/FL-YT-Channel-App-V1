@@ -126,8 +126,10 @@ export type EddPayload = {
   doc: EditDocument;
   /** clip assetId → resolved visual media (signed URLs). */
   media: Record<string, EddClipMedia>;
-  /** audio assetId (VO / generated SFX) → signed URL. */
+  /** audio assetId (VO / generated SFX / music bed) → signed URL. */
   audio: Record<string, string>;
+  /** audio assetId → length in seconds (music ducking windows). */
+  audioDurations?: Record<string, number>;
   /** curated library SFX name → URL (empty until a licensed pack lands, D7). */
   sfxLibrary?: Record<string, string>;
   /** beat idx (stringified — inputProps JSON round-trip) → narration text,

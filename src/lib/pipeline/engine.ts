@@ -141,6 +141,7 @@ import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import type { BuildRunStatus, CustomSpec, Project, ScriptBeat, Video } from "@/lib/db/types";
 import { SHORT_LENGTHS } from "@/lib/db/types";
 import { runIntelligence } from "./intelligence";
+import { runDirectedAssets } from "./directed";
 import { MOCK_COSTS } from "./mock-content";
 import { DEFAULT_SCRIPT_TEMPLATE } from "./templates";
 
@@ -2362,10 +2363,12 @@ async function runAssembly(db: Db, video: Video): Promise<"external" | void> {
     .from("assets")
     .select("id")
     .eq("video_id", video.id)
-    .in("kind", ["vo", "music"])
+    .in("kind", ["vo", "music", "bgm", "sfx"])
     .not("provider", "like", "mock:%")
     .limit(1);
   if (liveAudio && liveAudio.length > 0) return "external";
+  // Directed cuts always render on the farm (never the mock path).
+  if (video.directed) return "external";
 
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", "render");
   await sleep(STAGE_DELAY_MS);
@@ -2479,6 +2482,18 @@ async function runStageBody(
   label: string,
 ): Promise<StageOutcome> {
   try {
+    // Directed production: the script is a brief executed verbatim — never
+    // re-scripted, and assets come from the chunked directed stage (which
+    // queues its own clip jobs and stops; the worker compiles the cut).
+    if (video.directed && (video.status === "SCRIPTING" || video.status === "GENERATING_ASSETS")) {
+      if (video.status === "SCRIPTING") {
+        await setStatus(db, video.id, "SCRIPT_READY");
+        return { ok: true };
+      }
+      const r = await runDirectedAssets(db as never, video.id);
+      if (!r.ok) throw new Error(r.error ?? "directed asset stage failed");
+      return { ok: true, terminal: true };
+    }
     switch (video.status) {
       case "IDEA_APPROVED":
         await setStatus(db, video.id, "SCRIPTING");
@@ -4329,6 +4344,9 @@ export async function fullAutoGenerate(
   if (!video) return { ok: false, error: "Video not found" };
   if (video.status !== "SCRIPT_READY") {
     return { ok: false, error: "Full Auto runs from the Script gate — approve later stages manually." };
+  }
+  if (video.directed) {
+    return { ok: false, error: "Directed video — use produce_directed (Full Auto would rewrite the brief)." };
   }
 
   // 1) Classify shot types so the smart mix targets the right sections.

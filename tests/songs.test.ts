@@ -241,7 +241,8 @@ describe("render + surface wiring", () => {
     );
     const queue = readFileSync("packages/render/src/render-queue.ts", "utf8");
     // A song satisfies the "not silent" readiness check.
-    expect(queue).toMatch(/if \(!songUrl && !beats\.some\(\(b\) => b\.voUrl\)\) return null;/);
+    // (Directed videos are also exempt — they render an explicit document.)
+    expect(queue).toMatch(/if \(!songUrl && !beats\.some\(\(b\) => b\.voUrl\)(?: && !video\.directed)?\) return null;/);
   });
 
   it("catalog exposes song models with plain-language pros and correct units", () => {

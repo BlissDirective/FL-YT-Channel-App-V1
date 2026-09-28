@@ -19,10 +19,19 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import {
+  buildDirectedEddContext,
   buildFallbackChain,
   buildVisualPrompt,
+  compileDirectedEdd,
+  directedInputFromAssets,
   fallbackForAttempt,
+  insertEddVersion,
+  parseDirectedScript,
+  validateEdd,
   validateMediaSpec,
+  type DirectedAssetRow,
+  type DirectedClipSpec,
+  type EddDb,
   type FallbackSelection,
   type MediaSpec,
 } from "@studio/core";
@@ -365,6 +374,9 @@ type Job = {
   /** Scored provider-selection log (#1) — carried onto the landed asset for
       regenerable-asset provenance. */
   selection?: unknown;
+  /** Directed production: the exact request (verbatim prompt, aspect, refs,
+      end frame, look). Null on autonomous jobs. */
+  spec?: DirectedClipSpec | null;
 };
 
 /** Probe a local media file with ffprobe → a normalised MediaSpec (#7). Returns
@@ -472,6 +484,196 @@ async function makeStitch(
   return out;
 }
 
+// ── Directed production (docs/production/directed-pipeline.md) ──────
+
+/** Higgsfield's exact quote for a request (null when the estimate endpoint
+    is unavailable — the catalog price is then used and flagged). */
+async function hfQuote(endpoint: string, input: Record<string, unknown>): Promise<{ usd: number; credits: number } | null> {
+  try {
+    const res = await fetch(`${HF_API}/estimate/${endpoint}`, { method: "POST", headers: hfHeaders(), body: JSON.stringify(input) });
+    if (!res.ok) return null;
+    const j = (await res.json()) as { usd?: number | string; credits?: number | string };
+    const usd = Number(j.usd);
+    return Number.isFinite(usd) ? { usd, credits: Number(j.credits ?? 0) } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A directed section's request — the brief's prompt VERBATIM. Seedance 2.5:
+    the keyframe is the literal first frame (i2v) and end_image_url lands the
+    final pose; Cinema Studio: refs ride image_urls in the brief's order (its
+    <<<image_N>>> tokens index them), and a keyframe is appended after the
+    refs — only when the prompt has no tokens of its own is it anchored with
+    the house "Open on <<<image_1>>>" lead. */
+export function directedRequest(
+  model: string,
+  spec: DirectedClipSpec,
+  sec: number,
+  imageUrl: string | null,
+  endUrl: string | null,
+  refUrls: string[],
+): { endpoint: string; input: Record<string, unknown> } {
+  const duration = Math.max(4, Math.min(30, Math.round(sec)));
+  if (model === "hf-seedance-2-5") {
+    const audio = { generate_audio: spec.generateAudio === true };
+    return imageUrl
+      ? {
+          endpoint: "bytedance/seedance-2.5/image-to-video",
+          input: { prompt: spec.prompt, image_url: imageUrl, ...(endUrl ? { end_image_url: endUrl } : {}), duration, resolution: "720p", ...audio },
+        }
+      : {
+          endpoint: "bytedance/seedance-2.5/text-to-video",
+          input: { prompt: spec.prompt, duration, resolution: "720p", aspect_ratio: spec.aspect, ...audio },
+        };
+  }
+  const tokens = /<<<image_\d+>>>/.test(spec.prompt);
+  const images = tokens ? [...refUrls, ...(imageUrl ? [imageUrl] : [])] : [...(imageUrl ? [imageUrl] : []), ...refUrls];
+  const prompt = !tokens && imageUrl ? `Open on <<<image_1>>> and keep its subject, palette and composition. ${spec.prompt}` : spec.prompt;
+  return {
+    endpoint: HF_ENDPOINT[model] ?? HF_ENDPOINT["hf-cinema-studio-4"],
+    input: {
+      prompt,
+      duration,
+      resolution: "720p",
+      aspect_ratio: spec.aspect,
+      ...(images.length ? { image_urls: images.slice(0, 30) } : {}),
+      ...(spec.controls ?? {}),
+    },
+  };
+}
+
+/** Generate a directed section: one or more chained segments (seamless),
+    end frame on the FINAL segment only. Returns the file + the summed quote. */
+async function makeDirected(job: Job, spec: DirectedClipSpec, dir: string): Promise<{ file: string; quoteUsd: number | null; credits: number }> {
+  if (!isHfModel(job.model)) throw new Error(`directed job on non-Higgsfield model ${job.model}`);
+  const segMax = SEG_MAX[job.model] ?? 30;
+  const count = Math.max(1, Math.ceil(job.target_sec / segMax));
+  const keyUrl = spec.keyframePath ? await signedUrl(spec.keyframePath) : null;
+  if (spec.keyframePath && !keyUrl) throw new Error("directed keyframe could not be signed");
+  const endUrl = spec.endFramePath ? await signedUrl(spec.endFramePath) : null;
+  const refUrls = (await Promise.all((spec.refPaths ?? []).map((p) => (/^https?:\/\//.test(p) ? p : signedUrl(p))))).filter((u): u is string => Boolean(u));
+
+  let quoteSum = 0;
+  let credits = 0;
+  let allQuoted = true;
+  const segPaths: string[] = [];
+  let nextImage = keyUrl;
+  for (let i = 0; i < count; i++) {
+    const segSec = Math.max(4, Math.min(segMax, job.target_sec - i * segMax));
+    const last = i === count - 1;
+    const req = directedRequest(job.model, spec, segSec, nextImage, last ? endUrl : null, refUrls);
+    const q = await hfQuote(req.endpoint, req.input);
+    if (q) {
+      quoteSum += q.usd;
+      credits += q.credits;
+    } else allQuoted = false;
+    let url: string;
+    if (count === 1) {
+      // Single segment: resume-tracked like autonomous jobs (a timed-out poll
+      // resumes the SAME billed generation instead of paying twice).
+      url = await hfResumableRequest(job, req);
+    } else {
+      url = await hfPoll(await hfSubmit(req.endpoint, req.input));
+    }
+    const seg = join(dir, `seg${i}.mp4`);
+    await download(url, seg);
+    segPaths.push(seg);
+    if (!last) {
+      const frame = join(dir, `frame${i}.jpg`);
+      run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-sseof", "-0.1", "-i", seg, "-frames:v", "1", "-q:v", "2", frame]);
+      const fpath = `videos/${job.video_id}/chain-${job.beat_idx}-${i}.jpg`;
+      await db.storage.from(BUCKET).upload(fpath, readFileSync(frame), { contentType: "image/jpeg", upsert: true });
+      nextImage = await signedUrl(fpath);
+    }
+  }
+  let file = segPaths[0];
+  if (segPaths.length > 1) {
+    const list = join(dir, "list.txt");
+    writeFileSync(list, segPaths.map((p) => `file '${p}'`).join("\n"));
+    file = join(dir, "out.mp4");
+    run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", list, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", file]);
+  }
+  return { file, quoteUsd: allQuoted ? Math.round(quoteSum * 10000) / 10000 : null, credits };
+}
+
+async function hfResumableRequest(job: Job, req: { endpoint: string; input: Record<string, unknown> }): Promise<string> {
+  if (job.provider === "higgsfield" && job.provider_request_id && job.provider_status_url) {
+    try {
+      const st = await fetch(job.provider_status_url, { headers: hfHeaders() });
+      if (st.ok) {
+        const s = (await st.json()) as { status?: string };
+        if (s.status === "queued" || s.status === "in_progress" || s.status === "completed") {
+          console.log(`↩️  ${job.id}: resuming in-flight Higgsfield job ${job.provider_request_id}`);
+          return await hfPoll({ requestId: job.provider_request_id, statusUrl: job.provider_status_url });
+        }
+      }
+    } catch {
+      // fall through to a fresh submit
+    }
+  }
+  const h = await hfSubmit(req.endpoint, req.input);
+  await db
+    .from("clip_jobs")
+    .update({ provider: "higgsfield", provider_request_id: h.requestId, provider_status_url: h.statusUrl })
+    .eq("id", job.id);
+  return hfPoll(h);
+}
+
+/** Compile + stage a directed video's cut once its clips have landed. An
+    invalid document pauses the video (never renders a broken cut). */
+async function stageDirected(videoId: string): Promise<void> {
+  const { data: script } = await db
+    .from("scripts")
+    .select("id, metadata")
+    .eq("video_id", videoId)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const parsed = parseDirectedScript((script?.metadata as { directed?: unknown } | null)?.directed);
+  const { data: video } = await db.from("videos").select("project_id").eq("id", videoId).maybeSingle();
+  const { data: project } = await db.from("projects").select("name, brand_kit").eq("id", video?.project_id).maybeSingle();
+  if (!script || !parsed.ok || !project) {
+    await db.from("videos").update({ paused_reason: "directed script missing — cannot compile the cut" }).eq("id", videoId);
+    return;
+  }
+  const { data: assets } = await db.from("assets").select("id, kind, beat_index, storage_path, meta").eq("video_id", videoId);
+  const rows = (assets ?? []) as DirectedAssetRow[];
+  const primary = (project.brand_kit as { primary?: string } | null)?.primary ?? "#F5B829";
+  const doc = compileDirectedEdd(directedInputFromAssets(parsed.script, rows, { primary }, project.name as string));
+  const v = validateEdd(doc, buildDirectedEddContext(rows, parsed.script));
+  if (!v.ok) {
+    const msg = v.errors.slice(0, 4).map((e) => `${e.rule}: ${e.msg}`).join("; ");
+    await db.from("videos").update({ paused_reason: `directed cut invalid — ${msg}`, auto_finish: false }).eq("id", videoId);
+    console.error(`⛔ ${videoId}: directed cut invalid — ${msg}`);
+    return;
+  }
+  const ins = await insertEddVersion(db as unknown as EddDb, {
+    videoId,
+    scriptId: script.id as string,
+    doc,
+    author: "compiler",
+    note: "directed compile",
+    parentVersion: null,
+  });
+  if (!ins.ok) {
+    await db.from("videos").update({ paused_reason: `directed cut: ${ins.error}` }).eq("id", videoId);
+    return;
+  }
+  await db.from("approvals").insert({
+    video_id: videoId,
+    gate: "ASSETS",
+    decision: "approved",
+    decided_by: "system",
+    decided_at: new Date().toISOString(),
+  });
+  await db
+    .from("videos")
+    .update({ edit_document_version: ins.version, status: "ASSEMBLING", auto_finish: false, paused_reason: null })
+    .eq("id", videoId);
+  console.log(`🎬 ${videoId}: directed cut v${ins.version} compiled → ASSEMBLING`);
+}
+
 async function processJob(job: Job) {
   if (isHfModel(job.model) && !HF_CRED) throw new Error("HIGGSFIELD_API_KEY not set in worker");
   if (!isHfModel(job.model) && !FAL_KEY) throw new Error("FAL_KEY not set in worker");
@@ -480,6 +682,7 @@ async function processJob(job: Job) {
     throw new Error(`Monthly video budget reached ($${VIDEO_MONTHLY_CAP_USD})`);
   }
   const ledgerProvider = ledgerProviderFor(job.model);
+  if (job.spec?.directed) return processDirectedJob(job, job.spec, est, ledgerProvider);
 
   const { data: video } = await db.from("videos").select("*").eq("id", job.video_id).maybeSingle();
   if (!video) throw new Error("Video not found");
@@ -570,6 +773,69 @@ async function processJob(job: Job) {
   }
 }
 
+/** Directed job: exact spec, native aspect, real quote on the ledger. */
+async function processDirectedJob(job: Job, spec: DirectedClipSpec, catalogEst: number, ledgerProvider: string) {
+  const { data: video } = await db.from("videos").select("total_cost_usd").eq("id", job.video_id).maybeSingle();
+  if (!video) throw new Error("Video not found");
+  const dir = mkdtempSync(join(tmpdir(), `dclip-${job.video_id.slice(0, 8)}-`));
+  try {
+    const { file, quoteUsd, credits } = await makeDirected(job, spec, dir);
+    const probed = ffprobeSpec(file);
+    if (probed) {
+      const verdict = validateMediaSpec(probed, { kind: "clip", targetSec: job.target_sec });
+      if (!verdict.ok) {
+        throw new Error(`malformed clip (${verdict.issues.map((i) => i.code).join(", ")}): ${verdict.issues[0]?.note ?? ""}`);
+      }
+    }
+    const path = `videos/${job.video_id}/section-${job.beat_idx}-${spec.hash}.mp4`;
+    await db.storage.from(BUCKET).upload(path, readFileSync(file), { contentType: "video/mp4", upsert: true });
+    const costUsd = Math.round((quoteUsd ?? catalogEst) * 100) / 100;
+    const priceSource = quoteUsd != null ? "estimate" : "catalog";
+    const perSec = Math.round((costUsd / Math.max(1, job.target_sec)) * 10000) / 10000;
+    await db.from("assets").delete().eq("video_id", job.video_id).eq("kind", "clip").eq("beat_index", job.beat_idx);
+    await db.from("assets").insert({
+      video_id: job.video_id,
+      kind: "clip",
+      provider: ledgerProvider,
+      storage_path: path,
+      beat_index: job.beat_idx,
+      meta: {
+        isVideo: true,
+        directed: true,
+        specHash: spec.hash,
+        method: job.method,
+        model: job.model,
+        aspect: spec.aspect,
+        durationSec: probed?.durationSec ?? job.target_sec,
+        targetSec: job.target_sec,
+        priceSource,
+        quoteUsd,
+        quoteCredits: credits,
+        usdPerSec: perSec,
+        ...(probed ? { sourceSpec: probed } : {}),
+      },
+      cost_usd: costUsd,
+    });
+    await db.from("cost_ledger").insert({
+      project_id: job.project_id,
+      video_id: job.video_id,
+      provider: ledgerProvider,
+      description: `Directed clip (${job.model}, ${job.target_sec}s, ${priceSource} $${perSec}/s${credits ? `, ${credits} credits` : ""}) — section ${job.beat_idx + 1}`,
+      usd: costUsd,
+    });
+    await db.from("videos").update({ total_cost_usd: Number(video.total_cost_usd ?? 0) + costUsd }).eq("id", job.video_id);
+    await db
+      .from("clip_jobs")
+      .update({ status: "done", result_path: path, cost_usd: costUsd, quote_usd: quoteUsd, quote_credits: credits || null, error: null })
+      .eq("id", job.id);
+    console.log(`✅ ${job.id}: directed §${job.beat_idx + 1} ${job.target_sec}s ${spec.aspect} → $${costUsd.toFixed(2)} (${priceSource} $${perSec}/s)`);
+    await updateClipProgress(job.video_id);
+    await maybeFinish(job.video_id);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 /** Persist the video's clip-stage progress (C10 / #4): "N of M clips" with the
     checkpoint status, so a crashed render resumes at N and the Backlot board
     reads real, durable progress. Best-effort. */
@@ -609,7 +875,7 @@ async function updateClipProgress(videoId: string): Promise<void> {
 async function maybeFinish(videoId: string) {
   const { data: video } = await db
     .from("videos")
-    .select("auto_finish, status, project_id, director_cut")
+    .select("auto_finish, status, project_id, director_cut, directed")
     .eq("id", videoId)
     .maybeSingle();
   if (!video?.auto_finish || video.status !== "ASSETS_READY") return;
@@ -619,6 +885,13 @@ async function maybeFinish(videoId: string) {
     .eq("video_id", videoId)
     .in("status", ["queued", "running"]);
   if ((count ?? 0) > 0) return; // more clips still pending
+
+  // Directed production: the brief IS the cut — compile it (never hand it to
+  // the MVDA agent, which would re-author the edit).
+  if (video.directed) {
+    await stageDirected(videoId);
+    return;
+  }
 
   // MVDA handoff (plan §6 conflict #2): on an agent-enabled channel the
   // finished assets go to a CUT SESSION, not straight to the render. The
@@ -730,7 +1003,10 @@ async function claimAndRun(): Promise<boolean> {
     // running and bills — resume it on the SAME model rather than falling back
     // and paying for a second render elsewhere.
     const hfInFlight = attempts >= 2 && isHfModel(job.model) && (await hfStillRunning(job as Job));
-    if (attempts >= 2 && !hfInFlight) {
+    // Directed jobs never swap models: the brief locks the model + look, so a
+    // retry re-runs the same request (a hard failure surfaces for review).
+    const directedJob = Boolean((job as Job).spec?.directed);
+    if (attempts >= 2 && !hfInFlight && !directedJob) {
       const chain = buildFallbackChain(job.selection as FallbackSelection | null);
       const step = fallbackForAttempt(chain, attempts);
       if (step && step.model && step.model !== job.model) {
