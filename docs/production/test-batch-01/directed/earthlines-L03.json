@@ -1,0 +1,1388 @@
+{
+ "format": "long",
+ "resolution": "480p",
+ "title": "What If All the Ice Melted?",
+ "altTitles": [
+  "Earth With 70 Meters of Sea Level Rise: Every Coast, Mapped",
+  "What If All the Ice on Earth Melted? (The Real Timeline)"
+ ],
+ "description": "Seventy meters: the full weight of the world's ice. This is NOT a forecast for your lifetime — the IPCC's 2100 range is about 0.3 to 1 m. We run the clock forward thousands of years to see where every meter comes from, and which coasts it would redraw.\n\nHow we built this simulation: static inundation of NOAA ETOPO relief; no isostatic rebound or erosion modelled; timeline from Winkelmann et al. 2015 and IPCC AR6. All scenario values are model estimates.\n\nChapters: 0:00 70 meters · 0:25 Reality check · 1:15 Where the ice is · 2:10 Greenland · 3:15 Europe · 4:20 The Americas · 5:30 Asia · 6:25 Antarctica · 7:15 We've been here before\n\nSources: USGS Water Science School · IPCC AR6 SYR Fig. 3.4 and WG1 Ch.9 · AntarcticGlaciers.org · Columbia LDEO no-ice map · KU 2023 / CU Boulder 2010 (Eocene Ellesmere fauna)",
+ "tags": [
+  "what if",
+  "ice melted",
+  "sea level rise",
+  "ipcc",
+  "antarctica",
+  "greenland",
+  "climate",
+  "science",
+  "Earthlines"
+ ],
+ "topic": "What if all the ice melted (+70 m, millennia-scale, IPCC reality check)",
+ "cast": {
+  "N": {
+   "color": "#FFB547"
+  }
+ },
+ "sections": [
+  {
+   "label": "§1 Hook: the 70-meter line",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Seventy meters. That's how much the sea would rise if every glacier and ice sheet on Earth melted. Roughly a twenty-story building. Here's what's left of the map — and, just as important, how long it would really take.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Photoreal golden-hour wide shot of a lone generic stone lighthouse standing in open calm sea, water lapping just below its lantern gallery, the rest of its tower submerged and visible as a pale shape beneath clear turquoise water, a gull on the railing, low sun at frame-left, long warm light, no land in frame. Camera: continuous slow push-in at water level. STAGE: Earth with no ice sheets and no mountain glaciers; sea level about 70 meters higher; vast new turquoise shallow seas over former lowlands; warmer greenhouse climate with more humid haze; Antarctica bare rock, tundra and moss; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "turquoise-mirage"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "calm water lapping against a stone tower, gentle and close",
+     "durationSec": 20,
+     "gainDb": -12
+    },
+    {
+     "at": 3.0,
+     "prompt": "single seagull call in the distance",
+     "durationSec": 2,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "T+10,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "+70 m · src: USGS · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Seventy",
+    "meters."
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "IDENT (shared channel asset, Bible §6.1)",
+   "sec": 5,
+   "lines": [],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 2
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low cinematic sub-boom, single deep hit, then silence",
+     "durationSec": 2,
+     "gainDb": -4
+    },
+    {
+     "at": 3.5,
+     "prompt": "crystalline chime, bright clean shimmer, single hit",
+     "durationSec": 1.5,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 3.5,
+     "durationSec": 1.5,
+     "text": "EARTHLINES",
+     "position": "center",
+     "style": "title"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§2 ‖ Reality check: this century vs. all the ice (a)",
+   "sec": 25,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "First, a reality check, because it matters. That's not what's happening this century. The IPCC projects that by 2100, global sea level will likely be about thirty centimeters to one meter higher than recent levels, depending on how much we emit. Over the next two thousand years: two to three meters if warming is held to one and a half degrees — nineteen to twenty-two meters at five degrees. All of the ice? That takes many thousands of years. So in this video, we run the clock forward millennia — and everything you see is a model estimate, not a forecast for your lifetime.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view from 1,500 km over the Southern Ocean toward the bright white Antarctic ice sheet, sunlight from frame-left, sharp terminator curving along the right side, sea-ice fringe, cloud swirls. Earth rotates slowly west to east. Camera: continuous very slow push toward the ice edge. STAGE: present-day Earth; Antarctic and Greenland ice sheets fully present, bright white; today's coastlines and sea level; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "fast mechanical counter spin-down rewinding, then a click",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 1.5,
+     "prompt": "slow steady clock tick, sober and sparse",
+     "durationSec": 11.75,
+     "gainDb": -18
+    },
+    {
+     "at": 13.25,
+     "prompt": "slow steady clock tick, sober and sparse",
+     "durationSec": 11.75,
+     "gainDb": -18
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "TODAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 6.33,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 6.34,
+     "durationSec": 8.51,
+     "text": "2100: +0.28 to 1.01 m · src: IPCC AR6",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 14.86,
+     "durationSec": 7.45,
+     "text": "2000 YRS @1.5°C: +2–3 m",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 22.31,
+     "durationSec": 2.48,
+     "text": "@5°C: +19–22 m · src: IPCC AR6 WG1",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "reality",
+    "check,",
+    "2100,",
+    "meter",
+    "thousands"
+   ]
+  },
+  {
+   "label": "§2 ‖ Reality check: this century vs. all the ice (b)",
+   "sec": 25,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view from 1,500 km over the Southern Ocean toward the bright white Antarctic ice sheet, sunlight from frame-left, sharp terminator curving along the right side, sea-ice fringe, cloud swirls. Earth rotates slowly west to east. Camera: continuous very slow push toward the ice edge. The push continues. STAGE: present-day Earth; Antarctic and Greenland ice sheets fully present, bright white; today's coastlines and sea level; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "slow steady clock tick, sober and sparse",
+     "durationSec": 12.5,
+     "gainDb": -18
+    },
+    {
+     "at": 12.5,
+     "prompt": "slow steady clock tick, sober and sparse",
+     "durationSec": 12.5,
+     "gainDb": -18
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "TODAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "ALL ICE: MANY MILLENNIA",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§3 Where the water is locked up (a)",
+   "sec": 28,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "So where is all that water? Nearly all of it sits in two places. Antarctica's ice sheet holds enough to raise the seas about fifty-eight meters. Greenland's, about seven. And the mountain glaciers — the Alps, the Himalaya, the Andes, Alaska — look enormous up close, but all of them combined would add only about a third of a meter. Add the fact that seawater expands as it warms, and you reach roughly seventy. In places, Antarctica's ice is nearly five kilometers thick — more than half the height of Mount Everest, made of ice. It's so heavy it presses the continent's bedrock down into the mantle. Remember that. It comes back later.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal low aerial flight along the towering vertical front of a vast Antarctic ice shelf, sheer white-blue ice cliff on the right side of frame, dark calm sea on the left with scattered small icebergs, low sun at frame-left raking across the cliff face, crisp polar air. Camera: continuous steady lateral flight parallel to the cliff. STAGE: present-day Earth; Antarctic and Greenland ice sheets fully present, bright white; today's coastlines and sea level; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "the-grey-channel"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "deep groaning ice, low creaks and pressure cracks, cold and vast",
+     "durationSec": 14.0,
+     "gainDb": -14
+    },
+    {
+     "at": 14.0,
+     "prompt": "deep groaning ice, low creaks and pressure cracks, cold and vast",
+     "durationSec": 14.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 28.0,
+     "text": "TODAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.46,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 8.47,
+     "durationSec": 1.06,
+     "text": "ANTARCTICA 58.3 m · src: Bedmap2/AntarcticGlaciers.org",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 9.53,
+     "durationSec": 10.29,
+     "text": "GREENLAND 7.4 m · src: BedMachine",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 19.83,
+     "durationSec": 3.19,
+     "text": "GLACIERS 0.32 m · src: Farinotti 2019",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 23.02,
+     "durationSec": 4.98,
+     "text": "+ THERMAL EXPANSION → ≈70 m · src: USGS",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "fifty-eight",
+    "seven."
+   ]
+  },
+  {
+   "label": "§3 Where the water is locked up (b)",
+   "sec": 27,
+   "lines": [],
+   "videoPrompt": "Photoreal low aerial flight along the towering vertical front of a vast Antarctic ice shelf, sheer white-blue ice cliff on the right side of frame, dark calm sea on the left with scattered small icebergs, low sun at frame-left raking across the cliff face, crisp polar air. Camera: continuous steady lateral flight parallel to the cliff. The flight continues along the cliff at constant altitude and speed. STAGE: present-day Earth; Antarctic and Greenland ice sheets fully present, bright white; today's coastlines and sea level; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "the-grey-channel"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "deep groaning ice, low creaks and pressure cracks, cold and vast",
+     "durationSec": 13.5,
+     "gainDb": -14
+    },
+    {
+     "at": 7.0,
+     "prompt": "distant calving boom of an ice cliff, deep rolling echo",
+     "durationSec": 5,
+     "gainDb": -6
+    },
+    {
+     "at": 13.5,
+     "prompt": "deep groaning ice, low creaks and pressure cracks, cold and vast",
+     "durationSec": 13.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 27.0,
+     "text": "TODAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 0.34,
+     "text": "+ THERMAL EXPANSION → ≈70 m · src: USGS",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.35,
+     "durationSec": 26.65,
+     "text": "MAX ICE THICKNESS ≈4.9 km · src: NSIDC · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§4 Greenland goes first (a)",
+   "sec": 22,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus one thousand years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "In our scenario, Greenland goes first. It's smaller, and it sits farther from the pole. Its surface melts into brilliant blue rivers that carve canyons in the ice and plunge into shafts called moulins, carrying meltwater to the bed. Meltwater also darkens the surface: wet ice and exposed dust absorb more sunlight, which drives more melting — a feedback loop. Glaciers speed up and calve into the sea, and fjords that held ice for thousands of years fill with icebergs. Under very high, sustained warming, models suggest much of Greenland's ice could be lost within a millennium or so — though the exact pace is still debated. Greenland alone is worth about seven meters. Enough to reshape every low-lying coast on Earth. And we've barely started.",
+     "at": 2.88
+    }
+   ],
+   "videoPrompt": "Photoreal aerial over the Greenland ice sheet in summer: a brilliant turquoise meltwater river meandering across white ice in a deep carved channel, flowing from frame-left toward frame-right and plunging into a dark circular moulin, smaller blue lakes around it, low sun at frame-left. Camera: continuous slow descending drone glide following the river's flow. The glide follows the river. Flow direction stays left→right throughout. STAGE: Greenland ice sheet under intense surface melt — dense networks of brilliant blue meltwater rivers and lakes on the ice, darker dusty ice at lower elevations, calving glacier fronts; sun low at frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "the-morning-after-rain"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "rushing meltwater river on ice, the deep roar of water plunging into a shaft",
+     "durationSec": 22.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+1,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Greenland",
+    "seven"
+   ]
+  },
+  {
+   "label": "§4 Greenland goes first (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal aerial over the Greenland ice sheet in summer: a brilliant turquoise meltwater river meandering across white ice in a deep carved channel, flowing from frame-left toward frame-right and plunging into a dark circular moulin, smaller blue lakes around it, low sun at frame-left. Camera: continuous slow descending drone glide following the river's flow. The glide continues, the moulin approaching. Flow direction stays left→right throughout. STAGE: Greenland ice sheet under intense surface melt — dense networks of brilliant blue meltwater rivers and lakes on the ice, darker dusty ice at lower elevations, calving glacier fronts; sun low at frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "the-morning-after-rain"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "rushing meltwater river on ice, the deep roar of water plunging into a shaft",
+     "durationSec": 22.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+1,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 18.86,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 18.87,
+     "durationSec": 3.13,
+     "text": "SEA LEVEL +~7 m (Greenland) · MODEL EST. · src: IPCC AR6 WG1 Ch.9",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "§4 Greenland goes first (c)",
+   "sec": 21,
+   "lines": [],
+   "videoPrompt": "Photoreal aerial over the Greenland ice sheet in summer: a brilliant turquoise meltwater river meandering across white ice in a deep carved channel, flowing from frame-left toward frame-right and plunging into a dark circular moulin, smaller blue lakes around it, low sun at frame-left. Camera: continuous slow descending drone glide following the river's flow. The glide continues over the moulin, water plunging into it. Flow direction stays left→right throughout. STAGE: Greenland ice sheet under intense surface melt — dense networks of brilliant blue meltwater rivers and lakes on the ice, darker dusty ice at lower elevations, calving glacier fronts; sun low at frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "the-morning-after-rain"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "rushing meltwater river on ice, the deep roar of water plunging into a shaft",
+     "durationSec": 21.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "T+1,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "SEA LEVEL +~7 m (Greenland) · MODEL EST. · src: IPCC AR6 WG1 Ch.9",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§5a Europe K0 today → K1 +25 m",
+   "sec": 22,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus three thousand years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "Antarctica is melting too, and in the models the seas climb as fast as a few meters per century. Watch Europe. The Netherlands — much of it already near or below sea level, protected by dikes — is gone. So are Belgium's coast, northern Germany's lowlands and much of Denmark. Venice, and the whole Po Valley behind it, become part of the Adriatic. The Baltic swells and spills across the lowlands toward the North Sea, and the Black Sea grows too. The Thames floods deep inland. At the full seventy meters, Europe is still recognizable — but only just.",
+     "at": 2.88
+    }
+   ],
+   "videoPrompt": "Photoreal Europe from orbit, sunlight from frame-left, sea level rising steadily and smoothly over low-lying coasts, turquoise shallows spreading inland, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: orthographic orbital view of Europe centred on 50°N 10°E, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level: today's coastlines. STAGE: present-day Earth; Antarctic and Greenland ice sheets fully present, bright white; today's coastlines and sea level; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "water rush slowly swelling under low strings, steady",
+     "durationSec": 22.0,
+     "gainDb": -14
+    },
+    {
+     "at": 10.34,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 19.57,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 20.63,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+3,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 9.62,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 9.63,
+     "durationSec": 12.37,
+     "text": "SEA LEVEL +25 → +70 m · MODEL EST. · src: NatGeo 2013 / LDEO no-ice map",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 10.34,
+     "durationSec": 2.49,
+     "text": "Netherlands",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 19.57,
+     "durationSec": 2.43,
+     "text": "Denmark",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 20.63,
+     "durationSec": 1.37,
+     "text": "Venice",
+     "position": "center",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "gone."
+   ],
+   "endFrame": {
+    "fromSection": 10
+   }
+  },
+  {
+   "label": "§5b Europe K1 +25 m → K2 +50 m",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal Europe from orbit, sunlight from frame-left, sea level rising steadily and smoothly over low-lying coasts, turquoise shallows spreading inland, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: orthographic orbital view of Europe centred on 50°N 10°E, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level +25 m. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "water rush slowly swelling under low strings, steady",
+     "durationSec": 22.0,
+     "gainDb": -14
+    },
+    {
+     "at": 0.05,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 3.25,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 9.64,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+3,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "SEA LEVEL +25 → +70 m · MODEL EST. · src: NatGeo 2013 / LDEO no-ice map",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 1.13,
+     "text": "Venice",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 0.05,
+     "durationSec": 2.5,
+     "text": "Po Valley",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 3.25,
+     "durationSec": 2.49,
+     "text": "Baltic",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 9.64,
+     "durationSec": 2.49,
+     "text": "London",
+     "position": "center",
+     "style": "label"
+    }
+   ],
+   "endFrame": {
+    "fromSection": 11
+   }
+  },
+  {
+   "label": "§5c Europe K2 +50 m → K3 +70 m",
+   "sec": 21,
+   "lines": [],
+   "videoPrompt": "Photoreal Europe from orbit, sunlight from frame-left, sea level rising steadily and smoothly over low-lying coasts, turquoise shallows spreading inland, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: orthographic orbital view of Europe centred on 50°N 10°E, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level +50 m. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "water rush slowly swelling under low strings, steady",
+     "durationSec": 21.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "T+3,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "SEA LEVEL +25 → +70 m · MODEL EST. · src: NatGeo 2013 / LDEO no-ice map",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack",
+   "endFrame": {
+    "prompt": "Designed map still: orthographic orbital view of Europe centred on 50°N 10°E, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level +70 m. STAGE: Earth with no ice sheets and no mountain glaciers; sea level about 70 meters higher; vast new turquoise shallow seas over former lowlands; warmer greenhouse climate with more humid haze; Antarctica bare rock, tundra and moss; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "§6a Americas K0 today → K1 +35 m",
+   "sec": 24,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus five thousand years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "Florida — the entire peninsula — is gone, replaced by bright turquoise shallows. The Gulf Coast pushes far inland, up the Mississippi valley. Along the Atlantic seaboard, the great coastal cities are underwater, and much of the coastal plain becomes sea floor. In South America, the low, wide Amazon basin becomes a vast inland arm of the Atlantic, reaching far into the continent. Buenos Aires and Uruguay's coast disappear under the widening River Plate. From orbit, the difference is color: where there was green and grey, there's now the pale blue of new, shallow seas. It looks peaceful from up here. On the ground, it would mean moving entire nations inland.",
+     "at": 2.88
+    }
+   ],
+   "videoPrompt": "Photoreal North America and the Gulf of Mexico from orbit, sunlight from frame-left, sea level rising steadily and smoothly over low-lying coasts, turquoise shallows spreading inland, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: orthographic orbital view of North America and the Gulf of Mexico centred on 28°N 85°W, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level: today's coastlines. STAGE: present-day Earth; Antarctic and Greenland ice sheets fully present, bright white; today's coastlines and sea level; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "ocean swell, broad and slow, distant",
+     "durationSec": 12.0,
+     "gainDb": -14
+    },
+    {
+     "at": 12.0,
+     "prompt": "ocean swell, broad and slow, distant",
+     "durationSec": 12.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 24.0,
+     "text": "T+5,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 24.0,
+     "text": "SEA LEVEL +70 m · MODEL EST. · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 2.88,
+     "durationSec": 2.5,
+     "text": "Florida",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 7.5,
+     "durationSec": 2.49,
+     "text": "Gulf Coast",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 19.92,
+     "durationSec": 2.5,
+     "text": "Amazon",
+     "position": "center",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Florida",
+    "Amazon"
+   ],
+   "endFrame": {
+    "fromSection": 13
+   }
+  },
+  {
+   "label": "§6b Americas K1 +35 m → K2 +70 m",
+   "sec": 23,
+   "lines": [],
+   "videoPrompt": "Photoreal North America and the Gulf of Mexico from orbit, sunlight from frame-left, sea level rising steadily and smoothly over low-lying coasts, turquoise shallows spreading inland, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: orthographic orbital view of North America and the Gulf of Mexico centred on 28°N 85°W, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level +35 m. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "ocean swell, broad and slow, distant",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 11.5,
+     "prompt": "ocean swell, broad and slow, distant",
+     "durationSec": 11.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "T+5,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "SEA LEVEL +70 m · MODEL EST. · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 4.44,
+     "durationSec": 2.5,
+     "text": "Río de la Plata",
+     "position": "center",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "crossfade",
+   "endFrame": {
+    "prompt": "Designed map still: orthographic orbital view of North America and the Gulf of Mexico centred on 28°N 85°W, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level +70 m. STAGE: Earth with no ice sheets and no mountain glaciers; sea level about 70 meters higher; vast new turquoise shallow seas over former lowlands; warmer greenhouse climate with more humid haze; Antarctica bare rock, tundra and moss; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "§6c Drowned generic suburb (match-dissolve in)",
+   "sec": 23,
+   "lines": [],
+   "videoPrompt": "Photoreal aerial over endless clear turquoise shallow sea with the faint pale outlines of submerged generic suburban rooftops and roads visible beneath the water, no identifiable buildings or skyline, scattered mangrove islands, sun high at frame-left, gentle ripples. Camera: continuous slow forward glide at 150 m altitude. STAGE: Earth with no ice sheets and no mountain glaciers; sea level about 70 meters higher; vast new turquoise shallow seas over former lowlands; warmer greenhouse climate with more humid haze; Antarctica bare rock, tundra and moss; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "turquoise-mirage"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "gentle lapping of shallow warm water, eerie calm",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 11.5,
+     "prompt": "gentle lapping of shallow warm water, eerie calm",
+     "durationSec": 11.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "T+5,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "SEA LEVEL +70 m · MODEL EST. · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§7a Asia K0 today → K1 +35 m",
+   "sec": 28,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "In Asia, the change reaches the most people. Bangladesh, built on one of the world's great river deltas, is almost entirely underwater. So is much of eastern China's coastal plain, including Shanghai — and most of the Mekong Delta in Vietnam, one of the region's great rice bowls. Bangkok and the low coast around the Gulf of Thailand go under too. These are some of the most densely populated places on Earth. At seventy meters, land that hundreds of millions of people live on today becomes sea floor. Slowly, over millennia — but completely.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal South and East Asia from orbit, sunlight from frame-left, sea level rising steadily and smoothly over low-lying coasts, turquoise shallows spreading inland, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: orthographic orbital view of South and East Asia centred on 25°N 105°E, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level: today's coastlines. STAGE: present-day Earth; Antarctic and Greenland ice sheets fully present, bright white; today's coastlines and sea level; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "steady monsoon rain texture with a low restrained cello line",
+     "durationSec": 14.0,
+     "gainDb": -14
+    },
+    {
+     "at": 14.0,
+     "prompt": "steady monsoon rain texture with a low restrained cello line",
+     "durationSec": 14.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 28.0,
+     "text": "T+7,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 27.63,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 3.14,
+     "durationSec": 2.5,
+     "text": "Bangladesh",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 5.63,
+     "durationSec": 2.49,
+     "text": "Ganges–Brahmaputra Delta",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 9.53,
+     "durationSec": 2.5,
+     "text": "Yangtze Delta",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 10.95,
+     "durationSec": 2.5,
+     "text": "Shanghai",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 13.44,
+     "durationSec": 2.49,
+     "text": "Mekong Delta",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 27.64,
+     "durationSec": 0.36,
+     "text": "POPULATION ON LAND BELOW +70 m: HUNDREDS OF MILLIONS · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Bangladesh,"
+   ],
+   "endFrame": {
+    "fromSection": 16
+   }
+  },
+  {
+   "label": "§7b Asia K1 +35 m → K2 +70 m",
+   "sec": 27,
+   "lines": [],
+   "videoPrompt": "Photoreal South and East Asia from orbit, sunlight from frame-left, sea level rising steadily and smoothly over low-lying coasts, turquoise shallows spreading inland, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: orthographic orbital view of South and East Asia centred on 25°N 105°E, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level +35 m. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "steady monsoon rain texture with a low restrained cello line",
+     "durationSec": 13.5,
+     "gainDb": -14
+    },
+    {
+     "at": 13.5,
+     "prompt": "steady monsoon rain texture with a low restrained cello line",
+     "durationSec": 13.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 27.0,
+     "text": "T+7,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 27.0,
+     "text": "POPULATION ON LAND BELOW +70 m: HUNDREDS OF MILLIONS · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack",
+   "endFrame": {
+    "prompt": "Designed map still: orthographic orbital view of South and East Asia centred on 25°N 105°E, lit from frame-left (about 85% lit, thin terminator at the right edge), photoreal land and water, no labels, no borders, locked framing. Sea level +70 m. STAGE: Earth with no ice sheets and no mountain glaciers; sea level about 70 meters higher; vast new turquoise shallow seas over former lowlands; warmer greenhouse climate with more humid haze; Antarctica bare rock, tundra and moss; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "§8 Antarctica, unveiled (a)",
+   "sec": 25,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus ten thousand years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "The last of Antarctica's ice is gone — and underneath is a surprise. The continent isn't one solid landmass. Without its ice, much of West Antarctica is a scatter of islands, its bedrock far below sea level. East Antarctica stays a true continent, with mountain ranges that have been buried under ice for millions of years. And freed from kilometers of ice, the land begins to rise — rebounding upward for thousands of years, like a mattress after you stand up. Along its new coasts, in a warmer world, mosses and tundra plants take hold. A green Antarctica.",
+     "at": 2.88
+    }
+   ],
+   "videoPrompt": "Photoreal aerial over a newly ice-free polar coastline: dark bare rock ridges and fjords, patches of bright green moss and low tundra on the slopes, meltwater streams, calm grey-blue sea with small islands, no ice anywhere, soft morning light after rain from a low sun at frame-left, mist in the valleys. Camera: continuous slow crane-up revealing the island-studded horizon. STAGE: Earth with no ice sheets and no mountain glaciers; sea level about 70 meters higher; vast new turquoise shallow seas over former lowlands; warmer greenhouse climate with more humid haze; Antarctica bare rock, tundra and moss; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "the-emerald-ambush"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "distant birds, trickling meltwater streams, calm polar coast",
+     "durationSec": 12.5,
+     "gainDb": -14
+    },
+    {
+     "at": 12.5,
+     "prompt": "distant birds, trickling meltwater streams, calm polar coast",
+     "durationSec": 12.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "T+10,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 10.69,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 10.69,
+     "durationSec": 14.2,
+     "text": "WEST ANTARCTIC BED: LARGELY BELOW SEA LEVEL · src: BedMachine (Morlighem 2020)",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "islands.",
+    "rise"
+   ]
+  },
+  {
+   "label": "§8 Antarctica, unveiled (b)",
+   "sec": 25,
+   "lines": [],
+   "videoPrompt": "Photoreal aerial over a newly ice-free polar coastline: dark bare rock ridges and fjords, patches of bright green moss and low tundra on the slopes, meltwater streams, calm grey-blue sea with small islands, no ice anywhere, soft morning light after rain from a low sun at frame-left, mist in the valleys. Camera: continuous slow crane-up revealing the island-studded horizon. The crane continues up; the islands are revealed. STAGE: Earth with no ice sheets and no mountain glaciers; sea level about 70 meters higher; vast new turquoise shallow seas over former lowlands; warmer greenhouse climate with more humid haze; Antarctica bare rock, tundra and moss; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "the-emerald-ambush"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "distant birds, trickling meltwater streams, calm polar coast",
+     "durationSec": 12.5,
+     "gainDb": -14
+    },
+    {
+     "at": 12.5,
+     "prompt": "distant birds, trickling meltwater streams, calm polar coast",
+     "durationSec": 12.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "T+10,000 YRS · MODEL EST. · IPCC 2100: +0.28 to 1.01 m",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 9.47,
+     "text": "ISOSTATIC REBOUND: ONGOING",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 9.48,
+     "durationSec": 15.52,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§9 ‖ Twist: we've been here before (a)",
+   "sec": 23,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Here's the part that sounds like fiction. Earth has been ice-free before. About fifty-two million years ago, in the early Eocene, there were no large ice sheets at all. Forests grew in the high Arctic. On Ellesmere Island, in Canada's far north, scientists have found fossils of alligators, giant tortoises, and early primate relatives — animals living through six months of polar darkness each year. An ice-free Earth isn't pure hypothesis. It's somewhere our planet has already been.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal wide shot of a warm swampy forest in the high Arctic of the early Eocene: tall conifers rising from still dark water, humid haze, a low polar sun at frame-left glowing through the mist, an alligator resting motionless on a half-submerged log in the foreground, a large tortoise at the water's edge, no humans. Camera: continuous slow dolly forward just above the water. STAGE: early Eocene Arctic, about 52 million years ago; no ice anywhere; warm swampy forest of tall conifers and broadleaf trees, still dark water, humid haze; low polar sun at frame-left; no humans. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "35mm-film",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "the-emerald-ambush"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "fast mechanical counter spinning backward, rewinding, then a click",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "warm swamp at dusk, insects buzzing, water dripping, humid and still",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 11.5,
+     "prompt": "warm swamp at dusk, insects buzzing, water dripping, humid and still",
+     "durationSec": 11.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "REWIND −52M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 6.69,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 6.69,
+     "durationSec": 6.03,
+     "text": "EARLY EOCENE: NO ICE SHEETS · src: KU 2023 / CU Boulder 2010",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 12.73,
+     "durationSec": 10.27,
+     "text": "PALEOLATITUDE ~77°N",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "ice-free",
+    "alligators,"
+   ]
+  },
+  {
+   "label": "§9 ‖ Twist: we've been here before (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal wide shot of a warm swampy forest in the high Arctic of the early Eocene: tall conifers rising from still dark water, humid haze, a low polar sun at frame-left glowing through the mist, an alligator resting motionless on a half-submerged log in the foreground, a large tortoise at the water's edge, no humans. Camera: continuous slow dolly forward just above the water. The dolly continues forward just above the water. STAGE: early Eocene Arctic, about 52 million years ago; no ice anywhere; warm swampy forest of tall conifers and broadleaf trees, still dark water, humid haze; low polar sun at frame-left; no humans. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "35mm-film",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "the-emerald-ambush"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "warm swamp at dusk, insects buzzing, water dripping, humid and still",
+     "durationSec": 22.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "REWIND −52M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "PALEOLATITUDE ~77°N",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§10 CTA + next timeline",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Seventy meters: the full weight of the world's ice. It would take thousands of years — and it's worth knowing where every meter comes from. Next: what if the sea went the other way — and you could walk from England to France?",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view of Earth with no ice caps and wide turquoise shallow seas along the coasts, day side lit from frame-left, vertical terminator through center with sparse city lights on the right, slowly rotating west to east. Camera: continuous slow pull-back. STAGE: Earth with no ice sheets and no mountain glaciers; sea level about 70 meters higher; vast new turquoise shallow seas over former lowlands; warmer greenhouse climate with more humid haze; Antarctica bare rock, tundra and moss; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "END",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 9.18,
+     "durationSec": 10.82,
+     "text": "NEXT TIMELINE: WHAT IF SEA LEVEL DROPPED 120 METERS?",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Seventy",
+    "meters:"
+   ]
+  },
+  {
+   "label": "OUTRO + end screen (shared channel asset, Bible §6.3)",
+   "sec": 18,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Every change has consequences. Pick your next timeline.",
+     "at": 0.5
+    }
+   ],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 23
+   }
+  }
+ ],
+ "music": {
+  "prompt": "cinematic ambient documentary score, 8.5 minutes: a warm choir pad opening; from 0:25 the music drops to a single sober low pad for the reality check; deep cold textures around 1:15; a key shift and building strings from 2:10; a water-rush swell under strings around 3:15; ocean swell and choir around 4:20, turning warm and eerie-calm; a restrained low cello line around 5:30; resolving to a hopeful major chord around 6:25; warm and wondrous around 7:15; a sustained chord to the end; restrained, never doom, instrumental, no vocals",
+  "gainDb": -15,
+  "underVoDb": -9
+ },
+ "sting": {
+  "at": 73,
+  "sec": 2
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "Brief §3.4 on every clip. L03 (compliance-critical): the 10 map keyframes are SOUL stills generated from prompts, NOT the designer's fact-checked ETOPO maps — a designer plus a second reviewer must sign off every keyframe against the LDEO and NatGeo references before any clip is queued. Seedance maps must not move coastlines the step shouldn't flood; water only advances (monotonic). No identifiable skyline or landmark in any Cinema shot: §1 lighthouse generic, §6c rooftops generic. §3–§4 ice sheets fully present (SC-R/SC-G); §8 and §10 show no ice. §9 no humans, anatomically plausible animals. On-screen IPCC numbers must match the fact list exactly (0.28–1.01 m; 2–3 m @1.5°C; 19–22 m @5°C). Cinema segments are standalone gens (Q7): check intra-section cuts. Altered-content label ON. Highest risk: §5–§7 maps, §1, §9, §6c."
+}

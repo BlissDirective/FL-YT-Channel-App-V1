@@ -1,0 +1,491 @@
+{
+ "format": "short",
+ "resolution": "720p",
+ "title": "What If Earth Spun Backwards?",
+ "altTitles": [
+  "Scientists Simulated Earth Spinning Backwards",
+  "If Earth Spun Backwards, the Sahara Would Turn Green"
+ ],
+ "description": "Reverse Earth's spin and the Sun rises in the west — but that's the least strange part. In 2018, Max Planck Institute scientists ran a full Earth-system model of a backwards-spinning planet: the Sahara greens, the Americas dry out and the Atlantic's overturning current collapses. Source: Mikolajewicz et al. 2018, Earth System Dynamics. #whatif #earth #climate",
+ "tags": [
+  "what if",
+  "earth spun backwards",
+  "retrograde rotation",
+  "sahara",
+  "climate model",
+  "science",
+  "Earthlines"
+ ],
+ "topic": "What if Earth spun backwards (Mikolajewicz et al. 2018)",
+ "cast": {
+  "N": {
+   "color": "#FFB547"
+  }
+ },
+ "sections": [
+  {
+   "label": "B1 Hook",
+   "sec": 5,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Reverse Earth's spin, and the Sun rises in the west.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Vertical photoreal dawn over a generic jagged mountain ridge, the sun's first sliver breaking the horizon at center, golden rays and long shadows, valley mist, no people. Camera: continuous slow push-in. STAGE: Earth rotating east to west; Sahara and Arabian deserts green with savanna and seasonal lakes; parts of the Americas dry and desert-like; oceans with shifted currents and patches of green cyanobacteria blooms in the Indian Ocean; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Vertical photoreal dawn over a generic jagged mountain ridge, the sun's first sliver breaking the horizon at center, golden rays and long shadows, valley mist, no people. STAGE: Earth rotating east to west; Sahara and Arabian deserts green with savanna and seasonal lakes; parts of the Americas dry and desert-like; oceans with shifted currents and patches of green cyanobacteria blooms in the Indian Ocean; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low rising tone, slow and ominous",
+     "durationSec": 3,
+     "gainDb": -8
+    },
+    {
+     "at": 0.3,
+     "prompt": "single mechanical compass clack",
+     "durationSec": 0.6,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 5.0,
+     "text": "RETRO · DAY 1",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 5.0,
+     "text": "SUNRISE… IN THE WEST? · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 5.0,
+     "text": "W",
+     "position": "center",
+     "style": "title",
+     "color": "#FFB547"
+    }
+   ],
+   "highlightWords": [
+    "west."
+   ]
+  },
+  {
+   "label": "B2 Orbital Earth (generated prograde + pull-back; played reversed)",
+   "sec": 13,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "That's the least strange part. In 2018, climate scientists at the Max Planck Institute actually ran this — a full Earth-system model, with the planet spinning backwards.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Vertical photoreal Earth from orbit, rotating slowly west to east, lit from frame-left, terminator on the right with city lights. Camera: continuous slow pull-back. STAGE: present-day Earth rotating west to east. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "reverse": true,
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 13.0,
+     "text": "MODEL",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 1.98,
+     "durationSec": 11.02,
+     "text": "src: Mikolajewicz et al. 2018, Earth System Dynamics · REAL SCIENCE · MODEL",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 8.01,
+     "durationSec": 3.5,
+     "text": "↺ RETROGRADE",
+     "position": "center",
+     "style": "title",
+     "color": "#FFB547"
+    }
+   ],
+   "highlightWords": [
+    "2018,",
+    "backwards."
+   ]
+  },
+  {
+   "label": "B3a Dunes → savanna (Seedance morph)",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Winds flip. The trade winds that blow from the east now blow from the west. That reshuffles where rain falls. And the Sahara — one of the driest places on Earth — turns green.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Photoreal aerial, desert dunes smoothly and continuously turning to green grassland and scattered trees, a shallow lake filling, sunlight from frame-left, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed still: vertical photoreal aerial of generic Saharan sand dunes, sunlight from frame-left, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.2,
+     "prompt": "strong wind swoosh sweeping past, changing direction",
+     "durationSec": 2,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "MODEL",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "SAHARA → GREEN · src: Mikolajewicz 2018 · MODEL · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "flip.",
+    "Sahara",
+    "green."
+   ],
+   "endFrame": {
+    "prompt": "Designed still: the same vertical aerial terrain turned to green savanna grassland with scattered trees and a shallow seasonal lake, sunlight from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "B3b Green savanna, rain",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal ground shot of a green savanna with acacia-like trees under a passing rain shower, sun breaking through at frame-left, a distant rocky desert escarpment on the horizon, no people, no animals needed. Camera: continuous slow push. STAGE: Earth rotating east to west; Sahara and Arabian deserts green with savanna and seasonal lakes; parts of the Americas dry and desert-like; oceans with shifted currents and patches of green cyanobacteria blooms in the Indian Ocean; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "the-emerald-ambush"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "steady rain shower on grassland",
+     "durationSec": 8.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "MODEL",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "SAHARA → GREEN · src: Mikolajewicz 2018 · MODEL · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "B4a Dry desert scrub",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Meanwhile, large parts of the Americas dry out into desert. And the temperature contrast across Eurasia reverses: western Europe loses its mild winters, while eastern Siberia turns milder. Same planet, same oceans — just a different spin.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Vertical photoreal aerial of a generic temperate plain turned to dry cracked desert scrub, dust devils, abandoned fence lines, harsh sun at frame-left, no people, no buildings. Camera: continuous slow forward drift. STAGE: Earth rotating east to west; Sahara and Arabian deserts green with savanna and seasonal lakes; parts of the Americas dry and desert-like; oceans with shifted currents and patches of green cyanobacteria blooms in the Indian Ocean; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "mirage-at-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "dry hot wind over desert scrub",
+     "durationSec": 8.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "MODEL",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "AMERICAS: DRIER · EUROPE ↔ SIBERIA GRADIENT REVERSED · MODEL",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "desert.",
+    "reverses:"
+   ]
+  },
+  {
+   "label": "B4b Frozen Atlantic coast",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal generic rocky North Atlantic coastline in hard winter frost, snow on the cliffs, grey sea with ice at the shoreline, low sun at frame-left, no people, no buildings. Camera: continuous slow lateral drift. STAGE: Earth rotating east to west; Sahara and Arabian deserts green with savanna and seasonal lakes; parts of the Americas dry and desert-like; oceans with shifted currents and patches of green cyanobacteria blooms in the Indian Ocean; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "the-grey-channel"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "icy winter gust of wind with frost crackle",
+     "durationSec": 4,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "MODEL",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "AMERICAS: DRIER · EUROPE ↔ SIBERIA GRADIENT REVERSED · MODEL",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "B5a Pacific currents (generated prograde + pull-back; played reversed)",
+   "sec": 7,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Even the oceans reorganize. The Atlantic's great overturning current collapses — and a new one starts up in the Pacific. Overall, the backwards world is actually greener.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Vertical photoreal orbital view over the Pacific, rotating west to east, sunlit from frame-left, vast swirling ocean current patterns visible in sunglint. Camera: slow pull-back. STAGE: present-day Earth rotating west to east. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "reverse": true,
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "deep low ocean hum, vast and slow",
+     "durationSec": 7.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 7.0,
+     "text": "MODEL",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 7.0,
+     "text": "AMOC: COLLAPSES · PACIFIC OVERTURNING: EMERGES · CYANOBACTERIA ↑ (Indian Ocean) · MODEL",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "collapses",
+    "Pacific.",
+    "greener.",
+    "flip"
+   ]
+  },
+  {
+   "label": "B5b Cyanobacteria bloom",
+   "sec": 7,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "The deserts, the rain, even Europe's winters — all set by which way Earth turns. Now flip it.",
+     "at": 6.4
+    }
+   ],
+   "videoPrompt": "Vertical photoreal aerial of a calm tropical ocean surface with vivid green swirls of a cyanobacteria bloom, sunlight from frame-left. Camera: continuous slow descent. STAGE: Earth rotating east to west; Sahara and Arabian deserts green with savanna and seasonal lakes; parts of the Americas dry and desert-like; oceans with shifted currents and patches of green cyanobacteria blooms in the Indian Ocean; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "turquoise-mirage"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "deep low ocean hum, vast and slow",
+     "durationSec": 7.0,
+     "gainDb": -14
+    },
+    {
+     "at": 2.08,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 7.0,
+     "text": "MODEL",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 7.0,
+     "text": "AMOC: COLLAPSES · PACIFIC OVERTURNING: EMERGES · CYANOBACTERIA ↑ (Indian Ocean) · MODEL",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "collapses",
+    "Pacific.",
+    "greener.",
+    "flip"
+   ]
+  },
+  {
+   "label": "B6 Loop: sun sinks back to B1's first frame (Seedance, end = B1 keyframe)",
+   "sec": 6,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal dawn over a generic jagged mountain ridge, the sun sinking slowly back to its first sliver on the horizon at center, golden rays and long shadows, valley mist, no people. Camera: continuous slow pull-back. STAGE: Earth rotating east to west; Sahara and Arabian deserts green with savanna and seasonal lakes; parts of the Americas dry and desert-like; oceans with shifted currents and patches of green cyanobacteria blooms in the Indian Ocean; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Vertical photoreal dawn over a generic jagged mountain ridge, the sun's disc just above the horizon at center, golden rays and long shadows, valley mist, no people. STAGE: Earth rotating east to west; Sahara and Arabian deserts green with savanna and seasonal lakes; parts of the Americas dry and desert-like; oceans with shifted currents and patches of green cyanobacteria blooms in the Indian Ocean; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 4.7,
+     "prompt": "single mechanical compass clack",
+     "durationSec": 0.6,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 6.0,
+     "text": "END",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 4.7,
+     "text": "W",
+     "position": "center",
+     "style": "title",
+     "color": "#FFB547"
+    },
+    {
+     "at": 4.7,
+     "durationSec": 0.6,
+     "text": "E",
+     "position": "center",
+     "style": "title",
+     "color": "#FFB547"
+    },
+    {
+     "at": 5.3,
+     "durationSec": 0.7,
+     "text": "W",
+     "position": "center",
+     "style": "title",
+     "color": "#FFB547"
+    }
+   ],
+   "endFrame": {
+    "fromSection": 0
+   }
+  }
+ ],
+ "music": {
+  "prompt": "cinematic ambient score: warm synth pads and low strings under calm curious narration, restrained, a gentle lift around 18 seconds, easing back to the opening texture so it loops seamlessly at 70 seconds, instrumental, no vocals",
+  "gainDb": -15,
+  "underVoDb": -9
+ },
+ "sting": {
+  "at": 5.1,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Next: What If Earth Stopped Spinning?"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "S22: B2 and B5a carry reverse: true — generated forward (prograde west→east rotation, camera pull-back) and played time-reversed, so on screen they rotate right→left (east→west) with a slow push-in. Export-check that both rotate right→left after reversal and that nothing else looks backwards (clouds may; that reads naturally). No text on the B3a Seedance stills. B1 and B6 frame-identical at the loop point (B6 lands on B1's keyframe). No identifiable towns in B4. Brief §3.4 on every clip. Altered-content label ON. Highest risk: B3a (dune→savanna smear), B5b (bloom looks like paint)."
+}

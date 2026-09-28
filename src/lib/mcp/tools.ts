@@ -35,6 +35,23 @@ import {
 import { designVoice, saveDesignedVoice } from "@/lib/adapters/voice-design";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import { allLedgerRows } from "@/lib/pipeline/ledger";
+import {
+  BOT_TOOLS,
+  addLesson,
+  botBrief,
+  botDigest,
+  budgetStatus,
+  createBotAgent,
+  enforceBot,
+  listLessons,
+  qcPack,
+  recordResearch,
+  reviewLessons,
+  stampBotVideo,
+  updateBotAgent,
+  upsertPlaybook,
+  type BotContext,
+} from "@/lib/bots/agents";
 
 /**
  * studio-mcp tool registry (Phase 9). Each tool exposes a slice of the studio
@@ -44,7 +61,8 @@ import { allLedgerRows } from "@/lib/pipeline/ledger";
  */
 
 type Db = ReturnType<typeof createAdminClient>;
-type Handler = (args: Record<string, unknown>, db: Db) => Promise<unknown>;
+type Ctx = { bot?: BotContext };
+type Handler = (args: Record<string, unknown>, db: Db, ctx?: Ctx) => Promise<unknown>;
 type Tool = {
   name: string;
   description: string;
@@ -713,12 +731,165 @@ export const TOOLS: Tool[] = [
       return error ? { ok: false, error: error.message, voiceId } : { ok: true, voiceId, voiceCast: cast };
     },
   },
+
+  // ── Channel bots (docs/bots/README.md) ────────────────────────────────
+  //    Bot-only tools resolve the channel from the bot's token; the director
+  //    (control token) manages bots, curates lessons and pushes playbooks.
+  {
+    name: "get_bot_brief",
+    description: "BOT: everything you must read before creating your next video — operating rules, lessons learned, your channel playbook, director notes, adopted + pending lessons, recent research, your videos and remaining monthly budget.",
+    inputSchema: obj({}),
+    handler: async (_a, db, ctx) => botBrief(db, requireBot(ctx)),
+  },
+  {
+    name: "get_budget_status",
+    description: "BOT: month-to-date Higgsfield spend vs your monthly cap.",
+    inputSchema: obj({}),
+    handler: async (_a, db, ctx) => budgetStatus(db, requireBot(ctx)),
+  },
+  {
+    name: "list_my_videos",
+    description: "BOT: your channel's directed videos (newest first) with status and cost.",
+    inputSchema: obj({}),
+    handler: async (_a, db, ctx) => {
+      const bot = requireBot(ctx);
+      const { data } = await db
+        .from("videos")
+        .select("id, title, kind, status, total_cost_usd, paused_reason, bot_agent_id, created_at")
+        .eq("project_id", bot.projectId)
+        .eq("directed", true)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return data ?? [];
+    },
+  },
+  {
+    name: "get_qc_pack",
+    description: "Watch a finished video for QC: render URL, per-section clip + keyframe URLs, what each section was meant to show/say, the QC criteria, and cost vs estimate.",
+    inputSchema: obj({ videoId: { type: "string" } }, ["videoId"]),
+    handler: async (a, db) => qcPack(db, str(a.videoId)),
+  },
+  {
+    name: "add_lesson",
+    description: "Log a lesson for the channel's continuous-learning log (bots: proposed until the director adopts it; director: adopted immediately). kind = quality | spend | hook | pacing | audio | visual | research | process. Always cite evidence (timestamp, section, metric, source).",
+    inputSchema: obj(
+      {
+        projectId: { type: "string", description: "Director only — bots are scoped automatically." },
+        videoId: { type: "string" },
+        kind: { type: "string" },
+        lesson: { type: "string", description: "One actionable rule for the next video." },
+        evidence: { type: "string" },
+      },
+      ["lesson"],
+    ),
+    handler: async (a, db, ctx) =>
+      addLesson(db, {
+        projectId: ctx?.bot ? ctx.bot.projectId : str(a.projectId),
+        videoId: str(a.videoId) || undefined,
+        kind: str(a.kind) || undefined,
+        lesson: str(a.lesson),
+        evidence: str(a.evidence) || undefined,
+        author: ctx?.bot ? "bot" : "director",
+      }),
+  },
+  {
+    name: "record_research",
+    description: "BOT: record viral-video research for your niche — the query, what you found (formats, hooks, pacing, retention tactics, thumbnails/titles) and what it implies for your next video. sources = array of URLs (required).",
+    inputSchema: obj(
+      {
+        videoId: { type: "string", description: "The video this research follows up on." },
+        query: { type: "string" },
+        findings: { type: "string" },
+        sources: { type: "array", items: { type: "string" } },
+      },
+      ["query", "findings", "sources"],
+    ),
+    handler: async (a, db, ctx) =>
+      recordResearch(db, {
+        projectId: requireBot(ctx).projectId,
+        videoId: str(a.videoId) || undefined,
+        query: str(a.query),
+        findings: str(a.findings),
+        sources: a.sources,
+      }),
+  },
+  {
+    name: "list_lessons",
+    description: "Lessons log. status = proposed | adopted | retired (optional).",
+    inputSchema: obj({ projectId: { type: "string" }, status: { type: "string" }, limit: { type: "number" } }),
+    handler: async (a, db, ctx) =>
+      listLessons(db, { projectId: ctx?.bot ? ctx.bot.projectId : str(a.projectId) || undefined, status: str(a.status) || undefined, limit: Number(a.limit) || undefined }),
+  },
+  {
+    name: "create_bot_agent",
+    description: "DIRECTOR: create a channel bot with its own scoped token (shown once) and monthly Higgsfield cap (default $600).",
+    inputSchema: obj({ projectId: { type: "string" }, name: { type: "string" }, monthlyCapUsd: { type: "number" } }, ["projectId", "name"]),
+    handler: async (a, db) => createBotAgent(db, { projectId: str(a.projectId), name: str(a.name), monthlyCapUsd: Number(a.monthlyCapUsd) || undefined }),
+  },
+  {
+    name: "update_bot_agent",
+    description: "DIRECTOR: pause/resume a bot, change its monthly cap, or rotate its token.",
+    inputSchema: obj({ botId: { type: "string" }, active: { type: "boolean" }, monthlyCapUsd: { type: "number" }, rotateToken: { type: "boolean" } }, ["botId"]),
+    handler: async (a, db) =>
+      updateBotAgent(db, {
+        botId: str(a.botId),
+        active: typeof a.active === "boolean" ? a.active : undefined,
+        monthlyCapUsd: typeof a.monthlyCapUsd === "number" ? a.monthlyCapUsd : undefined,
+        rotateToken: a.rotateToken === true,
+      }),
+  },
+  {
+    name: "sync_bot_playbook",
+    description: "DIRECTOR: publish guidance a bot reads on its next get_bot_brief. key = operating-rules | lessons-learned (shared: omit projectId) | playbook | director-notes (per channel: projectId).",
+    inputSchema: obj({ key: { type: "string" }, projectId: { type: "string" }, content: { type: "string" } }, ["key", "content"]),
+    handler: async (a, db) => {
+      const key = str(a.key);
+      if (!["operating-rules", "lessons-learned", "playbook", "director-notes"].includes(key)) return { ok: false, error: "unknown key" };
+      const scoped = key === "playbook" || key === "director-notes";
+      if (scoped && !str(a.projectId)) return { ok: false, error: `${key} needs projectId` };
+      return upsertPlaybook(db, { key, projectId: scoped ? str(a.projectId) : null, content: str(a.content) });
+    },
+  },
+  {
+    name: "review_lessons",
+    description: "DIRECTOR: adopt or retire bot-proposed lessons (note is shown to the bot).",
+    inputSchema: obj({ ids: { type: "array", items: { type: "string" } }, status: { type: "string", description: "adopted | retired" }, note: { type: "string" } }, ["ids", "status"]),
+    handler: async (a, db) => {
+      const status = str(a.status);
+      if (status !== "adopted" && status !== "retired") return { ok: false, error: "status must be adopted or retired" };
+      return reviewLessons(db, { ids: (Array.isArray(a.ids) ? a.ids : []).map(String), status, note: str(a.note) || undefined });
+    },
+  },
+  {
+    name: "bot_digest",
+    description: "DIRECTOR: per-bot activity since N hours ago (default 24): budget, videos, lessons awaiting review, research and action counts.",
+    inputSchema: obj({ sinceHours: { type: "number" } }),
+    handler: async (a, db) => botDigest(db, { sinceHours: Number(a.sinceHours) || undefined }),
+  },
 ];
 
 /** Token scope: `control` (STUDIO_MCP_TOKEN) may call everything; `read`
     (STUDIO_MCP_READ_TOKEN) is limited to inspection tools. One leaked
     read token must not equal silent control of publishing and spend. */
-export type McpScope = "read" | "control";
+export type McpScope = "read" | "control" | "bot";
+
+/** Tools that need a bot identity (the channel comes from the token). */
+const BOT_ONLY_TOOLS = new Set(["get_bot_brief", "get_budget_status", "list_my_videos", "record_research"]);
+/** Bot management — control token only (never read, never a bot). */
+const DIRECTOR_TOOLS = new Set(["create_bot_agent", "update_bot_agent", "sync_bot_playbook", "review_lessons", "bot_digest"]);
+
+function requireBot(ctx?: Ctx): BotContext {
+  if (!ctx?.bot) throw new Error("This tool is for channel bots (use a bot token).");
+  return ctx.bot;
+}
+
+/** Which tools a scope may see and call. */
+export function toolVisible(name: string, scope: McpScope): boolean {
+  if (scope === "bot") return BOT_TOOLS.has(name);
+  if (BOT_ONLY_TOOLS.has(name)) return false;
+  if (scope === "read") return !toolMutates(name) && !DIRECTOR_TOOLS.has(name);
+  return true;
+}
 
 const MUTATING_TOOLS = new Set([
   "approve_gate",
@@ -742,6 +913,12 @@ const MUTATING_TOOLS = new Set([
   "make_reference_still",
   "design_voice",
   "save_voice",
+  "add_lesson",
+  "record_research",
+  "create_bot_agent",
+  "update_bot_agent",
+  "sync_bot_playbook",
+  "review_lessons",
 ]);
 
 export function toolMutates(name: string): boolean {
@@ -752,22 +929,35 @@ export async function callTool(
   name: string,
   args: Record<string, unknown>,
   scope: McpScope = "control",
+  bot?: BotContext,
 ): Promise<unknown> {
   const tool = TOOLS.find((t) => t.name === name);
   if (!tool) throw new Error(`Unknown tool: ${name}`);
-  if (scope === "read" && toolMutates(name)) {
-    throw new Error(`Tool ${name} requires the control token (read-only scope).`);
+  if (scope === "bot" && !bot) throw new Error("bot scope without a bot identity");
+  if (!toolVisible(name, scope)) {
+    throw new Error(
+      scope === "read"
+        ? `Tool ${name} requires the control token (read-only scope).`
+        : `Tool ${name} is not available to this token.`,
+    );
   }
   const db = createAdminClient();
-  const out = await tool.handler(args ?? {}, db);
+  const input = { ...(args ?? {}) };
+  // Bots: server-side rails (own channel, cap, one-at-a-time, learn-first).
+  if (scope === "bot" && bot) await enforceBot(db, bot, name, input);
+  const out = await tool.handler(input, db, { bot: scope === "bot" ? bot : undefined });
+  if (scope === "bot" && bot && name === "import_script") {
+    const videoId = (out as { ok?: boolean; videoId?: string }).videoId;
+    if ((out as { ok?: boolean }).ok && videoId) await stampBotVideo(db, bot, videoId);
+  }
   if (toolMutates(name)) {
-    // Best-effort audit trail of every remote mutation — who (token scope),
-    // what, and with which arguments. Never fails the call itself.
+    // Best-effort audit trail of every remote mutation — who (token scope,
+    // or the bot's name), what, and with which arguments. Never fails the call.
     try {
       await db.from("audit_log").insert({
-        actor: `mcp:${scope}`,
+        actor: scope === "bot" && bot ? `mcp:bot:${bot.name}` : `mcp:${scope}`,
         action: name,
-        payload: args ?? {},
+        payload: input,
       });
     } catch (err) {
       console.error("mcp audit log failed:", err);

@@ -1,0 +1,877 @@
+{
+ "version": 1,
+ "format": "long",
+ "resolution": "720p",
+ "title": "She Held the Roof of a Runaway Sky Train",
+ "altTitles": [
+  "Hold the Roof | Stick Figure Mini-Movie",
+  "One Staff vs. a Train Full of Goons"
+ ],
+ "description": "The next shard rides the sky-rail. Smudge sent everyone he ever drew. Nova holds the roof. #stickfigure #animation #INKLIGHT",
+ "tags": [
+  "stick figure",
+  "animation",
+  "3d animation",
+  "stick fight",
+  "mini movie",
+  "INKLIGHT",
+  "Nova",
+  "Bolt",
+  "Pip",
+  "Brick",
+  "Smudge"
+ ],
+ "topic": "L03 F2 set-piece action + F5 choreography: Nova holds the roof of the runaway sky train",
+ "cast": {
+  "Bolt": {
+   "color": "#22D3EE"
+  },
+  "Pip": {
+   "color": "#FFB020"
+  },
+  "Nova": {
+   "color": "#FF3DA5"
+  },
+  "Brick": {
+   "color": "#7CFF4F"
+  },
+  "Smudge": {
+   "color": "#FF2E3A"
+  }
+ },
+ "sections": [
+  {
+   "label": "S1 Hook: the sky-rail",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "The next shard rides the sky-rail.",
+     "at": 3.0
+    },
+    {
+     "speaker": "Nova",
+     "text": "Late. Again.",
+     "at": 7
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. A sleek sky-rail train bursts out of a towering white cloudbank at full speed on a single elevated rail high above a sunlit cloud sea, and the camera sweeps along it to reveal Nova standing on the roof, spinning her staff into glowing magenta rings, then planting it. Helicopter orbit ending at low angle, bright afternoon sun, cloud glare, wind-whipped rim light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=single-shot camera_model=modern camera_lens=anamorphic color_palette=highway-standoff",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "highway-standoff"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png",
+    "refs/inklight/env-sky-rail-train.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a loud powerful train horn blast",
+     "durationSec": 1.5,
+     "gainDb": -2
+    },
+    {
+     "at": 0,
+     "prompt": "roaring high-altitude wind",
+     "durationSec": 10,
+     "gainDb": -10
+    },
+    {
+     "at": 1.0,
+     "prompt": "fast rhythmic rail clack of a speeding train",
+     "durationSec": 9,
+     "gainDb": -12
+    },
+    {
+     "at": 2.5,
+     "prompt": "a staff spinning through the air, whoosh",
+     "durationSec": 1.2,
+     "gainDb": -6
+    },
+    {
+     "at": 4.0,
+     "prompt": "a solid wooden THUNK of a staff planted on metal",
+     "durationSec": 0.8,
+     "gainDb": -4
+    }
+   ],
+   "labels": [
+    {
+     "at": 2.5,
+     "durationSec": 2,
+     "text": "NOVA",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#FF3DA5"
+    }
+   ],
+   "highlightWords": [
+    "shard"
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "IDENT (shared, reused)",
+   "sec": 5,
+   "lines": [],
+   "sfx": [
+    {
+     "at": 0.3,
+     "prompt": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+     "durationSec": 1.2,
+     "gainDb": -4
+    },
+    {
+     "at": 1.4,
+     "prompt": "fast airy whoosh of light trails racing past, cinematic",
+     "durationSec": 1.5,
+     "gainDb": -6
+    },
+    {
+     "at": 3.0,
+     "prompt": "deep bass THOOM hit, cinematic logo impact, short tail",
+     "durationSec": 2,
+     "gainDb": -3
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 3.5,
+     "text": "INKLIGHT",
+     "position": "center",
+     "style": "title"
+    }
+   ],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 1
+   }
+  },
+  {
+   "label": "S2 Boarding",
+   "sec": 60,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Jump on three! One—",
+     "at": 4
+    },
+    {
+     "speaker": "Pip",
+     "text": "That was ONE!",
+     "at": 8
+    },
+    {
+     "speaker": "Brick",
+     "text": "...Landed.",
+     "at": 33
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. <<<image_2>>> PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae clinging to Brick's shoulders. Bolt and Brick sprint along a floating stone station platform beside a moving sky-rail train and leap onto its roof, then run forward along the roof toward the front cars, scarf streaming a cyan light trail, clouds racing past. Continuous lateral tracking shot matching train speed, 35mm, bright afternoon sun, strong wind. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=highway-standoff Segment 1 of 2 (30s): Bolt, Brick (with Pip clinging to his shoulders) sprint along a floating station platform and leap onto the moving train roof. The shot ends on this beat: Brick lands with a roof-denting thud.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "highway-standoff"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png",
+    "refs/inklight/env-sky-rail-train.png"
+   ],
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "strong wind and fast rhythmic rail clack of a speeding train",
+     "durationSec": 20.0,
+     "gainDb": -12
+    },
+    {
+     "at": 20.0,
+     "prompt": "strong wind and fast rhythmic rail clack of a speeding train",
+     "durationSec": 20.0,
+     "gainDb": -12
+    },
+    {
+     "at": 40.0,
+     "prompt": "strong wind and fast rhythmic rail clack of a speeding train",
+     "durationSec": 20.0,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "driving rail-rhythm percussion at 128 bpm, action, instrumental",
+     "durationSec": 20.0,
+     "gainDb": -14
+    },
+    {
+     "at": 20.0,
+     "prompt": "driving rail-rhythm percussion at 128 bpm, action, instrumental",
+     "durationSec": 20.0,
+     "gainDb": -14
+    },
+    {
+     "at": 40.0,
+     "prompt": "driving rail-rhythm percussion at 128 bpm, action, instrumental",
+     "durationSec": 20.0,
+     "gainDb": -14
+    },
+    {
+     "at": 30,
+     "prompt": "a heavy thud denting a metal train roof",
+     "durationSec": 1,
+     "gainDb": -2
+    }
+   ],
+   "labels": [
+    {
+     "at": 2,
+     "durationSec": 2,
+     "text": "BOLT",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 4.5,
+     "durationSec": 2,
+     "text": "BRICK",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#7CFF4F"
+    },
+    {
+     "at": 8,
+     "durationSec": 2,
+     "text": "PIP",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#FFB020"
+    }
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. <<<image_2>>> PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae clinging to Brick's shoulders. Bolt and Brick sprint along a floating stone station platform beside a moving sky-rail train and leap onto its roof, then run forward along the roof toward the front cars, scarf streaming a cyan light trail, clouds racing past. Continuous lateral tracking shot matching train speed, 35mm, bright afternoon sun, strong wind. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=highway-standoff Segment 1 of 2 (30s): Bolt, Brick (with Pip clinging to his shoulders) sprint along a floating station platform and leap onto the moving train roof. The shot ends on this beat: Brick lands with a roof-denting thud."
+    },
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. <<<image_2>>> PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae clinging to Brick's shoulders. Bolt and Brick sprint along a floating stone station platform beside a moving sky-rail train and leap onto its roof, then run forward along the roof toward the front cars, scarf streaming a cyan light trail, clouds racing past. Continuous lateral tracking shot matching train speed, 35mm, bright afternoon sun, strong wind. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=highway-standoff Segment 2 of 2 (30s), a self-contained shot of the same scene that opens just after this moment: Brick lands with a roof-denting thud. In this shot: The three run forward along the roof toward the front cars."
+    }
+   ]
+  },
+  {
+   "label": "S3 I fit. Mostly.",
+   "sec": 25,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "I fit. Mostly.",
+     "at": 3
+    },
+    {
+     "speaker": "Pip",
+     "text": "You fit zero percent.",
+     "at": 8
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. Inside a sleek train carriage, Brick is wedged sideways in a narrow sliding doorway, thick limbs jammed, while Pip pushes hard from behind; the sliding door repeatedly bumps into Brick's side. Locked-off interior wide shot, static camera, 35mm, bright window light, blank unmarked walls. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. Inside a sleek train carriage, Brick is wedged sideways in a narrow sliding doorway, thick limbs jammed, while Pip pushes hard from behind; the sliding door repeatedly bumps into Brick's side. Locked-off interior wide shot, static camera, 35mm, bright window light, blank unmarked walls. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 11,
+     "prompt": "a soft electronic train door chime ping followed by a sliding door bonking into something",
+     "durationSec": 1.2,
+     "gainDb": -6
+    },
+    {
+     "at": 15,
+     "prompt": "a soft electronic train door chime ping followed by a sliding door bonking into something",
+     "durationSec": 1.2,
+     "gainDb": -6
+    },
+    {
+     "at": 19,
+     "prompt": "a soft electronic train door chime ping followed by a sliding door bonking into something",
+     "durationSec": 1.2,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "light comedic pizzicato strings, playful, instrumental",
+     "durationSec": 12.5,
+     "gainDb": -18
+    },
+    {
+     "at": 12.5,
+     "prompt": "light comedic pizzicato strings, playful, instrumental",
+     "durationSec": 12.5,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "label": "S4 Goons drop in",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Smudge wanted the shard. So he sent everyone he'd ever drawn.",
+     "at": 2
+    },
+    {
+     "speaker": "Nova",
+     "text": "Good. I was bored.",
+     "at": 20
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, many of them. Above a speeding sky-rail train, a crimson ink-stained airship drops lines, and a crowd of goons slide down onto the rear cars and advance along the roof toward Nova, who turns to face them. Wide shot from the rear of the train, 24mm, bright afternoon sun, cloud sea streaking below. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, many of them. Above a speeding sky-rail train, a crimson ink-stained airship drops lines, and a crowd of goons slide down onto the rear cars and advance along the roof toward Nova, who turns to face them. Wide shot from the rear of the train, 24mm, bright afternoon sun, cloud sea streaking below. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.5,
+     "prompt": "a short eerie detuned music box sting",
+     "durationSec": 3,
+     "gainDb": -12
+    },
+    {
+     "at": 4,
+     "prompt": "many ropes zipping down fast",
+     "durationSec": 3,
+     "gainDb": -8
+    },
+    {
+     "at": 7,
+     "prompt": "several heavy thuds of figures landing on a metal roof",
+     "durationSec": 3,
+     "gainDb": -8
+    },
+    {
+     "at": 18,
+     "prompt": "a building taiko drum pattern, tense, instrumental",
+     "durationSec": 12,
+     "gainDb": -14
+    }
+   ],
+   "highlightWords": [
+    "shard"
+   ]
+  },
+  {
+   "label": "S5 Roof fight",
+   "sec": 90,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "Nova, how's the roof?",
+     "at": 45
+    },
+    {
+     "speaker": "Nova",
+     "text": "Crowded.",
+     "at": 48
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_6>>> GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, many of them. Nova fights waves of goons across the roof of a speeding sky-rail train above a cloud sea. Continuous choreography: fast strikes and parries, staff spins leaving magenta light trails, goons bursting into ink splashes that turn into glowing sparks, cartwheels across the gaps between cars. Camera tracks laterally at train speed with whip pans between attackers, low angle, hard sun, clouds streaking by. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=highway-standoff Segment 1 of 3 (30s): Nova fights a wave of goons across the moving roof; staff sweeps, parries, goons bursting into sparks. The shot ends on this beat: a staff-bind with a goon's forearm.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "highway-standoff"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png",
+    "refs/inklight/ref-goon.png"
+   ],
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "high-energy fight score: taiko drums with a koto-synth melody, instrumental",
+     "durationSec": 18.0,
+     "gainDb": -14
+    },
+    {
+     "at": 18.0,
+     "prompt": "high-energy fight score: taiko drums with a koto-synth melody, instrumental",
+     "durationSec": 18.0,
+     "gainDb": -14
+    },
+    {
+     "at": 36.0,
+     "prompt": "high-energy fight score: taiko drums with a koto-synth melody, instrumental",
+     "durationSec": 18.0,
+     "gainDb": -14
+    },
+    {
+     "at": 54.0,
+     "prompt": "high-energy fight score: taiko drums with a koto-synth melody, instrumental",
+     "durationSec": 18.0,
+     "gainDb": -14
+    },
+    {
+     "at": 72.0,
+     "prompt": "high-energy fight score: taiko drums with a koto-synth melody, instrumental",
+     "durationSec": 18.0,
+     "gainDb": -14
+    },
+    {
+     "at": 0.0,
+     "prompt": "stick-figure fight on a speeding train roof: staff swishes, bright glassy impact tinks, strong wind",
+     "durationSec": 18.0,
+     "gainDb": -12
+    },
+    {
+     "at": 18.0,
+     "prompt": "stick-figure fight on a speeding train roof: staff swishes, bright glassy impact tinks, strong wind",
+     "durationSec": 18.0,
+     "gainDb": -12
+    },
+    {
+     "at": 36.0,
+     "prompt": "stick-figure fight on a speeding train roof: staff swishes, bright glassy impact tinks, strong wind",
+     "durationSec": 18.0,
+     "gainDb": -12
+    },
+    {
+     "at": 54.0,
+     "prompt": "stick-figure fight on a speeding train roof: staff swishes, bright glassy impact tinks, strong wind",
+     "durationSec": 18.0,
+     "gainDb": -12
+    },
+    {
+     "at": 72.0,
+     "prompt": "stick-figure fight on a speeding train roof: staff swishes, bright glassy impact tinks, strong wind",
+     "durationSec": 18.0,
+     "gainDb": -12
+    },
+    {
+     "at": 44.5,
+     "prompt": "short walkie-talkie radio crackle and click",
+     "durationSec": 0.5,
+     "gainDb": -8
+    }
+   ],
+   "highlightWords": [
+    "roof"
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_6>>> GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, many of them. Nova fights waves of goons across the roof of a speeding sky-rail train above a cloud sea. Continuous choreography: fast strikes and parries, staff spins leaving magenta light trails, goons bursting into ink splashes that turn into glowing sparks, cartwheels across the gaps between cars. Camera tracks laterally at train speed with whip pans between attackers, low angle, hard sun, clouds streaking by. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=highway-standoff Segment 1 of 3 (30s): Nova fights a wave of goons across the moving roof; staff sweeps, parries, goons bursting into sparks. The shot ends on this beat: a staff-bind with a goon's forearm."
+    },
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_6>>> GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, many of them. Nova fights waves of goons across the roof of a speeding sky-rail train above a cloud sea. Continuous choreography: fast strikes and parries, staff spins leaving magenta light trails, goons bursting into ink splashes that turn into glowing sparks, cartwheels across the gaps between cars. Camera tracks laterally at train speed with whip pans between attackers, low angle, hard sun, clouds streaking by. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=highway-standoff Segment 2 of 3 (30s), a self-contained shot of the same scene that opens just after this moment: a staff-bind with a goon's forearm. In this shot: Continuous exchange, more goons. The shot ends on this beat: Nova cartwheels over the gap between two cars (apex)."
+    },
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_6>>> GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, many of them. Nova fights waves of goons across the roof of a speeding sky-rail train above a cloud sea. Continuous choreography: fast strikes and parries, staff spins leaving magenta light trails, goons bursting into ink splashes that turn into glowing sparks, cartwheels across the gaps between cars. Camera tracks laterally at train speed with whip pans between attackers, low angle, hard sun, clouds streaking by. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=highway-standoff Segment 3 of 3 (30s), a self-contained shot of the same scene that opens just after this moment: Nova cartwheels over the gap between two cars (apex). In this shot: She fights backward toward the front, clearing the roof."
+    }
+   ]
+  },
+  {
+   "label": "S6 Under the train",
+   "sec": 60,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "Coupling's two cars ahead. Also on fire.",
+     "at": 4
+    },
+    {
+     "speaker": "Bolt",
+     "text": "Fire's fine. Fire's... hot.",
+     "at": 10
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae riding on Brick's back. Bolt and Brick crawl beneath a speeding train along the steel undercarriage beams, sparks spraying from the wheels on the rail, wind tearing at the scarf, toward a glowing metal coupling surrounded by flickering crimson ink-fire. Low tracking shot under the train, 24mm, orange spark light and crimson fire glow, dark steel. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Bolt and Brick crawl beneath the carriages along the undercarriage beams, Pip riding on Brick's back, sparks spraying from the wheels. The shot ends on this beat: Brick swings from one beam to the next.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae riding on Brick's back. Bolt and Brick crawl beneath a speeding train along the steel undercarriage beams, sparks spraying from the wheels on the rail, wind tearing at the scarf, toward a glowing metal coupling surrounded by flickering crimson ink-fire. Low tracking shot under the train, 24mm, orange spark light and crimson fire glow, dark steel. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "loud metal screech of train wheels on a rail, sparks spraying, rushing wind",
+     "durationSec": 20.0,
+     "gainDb": -12
+    },
+    {
+     "at": 20.0,
+     "prompt": "loud metal screech of train wheels on a rail, sparks spraying, rushing wind",
+     "durationSec": 20.0,
+     "gainDb": -12
+    },
+    {
+     "at": 40.0,
+     "prompt": "loud metal screech of train wheels on a rail, sparks spraying, rushing wind",
+     "durationSec": 20.0,
+     "gainDb": -12
+    },
+    {
+     "at": 30.0,
+     "prompt": "crackling roaring fire",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 45.0,
+     "prompt": "crackling roaring fire",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae riding on Brick's back. Bolt and Brick crawl beneath a speeding train along the steel undercarriage beams, sparks spraying from the wheels on the rail, wind tearing at the scarf, toward a glowing metal coupling surrounded by flickering crimson ink-fire. Low tracking shot under the train, 24mm, orange spark light and crimson fire glow, dark steel. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Bolt and Brick crawl beneath the carriages along the undercarriage beams, Pip riding on Brick's back, sparks spraying from the wheels. The shot ends on this beat: Brick swings from one beam to the next."
+    },
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae riding on Brick's back. Bolt and Brick crawl beneath a speeding train along the steel undercarriage beams, sparks spraying from the wheels on the rail, wind tearing at the scarf, toward a glowing metal coupling surrounded by flickering crimson ink-fire. Low tracking shot under the train, 24mm, orange spark light and crimson fire glow, dark steel. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 2 of 2 (30s), continuing directly from the previous moment (Brick swings from one beam to the next): They crawl toward a glowing coupling with crimson ink-fire licking around it."
+    }
+   ]
+  },
+  {
+   "label": "S7 Tunnel!",
+   "sec": 15,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "TUNNEL!",
+     "at": 3
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. Point of view forward from the roof of a speeding train: a dark mountain tunnel mouth rushes toward camera, Nova flattens herself onto the roof at the last instant, and the frame plunges into darkness. Forward-facing shot, 24mm, bright daylight to black. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. Point of view forward from the roof of a speeding train: a dark mountain tunnel mouth rushes toward camera, Nova flattens herself onto the roof at the last instant, and the frame plunges into darkness. Forward-facing shot, 24mm, bright daylight to black. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 2.7,
+     "prompt": "short walkie-talkie radio crackle and click",
+     "durationSec": 0.5,
+     "gainDb": -8
+    },
+    {
+     "at": 0,
+     "prompt": "rising roaring wind on top of a speeding train",
+     "durationSec": 12,
+     "gainDb": -8
+    },
+    {
+     "at": 12.5,
+     "prompt": "a deep whoomp of a train entering a tunnel, pressure change",
+     "durationSec": 2,
+     "gainDb": -2
+    }
+   ]
+  },
+  {
+   "label": "S8 Strobe fight",
+   "sec": 60,
+   "lines": [],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_6>>> GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, several of them. Inside a dark rushing train tunnel, Nova fights goons on the train roof lit only by strobing tunnel lights flashing past; staff arcs paint magenta light trails in the darkness, ducks, sweeps and parries, ink splashes turning to sparks. Continuous low-angle tracking shot, near-black between strobes, magenta rim light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=after-dark Segment 1 of 2 (30s): Nova fights goons on the roof inside the dark tunnel, lit in strobing flashes. The shot ends on this beat: she ducks under a swing in a limbo-bend (apex).",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "after-dark"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png",
+    "refs/inklight/ref-goon.png"
+   ],
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "pulsing dark synth beat, tense action, instrumental",
+     "durationSec": 20.0,
+     "gainDb": -14
+    },
+    {
+     "at": 20.0,
+     "prompt": "pulsing dark synth beat, tense action, instrumental",
+     "durationSec": 20.0,
+     "gainDb": -14
+    },
+    {
+     "at": 40.0,
+     "prompt": "pulsing dark synth beat, tense action, instrumental",
+     "durationSec": 20.0,
+     "gainDb": -14
+    },
+    {
+     "at": 0.0,
+     "prompt": "electrical strobe light hum in a rushing tunnel, reverberant, with rhythmic glassy impact tinks",
+     "durationSec": 20.0,
+     "gainDb": -12
+    },
+    {
+     "at": 20.0,
+     "prompt": "electrical strobe light hum in a rushing tunnel, reverberant, with rhythmic glassy impact tinks",
+     "durationSec": 20.0,
+     "gainDb": -12
+    },
+    {
+     "at": 40.0,
+     "prompt": "electrical strobe light hum in a rushing tunnel, reverberant, with rhythmic glassy impact tinks",
+     "durationSec": 20.0,
+     "gainDb": -12
+    }
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_6>>> GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, several of them. Inside a dark rushing train tunnel, Nova fights goons on the train roof lit only by strobing tunnel lights flashing past; staff arcs paint magenta light trails in the darkness, ducks, sweeps and parries, ink splashes turning to sparks. Continuous low-angle tracking shot, near-black between strobes, magenta rim light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=after-dark Segment 1 of 2 (30s): Nova fights goons on the roof inside the dark tunnel, lit in strobing flashes. The shot ends on this beat: she ducks under a swing in a limbo-bend (apex)."
+    },
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_6>>> GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, several of them. Inside a dark rushing train tunnel, Nova fights goons on the train roof lit only by strobing tunnel lights flashing past; staff arcs paint magenta light trails in the darkness, ducks, sweeps and parries, ink splashes turning to sparks. Continuous low-angle tracking shot, near-black between strobes, magenta rim light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=after-dark Segment 2 of 2 (30s), a self-contained shot of the same scene that opens just after this moment: she ducks under a swing in a limbo-bend (apex). In this shot: Continuous strobe fight, staff trails painting magenta arcs in the dark."
+    }
+   ]
+  },
+  {
+   "label": "S9 Ring of light",
+   "sec": 10,
+   "lines": [],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. In extreme slow motion, Nova spins on the train roof and her staff sweeps a wide ring of magenta light that blasts the last goons off the roof into glowing sparks, as the train bursts out of a tunnel into blazing white-gold sunlight behind her. Slow-motion 360-degree orbit, speed ramp, 120fps feel. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=single-shot camera_model=modern camera_lens=anamorphic",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a single long held koto note, suspenseful",
+     "durationSec": 7,
+     "gainDb": -10
+    },
+    {
+     "at": 7,
+     "prompt": "a huge orchestral hit, triumphant",
+     "durationSec": 3,
+     "gainDb": -4
+    }
+   ]
+  },
+  {
+   "label": "S10 Bye, cars",
+   "sec": 45,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "Bye, cars.",
+     "at": 38
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. Between two train cars above a cloud sea, Brick pulls a glowing coupling pin free while Bolt kicks the coupling apart, and the burning rear cars slowly separate and fall away, trailing smoke into the clouds below. Wide shot, 24mm, bright sun, drifting smoke. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Brick pulls the glowing coupling pin while Bolt kicks the coupling apart. The shot ends on this beat: the pin comes free.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. Between two train cars above a cloud sea, Brick pulls a glowing coupling pin free while Bolt kicks the coupling apart, and the burning rear cars slowly separate and fall away, trailing smoke into the clouds below. Wide shot, 24mm, bright sun, drifting smoke. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "endFrame": {
+    "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. Between two train cars above a cloud sea, a widening gap opens as the burning rear cars separate and fall away, trailing smoke into the clouds below; Brick holds the glowing coupling pin with Bolt beside him. Wide shot, 24mm, bright sun, drifting smoke. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a long straining metal groan",
+     "durationSec": 15,
+     "gainDb": -10
+    },
+    {
+     "at": 15,
+     "prompt": "a long straining metal groan",
+     "durationSec": 14,
+     "gainDb": -10
+    },
+    {
+     "at": 29.5,
+     "prompt": "a heavy metal coupling pin clanking free",
+     "durationSec": 1,
+     "gainDb": -3
+    },
+    {
+     "at": 30,
+     "prompt": "a fire roar slowly fading into the distance",
+     "durationSec": 15,
+     "gainDb": -12
+    }
+   ],
+   "highlightWords": [
+    "train"
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. Between two train cars above a cloud sea, Brick pulls a glowing coupling pin free while Bolt kicks the coupling apart, and the burning rear cars slowly separate and fall away, trailing smoke into the clouds below. Wide shot, 24mm, bright sun, drifting smoke. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Brick pulls the glowing coupling pin while Bolt kicks the coupling apart. The shot ends on this beat: the pin comes free."
+    },
+    {
+     "sec": 15,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. Between two train cars above a cloud sea, Brick pulls a glowing coupling pin free while Bolt kicks the coupling apart, and the burning rear cars slowly separate and fall away, trailing smoke into the clouds below. Wide shot, 24mm, bright sun, drifting smoke. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 2 of 2 (15s), continuing directly from the previous moment (the pin comes free): The burning rear cars slowly separate and fall away into the cloud sea."
+    }
+   ]
+  },
+  {
+   "label": "S11 Keep it. For now.",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "Smudge",
+     "text": "Keep it. For now.",
+     "at": 8
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. SMUDGE: a tall black ink stick figure whose body constantly drips and smears ink, a round head with a jagged three-point crown spike, crimson (#FF2E3A) glowing eyes and rim light, leaving smeared ink footprints. Smudge stands on a detached train car falling away into a cloud sea, bows theatrically, shakes with laughter, and melts into a splash of glossy ink as the car sinks into the clouds. Dutch tilt, 50mm, crimson key light, bright clouds below. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. SMUDGE: a tall black ink stick figure whose body constantly drips and smears ink, a round head with a jagged three-point crown spike, crimson (#FF2E3A) glowing eyes and rim light, leaving smeared ink footprints. Smudge stands on a detached train car falling away into a cloud sea, bows theatrically, shakes with laughter, and melts into a splash of glossy ink as the car sinks into the clouds. Dutch tilt, 50mm, crimson key light, bright clouds below. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "eerie detuned music box melody, slow, theatrical, instrumental",
+     "durationSec": 20,
+     "gainDb": -12
+    },
+    {
+     "at": 14,
+     "prompt": "a thick glossy ink splash",
+     "durationSec": 1.5,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 1,
+     "durationSec": 2,
+     "text": "SMUDGE",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#FF2E3A"
+    }
+   ]
+  },
+  {
+   "label": "S12 The shard isn't on this train",
+   "sec": 45,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "So... we won?",
+     "at": 4
+    },
+    {
+     "speaker": "Nova",
+     "text": "We kept the train.",
+     "at": 8
+    },
+    {
+     "speaker": "Pip",
+     "text": "Guys. The shard isn't on this train.",
+     "at": 20
+    },
+    {
+     "speaker": "Brick",
+     "text": "...Oh no.",
+     "at": 28
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Bolt, Nova and Brick sit on the roof of a gently gliding sky-rail train at sunset, legs dangling over the edge, a golden cloud sea stretching to the horizon, and they slowly turn their heads toward each other. Slow orbit, 35mm, volumetric golden-hour sunlight, soft wind. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Bolt, Nova and Brick sit on the train roof at sunset, legs dangling, the cloud sea glowing gold. The shot ends on this beat: Brick turns his head.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Bolt, Nova and Brick sit on the roof of a gently gliding sky-rail train at sunset, legs dangling over the edge, a golden cloud sea stretching to the horizon, and they slowly turn their heads toward each other. Slow orbit, 35mm, volumetric golden-hour sunlight, soft wind. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "soft wind and a slow gentle rail clack",
+     "durationSec": 15.0,
+     "gainDb": -16
+    },
+    {
+     "at": 15.0,
+     "prompt": "soft wind and a slow gentle rail clack",
+     "durationSec": 15.0,
+     "gainDb": -16
+    },
+    {
+     "at": 30.0,
+     "prompt": "soft wind and a slow gentle rail clack",
+     "durationSec": 15.0,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "a calm koto-synth melody gently resolving, sunset, instrumental",
+     "durationSec": 20,
+     "gainDb": -16
+    },
+    {
+     "at": 28,
+     "prompt": "a single low piano note, ominous",
+     "durationSec": 3,
+     "gainDb": -8
+    }
+   ],
+   "highlightWords": [
+    "shard",
+    "train"
+   ],
+   "transitionOut": "dipToBlack",
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Bolt, Nova and Brick sit on the roof of a gently gliding sky-rail train at sunset, legs dangling over the edge, a golden cloud sea stretching to the horizon, and they slowly turn their heads toward each other. Slow orbit, 35mm, volumetric golden-hour sunlight, soft wind. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Bolt, Nova and Brick sit on the train roof at sunset, legs dangling, the cloud sea glowing gold. The shot ends on this beat: Brick turns his head."
+    },
+    {
+     "sec": 15,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Bolt, Nova and Brick sit on the roof of a gently gliding sky-rail train at sunset, legs dangling over the edge, a golden cloud sea stretching to the horizon, and they slowly turn their heads toward each other. Slow orbit, 35mm, volumetric golden-hour sunlight, soft wind. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 2 of 2 (15s), continuing directly from the previous moment (Brick turns his head): All three slowly turn to look at each other."
+    }
+   ]
+  },
+  {
+   "label": "OUTRO 6-18s end screen (shared plate, reused)",
+   "sec": 12,
+   "lines": [],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 13
+   }
+  }
+ ],
+ "watermark": false,
+ "captions": false,
+ "qc": "L03: Drift — Nova's staff stays magenta and one-piece (no double staff); the topknot survives the wind; goons stay grey (no magenta bleed); Pip stays small on Brick's back in S6. Limbs — every staff-bind and cartwheel (S5); strobe frames (S8) hide limbs, so step through each strobe frame. Faces — S12 sunset close; S11 Smudge laugh (no mouth; laugh = shoulders and eye arcs). Style — cloud sea stays 3D volumetric; the tunnel must not go 100% black >12 frames. Seams — screen direction: the train always travels L→R in S2/S5/S10; Nova keeps the staff in her right hand across the S5/S8 seams; train car count must not change across seams. Text — train livery, station signs and airship hull unmarked. Global gate (brief §0.3): accent hue shift >6 frames / missing accessory / size swap = re-roll; 3rd limb or fused limb ≥3 frames = re-roll; any mouth, nose, teeth, brows, skin or human face even 1 frame = reject; flat/white/empty bg, 2D look, lost rim light or blood = re-roll; stitch seam at 30s: position jump >5% width, lighting flip, prop changing hands, screen-direction reversal = regenerate the later segment; any legible or pseudo-glyph text in a plate = mask or re-roll (all real text is Remotion labels). Check sourceSpec width/height/duration every clip."
+}

@@ -1,0 +1,689 @@
+{
+ "format": "short",
+ "resolution": "720p",
+ "title": "What If Sea Level Dropped 120 Meters?",
+ "altTitles": [
+  "You Could Once Walk From England to France",
+  "Earth's Lost Lands: The Ice Age Map, Explained"
+ ],
+ "description": "Twenty thousand years ago, sea level sat about 120–130 m lower: you could walk from England to France across Doggerland, Siberia joined Alaska, and Australia joined New Guinea. Then the ice melted. All real science. Sources: Lambeck et al. 2014 (PNAS) and more in the pinned comment. #whatif #iceage #doggerland",
+ "tags": [
+  "what if",
+  "sea level",
+  "ice age",
+  "doggerland",
+  "beringia",
+  "sundaland",
+  "rewind earth",
+  "science",
+  "Earthlines"
+ ],
+ "topic": "What if sea level dropped 120 m (REWIND EARTH mini-sim, 150 s length test)",
+ "cast": {
+  "N": {
+   "color": "#FFB547"
+  }
+ },
+ "sections": [
+  {
+   "label": "B1 Hook",
+   "sec": 6,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Twenty thousand years ago, you could walk from England to France.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Vertical photoreal wide shot of a lone small figure in fur clothing seen from behind, walking away across a vast windswept tundra valley of low grass and gravel, a shallow braided river nearby, pale chalk cliffs on the far horizon, low cold sun at frame-left, long shadows to the right, no face visible. Camera: continuous slow follow at a distance. STAGE: Earth about 20,000 years ago; sea level about 120–130 m lower; broad exposed continental shelves; ice sheets over Canada, Scandinavia and northern Britain; cold windswept tundra and steppe; sun low at frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "35mm-film",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "the-grey-channel"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "cold wind across open tundra, footsteps crunching on gravel",
+     "durationSec": 6.0,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 6.0,
+     "text": "T−20,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 3.0,
+     "text": "WALK TO FRANCE? · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 3.0,
+     "durationSec": 3.0,
+     "text": "−120 m · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "walk"
+   ]
+  },
+  {
+   "label": "B2a NW Europe K0 today → K1 −60 m",
+   "sec": 17,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Not over a bridge — over dry land. During the last ice age, so much of Earth's water was locked in ice sheets that global sea level sat about a hundred and twenty to a hundred and thirty meters lower than today. Kilometers-thick ice covered Canada and Scandinavia. Where the English Channel is now, a river ran across open tundra. And the North Sea was largely land — a region we now call Doggerland.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view of northwestern Europe, sunlight from frame-left, the sea smoothly and steadily retreating from the coasts, broad pale land emerging between Britain and the continent, white ice spreading over Scandinavia, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: vertical 9:16 orthographic orbital view of northwestern Europe, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level: today's coastlines. STAGE: present-day coastlines. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low cold ice drone with water slowly draining away",
+     "durationSec": 17.0,
+     "gainDb": -12
+    },
+    {
+     "at": 15.21,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 17.0,
+     "text": "T−20,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 17.0,
+     "text": "SEA LEVEL 0 → −125 m · src: Lambeck et al. 2014 PNAS · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 15.21,
+     "durationSec": 1.79,
+     "text": "ice sheet",
+     "position": "center",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "hundred",
+    "twenty",
+    "Doggerland."
+   ],
+   "endFrame": {
+    "fromSection": 2
+   }
+  },
+  {
+   "label": "B2b NW Europe K1 −60 m → K2 −125 m + ice",
+   "sec": 17,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view of northwestern Europe, sunlight from frame-left, the sea smoothly and steadily retreating from the coasts, broad pale land emerging between Britain and the continent, white ice spreading over Scandinavia, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: vertical 9:16 orthographic orbital view of northwestern Europe, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level −60 m. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low cold ice drone with water slowly draining away",
+     "durationSec": 17.0,
+     "gainDb": -12
+    },
+    {
+     "at": 2.47,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 9.22,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 17.0,
+     "text": "T−20,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 17.0,
+     "text": "SEA LEVEL 0 → −125 m · src: Lambeck et al. 2014 PNAS · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 1.21,
+     "text": "ice sheet",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 2.47,
+     "durationSec": 3.0,
+     "text": "English Channel River",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 9.22,
+     "durationSec": 2.99,
+     "text": "Doggerland",
+     "position": "center",
+     "style": "label"
+    }
+   ],
+   "endFrame": {
+    "fromSection": 10
+   }
+  },
+  {
+   "label": "B3a Beringia K0 → K1 −60 m",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "And it wasn't just Europe. Between Siberia and Alaska, a land bridge called Beringia stretched hundreds of kilometers wide — the route by which people first reached the Americas. Florida was about twice as wide as it is today. Japan's main islands were joined to one another. In Southeast Asia, Sumatra, Java and Borneo were joined to the mainland in a single landmass: Sundaland. Australia, New Guinea and Tasmania formed one continent: Sahul. Sri Lanka was joined to India. The Persian Gulf was a river valley. From orbit, the planet looked different — bigger continents, wider coasts, white ice across the north. And most of the coastlines where ice-age people lived are now underwater. That's why so much of their story is still missing: it's out there, under the sea.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view of Beringia between Siberia and Alaska, sunlight from frame-left, the sea smoothly and steadily retreating from the coasts, a wide land bridge emerging between Siberia and Alaska, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: vertical 9:16 orthographic orbital view of Beringia, between Siberia and Alaska, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level: today's coastlines. STAGE: present-day coastlines. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "quick airy whoosh, cinematic transition",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 4.56,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 10.0,
+     "text": "T−20,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 10.0,
+     "text": "LAND BRIDGES: 5+ · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 4.56,
+     "durationSec": 3.0,
+     "text": "Beringia",
+     "position": "center",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Beringia",
+    "Sundaland.",
+    "Sahul.",
+    "underwater."
+   ],
+   "endFrame": {
+    "fromSection": 4
+   }
+  },
+  {
+   "label": "B3b Beringia K1 → K2 −125 m",
+   "sec": 10,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view of Beringia between Siberia and Alaska, sunlight from frame-left, the sea smoothly and steadily retreating from the coasts, a wide land bridge emerging between Siberia and Alaska, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: vertical 9:16 orthographic orbital view of Beringia, between Siberia and Alaska, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level −60 m. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 10.0,
+     "text": "T−20,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 10.0,
+     "text": "LAND BRIDGES: 5+ · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "endFrame": {
+    "prompt": "Designed map still: vertical 9:16 orthographic orbital view of Beringia, between Siberia and Alaska, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level −125 m. STAGE: Earth about 20,000 years ago; sea level about 120–130 m lower; broad exposed continental shelves; ice sheets over Canada, Scandinavia and northern Britain; cold windswept tundra and steppe; sun low at frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "B3c Sundaland/Sahul K0 → K1 −60 m",
+   "sec": 10,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view of Southeast Asia and Australia, sunlight from frame-left, the sea smoothly and steadily retreating from the coasts, the islands of Southeast Asia joining the mainland, Australia joining New Guinea, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: vertical 9:16 orthographic orbital view of Sundaland and Sahul, Southeast Asia to Australia, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level: today's coastlines. STAGE: present-day coastlines. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "quick airy whoosh, cinematic transition",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 2.67,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 5.86,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 6.22,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 8.35,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 10.0,
+     "text": "T−20,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 10.0,
+     "text": "LAND BRIDGES: 5+ · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 2.67,
+     "durationSec": 2.99,
+     "text": "Sundaland",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 5.86,
+     "durationSec": 3.0,
+     "text": "Sahul",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 6.22,
+     "durationSec": 2.99,
+     "text": "Sri Lanka–India",
+     "position": "center",
+     "style": "label"
+    },
+    {
+     "at": 8.35,
+     "durationSec": 1.65,
+     "text": "Persian Gulf valley",
+     "position": "center",
+     "style": "label"
+    }
+   ],
+   "endFrame": {
+    "fromSection": 6
+   }
+  },
+  {
+   "label": "B3d Sundaland/Sahul K1 → K2 −125 m",
+   "sec": 10,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view of Southeast Asia and Australia, sunlight from frame-left, the sea smoothly and steadily retreating from the coasts, the islands of Southeast Asia joining the mainland, Australia joining New Guinea, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: vertical 9:16 orthographic orbital view of Sundaland and Sahul, Southeast Asia to Australia, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level −60 m. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 10.0,
+     "text": "T−20,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 10.0,
+     "text": "LAND BRIDGES: 5+ · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 1.34,
+     "text": "Persian Gulf valley",
+     "position": "center",
+     "style": "label"
+    }
+   ],
+   "endFrame": {
+    "prompt": "Designed map still: vertical 9:16 orthographic orbital view of Sundaland and Sahul, Southeast Asia to Australia, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level −125 m. STAGE: Earth about 20,000 years ago; sea level about 120–130 m lower; broad exposed continental shelves; ice sheets over Canada, Scandinavia and northern Britain; cold windswept tundra and steppe; sun low at frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "B3e–f Ice-age Earth from orbit (one 20 s Cinema gen)",
+   "sec": 20,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal orbital view of ice-age Earth: large white ice sheets over North America and northern Europe, broad pale continental shelves exposed, darker blue narrower oceans, sunlight from frame-left, terminator on the right, rotating slowly west to east. Camera: continuous slow push. STAGE: Earth about 20,000 years ago; sea level about 120–130 m lower; broad exposed continental shelves; ice sheets over Canada, Scandinavia and northern Britain; cold windswept tundra and steppe; sun low at frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "the-grey-channel"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "quick airy whoosh, cinematic transition",
+     "durationSec": 1,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "T−20,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "LAND BRIDGES: 5+ · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "B4a Coastal plain drowning",
+   "sec": 15,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Then the ice melted. Around fourteen and a half thousand years ago, sea level jumped about twenty meters in only a few centuries — a burst scientists call Meltwater Pulse 1A. That's about four centimeters a year, roughly ten times faster than the sea is rising today. Doggerland shrank into islands, and people lived on those shrinking shores. Around eight thousand years ago, an undersea landslide off Norway — the Storegga Slide — sent a tsunami across what remained. By roughly seven thousand years ago, the sea had nearly reached today's level. Britain was an island.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Vertical locked-off photoreal time-lapse of a low green coastal plain at dusk, the grey sea steadily advancing over the grass and pooling in hollows, reeds drowning, a small distant campfire smoke trail on a rise, no faces. Single-shot. STAGE: Earth 14,000–7,000 years ago; sea rising across low green plains; shrinking islands in a grey North Sea; ice sheets retreating. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "35mm-film",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "the-grey-channel"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "water rising and spreading over grass, steady",
+     "durationSec": 15.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 15.0,
+     "text": "T−14,500 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 15.0,
+     "text": "MWP-1A: ~20 m in <500 yrs · src: Lambeck 2014 · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "twenty",
+    "meters",
+    "Storegga",
+    "island."
+   ]
+  },
+  {
+   "label": "B4b Island and distant swell",
+   "sec": 15,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal aerial at dusk of a small low grassy island in a vast grey sea, a large smooth swell rolling toward it from the far horizon, sun low at frame-left, no people visible. Camera: continuous slow descent. STAGE: Earth 14,000–7,000 years ago; sea rising across low green plains; shrinking islands in a grey North Sea; ice sheets retreating. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "35mm-film",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "industrial-fog"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "deep distant ocean swell rumble",
+     "durationSec": 15.0,
+     "gainDb": -10
+    },
+    {
+     "at": 5.89,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 13.35,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 5.89,
+     "text": "T−14,500 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 5.89,
+     "text": "MWP-1A: ~20 m in <500 yrs · src: Lambeck 2014 · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 5.89,
+     "durationSec": 7.45,
+     "text": "T−8,150 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 5.89,
+     "durationSec": 7.45,
+     "text": "STOREGGA TSUNAMI · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 13.35,
+     "durationSec": 1.65,
+     "text": "T−7,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 13.35,
+     "durationSec": 1.65,
+     "text": "SEA ≈ TODAY · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "B4c NW Europe K2 −125 m → K0 today (B2 reversed)",
+   "sec": 14,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "So look at your coastline today — and ask: where could you have walked, twenty thousand years ago?",
+     "at": 13.4
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view of northwestern Europe, sunlight from frame-left, the sea smoothly and steadily advancing over the coasts, the broad pale land between Britain and the continent flooding, the white ice over Scandinavia retreating, continuous gradual change, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: vertical 9:16 orthographic orbital view of northwestern Europe, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level −125 m, with the ice sheet over Scandinavia and Scotland. STAGE: Earth about 20,000 years ago; sea level about 120–130 m lower; broad exposed continental shelves; ice sheets over Canada, Scandinavia and northern Britain; cold windswept tundra and steppe; sun low at frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "calm gentle surf on a shore",
+     "durationSec": 14.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 14.0,
+     "text": "T−7,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 14.0,
+     "text": "SEA ≈ TODAY · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "twenty",
+    "meters",
+    "Storegga",
+    "island."
+   ],
+   "endFrame": {
+    "fromSection": 11
+   }
+  },
+  {
+   "label": "B5 Loop: hold on today's map (B4c lands on this keyframe)",
+   "sec": 6,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view of northwestern Europe with present-day coastlines, sunlight from frame-left, held frame with only a slow push-in, no change to the coastlines. STAGE: present-day coastlines. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: vertical 9:16 orthographic orbital view of northwestern Europe, lit from frame-left, photoreal land and water, no labels, no borders, locked framing. Sea level: today's coastlines. STAGE: present-day coastlines. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 5.7,
+     "text": "TODAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.5,
+     "durationSec": 5.2,
+     "text": "YOU ARE HERE?",
+     "position": "center",
+     "style": "title",
+     "color": "#FFB547"
+    }
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "cinematic ambient score, 2.5 minutes: a cold low ice drone and sparse steel-blue pads under calm narration; wide and curious through the lost-lands tour; gently building strings from about 1:40 as the ice melts and the sea rises; calm and resolved by 2:24, easing back to the opening texture so it loops at 2:30, instrumental, no vocals",
+  "gainDb": -15,
+  "underVoDb": -9
+ },
+ "sting": {
+  "at": 6.1,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "The opposite timeline: What If All the Ice Melted?"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "S04: map keyframes are SOUL stills — sign every coastline off against ETOPO before any clip is queued. B2 and B3 maps only ever EXPOSE land; B4c only ever FLOODS (monotonic per beat). B1 and B4a figures show no face. The B4b wave is small in frame, no destruction. Ice sheets appear in B2's K2 and B3e–f but not in B4c's end. B4c→B5 seam exact (B4c ends on B5's keyframe). Brief §3.4 on every clip. Altered-content label ON. Highest risk: B3a–d maps (coastline warping), B1 (ancient-human figure plausibility)."
+}

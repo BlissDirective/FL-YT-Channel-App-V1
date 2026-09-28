@@ -1,0 +1,855 @@
+{
+ "version": 1,
+ "format": "long",
+ "resolution": "720p",
+ "title": "The Snail Who Lights the Lamps | A Tiny Town Bedtime Story",
+ "altTitles": [
+  "Lumen's Evening Round (Cozy Narrated Miniature Story)",
+  "Every Lamp in the Tiny Town, Lit by One Snail"
+ ],
+ "description": "Lumen the snail lamplighter makes his evening round of Thimble Town, from his matchbox home to the top of the thimble tower. A softly narrated miniature bedtime story.\n\n0:00 Sunset\n0:31 The matchbox\n1:11 The first lamp\n1:51 Noodle Row\n2:41 The spool bridge\n3:26 The teapot\n4:41 The harbour\n5:31 The tower\n6:31 Every lamp\n\nStories and worlds created with AI tools.",
+ "tags": [
+  "miniature",
+  "diorama",
+  "bedtime story",
+  "cozy",
+  "snail",
+  "lamplighter",
+  "narrated",
+  "Thimble Town"
+ ],
+ "topic": "LF3 Night Lights: narrated journey tour (narration A/B treatment arm)",
+ "cast": {
+  "N": {
+   "color": "#F2B35E"
+  }
+ },
+ "sections": [
+  {
+   "sec": 6,
+   "label": "§0 Cold open: tink",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked extreme macro, constant speed, no cuts. The lantern touches the lamp glass; the lamp blooms from a pinpoint to full amber glow, small toy-like movements.\nAmbient motion: a moth drifting out of focus. Lighting stays blue hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen's brass lantern touching a glass lamp head, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nExtreme close-up: Lumen's brass lantern on its shell hook a hair's breadth from a dark pea-sized glass lamp head, his navy cap edge in soft focus.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: starry clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": false,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen's brass lantern touching a glass lamp head, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nThe lamp glass fully bloomed amber, the brass lantern glinting.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: starry clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 6,
+     "gainDb": -18
+    },
+    {
+     "at": 2.5,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    }
+   ]
+  },
+  {
+   "sec": 5,
+   "label": "Ident \"Lamps On\" (brand pack)",
+   "lines": [],
+   "reuse": {
+    "videoId": "TBD-LF1",
+    "sectionIdx": 1
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 5,
+     "gainDb": -18
+    },
+    {
+     "at": 0.5,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 1.0,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 4,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 4.0,
+     "durationSec": 1.0,
+     "text": "Thimble Town",
+     "position": "top",
+     "style": "title",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "§1 Sunset over the rooftops",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Every evening, just as the sun slips behind the teacups, Thimble Town waits for one small light.",
+     "at": 4
+    }
+   ],
+   "videoPrompt": "Establishing shot of Thimble Town at sunset, a hand-built miniature town of teacup houses, tin-can roofs, a teapot bakery on a hill and a sewing-thimble water tower, tilt-shift macro look, autumn golden hour, lamps not yet lit, slow crane up over rooftops, falling leaves, gentle toy-like motion of tiny figures in the distance, no people, no text.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the rooftops of Thimble Town, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nNo residents in frame.\nWide rooftop view of Thimble Town at sunset, teacup roofs and tin-can chimneys, the thimble tower on the skyline, every lamp still dark.\nLighting: golden hour low sun from left turning to blue hour, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "single-shot",
+    "camera_model": "35mm-film",
+    "camera_lens": "warm-vintage",
+    "color_palette": "oil-ochre"
+   },
+   "refs": [
+    "refs/thimble-town/town_ref.png",
+    "refs/thimble-town/thimble_tower_ref.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "sparse evening birdsong far away with a soft breeze, calm autumn dusk, no voices, no music",
+     "durationSec": 20,
+     "gainDb": -18
+    },
+    {
+     "at": 13,
+     "prompt": "a far-off tiny kettle softly whistling, very distant and quiet",
+     "durationSec": 3,
+     "gainDb": -24
+    },
+    {
+     "at": 4,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 16,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "§2 Out of the matchbox",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Lumen lives in a matchbox by the garden wall.",
+     "at": 6
+    },
+    {
+     "speaker": "N",
+     "text": "He is never in a hurry. He checks his lantern, straightens his cap, and sets off — at exactly the speed of a snail.",
+     "at": 18
+    }
+   ],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. The drawer slides open and Lumen glides out, lantern swinging, small toy-like movements.\nAmbient motion: leaves skittering on the path. Lighting stays late golden hour. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. The drawer slides open and Lumen glides out, lantern swinging, small toy-like movements.\nAmbient motion: leaves skittering on the path. Lighting stays late golden hour. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right continues, constant speed, no cuts. Lumen tilts his head so the cap settles, then sets off along the path, small toy-like movements.\nAmbient motion: leaves skittering on the path. Lighting stays late golden hour. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the matchbox drawer sliding open, strong blur top and bottom. Lumen's Matchbox Shed: hand-built\nminiature garden shed beside a wall of stacked books made from a red-brown paper matchbox with cut windows, sunflower-seed-husk shingles, a staple hinge door and a bead lamp by the door (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nThe matchbox shed's drawer half open, Lumen emerging head-first, brass lantern swinging on its hook.\nLighting: golden hour low sun from left turning to blue hour, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": false,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the matchbox drawer sliding open, strong blur top and bottom. Lumen's Matchbox Shed: hand-built\nminiature garden shed beside a wall of stacked books made from a red-brown paper matchbox with cut windows, sunflower-seed-husk shingles, a staple hinge door and a bead lamp by the door (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen on the garden path heading right, cap settled, lantern steady.\nLighting: golden hour low sun from left turning to blue hour, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 1,
+     "prompt": "a small matchbox drawer sliding open, paper sliding on card, soft and close, no music",
+     "durationSec": 2.5,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "a very soft slow glide of a tiny snail along a garden path, quiet, close-mic, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22,
+     "prompt": "a very soft slow glide of a tiny snail along a garden path, quiet, close-mic, no music",
+     "durationSec": 18,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "dry autumn leaves rustling softly on a garden path, gentle, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "dry autumn leaves rustling softly on a garden path, gentle, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 18,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "§3 The first lamp",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "The first lamp is always the one on Lantern Lane.",
+     "at": 8
+    },
+    {
+     "speaker": "N",
+     "text": "A touch. A tink.",
+     "at": 24
+    },
+    {
+     "speaker": "N",
+     "text": "And the lane remembers it is evening.",
+     "at": 31
+    }
+   ],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow tilt-up, constant speed, no cuts. Lumen stretches up the post; the lantern rises toward the glass, small toy-like movements.\nAmbient motion: moths gathering, windows lighting behind. Lighting stays blue hour. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow tilt-up, constant speed, no cuts. Lumen stretches up the post; the lantern rises toward the glass, small toy-like movements.\nAmbient motion: moths gathering, windows lighting behind. Lighting stays blue hour. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow tilt-up continues, constant speed, no cuts. Tink — the lamp blooms; one by one the windows along the lane answer, small toy-like movements.\nAmbient motion: moths gathering, windows lighting behind. Lighting stays blue hour. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen at the base of the first lamp post, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen at the foot of the first dark lamp post on Lantern Lane, stretching upward, lantern raised.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen at the base of the first lamp post, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nThe first lamp lit, windows along the lane warming one by one behind Lumen.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 27,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 27,
+     "prompt": "a single music box celesta note C, soft and warm, gentle decay, instrumental",
+     "durationSec": 2,
+     "gainDb": -10
+    },
+    {
+     "at": 29,
+     "prompt": "tiny window latches clicking open one after another, small and soft",
+     "durationSec": 4,
+     "gainDb": -12
+    },
+    {
+     "at": 29,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 11,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 18,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 50,
+   "label": "§4 Past Miso's stand",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "On Noodle Row, Miso is lifting the shutters.",
+     "at": 4
+    },
+    {
+     "speaker": "N",
+     "text": "The broth has been whispering since noon.",
+     "at": 14
+    },
+    {
+     "speaker": "N",
+     "text": "When the lamp outside her stand comes on, she knows it's time to open.",
+     "at": 30
+    }
+   ],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. Lumen glides past as Miso hooks the shutter; steam rises, small toy-like movements.\nAmbient motion: steam from the pot, lanterns swaying. Lighting stays blue hour with amber stall glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. Lumen glides past as Miso hooks the shutter; steam rises, small toy-like movements.\nAmbient motion: steam from the pot, lanterns swaying. Lighting stays blue hour with amber stall glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right continues, constant speed, no cuts. Lumen lights the stand's lamp; Miso bows her head slightly, small toy-like movements.\nAmbient motion: steam from the pot, lanterns swaying. Lighting stays blue hour with amber stall glow. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen passing the ramen stall, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nLumen gliding along the cobbles in front of the ramen stall while Miso, behind the spool counter, raises the wooden shutter.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen passing the ramen stall, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nThe stand's lamp lit, Miso giving a small bow of her head, Lumen continuing right.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 38,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 0,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 44,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 6,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 45,
+   "label": "§5 The spool bridge",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "The spool bridge is long, for a snail.",
+     "at": 6
+    },
+    {
+     "speaker": "N",
+     "text": "Halfway across, Lumen stops, the way he always does, to watch the water carry the sunset away.",
+     "at": 22
+    }
+   ],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Lumen glides onto the ruler deck; the stream slides by beneath, small toy-like movements.\nAmbient motion: water glinting and flowing, a leaf floating by. Lighting stays late blue hour. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 23,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Lumen glides onto the ruler deck; the stream slides by beneath, small toy-like movements.\nAmbient motion: water glinting and flowing, a leaf floating by. Lighting stays late blue hour. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 22,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right continues, constant speed, no cuts. Lumen stops in the middle and watches a leaf float away on the reflected sunset, small toy-like movements.\nAmbient motion: water glinting and flowing, a leaf floating by. Lighting stays late blue hour. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen on the ruler bridge, strong blur top and bottom. The Spool Bridge: hand-built\nminiature footbridge over a gutter stream made from a wooden ruler deck resting on stacked cotton-thread spools with thread handrails over a glinting gutter stream (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen on the ruler deck at the start of the spool bridge, the stream below reflecting sunset.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen on the ruler bridge, strong blur top and bottom. The Spool Bridge: hand-built\nminiature footbridge over a gutter stream made from a wooden ruler deck resting on stacked cotton-thread spools with thread handrails over a glinting gutter stream (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen paused at the bridge's middle, looking downstream, lantern reflected in the water.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a gentle stream trickling under a small wooden bridge, soft water, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 22,
+     "prompt": "a gentle stream trickling under a small wooden bridge, soft water, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 44,
+     "prompt": "a gentle stream trickling under a small wooden bridge, soft water, no voices, no music",
+     "durationSec": 1,
+     "gainDb": -16
+    },
+    {
+     "at": 3,
+     "prompt": "a tiny wooden bridge plank creaking softly",
+     "durationSec": 1.5,
+     "gainDb": -14
+    },
+    {
+     "at": 20,
+     "prompt": "a tiny wooden bridge plank creaking softly",
+     "durationSec": 1.5,
+     "gainDb": -14
+    },
+    {
+     "at": 0,
+     "prompt": "soft felt piano alone, slow sparse lullaby, calm, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "soft felt piano alone, slow sparse lullaby, calm, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 44,
+     "prompt": "soft felt piano alone, slow sparse lullaby, calm, instrumental, no vocals, no drums",
+     "durationSec": 1,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 45,
+   "label": "§6 A wave from the teapot",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "In the teapot on the hill, Bramble is setting out tomorrow's dough.",
+     "at": 4
+    },
+    {
+     "speaker": "N",
+     "text": "She raises a paw at the window. Lumen raises his lantern back.",
+     "at": 22
+    },
+    {
+     "speaker": "N",
+     "text": "They have done this for years.",
+     "at": 34
+    }
+   ],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. Lumen glides along the path below the lit bakery; Bramble kneads at the window, small toy-like movements.\nAmbient motion: chimney smoke curling from the knob. Lighting stays blue hour with amber windows. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 23,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. Lumen glides along the path below the lit bakery; Bramble kneads at the window, small toy-like movements.\nAmbient motion: chimney smoke curling from the knob. Lighting stays blue hour with amber windows. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 22,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right continues, constant speed, no cuts. Bramble raises a paw; Lumen lifts his lantern in reply, small toy-like movements.\nAmbient motion: chimney smoke curling from the knob. Lighting stays blue hour with amber windows. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Bramble at the spout window, strong blur top and bottom. Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nBramble at the teapot's spout bay window with a bowl of dough, Lumen passing below on the moss path.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Bramble at the spout window, strong blur top and bottom. Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nBramble's paw raised, Lumen's lantern lifted in reply.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 1,
+     "prompt": "soft dough being patted and kneaded, gentle close ASMR",
+     "durationSec": 10,
+     "gainDb": -14
+    },
+    {
+     "at": 20,
+     "prompt": "a single tiny window latch clicking open, soft",
+     "durationSec": 1,
+     "gainDb": -12
+    },
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 44,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 1,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 44,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 1,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 30,
+   "label": "§7 Wren overhead",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Above them, Wren is racing the dark home, with the last of the day's letters.",
+     "at": 8
+    }
+   ],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked low angle, constant speed, no cuts. Wren flies across the sky with a letter and circles once over Lumen before heading home, small toy-like movements.\nAmbient motion: first stars appearing. Lighting stays late blue hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on Wren flying overhead, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nWREN — a small wren postbird courier, felted chestnut-brown feathers with fine cream\nbarring, an upturned tail, a tiny terracotta leather satchel across the chest, a folded\npaper envelope often in her beak. About 3 cm tall. Quick, curious. Travels between\ntiny worlds (our \"visit another world\" device).\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLow angle from beside Lumen's shell looking up: Wren mid-flight across the dusk sky with an envelope in her beak.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on Wren flying overhead, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nWREN — a small wren postbird courier, felted chestnut-brown feathers with fine cream\nbarring, an upturned tail, a tiny terracotta leather satchel across the chest, a folded\npaper envelope often in her beak. About 3 cm tall. Quick, curious. Travels between\ntiny worlds (our \"visit another world\" device).\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nWren small against the sky near the thimble tower, Lumen's lantern glow at the bottom edge.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 4,
+     "prompt": "small soft bird wings fluttering past overhead from left to right, felted feathers, gentle, no voices, no music",
+     "durationSec": 4,
+     "gainDb": -10
+    },
+    {
+     "at": 0,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 8,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 50,
+   "label": "§8 Harbour lamps",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Down at the Teacup Harbour, the lamps are lit in pairs — one for the boat, and one for its reflection.",
+     "at": 6
+    },
+    {
+     "speaker": "N",
+     "text": "The water is very still tonight.",
+     "at": 34
+    }
+   ],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. Lumen lights the first jetty lamp; its reflection blooms in the water, small toy-like movements.\nAmbient motion: boats bobbing, gentle ripples. Lighting stays night with amber lamps. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. Lumen lights the first jetty lamp; its reflection blooms in the water, small toy-like movements.\nAmbient motion: boats bobbing, gentle ripples. Lighting stays night with amber lamps. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right continues, constant speed, no cuts. Lumen lights the second; the boats' tiny lanterns answer, small toy-like movements.\nAmbient motion: boats bobbing, gentle ripples. Lighting stays night with amber lamps. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen on the clothes-peg jetty, strong blur top and bottom. The Teacup Harbour: hand-built\nminiature little harbour made from a saucer-shaped pond edge, a clothes-peg jetty, walnut-shell boats and lamp posts the height of a pencil stub (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen on the jetty beside a dark lamp post, walnut-shell boats bobbing, the water glass-still.\nLighting: night with amber lamps, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: starry clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen on the clothes-peg jetty, strong blur top and bottom. The Teacup Harbour: hand-built\nminiature little harbour made from a saucer-shaped pond edge, a clothes-peg jetty, walnut-shell boats and lamp posts the height of a pencil stub (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nThree jetty lamps lit, each doubled in the still water, boats' tiny lanterns glowing.\nLighting: night with amber lamps, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: starry clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle water lapping against a small wooden jetty, calm and quiet, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 22,
+     "prompt": "gentle water lapping against a small wooden jetty, calm and quiet, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 44,
+     "prompt": "gentle water lapping against a small wooden jetty, calm and quiet, no voices, no music",
+     "durationSec": 6,
+     "gainDb": -16
+    },
+    {
+     "at": 25,
+     "prompt": "a tiny wooden boat creaking softly on still water",
+     "durationSec": 2,
+     "gainDb": -16
+    },
+    {
+     "at": 18,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 42,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 0,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -26
+    },
+    {
+     "at": 22,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -26
+    },
+    {
+     "at": 44,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 6,
+     "gainDb": -26
+    }
+   ]
+  },
+  {
+   "sec": 60,
+   "label": "§9 The tower",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "And last of all, the tower.",
+     "at": 6
+    },
+    {
+     "speaker": "N",
+     "text": "It is a long way up.",
+     "at": 16
+    },
+    {
+     "speaker": "N",
+     "text": "He takes it one ring at a time.",
+     "at": 30
+    },
+    {
+     "speaker": "N",
+     "text": "There.",
+     "at": 52
+    }
+   ],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow crane up, constant speed, no cuts. Lumen climbs the spiral stair around the toothpick leg, one ring at a time, small toy-like movements.\nAmbient motion: stars twinkling, town bokeh shimmering. Lighting stays night. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow crane up, constant speed, no cuts. Lumen climbs the spiral stair around the toothpick leg, one ring at a time, small toy-like movements.\nAmbient motion: stars twinkling, town bokeh shimmering. Lighting stays night. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow crane up continues, constant speed, no cuts. Lumen reaches the thimble's rim and touches his lantern to the tower lamp; it blooms, small toy-like movements.\nAmbient motion: stars twinkling, town bokeh shimmering. Lighting stays night. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen climbing the tower stair, strong blur top and bottom. The Thimble Tower: hand-built\nminiature water tower above the rooftops made from a brass sewing thimble on four toothpick legs with a paper-strip spiral stair wound around one leg and a pea-sized glass lamp on top (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen on the paper-strip spiral stair wound around the tower's toothpick leg, halfway up, the lit town far below in bokeh.\nLighting: night with amber town lights below, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: starry clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen climbing the tower stair, strong blur top and bottom. The Thimble Tower: hand-built\nminiature water tower above the rooftops made from a brass sewing thimble on four toothpick legs with a paper-strip spiral stair wound around one leg and a pea-sized glass lamp on top (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nThe tower lamp lit on top of the thimble, Lumen beside it, the whole town glowing below.\nLighting: night with amber town lights below, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: starry clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a very soft slow glide of a tiny snail climbing on paper, quiet, close-mic, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22,
+     "prompt": "a very soft slow glide of a tiny snail climbing on paper, quiet, close-mic, no music",
+     "durationSec": 18,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "far-off crickets on a still autumn night, very distant and soft, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "far-off crickets on a still autumn night, very distant and soft, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 44,
+     "prompt": "far-off crickets on a still autumn night, very distant and soft, no voices, no music",
+     "durationSec": 16,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "soft felt piano and music box lullaby bed, slow and calm, bedtime story mood, sparse, instrumental, no vocals, no drums",
+     "durationSec": 18,
+     "gainDb": -22
+    },
+    {
+     "at": 46,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -2
+    },
+    {
+     "at": 46.5,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 4,
+     "gainDb": -6
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "§10 Every lamp",
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Every lamp in Thimble Town is lit.",
+     "at": 6
+    },
+    {
+     "speaker": "N",
+     "text": "Somewhere a kettle is on. Somewhere a letter is being read.",
+     "at": 16
+    },
+    {
+     "speaker": "N",
+     "text": "Goodnight, Lumen.",
+     "at": 32
+    }
+   ],
+   "videoPrompt": "Night establishing shot of Thimble Town fully lit, a hand-built miniature town of teacup houses, a teapot bakery and a sewing-thimble water tower with a lamp on top, tilt-shift macro look, starry clear night, every tiny window amber, slow crane up and back, gentle toy-like motion of tiny figures, no people, no text.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the fully lit town, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nNo residents in frame.\nNight wide from above: every lamp and window in Thimble Town lit, the thimble tower lamp brightest.\nLighting: night with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: starry clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "single-shot",
+    "camera_model": "35mm-film",
+    "camera_lens": "halation-vintage",
+    "color_palette": "twilight-fable"
+   },
+   "refs": [
+    "refs/thimble-town/town_night_ref.png",
+    "refs/thimble-town/thimble_tower_ref.png",
+    "refs/thimble-town/lumen_ref.png"
+   ],
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "Night establishing shot of Thimble Town fully lit, a hand-built miniature town of teacup houses, a teapot bakery and a sewing-thimble water tower with a lamp on top, tilt-shift macro look, starry clear night, every tiny window amber, slow crane up and back, gentle toy-like motion of tiny figures, no people, no text."
+    },
+    {
+     "sec": 20,
+     "prompt": "Night establishing shot of Thimble Town fully lit, a hand-built miniature town of teacup houses, a teapot bakery and a sewing-thimble water tower with a lamp on top, tilt-shift macro look, starry clear night, every tiny window amber, slow crane up and back, gentle toy-like motion of tiny figures, no people, no text."
+    }
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "far-off harbour water lapping very softly, distant and calm, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "far-off harbour water lapping very softly, distant and calm, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -22
+    },
+    {
+     "at": 35,
+     "prompt": "gentle music box and celesta lullaby reprise of a slow three-note motif C, E, G, warm and cozy, slowly winding down and fading out, instrumental, no vocals",
+     "durationSec": 12,
+     "gainDb": -8
+    }
+   ]
+  },
+  {
+   "sec": 18,
+   "label": "Outro + end screen (brand pack)",
+   "lines": [],
+   "reuse": {
+    "videoId": "TBD-LF1",
+    "sectionIdx": 13
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -16
+    }
+   ]
+  }
+ ],
+ "sting": {
+  "at": 205.25,
+  "sec": 1.5
+ },
+ "watermark": false,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. LF3: Lumen moves left-to-right in every Seedance section; lit-lamp count never goes down between sections; matchbox shed matches the SD build (seed husks, staple hinge, bead lamp); narration resident names match canon spelling in captions; no narration under the §3 tink or the §9 lamp; ≥1.5s silence between lines; §9 Lumen never floats, flips shell or loses the lantern, tower scale constant; §7 Wren stays felted (no photoreal bird), envelope does not smear; §10 is a 40s Cinema Studio shot chained 20+20 from one prompt (brief gives no split) — check the 20s seam. Re-time library SFX cues (tink, hero taps) to the landed clips before render."
+}

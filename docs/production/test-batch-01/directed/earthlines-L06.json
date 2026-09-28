@@ -1,0 +1,1185 @@
+{
+ "format": "long",
+ "resolution": "480p",
+ "title": "What If Earth Had Rings?",
+ "altTitles": [
+  "What If Earth Had Rings Like Saturn?",
+  "Earth With Rings: What Your Sky Would Look Like"
+ ],
+ "description": "Break a small moon inside Earth's Roche limit and you get a ring: grey rock, not white ice, arching over every horizon, with Earth's own shadow sliding across it every night. And a 2024 study suggests Earth may really have had one, 466 million years ago. A speculative timeline grounded in real physics; model estimates and hypotheses are marked on screen.\n\nChapters: 0:00 The arc · 0:25 How rings form · 1:15 A moon breaks · 2:10 The ring settles · 3:05 From the equator · 3:50 From mid-latitudes · 4:55 The shadow · 5:50 Rockets · 6:35 Earth's real ring?\n\nSources: Tomkins et al. 2024, EPSL (Monash University) · Roche limit (fluid body) · NASA/Caltech IPAC on Saturn's rings · NASA Shoemaker–Levy 9 · Eos 2024",
+ "tags": [
+  "what if",
+  "earth rings",
+  "planetary rings",
+  "roche limit",
+  "ordovician",
+  "saturn",
+  "space",
+  "science",
+  "Earthlines"
+ ],
+ "topic": "What if Earth had rings (alternate Earth, awe arm)",
+ "cast": {
+  "N": {
+   "color": "#FFB547"
+  }
+ },
+ "sections": [
+  {
+   "label": "§1 Hook: the arc over your backyard",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Imagine looking up from your backyard and seeing a bright arc slicing the whole sky in two. Every night. Forever. That's Earth, with rings. It sounds like science fiction — but the physics is real, and the history might be too.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Photoreal low-angle wide shot at dusk over a generic grassy meadow with a wooden fence and rolling hills, a single small figure seen from behind standing in the grass for scale, an immense thin grey-gold ring arch spanning the southern sky from the left horizon to the right horizon, the sky deep blue above and warm afterglow low at right where the sun has set, a dark shadow gap cutting across the left portion of the arch, first stars appearing. Camera: continuous slow tilt-up from the figure to the top of the arch. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "evening crickets in a quiet meadow, calm and seamless",
+     "durationSec": 20.0,
+     "gainDb": -16
+    },
+    {
+     "at": 3.04,
+     "prompt": "glassy shimmer rising, magical and bright, single phrase",
+     "durationSec": 3,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "ALT EARTH",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "arc"
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "IDENT (shared channel asset, Bible §6.1)",
+   "sec": 5,
+   "lines": [],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 2
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low cinematic sub-boom, single deep hit, then silence",
+     "durationSec": 2,
+     "gainDb": -4
+    },
+    {
+     "at": 3.5,
+     "prompt": "crystalline chime, bright clean shimmer, single hit",
+     "durationSec": 1.5,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 3.5,
+     "durationSec": 1.5,
+     "text": "EARTHLINES",
+     "position": "center",
+     "style": "title"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§2a Roche diagram K0 → K1 (crosses the limit)",
+   "sec": 25,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "What if Earth had rings like Saturn? To make a ring, you first need to break something. Every planet has an invisible boundary called the Roche limit. Inside it, the planet's tidal pull on a moon or asteroid is stronger than the gravity holding that object together. For Earth and a rocky body like our Moon, that line sits a little under three Earth radii from the planet's center — roughly eighteen thousand kilometers. Cross it, and a moon doesn't crash. It comes apart. We've watched this happen: in 1992, Jupiter's tides tore comet Shoemaker–Levy 9 into more than twenty pieces.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal Earth and a small grey rocky moon in space, sunlight from frame-left, the moon drifting slowly inward across a faint glowing circle and stretching smoothly, Earth rotating slowly west to east, continuous motion, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed diagram still: photoreal Earth at left-centre on black space, lit from frame-left; a faint cyan dashed circle drawn as a glowing line in space at 2.9 Earth radii; a small grey rocky moon outside the circle at the right. Locked-off framing. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low tension pad, dark and steady, instrumental",
+     "durationSec": 12.5,
+     "gainDb": -16
+    },
+    {
+     "at": 12.5,
+     "prompt": "low tension pad, dark and steady, instrumental",
+     "durationSec": 12.5,
+     "gainDb": -16
+    },
+    {
+     "at": 18.0,
+     "prompt": "slowly rising tone, tense and thin, building",
+     "durationSec": 7,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "REAL PHYSICS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.46,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 3.0,
+     "text": "WHAT IF EARTH HAD RINGS?",
+     "position": "center",
+     "style": "title"
+    },
+    {
+     "at": 8.47,
+     "durationSec": 16.53,
+     "text": "ROCHE LIMIT ≈ 2.9 R⊕ ≈ 18,000 km · src: Roche limit (fluid body)",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Roche",
+    "limit.",
+    "comes",
+    "apart."
+   ],
+   "endFrame": {
+    "fromSection": 3
+   }
+  },
+  {
+   "label": "§2b Roche diagram K1 → K2 (stretches, cracks)",
+   "sec": 25,
+   "lines": [],
+   "videoPrompt": "Photoreal Earth and a small grey rocky moon in space, sunlight from frame-left, the moon drifting slowly inward across a faint glowing circle and stretching smoothly, Earth rotating slowly west to east, continuous motion, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed diagram still: photoreal Earth at left-centre on black space, lit from frame-left; a faint cyan dashed circle drawn as a glowing line in space at 2.9 Earth radii; the small grey moon has crossed just inside the circle, slightly elongated. Locked-off framing. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low tension pad, dark and steady, instrumental",
+     "durationSec": 12.5,
+     "gainDb": -16
+    },
+    {
+     "at": 12.5,
+     "prompt": "low tension pad, dark and steady, instrumental",
+     "durationSec": 12.5,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "REAL PHYSICS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "ROCHE LIMIT ≈ 2.9 R⊕ ≈ 18,000 km · src: Roche limit (fluid body)",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.15,
+     "durationSec": 6.0,
+     "text": "d ≈ 2.44 R (ρ⊕/ρm)^⅓",
+     "position": "center",
+     "style": "label",
+     "color": "#8A99AD"
+    }
+   ],
+   "transitionOut": "cut",
+   "endFrame": {
+    "prompt": "Designed diagram still: photoreal Earth at left-centre on black space, lit from frame-left; a faint cyan dashed circle drawn as a glowing line in space at 2.9 Earth radii; the small grey moon inside the circle, stretched into a lumpy elongated body with cracks. Locked-off framing. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "§3 ‖ A small moon breaks apart (a)",
+   "sec": 28,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "So let's send one in. A small rocky moon, a few hundred kilometers across, drifting inward.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "T plus one day.",
+     "at": 6.38
+    },
+    {
+     "speaker": "N",
+     "text": "As it crosses the Roche limit, it stretches — then fractures along its weaknesses. The fragments don't fall straight down. They keep orbiting, each at its own speed: inner pieces faster, outer pieces slower. From the ground, the first sign is a new bright streak in the night sky, growing longer every night. Within days, the moon has become a curved stream of rubble wrapping part-way around the planet. Some of the smallest debris does rain into the atmosphere — meteor showers, night after night, for anyone watching below.",
+     "at": 8.6
+    }
+   ],
+   "videoPrompt": "Photoreal orbital wide shot: a small grey rocky moon breaking apart into a long curved arc of tumbling boulders and dust sweeping around Earth, the inner fragments pulling ahead of the outer ones, fine dust glinting in sunlight from frame-left, Earth's day side lit on the left with night side and city lights on the right, a few bright meteor streaks entering the atmosphere on the night side. Camera: continuous slow lateral track following the debris arc. Fracturing in progress. STAGE: present-day Earth; a small grey rocky moon, a few hundred kilometers across, being stretched and fractured into an arc of tumbling rubble in orbit about three Earth-radii from the planet's center; our Moon not in frame; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "stylized grinding rock rumble in orbit, crystalline debris tinkles, low taiko pulse",
+     "durationSec": 14.0,
+     "gainDb": -12
+    },
+    {
+     "at": 6.38,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 14.0,
+     "prompt": "stylized grinding rock rumble in orbit, crystalline debris tinkles, low taiko pulse",
+     "durationSec": 14.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 6.38,
+     "text": "REAL PHYSICS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 2.07,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 2.08,
+     "durationSec": 13.97,
+     "text": "MOONLET ⌀ ~300 km · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 6.38,
+     "durationSec": 21.62,
+     "text": "T+1 DAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 16.06,
+     "durationSec": 11.94,
+     "text": "ORBIT ≈ 3 R⊕",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "rubble"
+   ]
+  },
+  {
+   "label": "§3 ‖ A small moon breaks apart (b)",
+   "sec": 27,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital wide shot: a small grey rocky moon breaking apart into a long curved arc of tumbling boulders and dust sweeping around Earth, the inner fragments pulling ahead of the outer ones, fine dust glinting in sunlight from frame-left, Earth's day side lit on the left with night side and city lights on the right, a few bright meteor streaks entering the atmosphere on the night side. Camera: continuous slow lateral track following the debris arc. The tracking continues; the arc lengthens (monotonic spreading). STAGE: present-day Earth; a small grey rocky moon, a few hundred kilometers across, being stretched and fractured into an arc of tumbling rubble in orbit about three Earth-radii from the planet's center; our Moon not in frame; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "stylized grinding rock rumble in orbit, crystalline debris tinkles, low taiko pulse",
+     "durationSec": 13.5,
+     "gainDb": -12
+    },
+    {
+     "at": 13.5,
+     "prompt": "stylized grinding rock rumble in orbit, crystalline debris tinkles, low taiko pulse",
+     "durationSec": 13.5,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 27.0,
+     "text": "T+1 DAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 27.0,
+     "text": "ORBIT ≈ 3 R⊕",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§4 The ring settles (a)",
+   "sec": 28,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus a thousand years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "Collisions grind the rubble finer and finer, and flatten the stream into a disk. Earth's equatorial bulge nudges the orbits until the ring lines up with the equator. Saturn's main rings are about two hundred eighty thousand kilometers across — yet in most places only about ten meters thick. Ours would be thin the same way: a sheet, not a doughnut. But not the same color. Saturn's rings are mostly water ice, bright white. A ring made from a rocky moon would be darker: grey and brown, like the rock it came from. And it wouldn't last forever. Some of it would keep leaking inward, raining into the atmosphere as meteors.",
+     "at": 2.88
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view of Earth with a thin, flat grey-brown rocky ring lying in its equatorial plane, seen from slightly above the ring plane, the ring bright where sunlit from frame-left and cut by a dark band where Earth's shadow falls across it on the right, the ring's thin shadow line visible on the planet's surface, city lights on the night side, Earth rotating slowly west to east. Camera: continuous slow arc upward over the ring plane. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 3.0,
+     "prompt": "delicate harp glint, single bright pluck with shimmer",
+     "durationSec": 2,
+     "gainDb": -10
+    },
+    {
+     "at": 17.0,
+     "prompt": "delicate harp glint, single bright pluck with shimmer",
+     "durationSec": 2,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 28.0,
+     "text": "T+1,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 12.82,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 12.82,
+     "durationSec": 14.55,
+     "text": "SATURN MAIN RINGS ~282,000 km wide, ~10 m thick · src: NASA/Caltech",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 27.38,
+     "durationSec": 0.62,
+     "text": "SATURN RINGS: WATER ICE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "ten",
+    "meters",
+    "grey"
+   ]
+  },
+  {
+   "label": "§4 The ring settles (b)",
+   "sec": 27,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view of Earth with a thin, flat grey-brown rocky ring lying in its equatorial plane, seen from slightly above the ring plane, the ring bright where sunlit from frame-left and cut by a dark band where Earth's shadow falls across it on the right, the ring's thin shadow line visible on the planet's surface, city lights on the night side, Earth rotating slowly west to east. Camera: continuous slow arc upward over the ring plane. The arc continues; the ring opens from narrow to wider ellipse. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 5.0,
+     "prompt": "delicate harp glint, single bright pluck with shimmer",
+     "durationSec": 2,
+     "gainDb": -10
+    },
+    {
+     "at": 19.0,
+     "prompt": "delicate harp glint, single bright pluck with shimmer",
+     "durationSec": 2,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 27.0,
+     "text": "T+1,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 1.15,
+     "text": "SATURN RINGS: WATER ICE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 1.15,
+     "durationSec": 25.85,
+     "text": "OUR RING: ROCK · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§5 The view from the equator (a)",
+   "sec": 23,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Now the view from the ground — and it depends entirely on where you stand. At the equator, you're standing in the ring's plane. You see it edge-on: a razor-thin bright line running straight overhead, from the eastern horizon to the western one. Sunlight catches it most at dawn and dusk. By day, it's a pale thread across the blue, like a daytime Moon stretched into a line. The largest ring in the solar system could look this big — and from the equator, it's a thread.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal low-angle wide shot on a generic tropical beach at dusk, palm silhouettes at frame edges, a razor-thin bright line of light running vertically from the horizon straight up through the zenith, splitting the deep blue sky into left and right halves, warm afterglow at frame-right, calm sea. Camera: continuous slow tilt-up following the line to the zenith. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "gentle surf on a tropical beach at dusk, calm",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 11.5,
+     "prompt": "gentle surf on a tropical beach at dusk, calm",
+     "durationSec": 11.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "ALT EARTH · 0°",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "LATITUDE 0° · RING: EDGE-ON · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "edge-on:"
+   ]
+  },
+  {
+   "label": "§5 The view from the equator (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal low-angle wide shot on a generic tropical beach at dusk, palm silhouettes at frame edges, a razor-thin bright line of light running vertically from the horizon straight up through the zenith, splitting the deep blue sky into left and right halves, warm afterglow at frame-right, calm sea. Camera: continuous slow tilt-up following the line to the zenith. The tilt-up continues at constant speed. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "gentle surf on a tropical beach at dusk, calm",
+     "durationSec": 22.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "ALT EARTH · 0°",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "LATITUDE 0° · RING: EDGE-ON · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§6 The view from mid-latitudes: the great arch (a)",
+   "sec": 22,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Travel north — to forty degrees, the latitude of Madrid, Beijing or Denver — and the ring opens up. It becomes a vast arch across the southern sky, from horizon to horizon. After sunset, the ring keeps shining, lit by a Sun that has already set for you. But look along it: a dark gap slides across the arch. That's Earth's own shadow falling on the ring, and it crosses the sky with the night. The arch never moves. The stars turn behind it. South of the equator, the view mirrors ours, with the arch hanging in the northern sky. People would navigate by it; every culture would tell stories about it. And the farther toward the poles you go, the lower it sinks, until it's hidden below the horizon.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal epic wide landscape at twilight looking south over a generic mountain valley with a winding river, an immense grey-gold ring arch spanning the whole southern sky from the left horizon to the right horizon, a dark shadow gap on the arch's left portion, warm afterglow low at frame-right, deep blue sky with the first stars, a tiny lone hiker on a ridge in the foreground seen from behind for scale. Camera: continuous slow crane-up and push forward over the ridge. Crane from the hiker. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "a-dream-in-color"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "mountain wind over a ridge at twilight, wide and airy",
+     "durationSec": 22.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "ALT EARTH · 40°N",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "LATITUDE 40°N · RING ARCH: SOUTHERN SKY · SHADOW GAP: EARTH'S SHADOW · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "arch",
+    "shadow"
+   ]
+  },
+  {
+   "label": "§6 The view from mid-latitudes: the great arch (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal epic wide landscape at twilight looking south over a generic mountain valley with a winding river, an immense grey-gold ring arch spanning the whole southern sky from the left horizon to the right horizon, a dark shadow gap on the arch's left portion, warm afterglow low at frame-right, deep blue sky with the first stars, a tiny lone hiker on a ridge in the foreground seen from behind for scale. Camera: continuous slow crane-up and push forward over the ridge. The crane continues over the ridge; the full arch is revealed. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "a-dream-in-color"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "mountain wind over a ridge at twilight, wide and airy",
+     "durationSec": 22.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "ALT EARTH · 40°N",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "LATITUDE 40°N · RING ARCH: SOUTHERN SKY · SHADOW GAP: EARTH'S SHADOW · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "§6 The view from mid-latitudes: the great arch (c)",
+   "sec": 21,
+   "lines": [],
+   "videoPrompt": "Photoreal epic wide landscape at twilight looking south over a generic mountain valley with a winding river, an immense grey-gold ring arch spanning the whole southern sky from the left horizon to the right horizon, a dark shadow gap on the arch's left portion, warm afterglow low at frame-right, deep blue sky with the first stars, a tiny lone hiker on a ridge in the foreground seen from behind for scale. Camera: continuous slow crane-up and push forward over the ridge. The push continues toward the valley. The sky darkens slightly (monotonic dusk) and the shadow gap drifts slowly rightward. Keep the gap on the left half throughout. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "a-dream-in-color"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "mountain wind over a ridge at twilight, wide and airy",
+     "durationSec": 21.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "ALT EARTH · 40°N",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "LATITUDE 40°N · RING ARCH: SOUTHERN SKY · SHADOW GAP: EARTH'S SHADOW · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§7a Ring shadow K0 June → K1 September",
+   "sec": 28,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "But a ring doesn't only reflect light. It blocks it. Because Earth is tilted, the ring's shadow falls on the winter hemisphere — right when those latitudes need sunlight most. Bands of the tropics and mid-latitudes would spend part of each year in its shade. On the ground, you'd see it as a season of dimmer days, with the Sun sliding behind the ring each afternoon and its light filtered to a copper glow. Researchers have proposed that a ring's shadow could cool a whole planet — we'll come back to that. How much colder depends on how dense the ring is, and nobody has built one to check. So this one wears our speculative badge.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal Earth with a thin grey ring from orbit, sunlight from frame-left, the ring's dark shadow band sliding smoothly across the planet's surface from the southern to the northern hemisphere, Earth rotating slowly west to east, continuous motion, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed geometry still: photoreal orbital Earth with a thin grey ring, the Sun at frame-left. Northern summer: the Sun above the ring plane; the ring's dark shadow band lies across the southern subtropics. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "cold wind slowly swelling, low minor-key strings",
+     "durationSec": 14.0,
+     "gainDb": -14
+    },
+    {
+     "at": 14.0,
+     "prompt": "cold wind slowly swelling, low minor-key strings",
+     "durationSec": 14.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 26.0,
+     "text": "SEASONS · JUN",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 6.33,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 6.34,
+     "durationSec": 21.66,
+     "text": "RING SHADOW → WINTER HEMISPHERE · REAL geometry",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 26.0,
+     "durationSec": 2.0,
+     "text": "SEASONS · SEP",
+     "position": "top",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "winter",
+    "shadow"
+   ],
+   "endFrame": {
+    "fromSection": 14
+   }
+  },
+  {
+   "label": "§7b Ring shadow K1 September → K2 December",
+   "sec": 27,
+   "lines": [],
+   "videoPrompt": "Photoreal Earth with a thin grey ring from orbit, sunlight from frame-left, the ring's dark shadow band sliding smoothly across the planet's surface from the southern to the northern hemisphere, Earth rotating slowly west to east, continuous motion, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed geometry still: photoreal orbital Earth with a thin grey ring, the Sun at frame-left. Equinox: the ring's shadow is a thin line on the equator. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "cold wind slowly swelling, low minor-key strings",
+     "durationSec": 13.5,
+     "gainDb": -14
+    },
+    {
+     "at": 13.5,
+     "prompt": "cold wind slowly swelling, low minor-key strings",
+     "durationSec": 13.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 24.0,
+     "text": "SEASONS · SEP",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 4.96,
+     "text": "RING SHADOW → WINTER HEMISPHERE · REAL geometry",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 4.96,
+     "durationSec": 22.04,
+     "text": "COOLING: MAGNITUDE UNKNOWN · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 24.0,
+     "durationSec": 3.0,
+     "text": "SEASONS · DEC",
+     "position": "top",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack",
+   "endFrame": {
+    "prompt": "Designed geometry still: photoreal orbital Earth with a thin grey ring, the Sun at frame-left. Northern winter: the ring's shadow lies across the northern subtropics and mid-latitudes. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "§8 Satellites and rockets (a)",
+   "sec": 23,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "And modern life? A ring of rubble circling in low orbit would be the ultimate space-debris field. Launching from near the equator — today's favorite spot, because Earth's spin gives rockets a free boost — would mean flying straight through the ring plane. Rockets would launch from higher latitudes instead, arcing over the ring. Astronomers would struggle too: a bright band across the sky that never sets, washing out faint stars along its path. Geostationary satellites, about thirty-six thousand kilometers up, would orbit well beyond it — with a front-row view.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal wide shot at dusk of a generic unbranded rocket climbing from a remote northern launch site, its bright exhaust plume arcing upward and to the right, the vast grey-gold ring arch filling the southern sky behind it, deep blue sky, no logos, no text, no people visible. Camera: continuous slow tilt-up tracking the rocket's climb. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "distant rocket rumble with crackle, steady and far away",
+     "durationSec": 11.5,
+     "gainDb": -12
+    },
+    {
+     "at": 11.5,
+     "prompt": "distant rocket rumble with crackle, steady and far away",
+     "durationSec": 11.5,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "SPECULATIVE",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "RING ≈ 2,000–12,000 km ALT · MODEL EST. · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "launch"
+   ]
+  },
+  {
+   "label": "§8 Satellites and rockets (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal wide shot at dusk of a generic unbranded rocket climbing from a remote northern launch site, its bright exhaust plume arcing upward and to the right, the vast grey-gold ring arch filling the southern sky behind it, deep blue sky, no logos, no text, no people visible. Camera: continuous slow tilt-up tracking the rocket's climb. The rocket keeps climbing along one smooth trajectory, with no second rocket. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "distant rocket rumble with crackle, steady and far away",
+     "durationSec": 22.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "SPECULATIVE",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 3.57,
+     "text": "RING ≈ 2,000–12,000 km ALT · MODEL EST. · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 3.57,
+     "durationSec": 18.43,
+     "text": "GEO 35,786 km ALT · src: NASA",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§9 ‖ Twist: Earth may really have had one (a)",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Here's the twist. Earth may really have had one. In 2024, a team at Monash University studied twenty-one impact craters from a burst of impacts about four hundred sixty-six million years ago, in the Ordovician. When they reconstructed where the continents were back then, every one of those craters sat within about thirty degrees of the equator — even though most of the available continental crust lay outside that band. Their explanation: a large asteroid broke apart inside Earth's Roche limit, formed a ring, and rained down over millions of years. They even suggest its shadow helped chill the planet into one of the coldest periods of the last five hundred million years. It's a hypothesis — but a real one.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal wide shot of a barren Ordovician coastline 466 million years ago: bare dark rock with no plants, a warm shallow turquoise sea with gentle waves, a faint grey ring arch across the pale sky, two bright meteors streaking down toward the horizon, low sun at frame-left, no animals on land, no humans. Camera: continuous slow dolly along the shoreline to the right. STAGE: Earth 466 million years ago; barren rocky land with no plants, only dark microbial crusts; warm shallow turquoise seas; a faint grey ring arch across the sky; occasional meteor streaks; no animals on land; no humans. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "35mm-film",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "turquoise-mirage"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "fast mechanical counter spinning backward, rewinding, then a click",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "gentle surf breaking on bare rock, calm",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 9.0,
+     "prompt": "soft distant meteor whoosh streaking across the sky",
+     "durationSec": 2,
+     "gainDb": -12
+    },
+    {
+     "at": 15.0,
+     "prompt": "gentle surf breaking on bare rock, calm",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 24.0,
+     "prompt": "soft distant meteor whoosh streaking across the sky",
+     "durationSec": 2,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "REWIND −466M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 6.33,
+     "text": "REAL SCIENCE · HYPOTHESIS",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 6.34,
+     "durationSec": 15.26,
+     "text": "21 CRATERS ≤30° FROM EQUATOR · src: Tomkins et al. 2024, EPSL",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 21.6,
+     "durationSec": 8.4,
+     "text": ">70% CRUST OUTSIDE BAND",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Monash",
+    "twenty-one",
+    "thirty",
+    "hypothesis"
+   ]
+  },
+  {
+   "label": "§9 ‖ Twist: Earth may really have had one (b)",
+   "sec": 30,
+   "lines": [],
+   "videoPrompt": "Photoreal wide shot of a barren Ordovician coastline 466 million years ago: bare dark rock with no plants, a warm shallow turquoise sea with gentle waves, a faint grey ring arch across the pale sky, two bright meteors streaking down toward the horizon, low sun at frame-left, no animals on land, no humans. Camera: continuous slow dolly along the shoreline to the right. The dolly continues; the meteors are occasional. Keep the ring arch in the same sky position. STAGE: Earth 466 million years ago; barren rocky land with no plants, only dark microbial crusts; warm shallow turquoise seas; a faint grey ring arch across the sky; occasional meteor streaks; no animals on land; no humans. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "35mm-film",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "turquoise-mirage"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "gentle surf breaking on bare rock, calm",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 11.0,
+     "prompt": "soft distant meteor whoosh streaking across the sky",
+     "durationSec": 2,
+     "gainDb": -12
+    },
+    {
+     "at": 15.0,
+     "prompt": "gentle surf breaking on bare rock, calm",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 23.0,
+     "prompt": "soft distant meteor whoosh streaking across the sky",
+     "durationSec": 2,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "REWIND −466M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 2.6,
+     "text": ">70% CRUST OUTSIDE BAND",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 2.61,
+     "durationSec": 27.39,
+     "text": "HIRNANTIAN ICEHOUSE LINK: PROPOSED",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§10 CTA + next timeline",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "So look up tonight and picture it: a grey arch, a sliding shadow, a sky that's never quite empty. One ring, and every night would be different. Now flip it: what if Earth had two moons instead? Pick your next timeline.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view of Earth with its thin grey ring seen nearly edge-on, day side lit from frame-left, vertical terminator through center, city lights on the right, Earth rotating slowly west to east. Camera: continuous slow pull-back. STAGE: Earth with a thin, perfectly flat ring lying in the equatorial plane, spanning roughly 2,000 to 12,000 km above the surface, made of grey-brown rock dust and rubble (not white ice), bright where sunlit, with a dark gap where Earth's shadow falls across it; the ring's shadow as a dark band across the winter hemisphere; continents, oceans, clouds and city lights exactly as today; sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "END",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 9.89,
+     "durationSec": 10.11,
+     "text": "NEXT TIMELINE: WHAT IF THE MOON DISAPPEARED?",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "OUTRO + end screen (shared channel asset, Bible §6.3)",
+   "sec": 18,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Every change has consequences. Pick your next timeline.",
+     "at": 0.5
+    }
+   ],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 23
+   }
+  }
+ ],
+ "music": {
+  "prompt": "cinematic ambient documentary score, 8 minutes, the calmest in the series: an awe-filled wordless choir pad opening; a low tension pad from 0:25 with a rising tone; low taiko under grinding textures around 1:15; harp glints and a sustained choir around 2:10; the choir thinning to one voice around 3:05; a full choir swell around 3:50 as the emotional peak; cold minor-key strings around 4:55; sparse around 5:50; wondrous and resolving major around 6:35; a sustained chord to the end; instrumental, wordless choir only",
+  "gainDb": -15,
+  "underVoDb": -9
+ },
+ "sting": {
+  "at": 73,
+  "sec": 2
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "Brief §3.4 on every clip. L06: the ring is ALWAYS in the equatorial plane, flat and thin — reject any tilted, Saturn-white or multi-band ring. Ground geometry: §5 a vertical line through the zenith; §6 the arch in the southern sky, highest point due south, shadow gap on the east (left) side after sunset, afterglow on the right (west). Orbital sun frame-left and the ring's shadow on Earth consistent with it. §8 no logos on the rocket, no second rocket. No Moon in §3 (SC-X). §9 no plants/trees on land, no humans. SOUL diagram stills (§2, §7) must show the cyan circle / shadow geometry with no text. Cinema segments are standalone gens (Q7): check intra-section cuts. Altered-content label OFF (turn ON if any shot resolves into an identifiable real town). Highest risk: §6, §4, §1, §8."
+}

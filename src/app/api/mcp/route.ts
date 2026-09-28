@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { TOOLS, callTool, toolMutates, type McpScope } from "@/lib/mcp/tools";
+import { TOOLS, callTool, toolVisible, type McpScope } from "@/lib/mcp/tools";
+import { resolveBot, type BotContext } from "@/lib/bots/agents";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { secureEquals } from "@/lib/secure-compare";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +29,10 @@ function rpcError(id: RpcRequest["id"], code: number, message: string) {
   return { jsonrpc: "2.0", id, error: { code, message } };
 }
 
-async function dispatch(msg: RpcRequest, scope: McpScope): Promise<object | null> {
+type Caller = { scope: McpScope; bot?: BotContext };
+
+async function dispatch(msg: RpcRequest, caller: Caller): Promise<object | null> {
+  const { scope, bot } = caller;
   switch (msg.method) {
     case "initialize":
       return result(msg.id, {
@@ -43,8 +48,8 @@ async function dispatch(msg: RpcRequest, scope: McpScope): Promise<object | null
       return result(msg.id, {});
     case "tools/list":
       return result(msg.id, {
-        // Read-scope clients only see (and can only call) inspection tools.
-        tools: TOOLS.filter((t) => scope === "control" || !toolMutates(t.name)).map((t) => ({
+        // Read scope sees inspection tools; a bot sees only its allowlist.
+        tools: TOOLS.filter((t) => toolVisible(t.name, scope)).map((t) => ({
           name: t.name,
           description: t.description,
           inputSchema: t.inputSchema,
@@ -54,7 +59,7 @@ async function dispatch(msg: RpcRequest, scope: McpScope): Promise<object | null
       const name = String(msg.params?.name ?? "");
       const args = (msg.params?.arguments ?? {}) as Record<string, unknown>;
       try {
-        const out = await callTool(name, args, scope);
+        const out = await callTool(name, args, scope, bot);
         return result(msg.id, {
           content: [{ type: "text", text: JSON.stringify(out, null, 2) }],
         });
@@ -70,16 +75,18 @@ async function dispatch(msg: RpcRequest, scope: McpScope): Promise<object | null
   }
 }
 
-/** Resolve the caller's scope from the bearer token (constant-time compares).
-    STUDIO_MCP_TOKEN → full control; STUDIO_MCP_READ_TOKEN → read-only. */
-function authorized(request: NextRequest): McpScope | null {
+/** Resolve the caller from the bearer token (constant-time compares).
+    STUDIO_MCP_TOKEN → full control; STUDIO_MCP_READ_TOKEN → read-only; a
+    channel bot token (fsbot_…, stored hashed in bot_agents) → that bot. */
+async function authorized(request: NextRequest): Promise<Caller | null> {
   const control = process.env.STUDIO_MCP_TOKEN?.trim();
   if (!control) return null; // closed unless explicitly configured
   const header = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
-  if (secureEquals(header, control)) return "control";
+  if (secureEquals(header, control)) return { scope: "control" };
   const read = process.env.STUDIO_MCP_READ_TOKEN?.trim();
-  if (read && secureEquals(header, read)) return "read";
-  return null;
+  if (read && secureEquals(header, read)) return { scope: "read" };
+  const bot = await resolveBot(createAdminClient(), header);
+  return bot ? { scope: "bot", bot } : null;
 }
 
 export async function POST(request: NextRequest) {
@@ -89,8 +96,8 @@ export async function POST(request: NextRequest) {
       { status: 503 },
     );
   }
-  const scope = authorized(request);
-  if (!scope) {
+  const caller = await authorized(request);
+  if (!caller) {
     return NextResponse.json(rpcError(null, -32001, "Unauthorized"), { status: 401 });
   }
 
@@ -103,10 +110,10 @@ export async function POST(request: NextRequest) {
 
   // Single message or JSON-RPC batch.
   if (Array.isArray(body)) {
-    const responses = (await Promise.all(body.map((m) => dispatch(m as RpcRequest, scope)))).filter(Boolean);
+    const responses = (await Promise.all(body.map((m) => dispatch(m as RpcRequest, caller)))).filter(Boolean);
     return responses.length > 0 ? NextResponse.json(responses) : new NextResponse(null, { status: 202 });
   }
-  const res = await dispatch(body as RpcRequest, scope);
+  const res = await dispatch(body as RpcRequest, caller);
   return res ? NextResponse.json(res) : new NextResponse(null, { status: 202 });
 }
 

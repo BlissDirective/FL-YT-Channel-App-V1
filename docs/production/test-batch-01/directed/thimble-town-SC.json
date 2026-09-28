@@ -1,0 +1,237 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "The Snail Who Lights the Tallest Lamp",
+ "altTitles": [
+  "A Tiny Snail Lights Up the Whole Town",
+  "Lamps On in the Tiny Town"
+ ],
+ "description": "Lumen the snail lamplighter climbs to light the tallest lamp in Thimble Town. #miniature #cozy #asmr",
+ "tags": [
+  "miniature",
+  "diorama",
+  "snail",
+  "lamplighter",
+  "cozy",
+  "asmr",
+  "Thimble Town"
+ ],
+ "topic": "Lumen character micro-story short (brand trailer, no-text arm)",
+ "sections": [
+  {
+   "sec": 10,
+   "label": "Tink → the post is a pencil",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow pull-back, constant speed, no cuts. Tink — the lamp blooms; the camera pulls back to show the lane stacked up the frame and Lumen tiny at its foot, small toy-like movements.\nAmbient motion: drizzle specks. Lighting stays blue hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen's brass lantern touching a dark lamp head, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nExtreme close-up: Lumen's brass lantern touching a dark pea-sized glass lamp head at the bottom of a lane that climbs a stair of stacked books.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: light drizzle beginning. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen's brass lantern touching a dark lamp head, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nMedium: the lit lamp, Lumen at its foot, the lane climbing up-frame with dark lamps.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: light drizzle beginning. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 0.3,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 10,
+     "gainDb": -18
+    },
+    {
+     "at": 5,
+     "prompt": "soft music box celesta melody, slow, warm and gentle, instrumental, no vocals",
+     "durationSec": 5,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "The lane lights up",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked vertical composition, constant speed, no cuts. Lumen climbs the book-stair lamp by lamp; each lamp blooms in sequence up the frame, small toy-like movements.\nAmbient motion: drizzle, windows warming. Lighting stays blue hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the lamps stacked up the lane, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nVertical lane climbing a stair of stacked books, six dark lamp posts rising up the frame, Lumen at the second lamp.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: light drizzle. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the lamps stacked up the lane, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nFive lamps lit in a rising line; the tallest lamp at the top still dark.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: light drizzle. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 3,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 7,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 11,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 15,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 0,
+     "prompt": "soft music box celesta melody, slow, warm and gentle, instrumental, no vocals",
+     "durationSec": 20,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 25,
+   "label": "The tallest lamp",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow crane up, constant speed, no cuts. Lumen begins to climb the tall wet pole, slow and steady, lantern swaying, small toy-like movements.\nAmbient motion: drizzle beading on brass. Lighting stays blue hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen at the base of a tall brass pole, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen at the base of a lamp post as tall as a whole pencil, wet brass, the dark lamp far above against the dusk sky.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: light drizzle. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen at the base of a tall brass pole, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen a third of the way up the wet brass pole.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: light drizzle. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a very soft slow glide of a tiny snail on a wet brass pole, quiet, close-mic, no music",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 22,
+     "prompt": "a very soft slow glide of a tiny snail on a wet brass pole, quiet, close-mic, no music",
+     "durationSec": 3,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "light drizzle, soft tiny drops, calm, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22,
+     "prompt": "light drizzle, soft tiny drops, calm, no thunder, no voices, no music",
+     "durationSec": 3,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "soft sustained cello pad, warm and calm, low and gentle, no melody, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "soft sustained cello pad, warm and calm, low and gentle, no melody, instrumental, no vocals",
+     "durationSec": 3,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 25,
+   "label": "The raindrop",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow crane up, constant speed, no cuts. The raindrop slides down; Lumen tucks into his shell; the drop splits around him; he unfurls and climbs on, small toy-like movements.\nAmbient motion: drizzle. Lighting stays blue hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a fat raindrop sliding down the pole, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen halfway up the tall brass pole, a fat raindrop as big as his shell sliding down the pole toward him.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: light drizzle. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a fat raindrop sliding down the pole, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen unfurled again, continuing upward, the split drop falling below.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: light drizzle. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 6,
+     "prompt": "a fat water droplet sliding and splitting on a brass pole, soft wet slide",
+     "durationSec": 4,
+     "gainDb": -10
+    },
+    {
+     "at": 8,
+     "prompt": "a small hollow snail shell tucking in with a soft clay tok",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 13,
+     "prompt": "a tiny water drop splashing far below, soft and distant",
+     "durationSec": 1.5,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "soft sustained cello pad, warm and calm, low and gentle, no melody, instrumental, no vocals",
+     "durationSec": 16,
+     "gainDb": -22
+    },
+    {
+     "at": 16,
+     "prompt": "soft music box celesta melody, slow, warm and gentle, instrumental, no vocals",
+     "durationSec": 9,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "The top (loop)",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked macro, constant speed, no cuts. Lumen touches his lantern to the tall lamp; it blooms over the whole town; the frame settles tight on lantern and glass, small toy-like movements.\nAmbient motion: drizzle clearing, town bokeh. Lighting stays blue hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen at the top lamp, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen at the top of the tall pole beside the dark lamp head, the lit lane and town glowing below.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: drizzle clearing. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "fromSection": 0
+   },
+   "sfx": [
+    {
+     "at": 4,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -2
+    },
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 20,
+     "gainDb": -18
+    },
+    {
+     "at": 4,
+     "prompt": "music box and celesta playing the full slow three-note motif C, E, G, repeated gently, warm, instrumental, no vocals",
+     "durationSec": 15.8,
+     "gainDb": -20
+    }
+   ]
+  }
+ ],
+ "sting": {
+  "at": 6.2,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: The Snail Who Lights the Lamps"
+ },
+ "watermark": true,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. SC: lamps light strictly bottom-to-top and never un-light (except across the loop point); the tall pole stays ~3× Lumen's lamp posts; lamp posts pencil-stub high (~3× Lumen's length); Beat 4 drop never passes through Lumen, shell never melts; loop lands on a composition match with Beat 1 (lantern touching glass); brand tink identical to the ident. Pipeline: sections >30s are chained by the worker as 30s + remainder (not the brief's even split) with one prompt for all segments — check every 30s seam and that the brief's seg-2 action lands; re-time library SFX cues (tink, hero taps) to the landed clips before render."
+}

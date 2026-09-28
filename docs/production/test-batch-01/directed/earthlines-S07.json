@@ -1,0 +1,582 @@
+{
+ "format": "short",
+ "resolution": "720p",
+ "title": "What If Earth Stopped Orbiting the Sun?",
+ "altTitles": [
+  "Earth Would Fall Into the Sun in 65 Days",
+  "65 Days to the Sun: What If Earth Stopped Moving?"
+ ],
+ "description": "If Earth stopped moving sideways, it would fall straight into the Sun in about 65 days: Venus's orbit on day 41, Mercury's on day 57, torn apart on day 64. Real orbital physics; the boiling-ocean details are model estimates. Sources in pinned comment. #whatif #space #sun",
+ "tags": [
+  "what if",
+  "sun",
+  "orbit",
+  "free fall",
+  "65 days",
+  "space",
+  "science",
+  "Earthlines"
+ ],
+ "topic": "What if Earth stopped orbiting the Sun (65-day fall)",
+ "cast": {
+  "N": {
+   "color": "#FFB547"
+  }
+ },
+ "sections": [
+  {
+   "label": "B1 Hook",
+   "sec": 5,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "If Earth stopped moving around the Sun, we'd have sixty-five days.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Vertical photoreal space view: a calm blue Earth in the lower half, lit from the upper-left by a small brilliant Sun in the upper-left corner, black space, thin atmospheric limb. Camera: continuous very slow push-in. STAGE: present-day Earth, blue and white, normal climate; the Sun at normal apparent size. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "short airy orbital whoosh that stops dead abruptly",
+     "durationSec": 0.8,
+     "gainDb": -4
+    },
+    {
+     "at": 0.0,
+     "prompt": "steady mechanical clock tick at 120 BPM over a low tense synth pulse, instrumental, no melody",
+     "durationSec": 5.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 5.0,
+     "text": "T+ DAY 0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 5.0,
+     "text": "65 DAYS · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "sixty-five",
+    "days."
+   ]
+  },
+  {
+   "label": "B2a Same framing, slow orbit",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Earth isn't held up. It's falling toward the Sun right now — but moving sideways at about thirty kilometers a second, so it keeps missing. Take away the sideways speed, and the fall goes straight in.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Vertical photoreal space view: a calm blue Earth in the lower half, lit from the upper-left by a small brilliant Sun in the upper-left corner, black space, thin atmospheric limb. Camera: continuous slow orbit to show Earth's side. STAGE: present-day Earth, blue and white, normal climate; the Sun at normal apparent size. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "steady mechanical clock tick at 120 BPM over a low tense synth pulse, instrumental, no melody",
+     "durationSec": 8.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "T+ DAY 0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 4.82,
+     "durationSec": 3.18,
+     "text": "→ 30 km/s",
+     "position": "center",
+     "style": "title",
+     "color": "#4FD1FF"
+    },
+    {
+     "at": 6.24,
+     "durationSec": 1.76,
+     "text": "ORBITAL SPEED ≈ 29.8 km/s · src: NASA",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "sideways",
+    "thirty"
+   ]
+  },
+  {
+   "label": "B2b Farm field",
+   "sec": 7,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal ground shot of a generic green farm field on a calm summer day, normal sun high at frame-left, wind in the grass, no people. Camera: continuous slow push. STAGE: present-day Earth, blue and white, normal climate; the Sun at normal apparent size. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "steady mechanical clock tick at 120 BPM over a low tense synth pulse, instrumental, no melody",
+     "durationSec": 7.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 7.0,
+     "text": "T+ DAY 0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 7.0,
+     "text": "ORBITAL SPEED ≈ 29.8 km/s · src: NASA",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 1.07,
+     "text": "→ 30 km/s",
+     "position": "center",
+     "style": "title",
+     "color": "#4FD1FF"
+    }
+   ]
+  },
+  {
+   "label": "B3a Farm-field time-lapse",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Day one to thirty: almost nothing seems to change. The fall starts slowly. By day thirty, we're only about fifteen percent closer. But the Sun already looks bigger — and it's getting noticeably hotter.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Vertical locked-off photoreal time-lapse of the same kind of generic farm field, days flickering, the sun disc slightly larger and whiter, heat haze growing, grass yellowing. Single-shot. STAGE: Earth falling straight toward the Sun; the Sun appearing progressively larger and brighter from day to day; rising heat, haze and steam; sunlit from frame-left/top-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "mirage-at-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "steady mechanical clock tick at 120 BPM over a low tense synth pulse, instrumental, no melody",
+     "durationSec": 8.0,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "summer insect buzz slowly thinning out, dry heat",
+     "durationSec": 8.0,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 4.91,
+     "text": "T+ DAY 1",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 7.04,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 4.92,
+     "durationSec": 3.08,
+     "text": "T+ DAY 30",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 7.05,
+     "durationSec": 0.95,
+     "text": "DISTANCE −15% (day 30) · derived · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "fifteen",
+    "percent"
+   ]
+  },
+  {
+   "label": "B3b Cracked soil macro",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal macro of cracked dry soil and wilting leaves under harsh white light from the upper-left. Camera: continuous slow slider. STAGE: Earth falling straight toward the Sun; the Sun appearing progressively larger and brighter from day to day; rising heat, haze and steam; sunlit from frame-left/top-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "mirage-at-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "steady mechanical clock tick at 120 BPM over a low tense synth pulse, instrumental, no melody",
+     "durationSec": 8.0,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "summer insect buzz slowly thinning out, dry heat",
+     "durationSec": 8.0,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "T+ DAY 30",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 0.46,
+     "text": "DISTANCE −15% (day 30) · derived · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.47,
+     "durationSec": 7.53,
+     "text": "SUNLIGHT ×1.4 · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "B4a Steaming sea",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Day forty-one: we cross Venus's orbit, with nearly twice the sunlight we evolved under. Day fifty-seven: Mercury's orbit. The Sun looks more than two and a half times wider. The oceans are boiling away.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Vertical photoreal wide shot of a generic open sea under a huge, blinding white sun at the upper-left, thick steam rising off the entire water surface, sky bleached white-orange, no land, no people. Camera: continuous slow push over the water. STAGE: Earth falling straight toward the Sun; the Sun appearing progressively larger and brighter from day to day; rising heat, haze and steam; sunlit from frame-left/top-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "industrial-fog"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "steady mechanical clock tick at 140 BPM over an urgent tense synth pulse, instrumental, no melody",
+     "durationSec": 8.0,
+     "gainDb": -11
+    },
+    {
+     "at": 0.0,
+     "prompt": "violent boiling hiss of a steaming sea",
+     "durationSec": 8.0,
+     "gainDb": -12
+    },
+    {
+     "at": 5.27,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 5.27,
+     "text": "DAY 41 · VENUS ORBIT",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 2.78,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 2.79,
+     "durationSec": 5.21,
+     "text": "SUNLIGHT ×1.9 → ×6.7 · derived · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 5.27,
+     "durationSec": 2.73,
+     "text": "DAY 57 · MERCURY ORBIT",
+     "position": "top",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Venus's",
+    "Mercury's",
+    "boiling"
+   ]
+  },
+  {
+   "label": "B4b Steam-wrapped Earth",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal space view: Earth in the lower third wrapped in a thick white-brown steam atmosphere, a vastly enlarged blazing Sun filling the upper-left, sharp terminator on Earth. Camera: continuous slow push. STAGE: Earth falling straight toward the Sun; the Sun appearing progressively larger and brighter from day to day; rising heat, haze and steam; sunlit from frame-left/top-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "industrial-fog"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "steady mechanical clock tick at 140 BPM over an urgent tense synth pulse, instrumental, no melody",
+     "durationSec": 8.0,
+     "gainDb": -11
+    },
+    {
+     "at": 0.0,
+     "prompt": "violent boiling hiss of a steaming sea",
+     "durationSec": 8.0,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "DAY 57 · MERCURY ORBIT",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 2.59,
+     "text": "SUNLIGHT ×1.9 → ×6.7 · derived · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 2.6,
+     "durationSec": 5.4,
+     "text": "OCEANS BOILING · MODEL EST. · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "B5a Sun surface, tiny Earth",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Day sixty-four: the final day. The Sun fills the sky, and Earth is falling at hundreds of kilometers a second. In the last half hour, the Sun's tides pull Earth apart — minutes before it would have touched the surface.",
+     "at": 0.9
+    }
+   ],
+   "videoPrompt": "Vertical photoreal view of an immense sun surface filling the entire frame, granulation, spicules and prominences in crisp detail, a tiny dark silhouette of Earth in the lower center. Camera: continuous slow push. STAGE: Earth falling straight toward the Sun; the Sun appearing progressively larger and brighter from day to day; rising heat, haze and steam; sunlit from frame-left/top-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "industrial-fog"
+   },
+   "sfx": [
+    {
+     "at": 0.8,
+     "prompt": "low deep roar slowly building to an overwhelming rumble, solar plasma",
+     "durationSec": 15.2,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "DAY 64",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "final",
+    "apart"
+   ]
+  },
+  {
+   "label": "B5b Earth torn into a teardrop",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal close view of a glowing, molten Earth silhouette stretching into an elongated teardrop against the blinding solar surface, streams of glowing material peeling away. Camera: continuous slow push. STAGE: Earth falling straight toward the Sun; the Sun appearing progressively larger and brighter from day to day; rising heat, haze and steam; sunlit from frame-left/top-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "industrial-fog"
+   },
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 8.0,
+     "text": "DAY 64",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 1.77,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 1.78,
+     "durationSec": 6.22,
+     "text": "SUN'S ROCHE LIMIT FOR EARTH ≈ 1.1M km · derived · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "B6 Loop",
+   "sec": 7,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Luckily, Earth never stops moving sideways. So every year, it falls — and misses. Sixty-five days… or forever.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Vertical photoreal space view identical in framing to the opening: calm blue Earth in the lower half, small brilliant Sun at upper-left, black space. Camera: continuous very slow push-in. STAGE: present-day Earth, blue and white, normal climate; the Sun at normal apparent size. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 6.7,
+     "text": "END",
+     "position": "top",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "forever."
+   ]
+  }
+ ],
+ "sting": {
+  "at": 5.1,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Next timeline: What If Earth Stopped Spinning?"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "S07: the Sun is ALWAYS upper-left; its apparent size grows monotonically B1→B5 (B6 resets it); no lens flare on the Sun disc in space shots; no people, no identifiable place. B6 must match B1's framing (loop) — Cinema cannot take an end frame, so check the loop cut. B2a has no brief prompt (derived from B1's framing + 'slow orbit to show Earth's side'). Music is timed SFX cues (tick 120→140 BPM, dead at B5) per lessons Q4. Brief §3.4 on every clip. Altered-content label ON. Highest risk: B5b, B4b."
+}

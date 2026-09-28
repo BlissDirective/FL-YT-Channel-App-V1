@@ -1,0 +1,670 @@
+{
+ "version": 1,
+ "format": "long",
+ "resolution": "720p",
+ "title": "Building a Tiny Bakery Inside a Teapot",
+ "altTitles": [
+  "The Teapot Becomes a Bakery | Thimble Town",
+  "Tiny Builders Turn an Old Teapot Into a Bakery"
+ ],
+ "description": "Bramble, Miso and the builder beetles turn an old teapot on the hill into Thimble Town's bakery. Wordless miniature build ASMR.\n\n0:00 The teapot on the hill\n0:30 Measuring up\n1:10 A door\n2:40 Floors and an oven\n4:40 Shelves and a sign\n5:50 The lid\n6:20 First loaf\n7:10 Opening day\n\nStories and worlds created with AI tools.",
+ "tags": [
+  "miniature",
+  "diorama",
+  "tiny build",
+  "asmr",
+  "bakery",
+  "teapot",
+  "cozy",
+  "Thimble Town"
+ ],
+ "topic": "LF2 Build a Tiny: wordless teapot-bakery build episode",
+ "sections": [
+  {
+   "sec": 5,
+   "label": "§0 Cold open: the promise, then the chalk line",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked top-down macro, constant speed, no cuts. Bramble draws the last curve of an arched door outline in chalk on the teapot's side and steps back; chalk dust drifts, small toy-like movements.\nAmbient motion: chalk dust drifting in the sunbeam. Lighting stays early morning low sun. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on a chalk line on the teapot's side, strong blur top and bottom. The teapot on the hill: hand-built\nminiature building site on a mossy hill made from an old, empty round cream ceramic teapot with a hairline crack, no door or windows yet, a toothpick-and-thread scaffold and a thread-spool winch beside it, a giant pencil lying in the moss (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nTop-down view along the teapot's curved side: Bramble holding a chalk stub, finishing the last curve of an arched door outline on the cream ceramic.\nLighting: early morning low sun from left, soft mist, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on a chalk line on the teapot's side, strong blur top and bottom. The teapot on the hill: hand-built\nminiature building site on a mossy hill made from an old, empty round cream ceramic teapot with a hairline crack, no door or windows yet, a toothpick-and-thread scaffold and a thread-spool winch beside it, a giant pencil lying in the moss (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nThe complete chalk arch, Bramble stepping back with the chalk stub.\nLighting: early morning low sun from left, soft mist, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   }
+  },
+  {
+   "sec": 5,
+   "label": "Ident \"Lamps On\" (brand pack)",
+   "lines": [],
+   "reuse": {
+    "videoId": "TBD-LF1",
+    "sectionIdx": 1
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 5,
+     "gainDb": -18
+    },
+    {
+     "at": 0.5,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 1.0,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 4,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 4.0,
+     "durationSec": 1.0,
+     "text": "Thimble Town",
+     "position": "top",
+     "style": "title",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "§1 The teapot on the hill",
+   "lines": [],
+   "videoPrompt": "Establishing shot of an old cream ceramic teapot standing on a mossy hill above Thimble Town, a hand-built miniature town of teacup houses and a sewing-thimble water tower, tilt-shift macro look, autumn dawn with lifting mist, toothpick scaffold beside the teapot, a giant pencil lying in the moss for scale, slow orbit rising, gentle toy-like motion of tiny beetles carrying planks in the distance, no people, no text.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the old teapot on the hill, strong blur top and bottom. The teapot on the hill: hand-built\nminiature building site on a mossy hill made from an old, empty round cream ceramic teapot with a hairline crack, no door or windows yet, a toothpick-and-thread scaffold and a thread-spool winch beside it, a giant pencil lying in the moss (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nNo residents in frame.\nWide view of the empty teapot on the hill at dawn with Thimble Town's roofs below, the scaffold stacked beside it.\nLighting: early morning low sun from left, soft mist, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: fog morning lifting. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "35mm-film",
+    "camera_lens": "warm-vintage",
+    "color_palette": "oil-ochre"
+   },
+   "refs": [
+    "refs/thimble-town/teapot_before_ref.png",
+    "refs/thimble-town/town_ref.png",
+    "refs/thimble-town/bramble_ref.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "tiny sparse dawn birdsong far away, quiet misty morning, no voices, no music",
+     "durationSec": 20,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "soft gentle breeze through moss and grass, quiet, seamless, no voices, no music",
+     "durationSec": 20,
+     "gainDb": -18
+    },
+    {
+     "at": 4,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 16,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "§2 Measuring up",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Bramble walks the thread tape around the teapot's curve while Miso holds the end, small toy-like movements.\nAmbient motion: dust motes in the sunbeam, the thread gently swaying. Lighting stays warm morning low sun. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Bramble walks the thread tape around the teapot's curve while Miso holds the end, small toy-like movements.\nAmbient motion: dust motes in the sunbeam, the thread gently swaying. Lighting stays warm morning low sun. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right continues, constant speed, no cuts. Bramble makes a chalk tick at the measured point, peers over her spectacles and nods, small toy-like movements.\nAmbient motion: dust motes in the sunbeam, the thread gently swaying. Lighting stays warm morning low sun. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Bramble with a thread tape, strong blur top and bottom. The teapot on the hill: hand-built\nminiature building site on a mossy hill made from an old, empty round cream ceramic teapot with a hairline crack, no door or windows yet, a toothpick-and-thread scaffold and a thread-spool winch beside it, a giant pencil lying in the moss (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nBramble unrolling a cream thread measuring tape around the teapot's belly while Miso holds the free end steady; a cotton-thread spool sharp in the foreground.\nLighting: early morning low sun from left, soft mist, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Bramble with a thread tape, strong blur top and bottom. The teapot on the hill: hand-built\nminiature building site on a mossy hill made from an old, empty round cream ceramic teapot with a hairline crack, no door or windows yet, a toothpick-and-thread scaffold and a thread-spool winch beside it, a giant pencil lying in the moss (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nBramble peering over her gold spectacles at a chalk tick-mark, nodding; Miso holding the tape end.\nLighting: early morning low sun from left, soft mist, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft gentle breeze through moss and grass, quiet, seamless, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22,
+     "prompt": "soft gentle breeze through moss and grass, quiet, seamless, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 18,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 50,
+   "label": "§3 Cutting the door",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in, constant speed, no cuts. The beetles saw steadily along the chalk arch; dust puffs with each stroke, small toy-like movements.\nAmbient motion: fine ceramic dust drifting through the sunbeam. Lighting stays warm morning low sun. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in, constant speed, no cuts. The beetles saw steadily along the chalk arch; dust puffs with each stroke, small toy-like movements.\nAmbient motion: fine ceramic dust drifting through the sunbeam. Lighting stays warm morning low sun. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in continues, constant speed, no cuts. The cut panel tips free; the beetles catch it and prop it aside; sunlight falls into the dark interior, small toy-like movements.\nAmbient motion: fine ceramic dust drifting through the sunbeam. Lighting stays warm morning low sun. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the builder beetles sawing the door arch, strong blur top and bottom. The teapot on the hill: hand-built\nminiature building site on a mossy hill made from an old, empty round cream ceramic teapot with a hairline crack, no door or windows yet, a toothpick-and-thread scaffold and a thread-spool winch beside it, a giant pencil lying in the moss (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nThe three builder beetles working a tiny bow saw along the chalk arch on the teapot's side, fine ceramic dust puffing; Bramble supervising, paws clasped.\nLighting: early morning low sun from left, soft mist, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the builder beetles sawing the door arch, strong blur top and bottom. The teapot on the hill: hand-built\nminiature building site on a mossy hill made from an old, empty round cream ceramic teapot with a hairline crack, no door or windows yet, a toothpick-and-thread scaffold and a thread-spool winch beside it, a giant pencil lying in the moss (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nThe arched doorway open, the cut door panel propped against the teapot, the crew leaning on the saw, Bramble peering inside.\nLighting: early morning low sun from left, soft mist, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a tiny fine hand saw rasping through ceramic in slow steady strokes, close-mic ASMR, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -8
+    },
+    {
+     "at": 22,
+     "prompt": "a tiny fine hand saw rasping through ceramic in slow steady strokes, close-mic ASMR, no voices, no music",
+     "durationSec": 3,
+     "gainDb": -8
+    },
+    {
+     "at": 30,
+     "prompt": "a single small ceramic tock as a cut ceramic panel comes free, crisp and close",
+     "durationSec": 1.5,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 44,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 6,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "§4 Windows",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Miso presses the first pane in with a soft click and moves to the next, small toy-like movements.\nAmbient motion: sun glints moving across the panes. Lighting stays warm late-morning sun. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Miso presses the first pane in with a soft click and moves to the next, small toy-like movements.\nAmbient motion: sun glints moving across the panes. Lighting stays warm late-morning sun. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right continues, constant speed, no cuts. Bramble polishes the last pane; all four windows catch the sun, small toy-like movements.\nAmbient motion: sun glints moving across the panes. Lighting stays warm late-morning sun. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Miso fitting a mica window pane, strong blur top and bottom. The teapot on the hill: hand-built\nminiature building site on a mossy hill made from an old, empty round cream ceramic teapot with a hairline crack, no door or windows yet, a toothpick-and-thread scaffold and a thread-spool winch beside it, a giant pencil lying in the moss (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nMiso pressing a small mica pane into a round window hole in the teapot while Bramble polishes the neighbouring pane with a felt cloth.\nLighting: late-morning low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Miso fitting a mica window pane, strong blur top and bottom. The teapot on the hill: hand-built\nminiature building site on a mossy hill made from an old, empty round cream ceramic teapot with a hairline crack, no door or windows yet, a toothpick-and-thread scaffold and a thread-spool winch beside it, a giant pencil lying in the moss (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nFour fitted windows reflecting the sun, Bramble tucking the felt cloth into her apron.\nLighting: late-morning low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft gentle breeze through moss and grass, quiet, seamless, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22,
+     "prompt": "soft gentle breeze through moss and grass, quiet, seamless, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 18,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 60,
+   "label": "§5 Floorboards",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked top-down with a very slow clockwise rotate, constant speed, no cuts. The beetles lay boards one by one and tap them into place with a tiny mallet, small toy-like movements.\nAmbient motion: dust motes drifting in the doorway sunbeam. Lighting stays soft interior bounce light. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked top-down with a very slow clockwise rotate, constant speed, no cuts. The beetles lay boards one by one and tap them into place with a tiny mallet, small toy-like movements.\nAmbient motion: dust motes drifting in the doorway sunbeam. Lighting stays soft interior bounce light. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked top-down with a very slow clockwise rotate continues, constant speed, no cuts. The last boards go in; the crew sits down in a row on the finished floor, small toy-like movements.\nAmbient motion: dust motes drifting in the doorway sunbeam. Lighting stays soft interior bounce light. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the floor being laid inside the teapot, strong blur top and bottom. Inside the teapot bakery: hand-built\nminiature bakery interior made from the curved cream ceramic inner wall of a teapot, coffee-stirrer floorboards, a domed oven of rice-grain clay bricks, toothpick shelves with bead jars and tea-bag flour sacks (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nTop-down into the lidless teapot: the three builder beetles laying coffee-stirrer floorboards in a neat row, half the floor done, a stack of planks by the door.\nLighting: soft interior bounce light with a sunbeam from the doorway, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the floor being laid inside the teapot, strong blur top and bottom. Inside the teapot bakery: hand-built\nminiature bakery interior made from the curved cream ceramic inner wall of a teapot, coffee-stirrer floorboards, a domed oven of rice-grain clay bricks, toothpick shelves with bead jars and tea-bag flour sacks (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nA complete floor of coffee-stirrer boards, the three beetles sitting on the last board.\nLighting: soft interior bounce light with a sunbeam from the doorway, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "tiny wooden mallet tapping small wooden floorboards into place, two soft taps then a board sliding, slow repeating ASMR rhythm, close-mic, no music",
+     "durationSec": 22,
+     "gainDb": -8
+    },
+    {
+     "at": 22,
+     "prompt": "tiny wooden mallet tapping small wooden floorboards into place, two soft taps then a board sliding, slow repeating ASMR rhythm, close-mic, no music",
+     "durationSec": 22,
+     "gainDb": -8
+    },
+    {
+     "at": 44,
+     "prompt": "tiny wooden mallet tapping small wooden floorboards into place, two soft taps then a board sliding, slow repeating ASMR rhythm, close-mic, no music",
+     "durationSec": 16,
+     "gainDb": -8
+    },
+    {
+     "at": 0,
+     "prompt": "a single sparse fingerpicked nylon guitar motif repeating softly with lots of space, very quiet, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -24
+    },
+    {
+     "at": 22,
+     "prompt": "a single sparse fingerpicked nylon guitar motif repeating softly with lots of space, very quiet, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -24
+    },
+    {
+     "at": 44,
+     "prompt": "a single sparse fingerpicked nylon guitar motif repeating softly with lots of space, very quiet, instrumental, no vocals",
+     "durationSec": 16,
+     "gainDb": -24
+    }
+   ]
+  },
+  {
+   "sec": 60,
+   "label": "§6 The oven",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow push-in, constant speed, no cuts. Bramble lays bricks course by course, pressing each into the mortar, small toy-like movements.\nAmbient motion: clay dust, a warm sunbeam through the arch. Lighting stays warm interior practical. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow push-in, constant speed, no cuts. Bramble lays bricks course by course, pressing each into the mortar, small toy-like movements.\nAmbient motion: clay dust, a warm sunbeam through the arch. Lighting stays warm interior practical. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow push-in continues, constant speed, no cuts. The dome closes; Bramble smooths the seams with a paintbrush and taps the crown, small toy-like movements.\nAmbient motion: clay dust, a warm sunbeam through the arch. Lighting stays warm interior practical. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on Bramble building a clay brick oven, strong blur top and bottom. Inside the teapot bakery: hand-built\nminiature bakery interior made from the curved cream ceramic inner wall of a teapot, coffee-stirrer floorboards, a domed oven of rice-grain clay bricks, toothpick shelves with bead jars and tea-bag flour sacks (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nBramble setting a rice-grain-sized clay brick onto the second course of a domed oven, a bottlecap of mortar at her side.\nLighting: interior practical lamp glow with honey spill from the doorway, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on Bramble building a clay brick oven, strong blur top and bottom. Inside the teapot bakery: hand-built\nminiature bakery interior made from the curved cream ceramic inner wall of a teapot, coffee-stirrer floorboards, a domed oven of rice-grain clay bricks, toothpick shelves with bead jars and tea-bag flour sacks (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nThe closed brick dome, Bramble smoothing it with a paintbrush, the oven mouth dark and ready.\nLighting: interior practical lamp glow with honey spill from the doorway, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "small clay bricks tucked softly into wet mortar one at a time, gentle tuck sounds with light paintbrush strokes, close-mic ASMR, no music",
+     "durationSec": 22,
+     "gainDb": -10
+    },
+    {
+     "at": 22,
+     "prompt": "small clay bricks tucked softly into wet mortar one at a time, gentle tuck sounds with light paintbrush strokes, close-mic ASMR, no music",
+     "durationSec": 22,
+     "gainDb": -10
+    },
+    {
+     "at": 44,
+     "prompt": "small clay bricks tucked softly into wet mortar one at a time, gentle tuck sounds with light paintbrush strokes, close-mic ASMR, no music",
+     "durationSec": 16,
+     "gainDb": -10
+    },
+    {
+     "at": 0,
+     "prompt": "a single sparse fingerpicked nylon guitar motif repeating softly with lots of space, very quiet, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -24
+    },
+    {
+     "at": 22,
+     "prompt": "a single sparse fingerpicked nylon guitar motif repeating softly with lots of space, very quiet, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -24
+    },
+    {
+     "at": 44,
+     "prompt": "a single sparse fingerpicked nylon guitar motif repeating softly with lots of space, very quiet, instrumental, no vocals",
+     "durationSec": 16,
+     "gainDb": -24
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "§7 Shelves and flour sacks",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly right-to-left, constant speed, no cuts. Miso sets a tea-bag sack down with a puff of flour; Bramble slides bead jars onto a shelf, small toy-like movements.\nAmbient motion: a puff of flour as a sack lands. Lighting stays warm interior practical. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly right-to-left, constant speed, no cuts. Miso sets a tea-bag sack down with a puff of flour; Bramble slides bead jars onto a shelf, small toy-like movements.\nAmbient motion: a puff of flour as a sack lands. Lighting stays warm interior practical. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly right-to-left continues, constant speed, no cuts. The dolly continues across full shelves; Bramble adjusts her spectacles, small toy-like movements.\nAmbient motion: a puff of flour as a sack lands. Lighting stays warm interior practical. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Miso carrying a tea-bag flour sack, strong blur top and bottom. Inside the teapot bakery: hand-built\nminiature bakery interior made from the curved cream ceramic inner wall of a teapot, coffee-stirrer floorboards, a domed oven of rice-grain clay bricks, toothpick shelves with bead jars and tea-bag flour sacks (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nMiso carrying a tea-bag flour sack past toothpick shelves while Bramble arranges bead jars of jam.\nLighting: interior practical lamp glow, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Miso carrying a tea-bag flour sack, strong blur top and bottom. Inside the teapot bakery: hand-built\nminiature bakery interior made from the curved cream ceramic inner wall of a teapot, coffee-stirrer floorboards, a domed oven of rice-grain clay bricks, toothpick shelves with bead jars and tea-bag flour sacks (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nStocked shelves, three tea-bag sacks stacked, Bramble adjusting her spectacles.\nLighting: interior practical lamp glow, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 18,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 30,
+   "label": "§8 Painting the sign",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked 3/4 macro, constant speed, no cuts. Bramble paints the loaf icon and teacup icon in slow strokes, then hangs the sign on its thread hook, small toy-like movements.\nAmbient motion: paint glistening. Lighting stays warm afternoon sun. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a paintbrush on a small wooden sign, strong blur top and bottom. Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nBramble painting a small wooden hanging sign with a terracotta loaf and a cream teacup icon, no letters.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a paintbrush on a small wooden sign, strong blur top and bottom. Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nThe finished icon sign (loaf and teacup, no letters) drying on a thread hook.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "slow close paintbrush strokes on small painted wood, soft bristle ASMR, no music",
+     "durationSec": 22,
+     "gainDb": -10
+    },
+    {
+     "at": 22,
+     "prompt": "slow close paintbrush strokes on small painted wood, soft bristle ASMR, no music",
+     "durationSec": 3,
+     "gainDb": -10
+    },
+    {
+     "at": 26,
+     "prompt": "a tiny metal hook clink, small and bright",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 4,
+     "prompt": "fingerpicked nylon guitar playing one gentle rising phrase, warm, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 30,
+   "label": "§9 The lid goes on",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked low heroic angle, constant speed, no cuts. The beetles lower the lid inch by inch; Miso guides it; it settles with a soft ceramic clink, small toy-like movements.\nAmbient motion: the thread swaying slightly. Lighting stays late golden hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the teapot lid on a thread pulley, strong blur top and bottom. Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nThe teapot lid hanging from a thread pulley on a pencil crane just above the open teapot, the three builder beetles hauling the thread, Miso guiding the lid's edge from the scaffold.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the teapot lid on a thread pulley, strong blur top and bottom. Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nThe lid seated on the teapot, the chimney pipe poking through the knob, the crew cheering with raised caps.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a tiny rope creaking and a small pulley squeaking slowly as something is lowered, gentle, close, no music",
+     "durationSec": 22,
+     "gainDb": -12
+    },
+    {
+     "at": 22,
+     "prompt": "a tiny rope creaking and a small pulley squeaking slowly as something is lowered, gentle, close, no music",
+     "durationSec": 3,
+     "gainDb": -12
+    },
+    {
+     "at": 0,
+     "prompt": "fingerpicked nylon guitar holding a gentle suspended chord, soft anticipation, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 26,
+     "prompt": "a soft ceramic clink as a teapot lid settles into place, satisfying, clean",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 26,
+     "prompt": "fingerpicked nylon guitar resolving to a warm major chord, single strum, gentle decay, instrumental",
+     "durationSec": 4,
+     "gainDb": -18
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "sec": 50,
+   "label": "§10 First loaf",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in, constant speed, no cuts. Bramble slides the loaf in and closes the little iron oven door; the glow pulses through the gap, small toy-like movements.\nAmbient motion: oven glow flickering gently, steam. Lighting stays warm oven glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in, constant speed, no cuts. Bramble slides the loaf in and closes the little iron oven door; the glow pulses through the gap, small toy-like movements.\nAmbient motion: oven glow flickering gently, steam. Lighting stays warm oven glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in continues, constant speed, no cuts. Bramble opens the door; steam rolls out; she draws out a risen golden loaf on the peel, small toy-like movements.\nAmbient motion: oven glow flickering gently, steam. Lighting stays warm oven glow. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a small dough loaf on a wooden peel, strong blur top and bottom. Inside the teapot bakery: hand-built\nminiature bakery interior made from the curved cream ceramic inner wall of a teapot, coffee-stirrer floorboards, a domed oven of rice-grain clay bricks, toothpick shelves with bead jars and tea-bag flour sacks (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nBramble sliding a small pale dough loaf into the glowing brick oven on a tiny wooden peel.\nLighting: interior practical lamp glow and warm oven glow, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear evening. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a small dough loaf on a wooden peel, strong blur top and bottom. Inside the teapot bakery: hand-built\nminiature bakery interior made from the curved cream ceramic inner wall of a teapot, coffee-stirrer floorboards, a domed oven of rice-grain clay bricks, toothpick shelves with bead jars and tea-bag flour sacks (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nBramble holding a golden-brown loaf on the peel, steam rising, spectacles glinting in the oven glow.\nLighting: interior practical lamp glow and warm oven glow, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear evening. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a soft warm little oven hum with gentle crackling, cozy, quiet, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22,
+     "prompt": "a soft warm little oven hum with gentle crackling, cozy, quiet, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 44,
+     "prompt": "a soft warm little oven hum with gentle crackling, cozy, quiet, no music",
+     "durationSec": 6,
+     "gainDb": -18
+    },
+    {
+     "at": 38,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 4,
+     "gainDb": -8
+    }
+   ]
+  },
+  {
+   "sec": 60,
+   "label": "§11 Opening day",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Bramble opens the door and hangs the sign; the windows glow, small toy-like movements.\nAmbient motion: steam from the chimney, leaves drifting. Lighting stays golden hour with amber windows. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Bramble opens the door and hangs the sign; the windows glow, small toy-like movements.\nAmbient motion: steam from the chimney, leaves drifting. Lighting stays golden hour with amber windows. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right continues, constant speed, no cuts. The frog, beetle and Miso step up; Bramble hands out the first slices, small toy-like movements.\nAmbient motion: steam from the chimney, leaves drifting. Lighting stays golden hour with amber windows. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Bramble at her new door, strong blur top and bottom. Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nFROG (walk-on, batch lock) — an unnamed frog traveller, needle-felted moss-green figurine with a cream belly and tiny black bead eyes, a slate-grey knit scarf, carrying a broad green leaf as an umbrella. About 3 cm tall.\nBEETLE (walk-on, batch lock) — an unnamed beetle customer, hand-painted resin figurine with a glossy walnut-brown shell and a tiny cream knit scarf. About 2 cm long.\nBramble opening the arched door of the finished teapot bakery and hanging the icon sign, Miso, the frog and the beetle waiting on the moss path.\nLighting: golden hour low sun from left with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Bramble at her new door, strong blur top and bottom. Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nFROG (walk-on, batch lock) — an unnamed frog traveller, needle-felted moss-green figurine with a cream belly and tiny black bead eyes, a slate-grey knit scarf, carrying a broad green leaf as an umbrella. About 3 cm tall.\nBEETLE (walk-on, batch lock) — an unnamed beetle customer, hand-painted resin figurine with a glossy walnut-brown shell and a tiny cream knit scarf. About 2 cm long.\nA small queue at the lit door, Bramble handing the first loaf slice to Miso.\nLighting: golden hour low sun from left with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear golden. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "fingerpicked nylon guitar and music box celesta playing together, a full warm gentle phrase, cozy, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "fingerpicked nylon guitar and music box celesta playing together, a full warm gentle phrase, cozy, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 44,
+     "prompt": "fingerpicked nylon guitar and music box celesta playing together, a full warm gentle phrase, cozy, instrumental, no vocals",
+     "durationSec": 16,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 30,
+   "label": "§12 Night on the hill",
+   "lines": [],
+   "videoPrompt": "Night establishing shot of a hand-built miniature bakery made from a cream teapot on a mossy hill above Thimble Town, tilt-shift macro look, starry blue hour, every little window glowing amber, a tiny snail with a lantern lighting a lamp beside the door, smoke from the knob chimney, slow crane up and back, gentle toy-like motion, no people, no text.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the glowing teapot bakery, strong blur top and bottom. Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nNight wide: the finished teapot bakery glowing on the hill, Lumen small at the door lighting the lamp beside it.\nLighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: starry clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "single-shot",
+    "camera_model": "35mm-film",
+    "camera_lens": "halation-vintage",
+    "color_palette": "twilight-fable"
+   },
+   "refs": [
+    "refs/thimble-town/teapot_finished_ref.png",
+    "refs/thimble-town/lumen_ref.png",
+    "refs/thimble-town/town_ref.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 22,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 8,
+     "gainDb": -16
+    },
+    {
+     "at": 6,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    }
+   ]
+  },
+  {
+   "sec": 18,
+   "label": "Outro + end screen (brand pack)",
+   "lines": [],
+   "reuse": {
+    "videoId": "TBD-LF1",
+    "sectionIdx": 13
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle music box and celesta lullaby reprise of a slow three-note motif C, E, G, warm and cozy, slowly winding down and fading out, instrumental, no vocals",
+     "durationSec": 12,
+     "gainDb": -8
+    },
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -16
+    }
+   ]
+  }
+ ],
+ "sting": {
+  "at": 159.25,
+  "sec": 1.5
+ },
+ "watermark": false,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. LF2: teapot silhouette, crack line and window positions constant from §3 on (same set ref for every exterior keyframe); door arch same shape as the chalk outline; icon sign shows no letters at any frame; §9 lid ≤ half the teapot body (~45% width), pencil crane visible, no implied hand on the thread; §5 exactly three builder beetles, no board warping, no texture boiling from the rotation; result-flash (0:00–0:02, last 2s of §12) must be added in the edit — not in this script. Re-time library SFX cues (tink, hero taps) to the landed clips before render."
+}

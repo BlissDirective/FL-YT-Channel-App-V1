@@ -1,0 +1,346 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "She Took the Elevator With 12 Bad Guys",
+ "altTitles": [
+  "Going Up? (Stick Figure Fight)",
+  "Never Share an Elevator With Nova"
+ ],
+ "description": "Nova took the elevator with 12 bad guys. Bolt took the next one. #stickfigure #animation #shorts",
+ "tags": [
+  "stick figure",
+  "animation",
+  "3d animation",
+  "stick fight",
+  "comedy",
+  "INKLIGHT",
+  "Nova",
+  "Bolt",
+  "shorts"
+ ],
+ "topic": "S05 F6 gag loop × F5 implied fight: Nova in the elevator with the goons",
+ "cast": {
+  "Nova": {
+   "color": "#FF3DA5"
+  },
+  "Bolt": {
+   "color": "#22D3EE"
+  }
+ },
+ "sections": [
+  {
+   "label": "S1 Two, please",
+   "sec": 6,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "Two, please.",
+     "at": 3
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, a packed crowd of them. Vertical frame. In a warm marble hotel lobby, ornate brass elevator doors slide open to reveal a tightly packed crowd of goons staring out; Nova steps calmly inside and turns to face front as the doors begin to close. Locked-off symmetrical vertical shot, static camera, 35mm, warm lobby light, blank unmarked brass. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, a packed crowd of them. Vertical frame. In a warm marble hotel lobby, ornate brass elevator doors slide open to reveal a tightly packed crowd of goons staring out; Nova steps calmly inside and turns to face front as the doors begin to close. Locked-off symmetrical vertical shot, static camera, 35mm, warm lobby light, blank unmarked brass. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "a soft warm elevator DING",
+     "durationSec": 1,
+     "gainDb": -4
+    },
+    {
+     "at": 0.3,
+     "prompt": "heavy brass elevator doors sliding open",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 4.0,
+     "prompt": "heavy brass elevator doors sliding closed",
+     "durationSec": 1.8,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 6,
+     "text": "1",
+     "position": "top",
+     "style": "title"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 0.8,
+     "toScale": 1.15,
+     "overSec": 1.0,
+     "holdSec": 3.0
+    }
+   ]
+  },
+  {
+   "label": "S2 Closed doors",
+   "sec": 16,
+   "lines": [],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. Vertical frame. Closed ornate brass elevator doors in a warm marble lobby shudder and bulge outward from heavy impacts inside, dust puffing from the seam, the small lamp above the doors flickering, magenta light flashing through the gap. Locked-off symmetrical vertical shot, static camera, 35mm, warm light, blank unmarked brass. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. Vertical frame. Closed ornate brass elevator doors in a warm marble lobby shudder and bulge outward from heavy impacts inside, dust puffing from the seam, the small lamp above the doors flickering, magenta light flashing through the gap. Locked-off symmetrical vertical shot, static camera, 35mm, warm light, blank unmarked brass. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a muffled fight behind closed metal elevator doors: heavy thuds, bangs and glassy tinks",
+     "durationSec": 16,
+     "gainDb": -8
+    },
+    {
+     "at": 9,
+     "prompt": "a single muffled 'oof' grunt behind a door",
+     "durationSec": 0.7,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 14,
+     "text": "1",
+     "position": "top",
+     "style": "title"
+    },
+    {
+     "at": 14,
+     "durationSec": 2,
+     "text": "2",
+     "position": "top",
+     "style": "title"
+    }
+   ]
+  },
+  {
+   "label": "S3 Two.",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "Two.",
+     "at": 6
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, a heap of them. Vertical frame. Brass elevator doors slide open to reveal a heap of defeated goons dissolving into glowing sparks on the elevator floor, while Nova stands calmly among them, smoothing her curved topknot with one hand. Locked-off symmetrical vertical shot, static camera, 35mm, warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, a heap of them. Vertical frame. Brass elevator doors slide open to reveal a heap of defeated goons dissolving into glowing sparks on the elevator floor, while Nova stands calmly among them, smoothing her curved topknot with one hand. Locked-off symmetrical vertical shot, static camera, 35mm, warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a soft warm elevator DING",
+     "durationSec": 1,
+     "gainDb": -4
+    },
+    {
+     "at": 0.2,
+     "prompt": "heavy brass elevator doors sliding open",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 1,
+     "prompt": "a soft magical sparkle of things dissolving into glittering sparks",
+     "durationSec": 3,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 10,
+     "text": "2",
+     "position": "top",
+     "style": "title"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 0.8,
+     "toScale": 1.15,
+     "overSec": 1.0,
+     "holdSec": 3.0
+    }
+   ],
+   "highlightWords": [
+    "Two"
+   ]
+  },
+  {
+   "label": "S4 Going up?",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Going up?",
+     "at": 2
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. Vertical frame. In a warm marble lobby, Bolt jogs in from the side and steps into an open brass elevator beside Nova, and the doors slide closed. Locked-off symmetrical vertical shot, static camera, 35mm, warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. Vertical frame. In a warm marble lobby, Bolt jogs in from the side and steps into an open brass elevator beside Nova, and the doors slide closed. Locked-off symmetrical vertical shot, static camera, 35mm, warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "quick light jogging footsteps on marble",
+     "durationSec": 2,
+     "gainDb": -10
+    },
+    {
+     "at": 5,
+     "prompt": "heavy brass elevator doors sliding closed",
+     "durationSec": 1.8,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "2",
+     "position": "top",
+     "style": "title"
+    },
+    {
+     "at": 1,
+     "durationSec": 2,
+     "text": "BOLT",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#22D3EE"
+    }
+   ]
+  },
+  {
+   "label": "S5 The dent",
+   "sec": 12,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Ow!",
+     "at": 6
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. Vertical frame. Closed ornate brass elevator doors shudder violently from impacts inside, a long curving scarf-shaped dent bulges outward in the brass, cyan and magenta light flashing through the seam, the lamp above flickering. Locked-off symmetrical vertical shot, static camera, 35mm, warm light, blank unmarked brass. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. Vertical frame. Closed ornate brass elevator doors shudder violently from impacts inside, a long curving scarf-shaped dent bulges outward in the brass, cyan and magenta light flashing through the seam, the lamp above flickering. Locked-off symmetrical vertical shot, static camera, 35mm, warm light, blank unmarked brass. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "bigger muffled fight behind closed metal elevator doors: heavy slams and metal denting, glassy tinks",
+     "durationSec": 12,
+     "gainDb": -6
+    },
+    {
+     "at": 3,
+     "prompt": "a bright light-trail vwoom whoosh",
+     "durationSec": 1,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 10,
+     "text": "2",
+     "position": "top",
+     "style": "title"
+    },
+    {
+     "at": 10,
+     "durationSec": 2,
+     "text": "3",
+     "position": "top",
+     "style": "title"
+    }
+   ]
+  },
+  {
+   "label": "S6 He tripped (loop)",
+   "sec": 12,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "He tripped.",
+     "at": 4
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, several of them. Vertical frame. Brass elevator doors slide open: Nova stands calm and upright, goons lie defeated around her, and Bolt lies flat on the floor tangled in his own cyan scarf; then the doors slide shut again. Locked-off symmetrical vertical shot, static camera, 35mm, warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. GOON: a grey ink extra, a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, crimson ink smears on the shoulders, no accessories, several of them. Vertical frame. Brass elevator doors slide open: Nova stands calm and upright, goons lie defeated around her, and Bolt lies flat on the floor tangled in his own cyan scarf; then the doors slide shut again. Locked-off symmetrical vertical shot, static camera, 35mm, warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "endFrame": {
+    "fromSection": 1
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a soft warm elevator DING",
+     "durationSec": 1,
+     "gainDb": -4
+    },
+    {
+     "at": 0.2,
+     "prompt": "heavy brass elevator doors sliding open",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 9,
+     "prompt": "heavy brass elevator doors sliding closed",
+     "durationSec": 1.8,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 12,
+     "text": "3",
+     "position": "top",
+     "style": "title"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 0.8,
+     "toScale": 1.15,
+     "overSec": 1.0,
+     "holdSec": 3.0
+    }
+   ],
+   "highlightWords": [
+    "He",
+    "tripped"
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "cheesy easy-listening elevator muzak, light bossa nova with soft vibraphone and muted guitar, calm and unbothered, steady tempo, instrumental, no vocals",
+  "gainDb": -16,
+  "underVoDb": -8
+ },
+ "sting": {
+  "at": 5.5,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: She Held the Roof of a Runaway Sky Train"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "S05: Drift — Nova's staff present in every shot; goons stay grey. Limbs — goon heap (S3/S6) tangle; OK if it reads as a heap with no stray limbs pointing out >3 frames. Faces — goon crowd close-ups in S1. Style — the lobby stays 3D, not a flat backdrop. Seam — loop: S6 end = S2 closed doors (KF-S05-02), door framing must match within 3%. Text — no numbers or letters on the doors or the indicator lamp; the floor digits are Remotion labels only. Muzak must run under every cut. Global gate (brief §0.3): accent hue shift >6 frames / missing accessory / size swap = re-roll; 3rd limb or fused limb ≥3 frames = re-roll; any mouth, nose, teeth, brows, skin or human face even 1 frame = reject; flat/white/empty bg, 2D look, lost rim light or blood = re-roll; stitch seam at 30s: position jump >5% width, lighting flip, prop changing hands, screen-direction reversal = regenerate the later segment; any legible or pseudo-glyph text in a plate = mask or re-roll (all real text is Remotion labels). Check sourceSpec width/height/duration every clip."
+}

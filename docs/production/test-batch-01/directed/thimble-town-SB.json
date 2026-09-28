@@ -1,0 +1,152 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "Carving a Pumpkin the Size of a Pea",
+ "altTitles": [
+  "Tiny Pumpkin Carving ASMR",
+  "The Smallest Jack-o'-Lantern in Thimble Town"
+ ],
+ "description": "Bramble carves a pumpkin the size of a pea in Thimble Town. #miniature #asmr #pumpkin",
+ "tags": [
+  "miniature",
+  "diorama",
+  "pumpkin carving",
+  "asmr",
+  "halloween",
+  "autumn",
+  "cozy",
+  "Thimble Town"
+ ],
+ "topic": "Pea-sized pumpkin carving cut-ASMR short (text-label arm)",
+ "sections": [
+  {
+   "sec": 12,
+   "label": "Crunch → it's a pea",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow pull-back, constant speed, no cuts. The knife point crunches into the skin; the camera pulls back to reveal the pea-sized pumpkin beside a needle and a pencil tip, and Bramble carving, small toy-like movements.\nAmbient motion: a bead of pumpkin juice on the blade. Lighting stays golden hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a needle-fine knife point entering orange pumpkin skin, strong blur top and bottom. Noodle Row Harvest Market: hand-built\nminiature autumn market street made from matchbox market stalls with handkerchief awnings, acorn-cap bowls, a ruler-plank long table and pea-sized carved pumpkin lanterns, the tin-can awning of Miso's stand in the background (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nExtreme close-up: a sewing-needle-sized carving knife pressing into the ribbed orange skin of a pea-sized pumpkin; a sewing needle's eye and a pencil tip lie beside it; Bramble out of focus holding the knife.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still air. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a needle-fine knife point entering orange pumpkin skin, strong blur top and bottom. Noodle Row Harvest Market: hand-built\nminiature autumn market street made from matchbox market stalls with handkerchief awnings, acorn-cap bowls, a ruler-plank long table and pea-sized carved pumpkin lanterns, the tin-can awning of Miso's stand in the background (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nMedium macro: Bramble at a spool table with the pea-sized pumpkin, the needle and pencil tip beside it.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still air. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 5,
+     "prompt": "gentle cello pizzicato, soft and playful, slow tempo, cozy autumn, instrumental, no vocals, no drums",
+     "durationSec": 7,
+     "gainDb": -20
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 2,
+     "text": "tiny pumpkin",
+     "position": "top",
+     "style": "title",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 18,
+   "label": "The lid",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked 3/4 macro, constant speed, no cuts. Bramble completes the circle and lifts the lid by the stem, small toy-like movements.\nAmbient motion: fibres. Lighting stays golden hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on the lid circle being cut, strong blur top and bottom. Noodle Row Harvest Market: hand-built\nminiature autumn market street made from matchbox market stalls with handkerchief awnings, acorn-cap bowls, a ruler-plank long table and pea-sized carved pumpkin lanterns, the tin-can awning of Miso's stand in the background (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nBramble cutting a circle around the pumpkin's stem with the tiny knife.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still air. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on the lid circle being cut, strong blur top and bottom. Noodle Row Harvest Market: hand-built\nminiature autumn market street made from matchbox market stalls with handkerchief awnings, acorn-cap bowls, a ruler-plank long table and pea-sized carved pumpkin lanterns, the tin-can awning of Miso's stand in the background (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nBramble lifting the lid by its stem, fibres stretching.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still air. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle cello pizzicato, soft and playful, slow tempo, cozy autumn, instrumental, no vocals, no drums",
+     "durationSec": 18,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 18,
+   "label": "Seeds",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked top-down macro, constant speed, no cuts. Bramble scoops the seeds out spoon by spoon into the acorn cap, small toy-like movements.\nAmbient motion: glistening pulp. Lighting stays golden hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on seeds inside the pumpkin, strong blur top and bottom. Noodle Row Harvest Market: hand-built\nminiature autumn market street made from matchbox market stalls with handkerchief awnings, acorn-cap bowls, a ruler-plank long table and pea-sized carved pumpkin lanterns, the tin-can awning of Miso's stand in the background (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nTop-down into the open pumpkin: Bramble scooping seeds with a tiny spoon into an acorn cap; each seed the size of her paw pad.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still air. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on seeds inside the pumpkin, strong blur top and bottom. Noodle Row Harvest Market: hand-built\nminiature autumn market street made from matchbox market stalls with handkerchief awnings, acorn-cap bowls, a ruler-plank long table and pea-sized carved pumpkin lanterns, the tin-can awning of Miso's stand in the background (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nAn acorn cap full of seeds, the pumpkin clean inside.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still air. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle cello pizzicato, soft and playful, slow tempo, cozy autumn, instrumental, no vocals, no drums",
+     "durationSec": 18,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 25,
+   "label": "The face",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow push-in, constant speed, no cuts. Bramble carves two triangle eyes, then a crooked grin; each piece pops out cleanly, small toy-like movements.\nAmbient motion: curls of flesh dropping. Lighting stays golden hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on the pumpkin's face being carved, strong blur top and bottom. Noodle Row Harvest Market: hand-built\nminiature autumn market street made from matchbox market stalls with handkerchief awnings, acorn-cap bowls, a ruler-plank long table and pea-sized carved pumpkin lanterns, the tin-can awning of Miso's stand in the background (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nBramble carving the first triangle eye into the pumpkin's face, a curl of orange flesh lifting off the blade.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still air. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on the pumpkin's face being carved, strong blur top and bottom. Noodle Row Harvest Market: hand-built\nminiature autumn market street made from matchbox market stalls with handkerchief awnings, acorn-cap bowls, a ruler-plank long table and pea-sized carved pumpkin lanterns, the tin-can awning of Miso's stand in the background (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nThe finished crooked grin and triangle eyes, Bramble peering over her spectacles.\nLighting: golden hour low sun from left, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still air. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle cello pizzicato with a soft music box celesta melody, cozy autumn, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "gentle cello pizzicato with a soft music box celesta melody, cozy autumn, instrumental, no vocals, no drums",
+     "durationSec": 3,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 17,
+   "label": "Glow, and the next one (loop)",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked 3/4 macro, constant speed, no cuts. The grin lights up; Bramble sets it in the glowing row, turns to a fresh uncarved pumpkin and presses the knife point to its skin, small toy-like movements.\nAmbient motion: candle flicker. Lighting stays dusk. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the carved pumpkin at dusk, strong blur top and bottom. Noodle Row Harvest Market: hand-built\nminiature autumn market street made from matchbox market stalls with handkerchief awnings, acorn-cap bowls, a ruler-plank long table and pea-sized carved pumpkin lanterns, the tin-can awning of Miso's stand in the background (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.\nDusk: Bramble lowering a tiny lit tealight on toothpick tongs into the carved pumpkin, a row of already glowing pumpkins behind.\nLighting: blue hour with amber windows and candle-lit pumpkin lanterns, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still air. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "fromSection": 0
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "music box celesta phrase gently resolving to a final soft note, warm, instrumental, no vocals",
+     "durationSec": 16.73,
+     "gainDb": -20
+    }
+   ]
+  }
+ ],
+ "sting": {
+  "at": 5.2,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: Pumpkin Lantern Night in the Tiny Town"
+ },
+ "watermark": true,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. SB: pumpkin stays pea-sized relative to the needle eye (~1.5× the eye length) every beat; face design identical to LF4's (pumpkin face ref); knife never human-scale; carved face symmetrical and consistent through Beat 4; loop point (Beat 5 end = Beat 1 keyframe) no morph or luminance jump; label 'tiny pumpkin' is the only on-screen text (0:00–0:02). Pipeline: sections >30s are chained by the worker as 30s + remainder (not the brief's even split) with one prompt for all segments — check every 30s seam and that the brief's seg-2 action lands; re-time library SFX cues (tink, hero taps) to the landed clips before render."
+}
