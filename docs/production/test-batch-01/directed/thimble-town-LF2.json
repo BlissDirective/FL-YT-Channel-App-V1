@@ -86,9 +86,9 @@
     "color_palette": "oil-ochre"
    },
    "refs": [
-    "refs/thimble-town/teapot_before_ref.png",
-    "refs/thimble-town/town_ref.png",
-    "refs/thimble-town/bramble_ref.png"
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/teapot-before-ref-ec88b3d9b6.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/town-ref-d46a254c44.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/bramble-ref-5b5046e5b0.png"
    ],
    "sfx": [
     {
@@ -611,9 +611,9 @@
     "color_palette": "twilight-fable"
    },
    "refs": [
-    "refs/thimble-town/teapot_finished_ref.png",
-    "refs/thimble-town/lumen_ref.png",
-    "refs/thimble-town/town_ref.png"
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/teapot-finished-ref-c0950bf57b.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/lumen-ref-3a4020a13e.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/town-ref-d46a254c44.png"
    ],
    "sfx": [
     {
