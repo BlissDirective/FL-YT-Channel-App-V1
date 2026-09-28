@@ -21,6 +21,8 @@ These are video-generation estimates at $0.2057/s. They exclude SOUL stills (abo
 2. Put the same value in the cloud environment as `STUDIO_MCP_TOKEN`, and start a new session. The repo's `.mcp.json` reads it for the `studio` connector.
 3. Upgrade the ElevenLabs plan (Creator tier or above).
 
+> **Before every video, read [`../lessons-learned.md`](../lessons-learned.md) and produce through the directed pipeline ([`../directed-pipeline.md`](../directed-pipeline.md)).** The autonomous path described below rewrites briefs, so it is superseded for this batch.
+
 ## Director procedure (per video, via the studio MCP)
 1. **Create the video** in its project (INKLIGHT / Thimble Town / Earthlines) with the brief's final title and topic. Paste the brief's section script as the script. Every gate stays on `assist`.
 2. **Script gate:** check the sections match the brief's SECTION table (seconds, narration, visual prompt), then approve.

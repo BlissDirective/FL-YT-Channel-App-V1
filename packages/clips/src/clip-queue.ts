@@ -259,20 +259,8 @@ async function genOnce(
 /** Single Higgsfield generation that survives a poll timeout: the request id
     is persisted on submit, and a retry resumes it instead of paying twice. */
 async function hfResumable(job: Job, prompt: string, sec: number, imageUrl: string | null): Promise<string> {
-  if (job.provider === "higgsfield" && job.provider_request_id && job.provider_status_url) {
-    try {
-      const st = await fetch(job.provider_status_url, { headers: hfHeaders() });
-      if (st.ok) {
-        const s = (await st.json()) as { status?: string };
-        if (s.status === "queued" || s.status === "in_progress" || s.status === "completed") {
-          console.log(`↩️  ${job.id}: resuming in-flight Higgsfield job ${job.provider_request_id}`);
-          return await hfPoll({ requestId: job.provider_request_id, statusUrl: job.provider_status_url });
-        }
-      }
-    } catch {
-      // fall through to a fresh submit
-    }
-  }
+  const resumed = await hfResumePersisted(job);
+  if (resumed) return resumed;
   const req = hfRequest(job.model, prompt, sec, imageUrl, job.cinema ?? {});
   const h = await hfSubmit(req.endpoint, req.input);
   await db
@@ -280,6 +268,27 @@ async function hfResumable(job: Job, prompt: string, sec: number, imageUrl: stri
     .update({ provider: "higgsfield", provider_request_id: h.requestId, provider_status_url: h.statusUrl })
     .eq("id", job.id);
   return hfPoll(h);
+}
+
+/** Resume a job's persisted Higgsfield request. Returns the video URL, or
+    null ONLY when a fresh submit is safe: no request yet, or Higgsfield says
+    it definitively failed / doesn't know it. A poll timeout or an unreadable
+    status THROWS — it used to be swallowed into a fresh submit, so every
+    retry of a slow Seedance clip paid for a second generation (batch 01). */
+async function hfResumePersisted(job: Job): Promise<string | null> {
+  if (job.provider !== "higgsfield" || !job.provider_request_id || !job.provider_status_url) return null;
+  let status: string | undefined;
+  try {
+    const st = await fetch(job.provider_status_url, { headers: hfHeaders() });
+    if (st.status === 404) return null;
+    if (!st.ok) throw new Error(`status ${st.status}`);
+    status = ((await st.json()) as { status?: string }).status;
+  } catch (err) {
+    throw new Error(`higgsfield status unreadable for ${job.provider_request_id} (${err instanceof Error ? err.message : String(err)}) — not re-submitting`);
+  }
+  if (status === "failed" || status === "nsfw" || status === "canceled") return null;
+  console.log(`↩️  ${job.id}: resuming in-flight Higgsfield job ${job.provider_request_id} (${status})`);
+  return hfPoll({ requestId: job.provider_request_id, statusUrl: job.provider_status_url });
 }
 
 /** True when this job's persisted Higgsfield request is still queued/running
@@ -312,19 +321,20 @@ async function falOnce(endpoint: string, input: Record<string, unknown>): Promis
  */
 async function genResumable(job: Job, endpoint: string, input: Record<string, unknown>): Promise<string> {
   if (job.fal_request_id && job.fal_response_url) {
+    const headers = { Authorization: `Key ${FAL_KEY}` };
+    const statusUrl = `${job.fal_response_url}/status`;
+    let status: string | undefined;
     try {
-      const headers = { Authorization: `Key ${FAL_KEY}` };
-      const statusUrl = `${job.fal_response_url}/status`;
       const st = await fetch(statusUrl, { headers });
-      if (st.ok) {
-        const s = (await st.json()) as { status?: string };
-        if (s.status !== "FAILED" && s.status !== "ERROR") {
-          console.log(`↩️  ${job.id}: resuming in-flight fal job ${job.fal_request_id}`);
-          return await falPoll({ requestId: job.fal_request_id, statusUrl, responseUrl: job.fal_response_url });
-        }
-      }
+      status = st.ok ? ((await st.json()) as { status?: string }).status : undefined;
     } catch {
-      // fall through to a fresh submit
+      status = undefined; // unreadable → fresh submit (fal bills on completion only)
+    }
+    if (status && status !== "FAILED" && status !== "ERROR") {
+      // Poll OUTSIDE the try: a poll timeout must propagate, never fall
+      // through to a fresh submit that pays for a second generation.
+      console.log(`↩️  ${job.id}: resuming in-flight fal job ${job.fal_request_id}`);
+      return falPoll({ requestId: job.fal_request_id, statusUrl, responseUrl: job.fal_response_url });
     }
   }
   const h = await falSubmit(endpoint, input);
@@ -491,11 +501,19 @@ async function makeStitch(
 async function hfQuote(endpoint: string, input: Record<string, unknown>): Promise<{ usd: number; credits: number } | null> {
   try {
     const res = await fetch(`${HF_API}/estimate/${endpoint}`, { method: "POST", headers: hfHeaders(), body: JSON.stringify(input) });
-    if (!res.ok) return null;
-    const j = (await res.json()) as { usd?: number | string; credits?: number | string };
+    const text = await res.text();
+    if (!res.ok) {
+      // Visible in the worker log so a rejected estimate can be diagnosed —
+      // otherwise the ledger silently falls back to the catalog price.
+      console.warn(`💲 estimate ${endpoint} → ${res.status}: ${text.slice(0, 300)}`);
+      return null;
+    }
+    const j = JSON.parse(text) as { usd?: number | string; credits?: number | string };
     const usd = Number(j.usd);
+    if (!Number.isFinite(usd)) console.warn(`💲 estimate ${endpoint}: unexpected body ${text.slice(0, 200)}`);
     return Number.isFinite(usd) ? { usd, credits: Number(j.credits ?? 0) } : null;
-  } catch {
+  } catch (err) {
+    console.warn(`💲 estimate ${endpoint} failed: ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
 }
@@ -598,20 +616,8 @@ async function makeDirected(job: Job, spec: DirectedClipSpec, dir: string): Prom
 }
 
 async function hfResumableRequest(job: Job, req: { endpoint: string; input: Record<string, unknown> }): Promise<string> {
-  if (job.provider === "higgsfield" && job.provider_request_id && job.provider_status_url) {
-    try {
-      const st = await fetch(job.provider_status_url, { headers: hfHeaders() });
-      if (st.ok) {
-        const s = (await st.json()) as { status?: string };
-        if (s.status === "queued" || s.status === "in_progress" || s.status === "completed") {
-          console.log(`↩️  ${job.id}: resuming in-flight Higgsfield job ${job.provider_request_id}`);
-          return await hfPoll({ requestId: job.provider_request_id, statusUrl: job.provider_status_url });
-        }
-      }
-    } catch {
-      // fall through to a fresh submit
-    }
-  }
+  const resumed = await hfResumePersisted(job);
+  if (resumed) return resumed;
   const h = await hfSubmit(req.endpoint, req.input);
   await db
     .from("clip_jobs")

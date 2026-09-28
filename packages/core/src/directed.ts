@@ -602,3 +602,65 @@ export type DirectedClipSpec = {
   generateAudio?: boolean;
   hash: string;
 };
+
+// ── Pre-flight checks (lessons from test batch 01) ────────────────────
+
+/**
+ * Non-fatal problems a brief can carry that would otherwise be silently
+ * absorbed at compile time: a snap-zoom that can't finish inside its section
+ * (the compiler drops it), a label or SFX cue that runs past its section,
+ * dialogue crowding the section end. Surfaced by estimate_directed / import
+ * so the script is fixed BEFORE money is spent.
+ */
+export function directedWarnings(script: DirectedScript): string[] {
+  const out: string[] = [];
+  for (const s of script.sections) {
+    const w = `section ${s.idx + 1}${s.label ? ` (${s.label})` : ""}`;
+    for (const z of s.zooms ?? []) {
+      const end = z.at + 2 * Math.max(2 / 30, z.overSec ?? 0.2) + Math.max(0, z.holdSec ?? 1.2);
+      if (end > s.sec - 1 / 30) out.push(`${w}: zoom at ${z.at}s ends at ${end.toFixed(2)}s, past the ${s.sec}s section — it would be dropped`);
+    }
+    for (const l of s.labels ?? []) {
+      if (l.at + l.durationSec > s.sec + 0.05) out.push(`${w}: label "${l.text}" runs ${(l.at + l.durationSec - s.sec).toFixed(2)}s past the section end`);
+    }
+    for (const c of s.sfx ?? []) {
+      if (c.at >= s.sec) out.push(`${w}: sfx "${c.prompt.slice(0, 40)}" starts after the section ends`);
+    }
+    if (script.format === "short" && s.sec > 30 && !s.model) {
+      out.push(`${w}: ${s.sec}s is stitched from ${Math.ceil(s.sec / 30)} segments — check the seam at 30s in QC`);
+    }
+  }
+  return out;
+}
+
+/**
+ * Voiced-line overlap check, run after lines are synthesized and BEFORE any
+ * clip is queued (clips are ~95% of spend). Returns each line that is still
+ * speaking when the next line starts (absolute timeline seconds).
+ */
+export function lineOverlaps(
+  script: Pick<DirectedScript, "sections">,
+  lines: { sectionIdx: number; lineIdx: number; durationSec: number }[],
+  toleranceSec = 0.15,
+): { sectionIdx: number; lineIdx: number; overlapSec: number }[] {
+  const starts: number[] = [];
+  let t = 0;
+  for (const s of script.sections) {
+    starts.push(t);
+    t += s.sec;
+  }
+  const timed = script.sections
+    .flatMap((s, si) =>
+      s.lines.map((l, li) => {
+        const syn = lines.find((x) => x.sectionIdx === s.idx && x.lineIdx === li);
+        return { sectionIdx: s.idx, lineIdx: li, start: starts[si] + l.at, end: starts[si] + l.at + (syn?.durationSec ?? 0) };
+      }),
+    )
+    .sort((a, b) => a.start - b.start);
+  const out: { sectionIdx: number; lineIdx: number; overlapSec: number }[] = [];
+  for (let i = 0; i < timed.length - 1; i++) {
+    const over = timed[i].end - timed[i + 1].start;
+    if (over > toleranceSec) out.push({ sectionIdx: timed[i].sectionIdx, lineIdx: timed[i].lineIdx, overlapSec: Math.round(over * 100) / 100 });
+  }
+  return out;
+}

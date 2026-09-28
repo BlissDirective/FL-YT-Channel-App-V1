@@ -1,0 +1,50 @@
+# Production lessons learned
+
+**Read this before producing any directed video.** It covers test batch 01, from 2026-09-28 onward. Each lesson says what happened, what it cost, and the standing rule. A **guard** is a rule the code now enforces.
+
+## 1. Development and pipeline
+
+| # | What happened | Cost / impact | Standing rule |
+|---|---|---|---|
+| D1 | The briefs asked for far more than the app could do: verbatim prompts, per-character voices, SFX, music, 9:16, loops and labels. The autonomous pipeline would have rewritten or dropped most of it. | Caught before any spend. | **Audit the brief against the pipeline before spending.** Check that each brief element maps to a field in `docs/production/directed-pipeline.md`. If it doesn't, build the capability first. |
+| D2 | `assets.kind` is a Postgres **enum**. The new kinds (`keyframe`, `keyframe_end`, `bgm`) were rejected, and the insert error was ignored. | One SOUL still was billed and lost. | Check enums and constraints (`pg_enum`, `pg_constraint`) before adding a kind or status. **Guard:** directed asset inserts throw on error (`insertAsset`). |
+| D3 | Errors were swallowed in more places. Higgsfield `/estimate` failures fell back silently to the catalog price. | Real price still unconfirmed. | **Never swallow a provider error silently.** Log status and body, and flag fallbacks such as `priceSource: "catalog"`. |
+| D4 | The MCP client times out after 60s while the server keeps running. Blind retries overlapped with live runs and repeated paid steps. | 5 duplicate SOUL stills (≈ $0.47). | **Guard:** per-video lease (`directed_lease_until`) plus a unique index allowing one open clip job per section. Runs are chunked (about 35s of work, 4 in parallel) and idempotent. Re-call only after a result returns or says `busy`. |
+| D5 | Seedance 2.5 sections of 12–27s take longer than the worker's 280s poll. Each timeout counted as a failed attempt, so after 3 we would have discarded clips Higgsfield was still generating and billing. | Caught while SA was at attempt 2 of 3. | **Guard:** a timeout whose Higgsfield request is still running is re-queued without counting an attempt, and the next pass resumes the same request with no second charge. |
+| D5b | SA section 2 was marked failed by a worker running pre-fix code. The cut then compiled with a still in place of that section and went to render. | One 23s Seedance clip was probably billed on Higgsfield but not collected. | **Guard:** `retry_clips` on a directed video re-queues errored jobs with the saved Higgsfield request, so the finished clip is recovered with no new charge, and pulls the video back from render. Check `clip_jobs` for `error` rows before every render. |
+| D5c | **Double billing.** The "resume" path wrapped its *poll* inside the same `try` as its status check. When a resumed Seedance clip took longer than the 280s poll, the timeout was swallowed and a **fresh generation was submitted** (a new request id each retry). Every slow clip paid 2–3×. Found by reconciling the Higgsfield dashboard ($86.75) with the ledger (about $20). | About $60 of unledgered duplicate generations. | **Guard:** `hfResumePersisted` makes a fresh submit only when Higgsfield says the request failed or doesn't exist; a poll timeout or unreadable status throws. The fal resume path is fixed the same way. **Reconcile the provider dashboard against the ledger after every production session.** Open item: chained multi-segment sections over 30s are still not resume-tracked. |
+| D6 | The `migrate` workflow runs on pushes to **any** branch. | Migrations applied before merge. | Migrations must be additive and safe to re-run (`if not exists`). Never write a destructive migration on a feature branch. |
+| D7 | Pushes that touch `packages/clips/**` start a worker run on the branch code. GitHub keeps only one pending run per concurrency group, so newer pushes cancel older pending runs. | Several cancelled worker runs, with no money lost because requests resume. | **Batch worker changes and avoid pushing worker code mid-production.** Test worker changes locally with `tsc` and tests. |
+| D8 | `e2e-authed` fails on `main` too (5 specs) and is `continue-on-error`. | None. | Not a blocker for merging. Comment once per PR that it fails on `main` as well, and track a real fix separately. |
+| D9 | ElevenLabs Voice Design blocked a prompt containing "childlike". | One retry. | For voice-design prompts, describe **adult** voices ("gentle giant, innocent sense of wonder"). Avoid age words about children. |
+
+## 2. Quality and production
+
+| # | Lesson | Standing rule |
+|---|---|---|
+| Q1 | Output checked on real clips: native **9:16 at 720×1280**, exact target lengths (±0.05s), Seedance native audio present. | Keep `aspect` in the spec, and check `sourceSpec` width, height and duration in QC every time. |
+| Q2 | Our narrator voice reads at about **169 wpm**, measured from the preview. Every Earthlines beat fitted with at least 0.2s spare. | Before import, estimate each line at 169 wpm against its window. **Guard:** voiced lines are checked for overlap after synthesis and **before any clip is queued**. The video pauses with the offending line named. Voice lines cost cents; clips are about 95% of spend. |
+| Q3 | A snap-zoom that can't finish before its section ends is silently dropped by the compiler. INKLIGHT S01's 19s zoom in a 20s section was one. | **Guard:** `estimate_directed` and `import_script` return `warnings` for zooms, labels and SFX that don't fit. Fix every warning before producing. |
+| Q4 | A brief cue like "music stops dead at the CLICK" can't be done with one continuous music bed. | For music that must start or stop on a cue, use timed SFX music cues instead of `music`. Use `music` only for a continuous bed. |
+| Q5 | Frame-1 hooks win on Shorts; a logo before the hook costs viewers. | Frame 1 is the hook. The brand sting (0.5s) goes after it at about 2–6s. The watermark stays on the whole time. Loop Shorts use an `overlay` outro plus `endFrame: {fromSection: 0}`; non-loop Shorts use a `card` outro with a CTA to the long-form video. |
+| Q6 | All real text (labels, HUD, clock, readouts) is composited in the edit, never generated into the picture. | Every video prompt keeps "no text / blank surfaces". On-screen text lives in `labels`. |
+| Q7 | Cinema Studio can't chain from a previous clip's last frame the way the brief's "chained" beats (Earthlines B4b) assumed. | When a brief says chained on Cinema Studio, write the second shot's prompt so it stands alone, and check continuity at that cut in QC. Seedance sections longer than 30s chain automatically. |
+| Q8 | Cast reference sheets are only used by Cinema Studio (`image_urls`). Seedance uses the keyframe alone. | Make reference sheets only for Cinema Studio shots with recurring cast, such as INKLIGHT set-pieces and Thimble Town hard cuts. Don't pay for them on Seedance-only videos. |
+
+## 3. Spend
+
+| # | Lesson | Standing rule |
+|---|---|---|
+| S1 | The pre-flight estimate matched the briefs to within about 10%. The difference is stills, voice, SFX and music, which the briefs left out. | Use `estimate_directed` totals for batch tracking, not the brief's video-only figure. |
+| S2 | SOUL stills take 40–120s, and 4 in parallel can queue past the 120s poll. A timed-out still may still bill. | Keep still concurrency at 4 or fewer. Expect to lose about one still per 20 to timeouts, which is cents. |
+| S3 | Actual first clips cost $2.47 for 12s, $5.55 for 27s and $3.70 for 18s, recorded at the **catalog** $0.2057/s because `/estimate` was rejected. | **The real price is still unconfirmed.** Read the worker log for the `💲 estimate` reason, or check the Higgsfield dashboard. Rescale the budget table if they differ. |
+| S4 | Waste so far is about $0.56 (duplicate and lost stills). There was zero clip waste. | Every new risk of paying twice gets a database or code guard, not just a note. |
+| S4b | Spend reads without paging were cut off at PostgREST's 1000-row cap. `get_cost_summary` reported `entries: 1000`. | **Guard:** `allLedgerRows` pages every ledger read that's shown to the operator. |
+| S5 | The operator removed per-video caps (no spend limit per video, unlimited revision rounds). | Report cost per video and spend against the batch. The batch-level pause at about $2,000 (approved to $2,500) still applies unless the operator removes it. |
+
+## 4. Process
+
+- **Order:** audit the brief, then `estimate_directed` and fix warnings, then `import_script`, then `produce_directed`, repeating the call until `done`. Then wait for the worker, render, QC against the brief's criteria, and revise only the failing sections.
+- **One Short per channel first.** Confirm price, look, loops and QC before any long-form video.
+- **Report per channel** as videos finish: status, spend (the ledger's actual figure plus the price source), issues and QC notes.
+- **Nothing publishes.** Every video stops at Final review.

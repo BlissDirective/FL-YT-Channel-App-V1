@@ -5,6 +5,7 @@ import {
   compileDirectedEdd,
   directedInputFromAssets,
   directedRuntimeSec,
+  lineOverlaps,
   insertEddVersion,
   parseDirectedScript,
   sectionSpokenText,
@@ -362,6 +363,19 @@ async function runDirectedSteps(
   const remaining = steps.length - i;
   if (did.length) await db.from("videos").update({ paused_reason: null }).eq("id", videoId);
   if (remaining > 0) return { ok: true, done: false, did, remaining, status: "GENERATING_ASSETS" };
+
+  // Lesson (batch 01): check dialogue timing BEFORE paying for clips — a line
+  // that runs into the next one means the brief's timing needs fixing, and
+  // clips are ~95% of a video's spend. Pauses instead of queueing.
+  const voiced = directedInputFromAssets(script, await assetsOf(db, videoId), { primary: "#000000" }, "").lines;
+  const overlaps = lineOverlaps(script, voiced);
+  if (overlaps.length) {
+    const msg = overlaps
+      .map((o) => `§${o.sectionIdx + 1} line ${o.lineIdx + 1} overlaps the next line by ${o.overlapSec}s`)
+      .join("; ");
+    await db.from("videos").update({ paused_reason: `dialogue timing — ${msg}. Adjust line \`at\` values, then re-run.` }).eq("id", videoId);
+    return { ok: false, error: `dialogue overlaps before clip spend: ${msg}`, done: false, did, remaining: 0 };
+  }
 
   const queued = await enqueueDirectedClips(db, videoId);
   if (!queued.ok) return { ok: false, error: queued.error, done: false, did, remaining: 0 };

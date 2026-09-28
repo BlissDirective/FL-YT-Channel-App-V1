@@ -152,8 +152,14 @@ export function tileState(v: LibraryVideo): TileState {
     // youtube_video_id / published_at is set) or it carries a stale
     // paused_reason. Without this, such rows land in the Published section yet
     // show a "your turn" badge + gate quick-actions (the reported bug).
+    // An ASSETS_READY row with auto_finish is still generating clips on the
+    // worker, which advances it on its own — not the operator's turn.
     awaitingYou:
-      !live && (GATE_FOR_STATUS[v.status] !== undefined || paused || awaitingUpload),
+      !live &&
+      (paused ||
+        awaitingUpload ||
+        (GATE_FOR_STATUS[v.status] !== undefined &&
+          !(v.status === "ASSETS_READY" && v.auto_finish))),
     failed: !live && paused && /fail/i.test(v.paused_reason ?? ""),
     autopilot: Boolean(v.auto_pilot_run || v.build_run_id || v.auto_finish),
   };

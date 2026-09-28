@@ -5870,6 +5870,25 @@ export async function retryClips(
   const project = await getProject(db, video.project_id);
   if (!project) return { ok: false, error: "Project not found" };
 
+  // Directed videos: never regenerate stills (the brief's keyframes stand).
+  // Re-queue errored clip jobs with attempts reset but the persisted
+  // Higgsfield request KEPT, so the worker resumes (and downloads) a
+  // generation that already ran — no second charge. Pull the video back from
+  // render so the cut is recompiled with the recovered clip.
+  if (video.directed) {
+    const { data: rows } = await db
+      .from("clip_jobs")
+      .update({ status: "queued", attempts: 0, error: null })
+      .eq("video_id", opts.videoId)
+      .eq("status", "error")
+      .select("id");
+    const requeued = (rows ?? []).length;
+    if (requeued > 0 && ["ASSEMBLING", "FINAL_REVIEW"].includes(video.status)) {
+      await db.from("videos").update({ status: "ASSETS_READY", auto_finish: true, paused_reason: null }).eq("id", opts.videoId);
+    }
+    return { ok: true, regenerated: 0, requeued };
+  }
+
   const script = await loadLatestScript(db, opts.videoId);
   const beats = (script?.beats ?? []) as ScriptBeat[];
   const { data: existing } = await db

@@ -19,7 +19,7 @@ import { runIntelligence } from "@/lib/pipeline/intelligence";
 import { recordOperatorDecision, directorStageForStatus } from "@/lib/pipeline/decisions";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
-import { parseDirectedScript } from "@studio/core";
+import { directedWarnings, parseDirectedScript } from "@studio/core";
 import {
   directedMedia,
   estimateDirected,
@@ -34,6 +34,7 @@ import {
 } from "@/lib/pipeline/directed";
 import { designVoice, saveDesignedVoice } from "@/lib/adapters/voice-design";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
+import { allLedgerRows } from "@/lib/pipeline/ledger";
 
 /**
  * studio-mcp tool registry (Phase 9). Each tool exposes a slice of the studio
@@ -345,12 +346,14 @@ export const TOOLS: Tool[] = [
     inputSchema: obj({ projectId: { type: "string", description: "Optional — scope to one project." } }),
     handler: async (a, db) => {
       const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-      let all = db.from("cost_ledger").select("usd, at, project_id");
-      if (str(a.projectId)) all = all.eq("project_id", str(a.projectId));
-      const { data } = await all;
-      const total = (data ?? []).reduce((s, r) => s + Number(r.usd), 0);
-      const month = (data ?? []).filter((r) => r.at >= monthStart).reduce((s, r) => s + Number(r.usd), 0);
-      return { monthUsd: Math.round(month * 100) / 100, totalUsd: Math.round(total * 100) / 100, entries: (data ?? []).length };
+      const data = await allLedgerRows<{ usd: number; at: string; project_id: string | null }>((from, to) => {
+        let q = db.from("cost_ledger").select("usd, at, project_id").order("id").range(from, to);
+        if (str(a.projectId)) q = q.eq("project_id", str(a.projectId));
+        return q;
+      });
+      const total = data.reduce((s, r) => s + Number(r.usd), 0);
+      const month = data.filter((r) => r.at >= monthStart).reduce((s, r) => s + Number(r.usd), 0);
+      return { monthUsd: Math.round(month * 100) / 100, totalUsd: Math.round(total * 100) / 100, entries: data.length };
     },
   },
   {
@@ -404,7 +407,7 @@ export const TOOLS: Tool[] = [
   {
     name: "retry_clips",
     description:
-      "Retry a video's failed clip jobs after a provider outage (e.g. fal balance topped up). Re-renders any keyframe that degraded to a placeholder, then requeues the errored clip jobs for the worker. Voiceover and existing real assets are kept.",
+      "Retry a video's failed clip jobs after a provider outage (e.g. fal balance topped up). Re-renders any keyframe that degraded to a placeholder, then requeues the errored clip jobs for the worker. Voiceover and existing real assets are kept. Directed videos: requeues errored jobs with attempts reset, keeping the persisted Higgsfield request so a finished generation is recovered (no second charge), and pulls the video back from render.",
     inputSchema: obj(
       { videoId: { type: "string", description: "Video whose clip jobs errored." } },
       ["videoId"],
@@ -564,7 +567,9 @@ export const TOOLS: Tool[] = [
     inputSchema: obj({ script: { type: "object" } }, ["script"]),
     handler: async (a) => {
       const parsed = parseDirectedScript(a.script);
-      return parsed.ok ? { ok: true, estimate: estimateDirected(parsed.script) } : { ok: false, errors: parsed.errors };
+      return parsed.ok
+        ? { ok: true, estimate: estimateDirected(parsed.script), warnings: directedWarnings(parsed.script) }
+        : { ok: false, errors: parsed.errors };
     },
   },
   {
@@ -572,7 +577,11 @@ export const TOOLS: Tool[] = [
     description:
       "Create a DIRECTED video from a brief's full section script, executed verbatim (no Claude rewrite, no art-director pass). script = { format: short|long, title, altTitles?, description?, tags?, cast?: {Speaker:{color}}, sections: [{ sec (4–120), lines: [{speaker, text, at}], videoPrompt, keyframePrompt?, endFrame?: {fromSection}|{prompt}, model?: hf-cinema-studio-4|hf-seedance-2-5, controls?, refs?: [storage paths], generateAudio?, sfx?: [{at, prompt, durationSec?, gainDb?}], labels?: [{at, durationSec, text, position?, style?, color?}], zooms?: [{at, toScale?, overSec?, holdSec?}], highlightWords?, transitionOut?: cut|whip|crossfade|dipToBlack, reuse?: {videoId, sectionIdx} }], music?: {prompt, gainDb?, underVoDb?}, sting?: {at, sec}, outro?: {mode: card|overlay, sec, cta?}, watermark?, captions?, qc? }. Lands at the Script gate; nothing is spent.",
     inputSchema: obj({ projectId: { type: "string" }, script: { type: "object" } }, ["projectId", "script"]),
-    handler: async (a, db) => importDirectedScript(db, { projectId: str(a.projectId), script: a.script }),
+    handler: async (a, db) => {
+      const r = await importDirectedScript(db, { projectId: str(a.projectId), script: a.script });
+      const parsed = parseDirectedScript(a.script);
+      return r.ok && parsed.ok ? { ...r, warnings: directedWarnings(parsed.script) } : r;
+    },
   },
   {
     name: "produce_directed",
