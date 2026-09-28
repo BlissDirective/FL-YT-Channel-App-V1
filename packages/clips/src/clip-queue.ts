@@ -67,10 +67,14 @@ const HF_ENDPOINT: Record<string, string> = {
 const isHfModel = (model: string) => model in HF_ENDPOINT;
 const ledgerProviderFor = (model: string) => (isHfModel(model) ? HF_VIDEO_PROVIDER : VIDEO_PROVIDER);
 
-// Per-second price estimates (mirror src/lib/adapters/video-models).
+// Per-second price estimates (mirror src/lib/adapters/video-models). Higgsfield
+// rates are for the 720p every request uses: Seedance 2.5 is $0.4622/s at 720p
+// per Higgsfield's /estimate description (the old $0.2057 was its 480p rate).
+// Cinema Studio 4.0 is token-metered and unconfirmed at 720p, so it is carried
+// at the same rate (never under-ledger).
 const PRICE_PER_SEC: Record<string, number> = {
-  "hf-cinema-studio-4": 0.2057,
-  "hf-seedance-2-5": 0.2057,
+  "hf-cinema-studio-4": 0.4622,
+  "hf-seedance-2-5": 0.4622,
   "seedance-2-fast": 0.022,
   "seedance-2": 0.07,
   "kling-2-5-turbo": 0.07,
@@ -498,6 +502,8 @@ async function makeStitch(
 
 /** Higgsfield's exact quote for a request (null when the estimate endpoint
     is unavailable — the catalog price is then used and flagged). */
+const loggedPricing = new Set<string>();
+
 async function hfQuote(endpoint: string, input: Record<string, unknown>): Promise<{ usd: number; credits: number } | null> {
   try {
     const res = await fetch(`${HF_API}/estimate/${endpoint}`, { method: "POST", headers: hfHeaders(), body: JSON.stringify(input) });
@@ -508,9 +514,16 @@ async function hfQuote(endpoint: string, input: Record<string, unknown>): Promis
       console.warn(`💲 estimate ${endpoint} → ${res.status}: ${text.slice(0, 300)}`);
       return null;
     }
-    const j = JSON.parse(text) as { usd?: number | string; credits?: number | string };
+    const j = JSON.parse(text) as { usd?: number | string; credits?: number | string; pricing_description?: string };
     const usd = Number(j.usd);
-    if (!Number.isFinite(usd)) console.warn(`💲 estimate ${endpoint}: unexpected body ${text.slice(0, 200)}`);
+    if (!Number.isFinite(usd)) {
+      // Higgsfield answers with a pricing description, not a quote. Log it in
+      // full once per endpoint so the rate tables can be checked against it.
+      if (!loggedPricing.has(endpoint)) {
+        loggedPricing.add(endpoint);
+        console.warn(`💲 estimate ${endpoint}: no quote; pricing: ${j.pricing_description ?? text.slice(0, 2000)}`);
+      }
+    }
     return Number.isFinite(usd) ? { usd, credits: Number(j.credits ?? 0) } : null;
   } catch (err) {
     console.warn(`💲 estimate ${endpoint} failed: ${err instanceof Error ? err.message : String(err)}`);

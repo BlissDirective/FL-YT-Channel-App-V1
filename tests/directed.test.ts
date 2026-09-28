@@ -158,10 +158,10 @@ describe("app directed helpers", async () => {
     expect(a.hash).not.toBe(b.hash);
   });
 
-  it("estimates at the catalog rate and flags missing voices", () => {
+  it("estimates at the 720p rate and flags missing voices", () => {
     const e = estimateDirected(script);
     expect(e.generatedSec).toBe(38);
-    expect(e.videoUsd).toBeCloseTo(38 * 0.2057, 2);
+    expect(e.videoUsd).toBeCloseTo(38 * 0.4622, 2);
     expect(missingVoices(script, { voice_id: null, brand_kit: { voiceCast: { Pip: "v1" } } } as never)).toEqual([]);
     expect(missingVoices(script, { voice_id: null, brand_kit: {} } as never)).toEqual(["Pip"]);
   });

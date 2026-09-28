@@ -43,9 +43,17 @@ import type { Project, Video } from "@/lib/db/types";
 
 type Db = ReturnType<typeof createAdminClient>;
 
-/** Catalog per-second price for Higgsfield video (the ledger records the real
-    /estimate quote once a clip runs — this is only the pre-flight estimate). */
-const HF_VIDEO_USD_PER_SEC = 0.2057;
+/** Per-second Higgsfield video price at the 720p we generate (Higgsfield's
+    /estimate pricing description, 2026-09-28: Seedance 2.5 is $0.2056/s at
+    480p, $0.4622/s at 720p, $1.1372/s at 1080p). Cinema Studio 4.0 is
+    token-metered (width x height x 24fps per second) and its exact 720p rate
+    is still unconfirmed, so an unpinned section is estimated at the higher
+    Seedance rate: a pre-flight never under-promises. */
+const HF_VIDEO_USD_PER_SEC: Record<string, number> = {
+  "hf-seedance-2-5": 0.4622,
+  "hf-cinema-studio-4": 0.4622,
+};
+const hfUsdPerSec = (model?: string) => HF_VIDEO_USD_PER_SEC[model ?? ""] ?? 0.4622;
 const ELEVENLABS_USD_PER_1K_CHARS = 0.17;
 const SFX_USD = 0.1;
 const MUSIC_USD_PER_SEC = 0.0017;
@@ -66,13 +74,14 @@ export type DirectedEstimate = {
 export function estimateDirected(script: DirectedScript): DirectedEstimate {
   const gen = script.sections.filter((s) => !s.reuse);
   const generatedSec = gen.reduce((n, s) => n + s.sec, 0);
+  const videoUsd = gen.reduce((n, s) => n + s.sec * hfUsdPerSec(s.model), 0);
   const stills = gen.filter((s) => s.keyframePrompt).length + gen.filter((s) => s.endFrame && "prompt" in s.endFrame).length;
   const chars = script.sections.reduce((n, s) => n + sectionSpokenText(s).length, 0);
   const sfx = script.sections.reduce((n, s) => n + (s.sfx?.length ?? 0), 0);
   const r2 = (n: number) => Math.round(n * 100) / 100;
   const out = {
     generatedSec,
-    videoUsd: r2(generatedSec * HF_VIDEO_USD_PER_SEC),
+    videoUsd: r2(videoUsd),
     stillsUsd: r2(stills * HF_PRICES.soulStandardPerImage),
     voiceUsd: r2((chars / 1000) * ELEVENLABS_USD_PER_1K_CHARS),
     sfxUsd: r2(sfx * SFX_USD),

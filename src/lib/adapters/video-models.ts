@@ -67,14 +67,14 @@ export const VIDEO_MODELS: VideoModel[] = [
   {
     // The other operator-approved lock choice (per project). True
     // image-to-video from our keyframe (image_url = first frame) or
-    // text-to-video; 4–30s. Priced at list ($0.2057/s); the promo rate
-    // ($0.144/s until 2026-10-01) is picked up by the /estimate quote.
+    // text-to-video; 4–30s. Priced at 720p (what every request uses):
+    // $0.4622/s per Higgsfield's pricing description ($0.2056/s is 480p).
     id: "hf-seedance-2-5",
     label: "Higgsfield Seedance 2.5",
     provider: "higgsfield",
     i2v: "bytedance/seedance-2.5/image-to-video",
     t2v: "bytedance/seedance-2.5/text-to-video",
-    usdPerSec: 0.2057,
+    usdPerSec: 0.4622,
     quality: "premium",
     minDurationSec: 4,
     maxDurationSec: 30,
