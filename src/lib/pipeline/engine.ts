@@ -101,6 +101,7 @@ import {
   hfStatus,
   hfSubmit,
   isHiggsfieldLive,
+  sanitizeCinemaControls,
 } from "@/lib/adapters/higgsfield";
 import {
   generateImage,
@@ -5995,7 +5996,14 @@ export async function generateBeatVideo(opts: {
   const prompt = buildVisualPrompt(beat.visualPrompt, project.brand_kit.thumbnailStyle, video.visual_bible ?? null);
   let out: Awaited<ReturnType<typeof generateVideo>>;
   try {
-    out = await generateVideo({ model, prompt, imageUrl, durationSec: dur });
+    out = await generateVideo({
+      model,
+      prompt,
+      imageUrl,
+      durationSec: dur,
+      // The channel's unified Cinema Studio look (genre/lens/palette…).
+      controls: sanitizeCinemaControls((project.brand_kit as { cinemaControls?: unknown }).cinemaControls),
+    });
   } catch (err) {
     // A queue timeout still bills — the job keeps running server-side. Ledger
     // the estimate so spend guards see it (Phase 2: no untracked spend).

@@ -130,6 +130,10 @@ export async function updateProject(
   if (!id) return { error: "Missing project id." };
 
   const visualStyle = String(formData.get("visual_style") ?? "footage") === "stick" ? "stick" : "footage";
+  // The settings form only edits colors/font/thumbnail style — keep any
+  // brand_kit fields it doesn't render (the channel's Cinema Studio defaults).
+  const { data: existing } = await supabase.from("projects").select("brand_kit").eq("id", id).maybeSingle();
+  const keptCinema = (existing?.brand_kit as BrandKit | null)?.cinemaControls;
   // Build the recurring stick character from the cast fields (only when in stick
   // mode, so toggling to footage never wipes a saved cast).
   const stickCast = {
@@ -150,7 +154,7 @@ export async function updateProject(
       audience: String(formData.get("audience") ?? ""),
       angle: String(formData.get("angle") ?? ""),
       tone: String(formData.get("tone") ?? "authoritative"),
-      brand_kit: parseBrandKit(formData),
+      brand_kit: { ...parseBrandKit(formData), ...(keptCinema ? { cinemaControls: keptCinema } : {}) },
       voice_id: String(formData.get("voice_id") ?? "") || null,
       voice_name: String(formData.get("voice_name") ?? "") || null,
       preferred_song_model: String(formData.get("preferred_song_model") ?? "") || null,
