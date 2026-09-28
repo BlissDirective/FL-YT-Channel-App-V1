@@ -63,3 +63,15 @@ A **seamless loop** is a Short whose last frame and sound flow straight back int
 | Music bed | `bgm` | null | |
 
 Migration `0081_directed_production.sql` adds `videos.directed`, `clip_jobs.spec`, `clip_jobs.quote_usd` and `clip_jobs.quote_credits`.
+
+## Resolution and the free validator
+
+`resolution` (`"480p"` | `"720p"`, default 720p) is set per script and applies to every section. Higgsfield charges the same for Seedance 2.5 and Cinema Studio 4.0: **$0.2056/s at 480p, $0.4622/s at 720p** ($0.0214 per 1,000 tokens, where tokens per second = width × height × 24 / 1024).
+
+Before `estimate_directed` or `import_script`, run the free validator. It makes no network calls and spends nothing:
+
+```
+packages/clips/node_modules/.bin/tsx scripts/validate-directed.ts <script.json> [...]
+```
+
+It reports parse errors, `directedWarnings` and dialogue fit at the narrator's 169 wpm on the whole video's timeline, plus generated seconds and video cost at the script's resolution. It exits 1 on any error or warning.

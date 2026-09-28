@@ -17,6 +17,7 @@ import {
   type DirectedSection,
   type EddDb,
   type MusicPlan,
+  HF_USD_PER_SEC,
 } from "@studio/core";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { recordCost } from "@/lib/pipeline/ledger";
@@ -43,17 +44,10 @@ import type { Project, Video } from "@/lib/db/types";
 
 type Db = ReturnType<typeof createAdminClient>;
 
-/** Per-second Higgsfield video price at the 720p we generate (Higgsfield's
-    /estimate pricing description, 2026-09-28: Seedance 2.5 is $0.2056/s at
-    480p, $0.4622/s at 720p, $1.1372/s at 1080p). Cinema Studio 4.0 is
-    token-metered (width x height x 24fps per second) and its exact 720p rate
-    is still unconfirmed, so an unpinned section is estimated at the higher
-    Seedance rate: a pre-flight never under-promises. */
-const HF_VIDEO_USD_PER_SEC: Record<string, number> = {
-  "hf-seedance-2-5": 0.4622,
-  "hf-cinema-studio-4": 0.4622,
-};
-const hfUsdPerSec = (model?: string) => HF_VIDEO_USD_PER_SEC[model ?? ""] ?? 0.4622;
+/** Per-second Higgsfield video price by resolution (Higgsfield's pricing
+    description, 2026-09-28: Seedance 2.5 and Cinema Studio 4.0 both bill
+    $0.2056/s at 480p and $0.4622/s at 720p). */
+const hfUsdPerSec = (script: DirectedScript) => HF_USD_PER_SEC[script.resolution ?? "720p"];
 const ELEVENLABS_USD_PER_1K_CHARS = 0.17;
 const SFX_USD = 0.1;
 const MUSIC_USD_PER_SEC = 0.0017;
@@ -74,7 +68,7 @@ export type DirectedEstimate = {
 export function estimateDirected(script: DirectedScript): DirectedEstimate {
   const gen = script.sections.filter((s) => !s.reuse);
   const generatedSec = gen.reduce((n, s) => n + s.sec, 0);
-  const videoUsd = gen.reduce((n, s) => n + s.sec * hfUsdPerSec(s.model), 0);
+  const videoUsd = generatedSec * hfUsdPerSec(script);
   const stills = gen.filter((s) => s.keyframePrompt).length + gen.filter((s) => s.endFrame && "prompt" in s.endFrame).length;
   const chars = script.sections.reduce((n, s) => n + sectionSpokenText(s).length, 0);
   const sfx = script.sections.reduce((n, s) => n + (s.sfx?.length ?? 0), 0);
@@ -538,6 +532,7 @@ export function directedClipSpec(
     directed: true as const,
     prompt: s.videoPrompt,
     aspect,
+    ...(script.resolution === "480p" ? { resolution: "480p" as const } : {}),
     keyframePath: kf?.storage_path ?? undefined,
     endFramePath,
     refPaths: s.refs?.length ? s.refs : undefined,
