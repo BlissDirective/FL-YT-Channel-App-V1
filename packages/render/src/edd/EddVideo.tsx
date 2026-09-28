@@ -27,6 +27,7 @@ import { EndCard, FONT, FallbackCard, IntroSting, LowerThird, MULTI_IMAGE_MIN_SE
 import { motionCss } from "./motion";
 import { isStraddle, needsOverlap, straddleOverlayStyle, transitionExitStyle, transitionSec } from "./transitions";
 import { EddCaptionPages } from "./EddCaptions";
+import { EndBeatOverlay, LabelOverlay, StingOverlay, WatermarkOverlay } from "./DirectedOverlays";
 
 /**
  * The EDD composition — renders an explicit Edit Decision Document instead of
@@ -124,7 +125,7 @@ export const EddVideo: React.FC<VideoProps> = (props) => {
       )}
       {doc.outro.sec > 0 && (
         <Sequence from={outroStart} durationInFrames={Math.max(1, totalFrames - outroStart)}>
-          <EndCard {...props} compact={doc.meta.format === "short"} />
+          <EndCard {...props} compact={doc.meta.format === "short"} cta={doc.outro.cta} />
         </Sequence>
       )}
 
@@ -140,7 +141,7 @@ export const EddVideo: React.FC<VideoProps> = (props) => {
       )}
 
       {/* ── Overlays ── */}
-      <EddOverlays overlays={doc.tracks.overlays} doc={doc} brand={props.brand} vertical={vertical} totalFrames={totalFrames} />
+      <EddOverlays overlays={doc.tracks.overlays} doc={doc} brand={props.brand} vertical={vertical} totalFrames={totalFrames} projectName={props.projectName} />
     </AbsoluteFill>
   );
 };
@@ -188,7 +189,8 @@ const EddClipScene: React.FC<{
           <Loop durationInFrames={Math.max(1, Math.floor(windowFrames / heroRate))}>
             <OffthreadVideo
               src={media.videoUrl}
-              muted
+              muted={clip.sourceAudioDb == null}
+              volume={clip.sourceAudioDb == null ? 0 : gainToVolume(clip.sourceAudioDb)}
               playbackRate={heroRate}
               startFrom={Math.round(trimIn * FPS)}
               endAt={Math.round(trimOut * FPS)}
@@ -205,7 +207,8 @@ const EddClipScene: React.FC<{
           <Loop durationInFrames={Math.max(1, Math.round(windowFrames / clipSpeed))}>
             <OffthreadVideo
               src={media.videoUrl}
-              muted
+              muted={clip.sourceAudioDb == null}
+              volume={clip.sourceAudioDb == null ? 0 : gainToVolume(clip.sourceAudioDb)}
               playbackRate={clipSpeed}
               startFrom={Math.round(trimIn * FPS)}
               endAt={Math.round(trimOut * FPS)}
@@ -247,7 +250,41 @@ const EddAudioCue: React.FC<{
   edd: EddPayload;
   totalFrames: number;
 }> = ({ cue, doc, edd, totalFrames }) => {
-  if (cue.kind === "music") return null; // D8 — gated off in v1
+  if (cue.kind === "music") {
+    // Directed beds (D8 is lifted only for directed documents — the validator
+    // still gates agent/human music). Fixed ducking under every VO cue with a
+    // short ramp; the bed fades over the final 1.5s.
+    const url = edd.audio[cue.assetId];
+    if (!url) return null;
+    const from = Math.round(cue.start * FPS);
+    const base = gainToVolume(cue.gainDb);
+    const duckDb = cue.duck.mode === "fixed" ? cue.duck.underVoDb : cue.duck.mode === "sidechain" ? -cue.duck.depthDb : 0;
+    const duck = gainToVolume(Math.min(0, duckDb));
+    const windows = doc.tracks.audio.flatMap((c) =>
+      c.kind === "vo" ? [{ s: c.start, e: c.start + (c.trim ? c.trim.out - c.trim.in : edd.audioDurations?.[c.assetId] ?? 3) }] : [],
+    );
+    const RAMP = 0.25;
+    const endSec = totalFrames / FPS;
+    return (
+      <Sequence from={from} durationInFrames={Math.max(1, totalFrames - from)} layout="none">
+        <Audio
+          src={url}
+          volume={(f) => {
+            const t = cue.start + f / FPS;
+            let k = 0; // 0 = full bed, 1 = fully ducked
+            for (const w of windows) {
+              if (t >= w.s - RAMP && t <= w.e + RAMP) {
+                const edge = Math.min(t - (w.s - RAMP), w.e + RAMP - t);
+                k = Math.max(k, Math.min(1, edge / RAMP));
+              }
+            }
+            const fade = Math.min(1, Math.max(0, (endSec - t) / 1.5));
+            return base * (1 - k + k * duck) * fade;
+          }}
+        />
+      </Sequence>
+    );
+  }
 
   if (cue.kind === "vo") {
     const url = edd.audio[cue.assetId];
@@ -287,7 +324,8 @@ const EddOverlays: React.FC<{
   brand: VideoProps["brand"];
   vertical: boolean;
   totalFrames: number;
-}> = ({ overlays, doc, brand, vertical, totalFrames }) => {
+  projectName: string;
+}> = ({ overlays, doc, brand, vertical, totalFrames, projectName }) => {
   // Highlight overlays reuse the curated kinetic-highlight renderer: absolute
   // ms map directly because HighlightLayer mounts its own Sequences from ms.
   const highlights: Highlight[] = overlays.flatMap((o, i) => {
@@ -326,6 +364,28 @@ const EddOverlays: React.FC<{
               durationInFrames={Math.max(1, Math.round(o.durationSec * FPS))}
             >
               <LowerThird brand={brand} text={o.text} sub={o.sub} />
+            </Sequence>
+          );
+        }
+        if (o.kind === "label" || o.kind === "sting" || o.kind === "endBeat") {
+          const from = Math.round(o.startSec * FPS);
+          const dur = Math.max(1, Math.min(totalFrames - from, Math.round(o.durationSec * FPS)));
+          return (
+            <Sequence key={`${o.kind}-${i}`} from={from} durationInFrames={dur}>
+              {o.kind === "label" ? (
+                <LabelOverlay text={o.text} position={o.position} style={o.style} color={o.color} brand={brand} vertical={vertical} />
+              ) : o.kind === "sting" ? (
+                <StingOverlay projectName={projectName} brand={brand} vertical={vertical} />
+              ) : (
+                <EndBeatOverlay projectName={projectName} cta={o.cta} brand={brand} vertical={vertical} />
+              )}
+            </Sequence>
+          );
+        }
+        if (o.kind === "watermark") {
+          return (
+            <Sequence key={`wm-${i}`} durationInFrames={totalFrames}>
+              <WatermarkOverlay text={o.text} opacity={o.opacity} brand={brand} vertical={vertical} />
             </Sequence>
           );
         }

@@ -330,6 +330,9 @@ export type Video = {
   autofix_enabled: boolean | null;
   /** MVDA: the active Edit Decision Document version (null = legacy render). */
   edit_document_version: number | null;
+  /** Directed production (0081): the script is a brief executed verbatim —
+      every autonomous rewrite pass is off. */
+  directed?: boolean;
   /** MVDA conflict #2: clips done → the agent worker claims this flag and
       runs the cut session before the video reaches the CUT gate. */
   edit_session_requested: boolean;

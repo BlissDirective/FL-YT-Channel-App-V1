@@ -381,10 +381,11 @@ export function captionTokenStyle(
   };
 }
 
-export const EndCard: React.FC<VideoProps & { compact?: boolean }> = ({
+export const EndCard: React.FC<VideoProps & { compact?: boolean; cta?: string }> = ({
   projectName,
   brand,
   compact,
+  cta,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -411,10 +412,16 @@ export const EndCard: React.FC<VideoProps & { compact?: boolean }> = ({
         >
           Subscribe to {projectName}
         </div>
-        {!compact && (
-          <div style={{ color: "white", fontSize: 30, marginTop: 28, opacity: 0.85 }}>
-            New videos every week
+        {cta ? (
+          <div style={{ color: "white", fontSize: compact ? 38 : 32, marginTop: 28, opacity: 0.92, fontWeight: 700 }}>
+            {cta}
           </div>
+        ) : (
+          !compact && (
+            <div style={{ color: "white", fontSize: 30, marginTop: 28, opacity: 0.85 }}>
+              New videos every week
+            </div>
+          )
         )}
       </div>
     </AbsoluteFill>

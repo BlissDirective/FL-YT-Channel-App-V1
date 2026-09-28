@@ -1,0 +1,168 @@
+import { describe, expect, it } from "vitest";
+import {
+  buildDirectedEddContext,
+  compileDirectedEdd,
+  directedRuntimeSec,
+  parseDirectedScript,
+  snapZoomMotion,
+  validateEdd,
+  type DirectedScript,
+} from "@studio/core";
+
+const P = "Cinematic 3D animated film, verbatim prompt.";
+
+function s01(): unknown {
+  return {
+    format: "short",
+    title: "The Button Said DO NOT PRESS",
+    cast: { Pip: { color: "#FFB020" }, Brick: { color: "#7CFF4F" } },
+    sections: [
+      { sec: 10, videoPrompt: P, keyframePrompt: "KF 1", lines: [{ speaker: "Pip", text: "...Just a little look.", at: 1.5 }],
+        labels: [{ at: 0.5, durationSec: 9, text: "DO NOT PRESS", position: "center" }], zooms: [{ at: 4.5 }] },
+      { sec: 20, videoPrompt: P, keyframePrompt: "KF 2", lines: [{ speaker: "Pip", text: "Don't. Don't. Don't.", at: 4 }, { speaker: "Pip", text: "I'm not gonna.", at: 14 }],
+        highlightWords: ["DON'T"], sfx: [{ at: 2, prompt: "casual whistle" }] },
+      { sec: 8, videoPrompt: P, keyframePrompt: "KF 5", lines: [], endFrame: { fromSection: 0 }, model: "hf-seedance-2-5" },
+    ],
+    music: { prompt: "clarinet noodling" },
+    sting: { at: 2.5, sec: 0.5 },
+    outro: { mode: "overlay", sec: 2.5, cta: "Full episode → INKLIGHT" },
+  };
+}
+
+describe("parseDirectedScript", () => {
+  it("accepts a brief and keeps text verbatim", () => {
+    const r = parseDirectedScript(s01());
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.script.sections[0].videoPrompt).toBe(P);
+    expect(r.script.sections[1].lines.map((l) => l.text)).toEqual(["Don't. Don't. Don't.", "I'm not gonna."]);
+    expect(r.script.sections[2].endFrame).toEqual({ fromSection: 0 });
+    expect(r.script.watermark).toBe(true);
+    expect(directedRuntimeSec(r.script)).toBe(38); // overlay outro sits inside the body
+  });
+
+  it("reports every problem at once", () => {
+    const bad = s01() as { sections: Record<string, unknown>[] };
+    bad.sections[0].sec = 2;
+    bad.sections[1].videoPrompt = "";
+    bad.sections[2].model = "veo-3";
+    const r = parseDirectedScript(bad);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.errors.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("rejects a loop end frame pointing at a section with no keyframe", () => {
+    const bad = s01() as { sections: Record<string, unknown>[] };
+    delete bad.sections[0].keyframePrompt;
+    const r = parseDirectedScript(bad);
+    expect(r.ok).toBe(false);
+  });
+
+  it("rejects a line outside its section", () => {
+    const bad = s01() as { sections: { lines: { at: number }[] }[] };
+    bad.sections[0].lines[0].at = 12;
+    expect(parseDirectedScript(bad).ok).toBe(false);
+  });
+});
+
+describe("compileDirectedEdd", () => {
+  const script = (parseDirectedScript(s01()) as { script: DirectedScript }).script;
+  const doc = compileDirectedEdd({
+    script,
+    sections: [
+      { idx: 0, assetId: "c0", sourceSec: 10, isVideo: true },
+      { idx: 1, assetId: "c1", sourceSec: 20, isVideo: true },
+      { idx: 2, assetId: "c2", sourceSec: 8, isVideo: true },
+    ],
+    lines: [
+      { sectionIdx: 0, lineIdx: 0, assetId: "l00", durationSec: 1.4, words: [{ w: "...Just", start: 0, end: 0.3 }, { w: "a", start: 0.3, end: 0.4 }, { w: "little", start: 0.4, end: 0.8 }, { w: "look.", start: 0.8, end: 1.3 }] },
+      { sectionIdx: 1, lineIdx: 0, assetId: "l10", durationSec: 1.8, words: [{ w: "Don't.", start: 0, end: 0.5 }, { w: "Don't.", start: 0.6, end: 1.1 }, { w: "Don't.", start: 1.2, end: 1.7 }] },
+      { sectionIdx: 1, lineIdx: 1, assetId: "l11", durationSec: 1.0, words: [{ w: "I'm", start: 0, end: 0.2 }, { w: "not", start: 0.2, end: 0.5 }, { w: "gonna.", start: 0.5, end: 0.9 }] },
+    ],
+    sfx: [{ sectionIdx: 1, cueIdx: 0, assetId: "sfx0" }],
+    music: { assetId: "m0" },
+    brand: { primary: "#FFB020" },
+    channelName: "INKLIGHT",
+  });
+
+  it("uses the brief's seconds, not VO length", () => {
+    expect(doc.tracks.video.map((c) => [c.start, c.duration])).toEqual([[0, 10], [10, 20], [30, 8]]);
+    expect(doc.meta.targetDurationSec).toBe(38);
+    expect(doc.meta.aspect).toBe("9:16");
+    expect(doc.tracks.video[2].silent).toBe(true);
+  });
+
+  it("places lines, sfx and music at scripted offsets", () => {
+    const vo = doc.tracks.audio.filter((a) => a.kind === "vo");
+    expect(vo.map((a) => a.kind === "vo" && a.start)).toEqual([1.5, 14, 24]);
+    const sfx = doc.tracks.audio.find((a) => a.kind === "sfx");
+    expect(sfx && sfx.kind === "sfx" && sfx.at).toEqual({ kind: "abs", sec: 12 });
+    expect(doc.tracks.audio.some((a) => a.kind === "music")).toBe(true);
+  });
+
+  it("emphasizes highlight words and emits overlays", () => {
+    const toks = doc.tracks.captions.flatMap((p) => p.tokens);
+    expect(toks.filter((t) => t.emphasis === "color").map((t) => t.text)).toEqual(["Don't.", "Don't.", "Don't."]);
+    const kinds = doc.tracks.overlays.map((o) => o.kind).sort();
+    expect(kinds).toEqual(["endBeat", "label", "sting", "watermark"]);
+  });
+
+  it("validates against the directed context", () => {
+    const assets = [
+      ...["c0", "c1", "c2"].map((id, i) => ({ id, kind: "clip", meta: { durationSec: [10, 20, 8][i] } })),
+      ...["l00", "l10", "l11"].map((id) => ({ id, kind: "vo", meta: { durationSec: 1.5 } })),
+      { id: "sfx0", kind: "sfx", meta: {} },
+      { id: "m0", kind: "bgm", meta: {} },
+    ];
+    const v = validateEdd(doc, buildDirectedEddContext(assets, script));
+    expect(v.errors).toEqual([]);
+  });
+});
+
+describe("snapZoomMotion", () => {
+  it("builds a punch-in that returns to 1× and covers the clip", () => {
+    const m = snapZoomMotion([{ at: 4.5 }], 10);
+    expect(m.kind).toBe("keyframes");
+    if (m.kind !== "keyframes") return;
+    expect(m.points[0].t).toBe(0);
+    expect(m.points.at(-1)!.t).toBe(10);
+    expect(Math.max(...m.points.map((p) => p.scale))).toBeCloseTo(1.35);
+  });
+  it("drops a zoom that does not fit", () => {
+    expect(snapZoomMotion([{ at: 9.5 }], 10).kind).toBe("none");
+  });
+});
+
+describe("app directed helpers", async () => {
+  const { directedClipSpec, estimateDirected, missingVoices } = await import("@/lib/pipeline/directed");
+  const script = (parseDirectedScript(s01()) as { script: DirectedScript }).script;
+  const assets = [
+    { id: "k0", kind: "keyframe", beat_index: 0, storage_path: "videos/v/keyframe-0.png", meta: {} },
+    { id: "k2", kind: "keyframe", beat_index: 2, storage_path: "videos/v/keyframe-2.png", meta: {} },
+  ];
+
+  it("builds a verbatim 9:16 spec with the loop end frame", () => {
+    const spec = directedClipSpec(script, script.sections[2], assets, { genre: "action" }, "hf-seedance-2-5");
+    expect(spec.prompt).toBe(P);
+    expect(spec.aspect).toBe("9:16");
+    expect(spec.keyframePath).toBe("videos/v/keyframe-2.png");
+    expect(spec.endFramePath).toBe("videos/v/keyframe-0.png");
+    expect(spec.controls).toBeUndefined(); // Cinema look never rides a Seedance request
+  });
+
+  it("merges cinema controls for Cinema Studio and hashes the spec", () => {
+    const a = directedClipSpec(script, script.sections[0], assets, { genre: "action", bogus: "x" }, "hf-cinema-studio-4");
+    const b = directedClipSpec(script, { ...script.sections[0], videoPrompt: "changed" }, assets, { genre: "action" }, "hf-cinema-studio-4");
+    expect(a.controls).toEqual({ genre: "action" });
+    expect(a.hash).not.toBe(b.hash);
+  });
+
+  it("estimates at the catalog rate and flags missing voices", () => {
+    const e = estimateDirected(script);
+    expect(e.generatedSec).toBe(38);
+    expect(e.videoUsd).toBeCloseTo(38 * 0.2057, 2);
+    expect(missingVoices(script, { voice_id: null, brand_kit: { voiceCast: { Pip: "v1" } } } as never)).toEqual([]);
+    expect(missingVoices(script, { voice_id: null, brand_kit: {} } as never)).toEqual(["Pip"]);
+  });
+});
