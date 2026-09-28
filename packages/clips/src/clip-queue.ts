@@ -1021,6 +1021,19 @@ async function claimAndRun(): Promise<boolean> {
       await processJob(runJob);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      // Our poll window ran out but Higgsfield is still generating (and will
+      // bill): that is not a failed attempt. Re-queue WITHOUT spending an
+      // attempt so the next pass resumes the same request instead of giving
+      // up on a clip we are paying for. Bounded by the job's own lifetime:
+      // Higgsfield reports failed/completed eventually.
+      if (/timed out/i.test(msg) && isHfModel(runJob.model)) {
+        const { data: fresh } = await db.from("clip_jobs").select("*").eq("id", job.id).maybeSingle();
+        if (fresh && (await hfStillRunning(fresh as Job))) {
+          console.log(`⏳ ${job.id}: still generating on Higgsfield — re-queued (attempt not counted)`);
+          await db.from("clip_jobs").update({ status: "queued", attempts: attempts - 1, error: msg }).eq("id", job.id);
+          return true;
+        }
+      }
       if (attempts < MAX_ATTEMPTS) {
         // Re-queue so the next pass walks to the next model in the chain.
         console.error(`❌ ${job.id}: ${msg} — re-queuing for fallback (attempt ${attempts}/${MAX_ATTEMPTS})`);
