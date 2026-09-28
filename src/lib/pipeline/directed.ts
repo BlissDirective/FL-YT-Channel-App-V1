@@ -48,6 +48,8 @@ const HF_VIDEO_USD_PER_SEC = 0.2057;
 const ELEVENLABS_USD_PER_1K_CHARS = 0.17;
 const SFX_USD = 0.1;
 const MUSIC_USD_PER_SEC = 0.0017;
+/** Asset-stage calls in flight at once. */
+const DIRECTED_CONCURRENCY = 4;
 
 export type DirectedEstimate = {
   generatedSec: number;
@@ -221,6 +223,13 @@ async function assetsOf(db: Db, videoId: string): Promise<DirectedAssetRow[]> {
 
 const metaOf = (a: DirectedAssetRow) => (a.meta ?? {}) as Record<string, unknown>;
 
+/** Insert an asset row and FAIL LOUDLY — a silently dropped row means the
+    paid output is lost and the next run pays for it again. */
+async function insertAsset(db: Db, row: Record<string, unknown>): Promise<void> {
+  const { error } = await db.from("assets").insert(row);
+  if (error) throw new Error(`asset insert (${String(row.kind)}) failed: ${error.message}`);
+}
+
 type Step = { key: string; label: string; run: () => Promise<void> };
 
 /**
@@ -232,7 +241,7 @@ type Step = { key: string; label: string; run: () => Promise<void> };
  */
 export async function runDirectedAssets(db: Db, videoId: string, opts: { budgetMs?: number } = {}): Promise<DirectedStageResult> {
   const started = Date.now();
-  const budgetMs = opts.budgetMs ?? 150_000;
+  const budgetMs = opts.budgetMs ?? 40_000;
   const loaded = await loadDirected(db, videoId);
   if ("error" in loaded) return { ok: false, error: loaded.error, done: false, did: [], remaining: -1 };
   const { video, project, script } = loaded;
@@ -300,19 +309,26 @@ export async function runDirectedAssets(db: Db, videoId: string, opts: { budgetM
     }
   }
 
+  // Parallel batches (Higgsfield/ElevenLabs tolerate a few concurrent calls);
+  // a new batch starts only inside the budget, so one call stays well under
+  // an MCP client's request timeout. Idempotent: re-call to continue.
   const did: string[] = [];
   let i = 0;
-  for (; i < steps.length; i++) {
-    // Leave headroom for the slowest single call (a SOUL still ≈ 60s).
+  while (i < steps.length) {
     if (Date.now() - started > budgetMs) break;
-    try {
-      await steps[i].run();
-      did.push(steps[i].label);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await db.from("videos").update({ paused_reason: `directed ${steps[i].label} failed — ${msg.slice(0, 200)}` }).eq("id", videoId);
-      return { ok: false, error: `${steps[i].label}: ${msg}`, done: false, did, remaining: steps.length - i };
+    const batch = steps.slice(i, i + DIRECTED_CONCURRENCY);
+    const results = await Promise.allSettled(batch.map((st) => st.run()));
+    const failed = results.findIndex((r) => r.status === "rejected");
+    results.forEach((r, k) => r.status === "fulfilled" && did.push(batch[k].label));
+    if (failed >= 0) {
+      const reason = (results[failed] as PromiseRejectedResult).reason;
+      const msg = reason instanceof Error ? reason.message : String(reason);
+      const label = batch[failed].label;
+      await db.from("videos").update({ paused_reason: `directed ${label} failed — ${msg.slice(0, 200)}` }).eq("id", videoId);
+      const remainingNow = steps.length - i - results.filter((r) => r.status === "fulfilled").length;
+      return { ok: false, error: `${label}: ${msg}`, done: false, did, remaining: remainingNow };
     }
+    i += batch.length;
   }
   const remaining = steps.length - i;
   if (remaining > 0) return { ok: true, done: false, did, remaining, status: "GENERATING_ASSETS" };
@@ -329,7 +345,7 @@ async function makeStill(db: Db, video: Video, kind: "keyframe" | "keyframe_end"
   const path = `videos/${video.id}/${kind}-${idx}-${h}.${t.ext}`;
   await uploadMedia(path, out.image, t.ct);
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", kind).eq("beat_index", idx);
-  await db.from("assets").insert({
+  await insertAsset(db, {
     video_id: video.id,
     kind,
     provider: "higgsfield",
@@ -372,7 +388,7 @@ async function makeLine(db: Db, video: Video, project: Project, s: DirectedSecti
     );
   }
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", "vo").eq("beat_index", s.idx).filter("meta->>lineIdx", "eq", String(j));
-  await db.from("assets").insert({
+  await insertAsset(db, {
     video_id: video.id,
     kind: "vo",
     provider: voiceProviderFor(voiceId),
@@ -412,7 +428,7 @@ async function makeSfx(db: Db, video: Video, project: Project, idx: number, j: n
     );
   }
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", "sfx").eq("beat_index", idx).filter("meta->>cueIdx", "eq", String(j));
-  await db.from("assets").insert({
+  await insertAsset(db, {
     video_id: video.id,
     kind: "sfx",
     provider: "elevenlabs-sfx",
@@ -432,7 +448,7 @@ async function makeMusic(db: Db, video: Video, prompt: string, runtimeSec: numbe
   const path = `videos/${video.id}/bgm-${h}.mp3`;
   await uploadMedia(path, Buffer.from(bed.audio), bed.contentType);
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", "bgm");
-  await db.from("assets").insert({
+  await insertAsset(db, {
     video_id: video.id,
     kind: "bgm",
     provider: "elevenlabs-music",
@@ -544,7 +560,7 @@ async function reuseClip(db: Db, video: Video, s: DirectedSection) {
     .maybeSingle();
   if (!data?.storage_path) throw new Error(`reuse source ${src.videoId} §${src.sectionIdx + 1} has no clip`);
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", s.idx);
-  await db.from("assets").insert({
+  await insertAsset(db, {
     video_id: video.id,
     kind: "clip",
     provider: data.provider,
