@@ -577,7 +577,7 @@ export const TOOLS: Tool[] = [
   {
     name: "produce_directed",
     description:
-      "Run (or continue) a directed video's asset stage: SOUL keyframes at native aspect, voiced lines (project voice cast), SFX, music bed, then queue one clip job per section with its exact spec. Chunked + idempotent — call again while done=false. maxUsd is REQUIRED on the first call: refuses when the pre-flight estimate exceeds it.",
+      "Run (or continue) a directed video's asset stage: SOUL keyframes at native aspect, voiced lines (project voice cast), SFX, music bed, then queue one clip job per section with its exact spec. Chunked (~35s of work per call, 4 generations in parallel) + idempotent — call again while done=false. maxUsd is REQUIRED on the first call: refuses when the pre-flight estimate exceeds it.",
     inputSchema: obj(
       {
         videoId: { type: "string" },
@@ -601,7 +601,7 @@ export const TOOLS: Tool[] = [
         await db.from("approvals").insert({ video_id: videoId, gate: "SCRIPT", decision: "approved", decided_by: "mcp", notes: `directed: authorized $${maxUsd}`, decided_at: new Date().toISOString() });
         await db.from("videos").update({ status: "GENERATING_ASSETS", paused_reason: null }).eq("id", videoId);
       }
-      const r = await runDirectedAssets(db, videoId, { budgetMs: 150_000 });
+      const r = await runDirectedAssets(db, videoId, { budgetMs: 35_000 });
       return { ...r, estimate };
     },
   },
