@@ -83,6 +83,10 @@ export type DirectedSection = {
 export type DirectedScript = {
   version: 1;
   format: "short" | "long";
+  /** Generation resolution for every section (default 720p). Higgsfield
+      bills 480p at $0.2056/s and 720p at $0.4622/s (Seedance 2.5 and
+      Cinema Studio 4.0 alike), so this is the main spend lever. */
+  resolution?: "480p" | "720p";
   title: string;
   altTitles?: string[];
   description?: string;
@@ -127,6 +131,7 @@ export function parseDirectedScript(raw: unknown): DirectedParse {
 
   const format = raw.format === "short" || raw.format === "long" ? raw.format : undefined;
   if (!format) err("format must be 'short' or 'long'");
+  if (raw.resolution !== undefined && raw.resolution !== "480p" && raw.resolution !== "720p") err("resolution must be '480p' or '720p'");
   const title = str(raw.title);
   if (!title) err("title required");
   if (!Array.isArray(raw.sections) || raw.sections.length === 0) {
@@ -264,6 +269,7 @@ export function parseDirectedScript(raw: unknown): DirectedParse {
     script: {
       version: 1,
       format: format!,
+      ...(raw.resolution === "480p" ? { resolution: "480p" as const } : {}),
       title: title!,
       altTitles: strList(raw.altTitles),
       description: str(raw.description),
@@ -595,6 +601,8 @@ export type DirectedClipSpec = {
   directed: true;
   prompt: string;
   aspect: "16:9" | "9:16";
+  /** Absent = 720p (keeps pre-existing spec hashes stable). */
+  resolution?: "480p";
   keyframePath?: string;
   endFramePath?: string;
   refPaths?: string[];
@@ -602,6 +610,10 @@ export type DirectedClipSpec = {
   generateAudio?: boolean;
   hash: string;
 };
+
+/** Higgsfield $/s at a resolution (Seedance 2.5 and Cinema Studio 4.0 bill
+    the same token rate: $0.0214 per 1,000 tokens, tokens = w×h×24/1024 per s). */
+export const HF_USD_PER_SEC: Record<"480p" | "720p", number> = { "480p": 0.2056, "720p": 0.4622 };
 
 // ── Pre-flight checks (lessons from test batch 01) ────────────────────
 

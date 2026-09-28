@@ -551,11 +551,11 @@ export function directedRequest(
     return imageUrl
       ? {
           endpoint: "bytedance/seedance-2.5/image-to-video",
-          input: { prompt: spec.prompt, image_url: imageUrl, ...(endUrl ? { end_image_url: endUrl } : {}), duration, resolution: "720p", ...audio },
+          input: { prompt: spec.prompt, image_url: imageUrl, ...(endUrl ? { end_image_url: endUrl } : {}), duration, resolution: spec.resolution ?? "720p", ...audio },
         }
       : {
           endpoint: "bytedance/seedance-2.5/text-to-video",
-          input: { prompt: spec.prompt, duration, resolution: "720p", aspect_ratio: spec.aspect, ...audio },
+          input: { prompt: spec.prompt, duration, resolution: spec.resolution ?? "720p", aspect_ratio: spec.aspect, ...audio },
         };
   }
   const tokens = /<<<image_\d+>>>/.test(spec.prompt);
@@ -566,7 +566,7 @@ export function directedRequest(
     input: {
       prompt,
       duration,
-      resolution: "720p",
+      resolution: spec.resolution ?? "720p",
       aspect_ratio: spec.aspect,
       ...(images.length ? { image_urls: images.slice(0, 30) } : {}),
       ...(spec.controls ?? {}),
@@ -696,7 +696,9 @@ async function stageDirected(videoId: string): Promise<void> {
 async function processJob(job: Job) {
   if (isHfModel(job.model) && !HF_CRED) throw new Error("HIGGSFIELD_API_KEY not set in worker");
   if (!isHfModel(job.model) && !FAL_KEY) throw new Error("FAL_KEY not set in worker");
-  const est = (PRICE_PER_SEC[job.model] ?? 0.05) * job.target_sec;
+  // 480p directed specs bill at the 480p rate (PRICE_PER_SEC is 720p).
+  const resFactor = job.spec?.directed && job.spec.resolution === "480p" ? 0.2056 / 0.4622 : 1;
+  const est = (PRICE_PER_SEC[job.model] ?? 0.05) * job.target_sec * resFactor;
   if (SPEND_CAPS_ENABLED && (await monthVideoSpend()) + est > VIDEO_MONTHLY_CAP_USD) {
     throw new Error(`Monthly video budget reached ($${VIDEO_MONTHLY_CAP_USD})`);
   }
