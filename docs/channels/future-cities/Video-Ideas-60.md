@@ -1,627 +1,661 @@
-# Blueprint Tomorrow: 60 Video Ideas (30 long-form + 30 short-form)
+# Tomorrowscape: 60 Video Ideas (30 long-form + 30 short-form)
 
-> Companion to [Channel-Bible.md](./Channel-Bible.md). Research date 2026-09-27. **[U]** = unverified; re-verify every
-> real-project figure within 7 days of publishing (Bible §9). Default visual controls = Bible §5.2 `BT_DEFAULT`
-> (Cinema Studio 4.0, 720p, epic / calm / modern / clean-sharp / 2020s / twilight-fable, audio off).
+> Companion to [Channel-Bible.md](./Channel-Bible.md) and [Project-Settings.json](./Project-Settings.json). Research date 2026-09-28. **[U]** = unverified.
+> Every idea is **speculative worldbuilding** with a "how it could work" layer; real science is a grounding reference only (Bible §9). Numbers marked [U] are order-of-magnitude estimates to re-check in the script's source table.
 
-**Stitch conventions (apply to every entry):**
+**Conventions (apply to every entry):**
 
-- Every section is its own clip. Sections > 30 s → `ceil(sec/30)` generations chained seamlessly (last frame of N = keyframe of N+1), greedy 30 s chunks, remainder last (never 1–3 s).
-- Section boundaries are the only hard cuts; each entry lists which boundaries get a deliberate hard cut vs a blueprint wipe / dip-to-navy.
-- The 5 s ident (Bible §6.1) and 18 s outro are pre-rendered reusable assets and are **not** counted in totals below. Totals = generated seconds.
-- Cost = generated seconds × $0.2057 (Cinema Studio 4.0 / Seedance 2.5, 720p, final pass only).
-- Shorts are 9:16 (`aspect_ratio: 9:16`, `pacing: dynamic` unless noted); each beat is one clip. Beats ≤30 s are single generations; longer beats (in 120–240 s shorts) use the same seamless split rule.
+- **Default controls** = Bible §5.2 `TS_DEFAULT`: Cinema Studio 4.0, 720p, 16:9, genre epic · pacing calm · camera_model modern · camera_lens anamorphic · era 2020s · color_palette twilight-fable. Entries list only the controls that differ.
+- **Stitching:** every section is its own clip. Sections over 30 s are split into `ceil(sec/30)` generations (greedy 30 s chunks, remainder last, never under 4 s), chained seamlessly: the last frame of segment N becomes the keyframe of N+1. Prompts describe one continuous camera move with continuous secondary motion across boundaries (Bible §5.5).
+- **Hard cuts** occur only at section boundaries. Each entry lists the deliberate ones; all other boundaries use a scan-line wipe or a dip to Deep Void.
+- **Totals** are generated seconds. The 5 s ident and 20 s outro are pre-rendered and reused, so they are not counted. Runtime includes them. Cost = seconds × $0.2057.
+- **Shorts** are 9:16 with `pacing: dynamic`. Each beat is one clip, and beats over 30 s split by the same rule. YouTube Shorts are ≤180 s; longer masters are marked **TikTok/Reels** and come with a 180 s YouTube cut.
+- **On-screen** every city beat carries the `YEAR xxxx · SPECULATIVE` tag, and captions use Bible §8 style.
 
-**Series key:** Megaproject Files (MF) · Built or Busted (BB) · City of 2075 (C75) · Impossible Engineering (IE) · Scale Check (SC) · Climate Frontline (CF)
+**Series key:** How It Could Work (HICW) · Worlds Beyond (WB) · Citizen's Walk (CW) · Build It From Zero (BFZ) · Physics Check (PC) · Machines of Tomorrow (MT) · Shorts: Scale Shock · 60-Second City · Would You Live Here?
 
 ---
 
 ## Long-form (L01–L30)
 
-### L01. What Happened to The Line? NEOM in 2026
-*Alt:* The $500B City That Stopped at 2.4 km · **Series:** Built or Busted · **Target runtime:** ~11:53 (incl. ident + outro)
+### L01. How a Floating City Survives a Category 5 Storm
+*Alt:* Meridian: The Ocean City That Refuses to Sink · **Series:** How It Could Work · **Runtime:** ~11:10 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "This was supposed to be a city 170 kilometres long. In May 2026, the cranes stopped."
-- **Logline:** From the 2021 launch render to the 2026 pause: what was promised, what was dug, what was cut, and what NEOM is building instead (ports, data centres, Oxagon).
-- **Sections:** 1) Cold open: mirror wall in desert, hook **20s** · 2) The 2021 pitch: 170 km, 9M people, zero cars **90s** · 3) How it was supposed to work (spine transit, layered modules) **110s** · 4) The numbers bend: 1.5M → 300K → 100K by 2030 **75s** · 5) What was actually built (excavation, foundations) [labelled approximation] **90s** · 6) Why it paused: PIF priorities, costs, reported $8.8T audit [U] **105s** · 7) What survives: Oxagon, port, data centres **65s** · 8) Could a 2.4 km Line still work? **90s** · 9) Verdict: Built or Busted **45s**
-- **Stitch plan:** 690s generated → **26 generations** (≈$141.93). Seamless multi-segment: §2 The 2021 pitch (90s → 30+30+30); §3 How it was supposed to work (110s → 30+30+30+20); §4 The numbers bend (75s → 30+30+15); §5 What was actually built (90s → 30+30+30); §6 Why it paused (105s → 30+30+30+15); §7 What survives (65s → 30+30+5); §8 Could a 2.4 km Line still work? (90s → 30+30+30); §9 Verdict (45s → 30+15). Hard cuts at the end of the hook (into the ident), into 'The numbers bend' (stamp PAUSED), and into the Verdict. Blueprint wipe into 'How it was supposed to work'.
-- **Cinematography:** Signature 24mm drone rise along the mirrored wall; lateral 35mm truck at base with trucks for scale; top-down section cut of layered modules (blueprint → photoreal); stalled-crane low-angle dolly-back for pause section. Dusk for pitch, flat haze for reality. **Controls vs default:** Pitch sections: default (twilight-fable). Reality sections: genre drama, color_palette industrial-fog. Oxagon: mirage-at-noon.
-- **Narration:** Surveyor at its most measured; let the population numbers land with 1 s pauses. No mockery. **Music/SFX:** Epic synth swell in pitch, drops to felt piano + wind for pause; stamp thunk on each downgrade.
-- **Thumbnail:** Mirror wall ending abruptly mid-desert, rusted crane. Text: 'IT STOPPED' + red PAUSED stamp.
-- **Vertical cut-downs:** 170 km → 2.4 km in 60s (scale ghost) · The population countdown (1.5M → 100K) · What NEOM builds instead (Oxagon)
+- **Hook (0–5 s, verbatim):** "Two hundred kilometre-per-hour winds. Twelve-metre waves. And forty thousand people asleep on the water."
+- **Logline:** Meridian, a 2160 floating hex-city, is walked through the physics of buoyancy, tethers, breakwaters and flexible joints, then hit with a Category 5 storm to show which systems save it.
+- **Sections:** 1) Cold open: storm wall around a calm hex city **20s** · 2) Why build on water at all **60s** · 3) Buoyancy: concrete hulls that float **90s** · 4) Tethers and the flexible joint grid **90s** · 5) The breakwater ring and wave energy **75s** · 6) Life on a platform: food, water, power **85s** · 7) Storm arrives: the stress test **120s** · 8) What breaks first **60s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 645s generated → **23 generations** (≈$132.68). 9 section clips; seamless multi-segment splits: §2 Why build on water at all (60s → 30+30); §3 Buoyancy (90s → 30+30+30); §4 Tethers and the flexible joint grid (90s → 30+30+30); §5 The breakwater ring and wave energy (75s → 30+30+15); §6 Life on a platform (85s → 30+30+25); §7 Storm arrives (120s → 30+30+30+30); §8 What breaks first (60s → 30+30); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut from calm lagoon (§6) into the storm (§7) with palette flip; scan-line wipe into §3 (schematic hull cutaway); dip-to-void before the verdict.
+- **Cinematography:** 24mm anamorphic aerial push over hexes; underwater 35mm glide down a taut tether; top-down locked cutaway of a hull (schematic A → living B via Seedance); eye-level boardwalk walk with teal-scarf Citizen from behind; storm: low wide on breakwater with spray, slow crane up to the eye. **Controls vs default:** §3–4: color_palette ghost-in-the-code, camera_lens clean-sharp (schematic); §6: the-morning-after-rain; §7: genre action, pacing dynamic, color_palette after-dark; rest default (twilight-fable).
+- **Science grounding:** Displacement: a 1 m draft over a 100 m hex displaces ~8,000 t of seawater; hollow post-tensioned concrete hulls (as in real floating piers/bridges) carry low-rise buildings. Tethers + low centre of gravity limit heave/roll; flexible joints stop wave loads concentrating. A submerged breakwater dissipates wave energy (wave power ∝ H²·T). Grounding: OCEANIX Busan design (BIG/UN-Habitat), Dogen City ring. Tier: STRETCH.
+- **Music/SFX:** Airy pads and marimba for daily life; storm: taiko-like pulses, wind roar, hull creaks, rope-tension groans; verdict returns to the motif.
+- **Thumbnail:** Top-down hex city in the storm's calm eye, cyan-glowing tethers into dark water. Text: 'IT DOESN'T SINK' (SINK gold). Chip STRETCH.
+- **Vertical cut-downs:** Why concrete floats (60s) · The tether trick: top-down wave test (45s) · Storm vs floating home POV (60s)
 
-### L02. The Mukaab: Riyadh's 400-Metre Cube Is a Hole in the Ground
-*Alt:* Inside the Giant Cube Saudi Arabia Paused · **Series:** Built or Busted · **Target runtime:** ~10:23 (incl. ident + outro)
+### L02. Inside a City Built in a Moon Lava Tube
+*Alt:* Selene Deep: The Hidden City Under the Moon · **Series:** Worlds Beyond · **Runtime:** ~10:05 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Twenty Empire State Buildings could fit inside this cube. Right now, it's a very expensive hole."
-- **Logline:** The Mukaab and New Murabba: the design, the 86% excavation, the Jan 2026 suspension, the 2040 target, and what still gets built for Expo 2030.
-- **Sections:** 1) Cold open: cube rising from Riyadh dusk **20s** · 2) The pitch: 400 m cube, immersive dome inside **101s** · 3) Scale check: '20 Empire States' claim tested [U] **76s** · 4) Engineering the interior: spiral tower, holographic dome **101s** · 5) The dig: 10M m³ moved, 86% excavated **86s** · 6) January 2026: suspended **70s** · 7) New Murabba carries on: tunnels, metro, housing **96s** · 8) Verdict **50s**
-- **Stitch plan:** 600s generated → **24 generations** (≈$123.42). Seamless multi-segment: §2 The pitch (101s → 30+30+30+11); §3 Scale check (76s → 30+30+16); §4 Engineering the interior (101s → 30+30+30+11); §5 The dig (86s → 30+30+26); §6 January 2026 (70s → 30+30+10); §7 New Murabba carries on (96s → 30+30+30+6); §8 Verdict (50s → 30+20). Hard cut from dome fantasy to excavation pit (the channel's key render→reality moment). Stamp PAUSED at 'January 2026'.
-- **Cinematography:** Slow 24mm orbital arc around the cube at dusk; interior crane-down through spiral tower (anamorphic); top-down locked excavation pit with trucks; before/after timeline with locked 35mm camera. **Controls vs default:** Interior dome: color_palette a-dream-in-color, camera_lens anamorphic. Pit: static-noon, genre drama.
-- **Narration:** Wry on the '20 Empire States' line; neutral on finance. **Music/SFX:** Low drones, reverberant interior swell; dry construction SFX in pit.
-- **Thumbnail:** Giant dark cube over a tiny city, open pit below. Text: 'THE $50B HOLE'.
-- **Vertical cut-downs:** Empire States in a cube (scale ghost) · Render vs pit split-screen · What 10M m³ of dirt looks like
+- **Hook (0–5 s, verbatim):** "In 2024, radar confirmed a cave under the Moon. This is what could live inside it."
+- **Logline:** From the real Mare Tranquillitatis pit to Selene Deep, a terraced city sealed inside a lava tube: radiation shielding, pressurisation, sunlight pipes and 1/6 g life.
+- **Sections:** 1) Cold open: descending through the skylight pit **25s** · 2) The discovery: radar under the pit **55s** · 3) Why go underground on the Moon **70s** · 4) Sealing the tube: inflatable liners and regolith plugs **90s** · 5) Light: heliostats and light pipes **60s** · 6) Citizen's walk through the terraces **100s** · 7) Farming, water ice and air **75s** · 8) Living at one-sixth gravity **60s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 580s generated → **22 generations** (≈$119.31). 9 section clips; seamless multi-segment splits: §2 The discovery (55s → 30+25); §3 Why go underground on the Moon (70s → 30+30+10); §4 Sealing the tube (90s → 30+30+30); §5 Light (60s → 30+30); §6 Citizen's walk through the terraces (100s → 30+30+30+10); §7 Farming, water ice and air (75s → 30+30+15); §8 Living at one-sixth gravity (60s → 30+30); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut from the grey real-science diagram (§2) into the living city (§6); scan-line reveal inside §4; dip-to-void before verdict.
+- **Cinematography:** Vertical crane-down 24mm through the pit with hard sunlight shaft; schematic cutaway of the tube (locked, 50mm); eye-level gimbal walk along terraces with low-g bounding figures; macro of regolith bricks; slow orbit of heliostat mirrors on the rim. **Controls vs default:** §1–2, §4: color_palette static-noon, camera_lens clean-sharp; §6–7: the-emerald-ambush (farms); §8: default.
+- **Science grounding:** Mini-RF radar (LRO) data show a conduit beneath a ~100 m pit (Nature Astronomy 2024). Several metres of basalt roof block most cosmic rays and micrometeorites; tube interiors hold near-stable temperatures (about -20 °C estimates [U]). Sealed via inflatable liners at 0.5–1 atm; heliostats reflect sunlight during the 14-day lunar day, with stored power for night. Tier: STRETCH.
+- **Music/SFX:** Sparse sub-bass and glassy pads; footfalls muffled; light-pipe shimmer SFX; airlock hiss.
+- **Thumbnail:** Lit terraced city inside a vast cave, sunlight shaft from a pit, tiny astronaut. Text: 'UNDER THE MOON'. Chip STRETCH.
+- **Vertical cut-downs:** The real Moon cave in 45s · Bounding at 1/6 g (POV) · How to bring sunlight 100 m underground
 
-### L03. The Race to 1,000 Metres: Jeddah Tower Is Rising Again
-*Alt:* One Floor a Week: Building the World's Tallest Tower · **Series:** Megaproject Files · **Target runtime:** ~11:23 (incl. ident + outro)
+### L03. How a Walking City Could Actually Work
+*Alt:* Strider: 40,000 People on Eight Legs · **Series:** How It Could Work · **Runtime:** ~10:15 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Every week, this tower gets one floor taller. By 2028 it should pass one kilometre."
-- **Logline:** Why Jeddah Tower stalled for years, how the 2025 restart works, the engineering of a 1 km structure (wind, pumping concrete, lifts), and the 113-floor status of Sept 2026.
-- **Sections:** 1) Cold open: core climbing through cloud **20s** · 2) The stall: 2018–2024 **71s** · 3) Restart: 2025, one floor per week **71s** · 4) Wind: why the three-petal shape matters **120s** · 5) Pumping concrete half a kilometre up **96s** · 6) Lifts that can't use one cable **96s** · 7) Status: 113 floors, ~454 m (Sept 2026) **50s** · 8) Burj vs Jeddah scale check **65s** · 9) Can it make August 2028? **71s**
-- **Stitch plan:** 660s generated → **27 generations** (≈$135.76). Seamless multi-segment: §2 The stall (71s → 30+30+11); §3 Restart (71s → 30+30+11); §4 Wind (120s → 30+30+30+30); §5 Pumping concrete half a kilometre up (96s → 30+30+30+6); §6 Lifts that can't use one cable (96s → 30+30+30+6); §7 Status (50s → 30+20); §8 Burj vs Jeddah scale check (65s → 30+30+5); §9 Can it make August 2028? (71s → 30+30+11). Hard cut into 'The stall' (grey palette) and into 'Status' (HUD data card). Blueprint wipe into the wind section.
-- **Cinematography:** Tilt-up 24mm from base to crown; slow crane-up alongside the climbing core with cranes; engineering close-ups 85mm on formwork; wind visualised as cyan streamlines (blueprint clip A) → photoreal; scale ghost Burj Khalifa beside. **Controls vs default:** Engineering: static-noon. Wind streamlines: ghost-in-the-code. Hero: anamorphic, single-shot.
-- **Narration:** Upbeat but careful: 'targets', 'planned'. Say 'about 454 metres'. **Music/SFX:** Rising ostinato; wind SFX at altitude.
-- **Thumbnail:** Tapering tower piercing clouds, tiny Eiffel silhouette. Text: '1,000 METERS'. BUILDING stamp.
-- **Vertical cut-downs:** One floor a week timelapse · Why the tower has three petals · Jeddah vs Burj scale
+- **Hook (0–5 s, verbatim):** "Forty thousand people live on this city, and every few minutes it takes a step."
+- **Logline:** Strider, a desert city on eight legs, from Archigram's 1964 sketch to real walking-machine engineering: ground pressure, gait, power, and why it walks at 2 km/h.
+- **Sections:** 1) Cold open: a leg lands in the dunes **20s** · 2) 1964: the Walking City sketch **50s** · 3) Why walk? Following water and seasons **60s** · 4) Ground pressure and the giant feet **90s** · 5) Gait: always six legs down **90s** · 6) Power: solar skin and a stored-heat core **75s** · 7) A day aboard while it walks **100s** · 8) Stopping, turning, and storms **60s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 590s generated → **22 generations** (≈$121.36). 9 section clips; seamless multi-segment splits: §2 1964 (50s → 30+20); §3 Why walk? Following water and seasons (60s → 30+30); §4 Ground pressure and the giant feet (90s → 30+30+30); §5 Gait (90s → 30+30+30); §6 Power (75s → 30+30+15); §7 A day aboard while it walks (100s → 30+30+30+10); §8 Stopping, turning, and storms (60s → 30+30); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut from retro 1964 flashback (§2) to photoreal (§3); scan-line wipe into gait schematic (§5); hard cut into verdict.
+- **Cinematography:** Low 35mm tracking shot beside a leg as it lifts and plants (dust plume); retro 35mm-film look for 1964 drawings; side-on locked wide for gait with overlay counting legs; top-down drone following the city's trail of footprints; interior gimbal walk on decks with gentle sway. **Controls vs default:** §2: camera_model 35mm-film, camera_lens warm-vintage, era 1960s; §3–6: color_palette mirage-at-noon; §5: ghost-in-the-code for schematic A; §7: twilight-fable default.
+- **Science grounding:** Ground pressure: a 500,000 t city on 6 planted feet of 40 m diameter is ~660 kPa per foot [U: rough calc, same order as heavy mining crawlers ~250–400 kPa], so feet widen or sand is compacted. Statically stable gait keeps the centre of mass inside the support polygon; hydraulics or electric winches move at ~2 km/h. Square-cube law makes legs mass-limited, hence slow, short steps. Tier: STRETCH/FRONTIER.
+- **Music/SFX:** Deep rhythmic footfall thuds as tempo; low brass; wind across dunes; hydraulic sighs.
+- **Thumbnail:** Low-angle eight-legged city mid-stride over dunes, tiny caravan below. Text: '8 LEGS. 40,000 PEOPLE' (40,000 gold). Chip STRETCH.
+- **Vertical cut-downs:** One step of Strider in 30s (loop) · Why giant feet (ground pressure) · Archigram 1964 vs 2190
 
-### L04. Floating Cities Are Real Now: Busan vs the Maldives
-*Alt:* The Race to Build the First City on Water · **Series:** Climate Frontline · **Target runtime:** ~11:53 (incl. ident + outro)
+### L04. The Underground City Powered by Energy Crystals
+*Alt:* Lumen Vault: Could Crystals Really Power a City? · **Series:** How It Could Work · **Runtime:** ~10:05 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Two countries are racing to build a city that rises with the sea. Neither is finished."
-- **Logline:** OCEANIX Busan (UN-Habitat/BIG) vs Maldives Floating City (Dutch Docklands): design, anchoring, food/water loops, delays, and who'll get people living on the water first.
-- **Sections:** 1) Cold open: hex modules on turquoise water **20s** · 2) Why float? Sea-level stakes **70s** · 3) Busan: three 2-hectare platforms [U] **105s** · 4) How you anchor a neighbourhood **105s** · 5) Maldives: 20K people, brain-coral hexagons **105s** · 6) Closed loops: food, water, energy **85s** · 7) The delays, side by side **75s** · 8) Storms: what happens in a typhoon **75s** · 9) Who wins the race? **50s**
-- **Stitch plan:** 690s generated → **27 generations** (≈$141.93). Seamless multi-segment: §2 Why float? Sea-level stakes (70s → 30+30+10); §3 Busan (105s → 30+30+30+15); §4 How you anchor a neighbourhood (105s → 30+30+30+15); §5 Maldives (105s → 30+30+30+15); §6 Closed loops (85s → 30+30+25); §7 The delays, side by side (75s → 30+30+15); §8 Storms (75s → 30+30+15); §9 Who wins the race? (50s → 30+20). Hard cut between the Busan and Maldives chapters (palette flip). Match-cut hexagon top-downs between the two cities.
-- **Cinematography:** Top-down 24mm drift over hex modules; underwater 35mm shot of anchor tethers (clearly rendered); eye-level walk on a floating promenade; typhoon wave test at dusk (drama). **Controls vs default:** color_palette turquoise-mirage; storm section genre drama, the-investigation.
-- **Narration:** Hopeful but factual; timeline language 'targeting'. **Music/SFX:** Airy ambient, water laps; storm: low percussion.
-- **Thumbnail:** Top-down hex city on turquoise sea. Text: 'NO LAND NEEDED'. Violet CONCEPT stamp.
-- **Vertical cut-downs:** How a floating city is anchored · Brain-coral city from above · Typhoon vs floating home
+- **Hook (0–5 s, verbatim):** "Two kilometres under the rock, a city glows. The light comes from crystals that never go out."
+- **Logline:** Lumen Vault, a geothermal cavern city, tests the 'energy crystal' trope against real crystalline tech: diamond betavoltaics, piezoelectric quartz, thermal salt storage and geothermal heat.
+- **Sections:** 1) Cold open: descent into a glowing cavern **25s** · 2) The trope: magic energy crystals **45s** · 3) Real crystal #1: the diamond battery **80s** · 4) Real crystal #2: piezo and thermal-salt storage **75s** · 5) The real power plant: geothermal heat **80s** · 6) Building the cavern: tunnel boring and rock bolts **75s** · 7) Citizen's walk: light, air and farms underground **95s** · 8) Scaling up: how many crystals per home? **60s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 580s generated → **23 generations** (≈$119.31). 9 section clips; seamless multi-segment splits: §2 The trope (45s → 30+15); §3 Real crystal #1 (80s → 30+30+20); §4 Real crystal #2 (75s → 30+30+15); §5 The real power plant (80s → 30+30+20); §6 Building the cavern (75s → 30+30+15); §7 Citizen's walk (95s → 30+30+30+5); §8 Scaling up (60s → 30+30); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut from fantasy glow (§2) to lab-clean diamond cutaway (§3); scan-line reveal at §6; palette flip to warm in §7.
+- **Cinematography:** Vertical descent 24mm down a shaft into a cavern; macro 85mm crystal lattice with glow; locked schematic of betavoltaic layers; wide gimbal walk along crystal-lit terraces; slow orbit of a geothermal turbine hall. **Controls vs default:** §2: a-dream-in-color; §3–4: ghost-in-the-code, clean-sharp; §5–6: the-iron-borough; §7: the-emerald-ambush; §8: static-noon.
+- **Science grounding:** The C-14 diamond battery (Bristol/UKAEA 2024) is real but microwatt-scale; to power a home (~1 kW) you'd need ~billions of cells, so it's a sensor/pacemaker technology. Piezo quartz converts pressure to tiny currents. Molten-salt/crystalline phase-change storage is grid-scale. The real power: geothermal gradient ~25–30 °C/km; at 2 km, 60–80 °C heat for district heating, deeper for electricity. Verdict: crystals as light and storage (STRETCH); crystals as the power source (FICTION).
+- **Music/SFX:** Crystal hum (sine clusters), drips, low turbine drone; warm pads in the farm section.
+- **Thumbnail:** Vast cavern city lit by cyan-violet crystal pillars, tiny figures on a bridge. Text: 'CRYSTAL POWER?' (CRYSTAL gold). Chip FRONTIER.
+- **Vertical cut-downs:** The real 5,700-year battery · Why energy crystals don't work (Physics Check) · Underground farm tour
 
-### L05. Can We Actually Build a Space Elevator?
-*Alt:* Obayashi's 96,000 km Cable to Orbit · **Series:** Impossible Engineering · **Target runtime:** ~12:23 (incl. ident + outro)
+### L05. Teleportation Stations: Physics Says Almost
+*Alt:* How a Teleport Network Could Actually Work · **Series:** Physics Check · **Runtime:** ~10:00 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "A Japanese construction company says you could ride an elevator to space in seven days."
-- **Logline:** Obayashi's 2050 concept: the 96,000 km carbon-nanotube tether, ocean Earth Port, climbers, counterweight, and the one material problem that blocks it.
-- **Sections:** 1) Cold open: ribbon vanishing into sky from ocean platform **20s** · 2) The idea (Tsiolkovsky to Obayashi) **75s** · 3) Earth Port: 400 m floating base **80s** · 4) The climb: 7 days, stations on the way **150s** · 5) Physics: why geostationary orbit **100s** · 6) The material problem: 3 cm nanotubes **100s** · 7) Hazards: debris, lightning, oscillation **80s** · 8) Cost: ~$100B vs rockets **65s** · 9) Verdict: 2050 or 2150? **50s**
-- **Stitch plan:** 720s generated → **28 generations** (≈$148.10). Seamless multi-segment: §2 The idea (75s → 30+30+15); §3 Earth Port (80s → 30+30+20); §4 The climb (150s → 30+30+30+30+30); §5 Physics (100s → 30+30+30+10); §6 The material problem (100s → 30+30+30+10); §7 Hazards (80s → 30+30+20); §8 Cost (65s → 30+30+5); §9 Verdict (50s → 30+20). Hard cut at 'The material problem' (static-noon lab macro). Seamless long climb across 3 segments.
-- **Cinematography:** Vertical 24mm crane-up along the tether through cloud layers into black sky (3 chained segments, same heading and speed, altitude rising); macro 85mm nanotube lattice; Earth curvature wide. **Controls vs default:** Climb: anamorphic, single-shot, twilight-fable → after-dark; lab: static-noon.
-- **Narration:** Awe for the climb; sober on materials. Mark 2050 as Obayashi's target. **Music/SFX:** Slow ascending pad; altitude wind fades to silence at orbit.
-- **Thumbnail:** Ribbon from ocean to space, tiny climber. Text: '7 DAYS TO SPACE'. CONCEPT stamp.
-- **Vertical cut-downs:** The 7-day ride to orbit · The 3 cm problem · Why it must start at the equator
+- **Hook (0–5 s, verbatim):** "Step into the gate in London. Step out in Tokyo. Physics allows half of that."
+- **Logline:** Waystation, a speculative teleport hub, is tested against quantum teleportation, the no-cloning theorem, data rates and energy, then redesigned as something that could actually work.
+- **Sections:** 1) Cold open: a gate charges and fires **20s** · 2) What teleportation means in physics **60s** · 3) Oxford 2025: teleporting logic gates **70s** · 4) Problem 1: scanning a human (the data) **80s** · 5) Problem 2: no-cloning and the 'copy' paradox **75s** · 6) Problem 3: energy of rebuilding matter **60s** · 7) The plausible version: telepresence + hyperloop **90s** · 8) Touring the Waystation hub **75s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 575s generated → **22 generations** (≈$118.28). 9 section clips; seamless multi-segment splits: §2 What teleportation means in physics (60s → 30+30); §3 Oxford 2025 (70s → 30+30+10); §4 Problem 1 (80s → 30+30+20); §5 Problem 2 (75s → 30+30+15); §6 Problem 3 (60s → 30+30); §7 The plausible version (90s → 30+30+30); §8 Touring the Waystation hub (75s → 30+30+15); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut from glossy gate (§1) to schematic void (§2); hard cut into the redesign (§7) with warm palette; verdict locked shot.
+- **Cinematography:** Symmetrical 24mm push toward a ring gate with charging light; schematic ion-trap macro; top-down data-stream visual (cyan particles); wide atrium orbit of Waystation hub; gimbal walk behind Citizen to a capsule platform. **Controls vs default:** §1: pacing single-shot, a-dream-in-color; §2–6: ghost-in-the-code, clean-sharp; §7–8: the-morning-after-rain; §9: default.
+- **Science grounding:** Quantum teleportation transfers a quantum state using entanglement plus a classical signal (no faster-than-light); Oxford (Nature, 2025) teleported gates between trapped-ion modules. A human has ~7×10^27 atoms; even a coarse description is ~10^28+ bits [U: order of magnitude], impossible to store or send. No-cloning means a 'copy' must destroy the original. E=mc² rebuilding energy is astronomical. Plausible alternative: a hyperloop-plus-VR 'Waystation'. Tier: matter teleport FICTION; info teleport PROVEN.
+- **Music/SFX:** Rising charge whine then silence then air-pop; glitchy granular textures in the data section; hopeful synth in the redesign.
+- **Thumbnail:** Person-shaped silhouette dissolving into cyan particles inside a ring gate. Text: 'ALMOST POSSIBLE' (ALMOST gold). Chip FICTION/PROVEN split.
+- **Vertical cut-downs:** Why a teleporter would kill you (no-cloning) · How much data is a human? · The Waystation you could actually build
 
-### L06. Hyperloop in 2026: What Actually Survived
-*Alt:* Hyperloop Isn't Dead. It's Just Slow. · **Series:** Impossible Engineering · **Target runtime:** ~10:23 (incl. ident + outro)
+### L06. Could You Live Inside an O'Neill Cylinder?
+*Alt:* Axis Ring: A World That Spins in Space · **Series:** Worlds Beyond · **Runtime:** ~9:45 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Ten years ago hyperloop promised 1,000 km/h. In 2026, the record test in Europe hit 85."
-- **Logline:** From the 2013 white paper to Hyperloop One's shutdown [U: late 2023], Hardt's lane-switch tests in Veendam, China's T-Flight, and India's pilot plans.
-- **Sections:** 1) Cold open: pod in tube **20s** · 2) The 2013 promise **71s** · 3) Why vacuum tubes are hard **102s** · 4) The collapse of the first wave [U details] **76s** · 5) Veendam: 420 m, 85 km/h, lane switch **102s** · 6) China's T-Flight: ~623 km/h **102s** · 7) Where it could work first: freight **76s** · 8) Verdict **51s**
-- **Stitch plan:** 600s generated → **24 generations** (≈$123.42). Seamless multi-segment: §2 The 2013 promise (71s → 30+30+11); §3 Why vacuum tubes are hard (102s → 30+30+30+12); §4 The collapse of the first wave [U details] (76s → 30+30+16); §5 Veendam (102s → 30+30+30+12); §6 China's T-Flight (102s → 30+30+30+12); §7 Where it could work first (76s → 30+30+16); §8 Verdict (51s → 30+21). Hard cut from glossy promo to empty test track at 'collapse'. Hard cut into China chapter.
-- **Cinematography:** 35mm push-in down a tube interior; lateral truck along pod at speed with streak lighting; static-noon on Dutch test track (flat polder landscape); night maglev tube run. **Controls vs default:** China chapter: after-dark, pacing dynamic.
-- **Narration:** Balanced sceptic; separate test speeds from service speeds. **Music/SFX:** Pneumatic whoosh SFX; clean electronic pulses.
-- **Thumbnail:** Pod in tube with speed streaks. Text: 'STILL ALIVE?'.
-- **Vertical cut-downs:** 85 km/h vs 1,000 km/h promise · Why lane switching matters · China's 623 km/h tube
+- **Hook (0–5 s, verbatim):** "The ground curves up behind you and becomes the sky. You're standing inside a spinning world."
+- **Logline:** Inside Axis Ring, a 6.4 km-diameter rotating habitat, based on O'Neill's Island Three and the 1975 NASA study: spin gravity, mirrors, weather, and what a Sunday looks like.
+- **Sections:** 1) Cold open: looking up at land overhead **20s** · 2) 1975: NASA's summer of space colonies **55s** · 3) Spin gravity: how fast it turns **75s** · 4) Mirrors, windows and day-night **75s** · 5) Shielding and structure **70s** · 6) Citizen's walk: a Sunday in the valley **110s** · 7) Weather inside a cylinder **60s** · 8) Coriolis: why balls curve **50s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 560s generated → **22 generations** (≈$115.19). 9 section clips; seamless multi-segment splits: §2 1975 (55s → 30+25); §3 Spin gravity (75s → 30+30+15); §4 Mirrors, windows and day-night (75s → 30+30+15); §5 Shielding and structure (70s → 30+30+10); §6 Citizen's walk (110s → 30+30+30+20); §7 Weather inside a cylinder (60s → 30+30); §8 Coriolis (50s → 30+20); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Retro-to-photoreal hard cut after §2; scan-line reveal at §3; hard cut into verdict.
+- **Cinematography:** Upward-looking 24mm tilt revealing land overhead; exterior slow orbit 24mm clean-sharp of counter-rotating pair; schematic spin vectors overlay; eye-level walk through green valley with cyclists from behind; ball-throw locked shot showing curve. **Controls vs default:** §2: 35mm-film, warm-vintage, era 1960s; §3–5: static-noon, clean-sharp (exterior); §6–7: the-morning-after-rain; §8: default.
+- **Science grounding:** For 1 g at radius r: ω = √(g/r); r = 3.2 km → ~0.53 rpm (one turn ~1.9 min), comfortable (<2 rpm). Counter-rotating pair cancels gyroscopic torque. Mirrors reflect sunlight through window strips; shielding needs ~several t/m² of mass (e.g. slag). Coriolis deflection is small but visible on long throws. Sources: O'Neill (1976), NASA SP-413. Tier: STRETCH.
+- **Music/SFX:** Pastoral strings and felt piano inside; exterior silence with low hum; birdsong.
+- **Thumbnail:** Inside a cylinder: fields and lakes curving overhead, a tiny cyclist. Text: 'THE SKY IS LAND' (LAND gold). Chip STRETCH.
+- **Vertical cut-downs:** How fast it spins for 1 g · Why your ball curves · Sunrise by mirror (loop)
 
-### L07. Nusantara: The New Capital That Shrank
-*Alt:* Indonesia Cut Its Future Capital's Budget by 85% · **Series:** Built or Busted · **Target runtime:** ~9:53 (incl. ident + outro)
+### L07. A City 3 Kilometres Under the Ocean
+*Alt:* Abyssal Spiral: The Deep-Sea Megacity · **Series:** How It Could Work · **Runtime:** ~8:35 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Indonesia built a presidential palace in the jungle. Then it cut the budget by 85 percent."
-- **Logline:** Why Jakarta is sinking, the Nusantara plan, what's built, the 2026 budget cut and 'political capital' downgrade, and the ~10,000 people who actually live there.
-- **Sections:** 1) Cold open: Garuda palace in rainforest **20s** · 2) Why leave Jakarta: sinking and congestion **96s** · 3) The plan: forest city for 1.9M [U] **81s** · 4) What got built by 2026 **96s** · 5) The money: $2.7B → $387M **71s** · 6) 'Political capital' by 2028 **71s** · 7) Life there now: ~10K workers **70s** · 8) Ghost city or slow city? **65s**
-- **Stitch plan:** 570s generated → **24 generations** (≈$117.25). Seamless multi-segment: §2 Why leave Jakarta (96s → 30+30+30+6); §3 The plan (81s → 30+30+21); §4 What got built by 2026 (96s → 30+30+30+6); §5 The money (71s → 30+30+11); §6 'Political capital' by 2028 (71s → 30+30+11); §7 Life there now (70s → 30+30+10); §8 Ghost city or slow city? (65s → 30+30+5). Hard cut at the budget number (stamp). Blueprint wipe between plan and built.
-- **Cinematography:** Drone reveal from rainforest canopy to civic axis; before/after timeline locked 35mm; empty boulevard low-angle dolly-back. **Controls vs default:** the-emerald-ambush for rainforest; industrial-fog for current state.
-- **Narration:** Empathetic to residents, precise on budget figures. **Music/SFX:** Tropical ambience, sparse percussion.
-- **Thumbnail:** Palace in jungle, empty roads. Text: 'CAPITAL ON HOLD'.
-- **Vertical cut-downs:** Why Jakarta has to move · Budget cut in 45 s · The empty boulevard
+- **Hook (0–5 s, verbatim):** "At this depth, the ocean pushes on every square metre with the weight of three hundred cars."
+- **Logline:** Abyssal Spiral, inspired by Shimizu's Ocean Spiral concept: a 500 m buoyant sphere city linked by a helix to the seafloor, powered by ocean thermal energy.
+- **Sections:** 1) Cold open: descending past the sphere **25s** · 2) Pressure: why depth is brutal **65s** · 3) Why a sphere floats near the surface **75s** · 4) The spiral: a 4 km helix to the seafloor **85s** · 5) Power from temperature: OTEC **75s** · 6) Food and water from the deep **65s** · 7) Evacuation and storms **55s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 490s generated → **20 generations** (≈$100.79). 8 section clips; seamless multi-segment splits: §2 Pressure (65s → 30+30+5); §3 Why a sphere floats near the surface (75s → 30+30+15); §4 The spiral (85s → 30+30+25); §5 Power from temperature (75s → 30+30+15); §6 Food and water from the deep (65s → 30+30+5); §7 Evacuation and storms (55s → 30+25); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut at §2 to schematic pressure diagram; scan-line wipe into §4; dip-to-void into verdict.
+- **Cinematography:** Slow descent 24mm through light falloff (turquoise → black); locked schematic sphere cutaway; gliding 35mm along the helix with bioluminescent accents; macro of pressure-hull window; wide of OTEC plant pipes. **Controls vs default:** §1, §3: turquoise-mirage; §2, §4: ghost-in-the-code/clean-sharp for schematic, after-dark for photoreal deep; §5–6: after-dark; §7: genre drama.
+- **Science grounding:** Pressure rises ~1 atm per 10 m: at 3,000 m, ~300 atm (~30 MPa). Shimizu's concept keeps the habitable sphere near the surface (buoyant, ballast-adjusted) and descends only for resources. OTEC uses a ~20 °C difference between surface and deep water; efficiency ~3%, needs huge flows. Tier: STRETCH.
+- **Music/SFX:** Low drones, sonar pings, whale-like swells, hull creaks.
+- **Thumbnail:** Glowing sphere city in blue water with a helix vanishing into black. Text: '3 KM DOWN'. Chip STRETCH.
+- **Vertical cut-downs:** 300 cars on every square metre (pressure) · OTEC: power from cold water · Descent: 0 to 3,000 m in 60s
 
-### L08. Xiong'an: China Built a City for 1.4 Million From Scratch
-*Alt:* China's 'City of the Millennium' Nine Years In · **Series:** Megaproject Files · **Target runtime:** ~10:23 (incl. ident + outro)
+### L08. Cloud City Above Venus: NASA's Wildest Plan
+*Alt:* Living 50 km Above the Hottest Planet · **Series:** Worlds Beyond · **Runtime:** ~8:45 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Nine years ago this was farmland. Today 1.4 million people live here. The target is five million."
-- **Logline:** Xiong'an New Area: planning model, underground utility corridors, sponge-city design, relocating state firms from Beijing, and the gap to 5M.
-- **Sections:** 1) Cold open: farmland morphs to skyline **20s** · 2) Why Beijing needed a pressure valve **79s** · 3) The master plan **104s** · 4) Underground: utility tunnels [U specifics] **104s** · 5) Sponge city & Baiyangdian lake **89s** · 6) Who actually moved **79s** · 7) 1.41M vs 5M **70s** · 8) Model or warning? **55s**
-- **Stitch plan:** 600s generated → **23 generations** (≈$123.42). Seamless multi-segment: §2 Why Beijing needed a pressure valve (79s → 30+30+19); §3 The master plan (104s → 30+30+30+14); §4 Underground (104s → 30+30+30+14); §5 Sponge city & Baiyangdian lake (89s → 30+30+29); §6 Who actually moved (79s → 30+30+19); §7 1.41M vs 5M (70s → 30+30+10); §8 Model or warning? (55s → 30+25). Hard cut from farmland to 2026 skyline (timeline scrubber). Blueprint wipe into master plan.
-- **Cinematography:** Locked 35mm before/after (farmland → city) in 2 segments; tunnel push-in 24mm; lake wetland aerial. **Controls vs default:** the-morning-after-rain for sponge-city.
-- **Narration:** Neutral, avoid political editorialising; cite official figures as official. **Music/SFX:** Measured pulses, water textures.
-- **Thumbnail:** Split: fields / towers. Text: '0 → 1.4 MILLION'.
-- **Vertical cut-downs:** Farmland to city timelapse · The utility tunnel under every street · What a sponge city does in a storm
+- **Hook (0–5 s, verbatim):** "On the surface, it's 460 degrees. Fifty kilometres up, the air pressure is just like home."
+- **Logline:** Based on NASA's HAVOC study: a floating aerostat city in Venus's clouds, where breathable air is a lifting gas and sulphuric acid is the enemy.
+- **Sections:** 1) Cold open: city above a sea of clouds **20s** · 2) Venus: the surface is hell **55s** · 3) The 50 km sweet spot **65s** · 4) Why breathable air floats on Venus **75s** · 5) Building an aerostat city **80s** · 6) Acid, wind and 4-day super-rotation **70s** · 7) Citizen's walk on the gondola decks **90s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 500s generated → **20 generations** (≈$102.85). 8 section clips; seamless multi-segment splits: §2 Venus (55s → 30+25); §3 The 50 km sweet spot (65s → 30+30+5); §4 Why breathable air floats on Venus (75s → 30+30+15); §5 Building an aerostat city (80s → 30+30+20); §6 Acid, wind and 4-day super-rotation (70s → 30+30+10); §7 Citizen's walk on the gondola decks (90s → 30+30+30); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut from surface hellscape (§2) to cloud tops (§3); scan-line at §4; verdict locked.
+- **Cinematography:** Wide 24mm glide over golden cloud tops with a huge envelope city; surface: low, heat-shimmer, dim orange; schematic buoyancy diagram; gimbal walk along glass gondola deck; slow orbit of envelope with acid-proof coating sheen. **Controls vs default:** §2: genre drama, color_palette industrial-fog; §3–5: mirage-at-noon; §4: ghost-in-the-code; §7: twilight-fable.
+- **Science grounding:** Venus's CO₂ atmosphere (molar mass 44) is denser than N₂/O₂ air (29), so a breathable-air envelope lifts ~0.5 kg per m³ at 1 atm [U: approx]. HAVOC (NASA Langley) proposed staged airship missions at ~50 km (~1 atm, ~75 °C). Clouds contain sulphuric acid, requiring PTFE-type coatings; winds super-rotate the planet in ~4 days. Tier: STRETCH.
+- **Music/SFX:** Warm, hazy synth pads; distant wind; fabric flutter; soft ship-bell motif.
+- **Thumbnail:** Golden envelope city above orange clouds. Text: 'FLOATING ON VENUS' (VENUS gold). Chip STRETCH.
+- **Vertical cut-downs:** Why air floats on Venus · Surface vs 50 km (split) · 4-day wind ride timelapse
 
-### L09. Toyota's Woven City: One Year Inside a Living Test Track
-*Alt:* The Town Where Toyota Tests the Future · **Series:** Megaproject Files · **Target runtime:** ~9:23 (incl. ident + outro)
+### L09. An Arcology for 1 Million People in One Structure
+*Alt:* The Tower-Forest: A Whole City Under One Roof · **Series:** How It Could Work · **Runtime:** ~9:50 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "At the foot of Mount Fuji there's a town built to be experimented on. People moved in last year."
-- **Logline:** Woven City at year one: the three street types, underground logistics, hydrogen, the 'Weavers', what they're testing, and whether a corporate town can be a real city.
-- **Sections:** 1) Cold open: Fuji and timber rooftops **20s** · 2) Why a car company built a town **69s** · 3) Three kinds of street **94s** · 4) Underground delivery network [U] **79s** · 5) Energy: hydrogen & solar roofs **69s** · 6) The first residents (~300) **70s** · 7) What's being tested **79s** · 8) Can a company town be a city? **60s**
-- **Stitch plan:** 540s generated → **22 generations** (≈$111.08). Seamless multi-segment: §2 Why a car company built a town (69s → 30+30+9); §3 Three kinds of street (94s → 30+30+30+4); §4 Underground delivery network [U] (79s → 30+30+19); §5 Energy (69s → 30+30+9); §6 The first residents (70s → 30+30+10); §7 What's being tested (79s → 30+30+19); §8 Can a company town be a city? (60s → 30+30). Hard cut from Fuji wide to street-level walk. Blueprint wipe for underground network.
-- **Cinematography:** Eye-level gimbal walk along the three street types (generic figures from behind); top-down block grid; timber macro 85mm; Fuji establishing morning. **Controls vs default:** the-morning-after-rain; camera_lens warm-vintage for residents' section.
-- **Narration:** Curious, gently sceptical about corporate urbanism. **Music/SFX:** Soft marimba + ambient; no cliché 'Japanese' pastiche.
-- **Thumbnail:** Timber town with Fuji behind. Text: 'TOYOTA'S TEST TOWN'.
-- **Vertical cut-downs:** The 3 street types · Deliveries that never touch the street · Woven City vs normal suburb
+- **Hook (0–5 s, verbatim):** "One million people. One building. And you could walk from home to work without seeing a car."
+- **Logline:** A 1.2 km arcology 'tower-forest': structure, vertical transit, heat, water, food, and the social physics of one million neighbours.
+- **Sections:** 1) Cold open: reveal from cloud layer **20s** · 2) What is an arcology? **50s** · 3) Structure: a mega-frame of linked towers **85s** · 4) Vertical transit: ropeless lifts and sky lobbies **80s** · 5) Heat, air and water **75s** · 6) Food: vertical farm floors **60s** · 7) Citizen's walk: a commute that's all indoors **90s** · 8) The failure modes: fire and evacuation **60s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 565s generated → **21 generations** (≈$116.22). 9 section clips; seamless multi-segment splits: §2 What is an arcology? (50s → 30+20); §3 Structure (85s → 30+30+25); §4 Vertical transit (80s → 30+30+20); §5 Heat, air and water (75s → 30+30+15); §6 Food (60s → 30+30); §7 Citizen's walk (90s → 30+30+30); §8 The failure modes (60s → 30+30); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Scan-line reveal at §3; hard cut into §8 (fire drill, drama); verdict locked.
+- **Cinematography:** 24mm push through clouds to reveal linked spires; lateral 35mm truck with scale ghost Burj Khalifa; schematic megaframe cutaway; vertical crane following a ropeless lift; interior atrium walk with trees. **Controls vs default:** §3: ghost-in-the-code; §5: static-noon; §6–7: the-emerald-ambush; §8: genre drama, industrial-fog.
+- **Science grounding:** A megaframe (braced exoskeleton) spreads loads; for comparison Jeddah Tower targets ~1 km. Ropeless maglev lifts (e.g. thyssenkrupp MULTI prototype) move cabins sideways and share shafts. 1M people ≈ 1–2 GW of heat to reject; stack-effect ventilation plus heat pumps. Paolo Soleri coined 'arcology' (1969). Tier: STRETCH.
+- **Music/SFX:** Pulsing minimalism; crowd murmur; lift whoosh; fire alarm tone in §8 (brief).
+- **Thumbnail:** Forest of linked kilometre spires above clouds. Text: '1 MILLION. 1 BUILDING'. Chip STRETCH.
+- **Vertical cut-downs:** Ropeless sideways lifts · How many Burjs is this? · Indoor commute POV
 
-### L10. Egypt's New Capital: Africa's Tallest Tower and a 53 km Monorail
-*Alt:* Egypt Built a New Capital in the Desert. Is Anyone There? · **Series:** Megaproject Files · **Target runtime:** ~9:23 (incl. ident + outro)
+### L10. The Rolling City That Outruns the Sunrise
+*Alt:* Terminus: A City on Rails Around Mercury · **Series:** Worlds Beyond · **Runtime:** ~8:35 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Africa's tallest building doesn't stand in Cairo. It stands 45 kilometres into the desert."
-- **Logline:** The New Administrative Capital: Iconic Tower (394 m), CBD, government district, Green River park, and the monorail that opened in 2026. Plus the occupancy question.
-- **Sections:** 1) Cold open: tower above desert haze **20s** · 2) Why build a new capital **69s** · 3) Iconic Tower: 394 m **94s** · 4) The CBD and government district **79s** · 5) Green River: a park longer than Central Park [U] **69s** · 6) Monorail: 53 km, ~60 minutes **94s** · 7) Who lives there? **70s** · 8) Verdict **45s**
-- **Stitch plan:** 540s generated → **23 generations** (≈$111.08). Seamless multi-segment: §2 Why build a new capital (69s → 30+30+9); §3 Iconic Tower (94s → 30+30+30+4); §4 The CBD and government district (79s → 30+30+19); §5 Green River (69s → 30+30+9); §6 Monorail (94s → 30+30+30+4); §7 Who lives there? (70s → 30+30+10); §8 Verdict (45s → 30+15). Hard cut into the monorail chapter (dynamic pacing). Scale ghost cut for tower.
-- **Cinematography:** 24mm drone rise past tower in dusty gold light; lateral truck alongside elevated monorail; park aerial following water axis. **Controls vs default:** mirage-at-noon (day), twilight-fable (dusk tower).
-- **Narration:** Balanced; flag occupancy data as [U] unless sourced. **Music/SFX:** Warm desert pads, rail rhythm.
-- **Thumbnail:** Tower rising above empty desert city. Text: 'A CAPITAL FROM SAND'.
-- **Vertical cut-downs:** 394 m vs Eiffel · Monorail into the desert · Green River from above
+- **Hook (0–5 s, verbatim):** "If this city ever stops moving, the sunrise will kill everyone in it."
+- **Logline:** A city on rails circling Mercury, rolling at walking pace to stay in the habitable twilight band, inspired by hard-sci-fi and thermal-expansion physics.
+- **Sections:** 1) Cold open: the city rolls ahead of dawn **20s** · 2) Mercury: 430 °C by day, -180 °C by night **60s** · 3) The twilight band and its speed **65s** · 4) Rails that the sun pushes **80s** · 5) Power from the dayside **65s** · 6) Citizen's walk: life inside the moving city **95s** · 7) What if it breaks down? **60s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 490s generated → **20 generations** (≈$100.79). 8 section clips; seamless multi-segment splits: §2 Mercury (60s → 30+30); §3 The twilight band and its speed (65s → 30+30+5); §4 Rails that the sun pushes (80s → 30+30+20); §5 Power from the dayside (65s → 30+30+5); §6 Citizen's walk (95s → 30+30+30+5); §7 What if it breaks down? (60s → 30+30); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut dayside heat (§2); scan-line into rail schematic (§4); dip-to-void into verdict.
+- **Cinematography:** Low 35mm track alongside wheel bogies on rails with a blazing horizon behind; wide 24mm from ahead showing the city dome and the dawn line; schematic thermal expansion overlay; interior walk down a promenade with a window on the terminator. **Controls vs default:** §1–3: static-noon, clean-sharp; §4: ghost-in-the-code; §6: twilight-fable; §7: genre drama, after-dark.
+- **Science grounding:** Mercury's slow rotation (a solar day ≈176 Earth days) means the terminator moves ~3–4 km/h at the equator [U: approx]. The idea: rails expand on the hot side, pushing the city west. Solar power is abundant (~7× Earth's flux). Popularised in Kim Stanley Robinson's '2312' (named editorially only). Tier: STRETCH.
+- **Music/SFX:** Rhythmic rail clacks as tempo; heat hiss; warm-cold dual pads.
+- **Thumbnail:** Domed city on rails with a searing sunrise line behind. Text: 'NEVER STOP'. Chip STRETCH.
+- **Vertical cut-downs:** How fast is sunrise on Mercury? · The rails the sun pushes · Breakdown: 60 seconds to dawn
 
-### L11. A Day in 2075: The Morning Commute
-*Alt:* What Your Commute Looks Like in 2075 · **Series:** City of 2075 · **Target runtime:** ~11:23 (incl. ident + outro)
+### L11. Building a Sky City From Zero
+*Alt:* Cloud Nine: The Floating Sphere City · **Series:** Build It From Zero · **Runtime:** ~9:20 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "It's 7:40 in the morning, the year is 2075, and nobody in this city owns a car."
-- **Logline:** A speculative but grounded commute: autonomous shared pods, grade-separated bike streets, metro at 90-second headways, and the planning choices from today that lead there.
-- **Sections:** 1) Cold open: rain-washed street at dawn **20s** · 2) 7:40 Leaving home: the mobility hub **81s** · 3) Streets without parking **96s** · 4) The pod: how shared autonomy scales **96s** · 5) The metro spine **90s** · 6) Freight at night **71s** · 7) Which cities are already building this **96s** · 8) What it costs to get there **70s** · 9) Your commute, 2075 **40s**
-- **Stitch plan:** 660s generated → **27 generations** (≈$135.76). Seamless multi-segment: §2 7 (81s → 30+30+21); §3 Streets without parking (96s → 30+30+30+6); §4 The pod (96s → 30+30+30+6); §5 The metro spine (90s → 30+30+30); §6 Freight at night (71s → 30+30+11); §7 Which cities are already building this (96s → 30+30+30+6); §8 What it costs to get there (70s → 30+30+10); §9 Your commute, 2075 (40s → 30+10). Hard cut into 'Which cities already…' (real-world labelled section, VIOLET→GREEN stamps). Otherwise one continuous 'day' feel with match cuts.
-- **Cinematography:** Human-scale 35mm gimbal walk following a figure from behind; pod interior 50mm; elevated metro aerial; night freight tunnel. **Controls vs default:** the-morning-after-rain; freight: after-dark.
-- **Narration:** Second person, warm; clearly speculative framing ('could', 'one version of'). **Music/SFX:** Optimistic ambient electronica, city hum.
-- **Thumbnail:** Wet green street, pods, no cars. Text: 'NO CARS. 2075.'
-- **Vertical cut-downs:** Your street in 2075 · Where the parking went · Night freight tunnel
+- **Hook (0–5 s, verbatim):** "A sphere a mile wide, floating because the sun warms the air inside it. Let's build one."
+- **Logline:** Step by step, from Buckminster Fuller's 1960s 'Cloud Nine' idea to a sun-heated geodesic sky city: frame, envelope, lift budget, lift-off and life aloft.
+- **Sections:** 1) Cold open: sphere lifts off a lake **20s** · 2) The idea: bigger spheres float easier **60s** · 3) Step 1: the geodesic frame **75s** · 4) Step 2: skin and solar heating **70s** · 5) Step 3: the lift budget **60s** · 6) Step 4: lift-off **60s** · 7) Step 5: life aloft and docking **90s** · 8) What breaks it: wind and lightning **55s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 535s generated → **20 generations** (≈$110.05). 9 section clips; seamless multi-segment splits: §2 The idea (60s → 30+30); §3 Step 1 (75s → 30+30+15); §4 Step 2 (70s → 30+30+10); §5 Step 3 (60s → 30+30); §6 Step 4 (60s → 30+30); §7 Step 5 (90s → 30+30+30); §8 What breaks it (55s → 30+25); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut per build step boundary (§3 → §4 → §5 → §6); stage stills chained with Seedance end_image_url; verdict locked.
+- **Cinematography:** Locked 35mm timelapse of frame assembly (same camera every step); drone orbit 24mm at lift-off; interior walk on suspended decks; schematic square-cube overlay; storm wide from below. **Controls vs default:** §1–2: default; §3–5: pacing single-shot (timelapse), static-noon; §6: genre epic, anamorphic; §8: genre action, pacing dynamic, after-dark.
+- **Science grounding:** Square-cube law: frame mass grows with r² while enclosed air grows with r³, so very large spheres have tiny structure-to-air ratios. Solar heating of ~1 °C across a 1.6 km sphere gives meaningful lift [U: Fuller's claim]. Lift of hot air vs ambient ~3–4 g/m³ per °C. Tier: FRONTIER.
+- **Music/SFX:** Build montage: ticking percussion; lift-off: swelling brass; wind in the frame.
+- **Thumbnail:** Mile-wide geodesic sphere floating above clouds, tiny houses on its skin. Text: 'IT FLOATS ON SUNLIGHT'. Chip FRONTIER.
+- **Vertical cut-downs:** Square-cube law in 45s · Lift-off timelapse · Would you live in the sphere?
 
-### L12. City of 2075: Where the Water Comes From
-*Alt:* How a 2075 City Survives Drought and Flood · **Series:** City of 2075 · **Target runtime:** ~10:23 (incl. ident + outro)
+### L12. 24 Hours in a Solarpunk City of 2150
+*Alt:* Verdance: One Day in a City That Grows · **Series:** Citizen's Walk · **Runtime:** ~9:25 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "In 2075, this city gets through a drought and a flood in the same year, without rationing."
-- **Logline:** Water systems of a future city: sponge streets, recycled potable water, desalination with solar, leak-detecting pipes, based on Singapore, Copenhagen and Xiong'an examples.
-- **Sections:** 1) Cold open: storm over green city **20s** · 2) The double threat **64s** · 3) Sponge streets **94s** · 4) Underground cisterns **78s** · 5) Toilet-to-tap, the taboo **69s** · 6) Solar desalination **78s** · 7) Smart pipes **64s** · 8) Real cities doing it now **94s** · 9) 2075 verdict **39s**
-- **Stitch plan:** 600s generated → **26 generations** (≈$123.42). Seamless multi-segment: §2 The double threat (64s → 30+30+4); §3 Sponge streets (94s → 30+30+30+4); §4 Underground cisterns (78s → 30+30+18); §5 Toilet-to-tap, the taboo (69s → 30+30+9); §6 Solar desalination (78s → 30+30+18); §7 Smart pipes (64s → 30+30+4); §8 Real cities doing it now (94s → 30+30+30+4); §9 2075 verdict (39s → 30+9). Hard cut from storm to drought (palette flip). Blueprint wipe for cistern cutaway.
-- **Cinematography:** Top-down rain on permeable streets; cutaway cistern (blueprint→photoreal); desal plant on coast at noon. **Controls vs default:** Storm: the-morning-after-rain; drought: mirage-at-noon.
-- **Narration:** Practical, reassuring; clear labels between real and speculative. **Music/SFX:** Water drips, low pulse; storm rumble.
-- **Thumbnail:** Street flooded on one side, cracked earth on other. Text: 'FLOOD + DROUGHT'.
-- **Vertical cut-downs:** What a sponge street does · Toilet-to-tap in 60s · Cistern under a park
+- **Hook (0–5 s, verbatim):** "It's 6 a.m. in 2150. The city is quiet, except for the sound of the trees drinking the rain."
+- **Logline:** A dawn-to-night POV tour through Verdance, a solarpunk city, where every beautiful detail is paired with the technology that makes it work.
+- **Sections:** 1) Dawn: rain gardens drinking **40s** · 2) Morning commute by tram and bike **70s** · 3) The market of rooftop farms **70s** · 4) Midday: the solar canopy **60s** · 5) The water loop: rain to tap to river **70s** · 6) Afternoon: the timber towers **65s** · 7) Evening: the city switches to storage **65s** · 8) Night: dark skies and fireflies **55s** · 9) What's real today **45s**
+- **Stitch plan:** 540s generated → **23 generations** (≈$111.08). 9 section clips; seamless multi-segment splits: §1 Dawn (40s → 30+10); §2 Morning commute by tram and bike (70s → 30+30+10); §3 The market of rooftop farms (70s → 30+30+10); §4 Midday (60s → 30+30); §5 The water loop (70s → 30+30+10); §6 Afternoon (65s → 30+30+5); §7 Evening (65s → 30+30+5); §8 Night (55s → 30+25); §9 What's real today (45s → 30+15). Deliberate hard cuts: Time-of-day changes are the section boundaries (hard cuts with time stamp); scan-line overlay in §5; 'what's real' uses schematic.
+- **Cinematography:** All eye-level gimbal walks behind the Citizen; 35mm; tram tracking; crane-up reveal over timber towers; locked dusk shot of lights switching to storage; night dark-sky wide. **Controls vs default:** §1–3: the-morning-after-rain; §4–6: the-emerald-ambush; §7: twilight-fable; §8: after-dark; §9: ghost-in-the-code.
+- **Science grounding:** Mass-timber (CLT) towers exist (Ascent, Milwaukee ~87 m); rain gardens and sponge-city design reduce runoff; BIPV canopies; grid batteries and thermal storage cover evening demand. Tier: PROVEN/STRETCH.
+- **Music/SFX:** Birdsong, marimba, bicycle bells, gentle strings; night: crickets and soft piano.
+- **Thumbnail:** Lush timber towers with gardens, a tram crossing a green bridge at golden hour. Text: 'THE CITY GROWS'. Chip PROVEN.
+- **Vertical cut-downs:** 6 a.m. rain garden (loop) · Where does the rain go? · Night city with no light pollution
 
-### L13. City of 2075: The End of the Parking Lot
-*Alt:* What Cities Do With All That Parking · **Series:** City of 2075 · **Target runtime:** ~9:53 (incl. ident + outro)
+### L13. Could a 1 km Cyberpunk Megablock Actually Stand?
+*Alt:* The Neon Megablock: Density Taken to the Limit · **Series:** Physics Check · **Runtime:** ~9:00 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "In most cities, more land is stored for cars than lived in by people. By 2075, that could flip."
-- **Logline:** Parking's land footprint, why autonomy and transit could free it, and what replaces it: housing, parks, urban farms, with before/after transformations.
-- **Sections:** 1) Cold open: sea of parked cars **20s** · 2) How much land parking eats [U: stats] **71s** · 3) Why parking exists (minimums) **66s** · 4) Autonomy & transit change the maths **71s** · 5) Transformation 1: garage → housing **87s** · 6) Transformation 2: lot → park **87s** · 7) Transformation 3: street → market **66s** · 8) Cities abolishing minimums now **66s** · 9) 2075 **36s**
-- **Stitch plan:** 570s generated → **24 generations** (≈$117.25). Seamless multi-segment: §2 How much land parking eats [U (71s → 30+30+11); §3 Why parking exists (66s → 30+30+6); §4 Autonomy & transit change the maths (71s → 30+30+11); §5 Transformation 1 (87s → 30+30+27); §6 Transformation 2 (87s → 30+30+27); §7 Transformation 3 (66s → 30+30+6); §8 Cities abolishing minimums now (66s → 30+30+6); §9 2075 (36s → 30+6). Before/after locked-camera sections chained seamlessly; hard cut between each transformation.
-- **Cinematography:** Locked 35mm wide on the same lot across two segments (before → after) with identical camera text; aerial parking grid top-down. **Controls vs default:** static-noon for 'before', the-morning-after-rain for 'after'.
-- **Narration:** Light humour; data-driven. **Music/SFX:** Playful pizzicato to warm pads on transformation.
-- **Thumbnail:** Half parking lot, half park, same frame. Text: 'BYE, PARKING'.
-- **Vertical cut-downs:** Lot becomes park (before/after) · Garage becomes homes · How much land is parking?
+- **Hook (0–5 s, verbatim):** "Ten million people, stacked a kilometre high in the rain. Physics has some notes."
+- **Logline:** The cyberpunk megablock trope, tested: structure, rain and drainage, light, air, heat and fire, followed by the redesign that could actually stand.
+- **Sections:** 1) Cold open: neon canyon in the rain **20s** · 2) The trope: infinite density **45s** · 3) Density reality check (Kowloon Walled City) **70s** · 4) Load: what the bottom floors carry **75s** · 5) Light and air in the canyons **65s** · 6) Rain: where a kilometre of water goes **60s** · 7) Heat: ten million people **60s** · 8) The redesign **75s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 515s generated → **21 generations** (≈$105.94). 9 section clips; seamless multi-segment splits: §2 The trope (45s → 30+15); §3 Density reality check (Kowloon Walled City) (70s → 30+30+10); §4 Load (75s → 30+30+15); §5 Light and air in the canyons (65s → 30+30+5); §6 Rain (60s → 30+30); §7 Heat (60s → 30+30); §8 The redesign (75s → 30+30+15); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut from neon (§1) to schematic (§2); hard cut to warm redesign (§8); verdict locked.
+- **Cinematography:** Low-angle 24mm tilt up neon canyons with rain; top-down density grid; schematic load arrows down columns; slow push along a wet walkway; redesigned block with light wells in daylight. **Controls vs default:** §1–2: genre noir, neon-rain-at-midnight; §3–7: ghost-in-the-code for schematics, after-dark for photoreal; §8: the-morning-after-rain.
+- **Science grounding:** Kowloon Walled City reached ~1.2–1.9M people/km² [U: range]; a 1 km block needs mega-columns and outrigger systems; light in narrow canyons falls to <1% daylight; roof rain on a 1 km² block in a 50 mm/h storm is ~14 m³/s; heat from 10M people ~1 GW+. Redesign adds light wells, sky gardens and a stepped profile. Tier: STRETCH (redesign) / FICTION (original).
+- **Music/SFX:** Dark synth bass, rain hiss, crowd murmur, neon buzz; redesign: optimistic pads.
+- **Thumbnail:** Neon megablock in rain vs clean redesigned block (split). Text: 'IT WOULD FALL?' Chip FICTION.
+- **Vertical cut-downs:** Where does the rain go? · How dense is too dense? · Neon canyon light test
 
-### L14. Arcologies: Could a Million People Live in One Building?
-*Alt:* The Megastructure That Replaces a City · **Series:** Impossible Engineering · **Target runtime:** ~11:23 (incl. ident + outro)
+### L14. A Hyperloop Across the Continent: How It Would Work
+*Alt:* Machines of Tomorrow: 1,000 km/h in a Tube · **Series:** Machines of Tomorrow · **Runtime:** ~8:50 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "What if an entire city (homes, farms, offices, a million people) fit inside a single structure?"
-- **Logline:** Paolo Soleri's arcology idea, Arcosanti, Shimizu's TRY 2004 pyramid concept [U], The Line as an arcology, and the physics of fire, air, light and elevators at that scale.
-- **Sections:** 1) Cold open: pyramid-city over bay **20s** · 2) Soleri's idea **76s** · 3) Arcosanti: the prototype in the desert **86s** · 4) TRY 2004: a pyramid over Tokyo Bay [U] **101s** · 5) Problem 1: vertical transport **86s** · 6) Problem 2: air, light, fire **101s** · 7) Problem 3: food **65s** · 8) Is The Line an arcology? **75s** · 9) Verdict **50s**
-- **Stitch plan:** 660s generated → **26 generations** (≈$135.76). Seamless multi-segment: §2 Soleri's idea (76s → 30+30+16); §3 Arcosanti (86s → 30+30+26); §4 TRY 2004 (101s → 30+30+30+11); §5 Problem 1 (86s → 30+30+26); §6 Problem 2 (101s → 30+30+30+11); §7 Problem 3 (65s → 30+30+5); §8 Is The Line an arcology? (75s → 30+30+15); §9 Verdict (50s → 30+20). Hard cut from grand render to real Arcosanti-like modest structure (labelled). Hard cut per 'Problem'.
-- **Cinematography:** Massive 24mm orbital around pyramid megastructure; interior atrium crane-down; desert concrete vaults at warm sunset. **Controls vs default:** Arcosanti flashback: camera_model 35mm-film, camera_lens warm-vintage, era 1960s, color_palette the-faded-fresco. Megastructure: anamorphic.
-- **Narration:** Philosophical but grounded. **Music/SFX:** Choral pad for megastructure; dry desert wind for Arcosanti.
-- **Thumbnail:** Pyramid city dwarfing skyline. Text: '1 BUILDING. 1M PEOPLE.'
-- **Vertical cut-downs:** The pyramid over Tokyo Bay · Arcosanti in 60s · Fire in a megastructure
+- **Hook (0–5 s, verbatim):** "Paris to Moscow in two hours, in a tube with almost no air."
+- **Logline:** A speculative 2090 continental vacuum-tube network: capsules, pumps, maglev, curves, stations, and why the tube, not the pod, is the hard part.
+- **Sections:** 1) Cold open: capsule launches down a tube **20s** · 2) Why air is the enemy at speed **55s** · 3) Pumping a 3,000 km tube **70s** · 4) Maglev and linear motors **70s** · 5) Curves: why routes must be straight **60s** · 6) Stations: the Waystation portals **70s** · 7) Riding it: g-forces and windows **60s** · 8) Safety: a breach at 1,000 km/h **55s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 505s generated → **20 generations** (≈$103.88). 9 section clips; seamless multi-segment splits: §2 Why air is the enemy at speed (55s → 30+25); §3 Pumping a 3,000 km tube (70s → 30+30+10); §4 Maglev and linear motors (70s → 30+30+10); §5 Curves (60s → 30+30); §6 Stations (70s → 30+30+10); §7 Riding it (60s → 30+30); §8 Safety (55s → 30+25); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut at §2 into schematic; scan-line into station reveal §6; §8 hard cut with drama palette.
+- **Cinematography:** Low 35mm chase alongside capsule in transparent tube section; schematic pressure overlay; long lateral truck along tube pylons across plains; station atrium crane-down; interior POV of seats with virtual windows. **Controls vs default:** §1: genre action, pacing dynamic; §2–5: ghost-in-the-code/clean-sharp; §6–7: default; §8: genre drama, industrial-fog.
+- **Science grounding:** Aerodynamic drag ∝ ρv²; at ~100 Pa (1/1000 atm) drag falls ~1000×. Kantrowitz limit forces bypass fans or larger tubes. Lateral comfort (~0.1 g) at 1,000 km/h needs curve radii of tens of km. Hardt reached 85 km/h with lane switching in Veendam (test track); China's T-Flight reported ~623 km/h [U]. Tier: STRETCH.
+- **Music/SFX:** Driving arpeggios; pneumatic whoosh; tube hum; alarm tones in §8.
+- **Thumbnail:** Capsule streaking through a transparent tube over a canyon. Text: '1,000 KM/H'. Chip STRETCH.
+- **Vertical cut-downs:** Why the curves are 40 km wide · Tube breach: what happens · Inside the capsule POV
 
-### L15. Why Vertical Farms Keep Going Bankrupt
-*Alt:* The $1 Billion Lettuce Problem · **Series:** Built or Busted · **Target runtime:** ~9:53 (incl. ident + outro)
+### L15. The City at the Foot of a Space Elevator
+*Alt:* Anchor City: Where the Road to Orbit Begins · **Series:** Worlds Beyond · **Runtime:** ~8:20 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Plenty raised over a billion dollars to grow salad indoors. In 2025, it went bankrupt."
-- **Logline:** Bowery, Plenty, AeroFarms: the energy maths of replacing sunlight, what the survivors do differently, and whether 2075 cities will grow food in towers.
-- **Sections:** 1) Cold open: purple-lit racks **20s** · 2) The pitch: 390x yield [U] **71s** · 3) The fall: Bowery, Plenty, AeroFarms **96s** · 4) The sunlight problem: energy maths **111s** · 5) What sells: herbs, berries, strawberries [U] **71s** · 6) The survivors' playbook **81s** · 7) Farms in 2075 cities **70s** · 8) Verdict **50s**
-- **Stitch plan:** 570s generated → **23 generations** (≈$117.25). Seamless multi-segment: §2 The pitch (71s → 30+30+11); §3 The fall (96s → 30+30+30+6); §4 The sunlight problem (111s → 30+30+30+21); §5 What sells (71s → 30+30+11); §6 The survivors' playbook (81s → 30+30+21); §7 Farms in 2075 cities (70s → 30+30+10); §8 Verdict (50s → 30+20). Hard cut from glowing racks to dark, empty farm at 'The fall'.
-- **Cinematography:** Slow 35mm dolly down aisle of LED racks; empty dark facility with dust; rooftop greenhouse at golden hour contrast. **Controls vs default:** Racks: neon-rain-at-midnight (purple LED); empty: industrial-fog, genre drama.
-- **Narration:** Numbers-first, explain the kWh-per-kg idea simply. **Music/SFX:** Electronic hum → silence at bankruptcy.
-- **Thumbnail:** Purple-lit lettuce racks going dark. Text: 'LIGHTS OUT'.
-- **Vertical cut-downs:** Sunlight is free: the maths · 3 giants that fell · What vertical farms should grow
+- **Hook (0–5 s, verbatim):** "At the equator, a ribbon rises from the sea and never stops, all the way to orbit."
+- **Logline:** An equatorial ocean anchor city grows around a space elevator: the tether, climbers, counterweight, and the city economy of a cheap road to space.
+- **Sections:** 1) Cold open: tilt up the ribbon **20s** · 2) Why the equator and why the sea **55s** · 3) The tether: carbon nanotubes and taper **80s** · 4) Climbers: a 7-day ride **70s** · 5) The counterweight and geostationary station **65s** · 6) The anchor city: port, launchpad, market **80s** · 7) Hazards: storms, debris, snapped tethers **60s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 475s generated → **19 generations** (≈$97.71). 8 section clips; seamless multi-segment splits: §2 Why the equator and why the sea (55s → 30+25); §3 The tether (80s → 30+30+20); §4 Climbers (70s → 30+30+10); §5 The counterweight and geostationary station (65s → 30+30+5); §6 The anchor city (80s → 30+30+20); §7 Hazards (60s → 30+30); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Scan-line into tether schematic §3; hard cut to anchor city §6; drama palette at §7.
+- **Cinematography:** Endless vertical tilt-up 24mm (split across chained segments continuing upward); schematic taper overlay; tracking beside climber at altitude with Earth curvature; ocean-level wide of floating anchor platform and city. **Controls vs default:** §1: pacing single-shot; §3: ghost-in-the-code; §4–5: static-noon, clean-sharp; §6: turquoise-mirage; §7: genre drama.
+- **Science grounding:** Geostationary orbit is ~35,786 km; the tether extends beyond to a counterweight. Required specific strength exceeds steel by ~50×; CNT/graphene in theory, not yet at length. Obayashi's concept: 96,000 km cable, ~7-day climb (~150 km/h), target 2050. Ocean anchor lets the base move to dodge storms/debris. Tier: FRONTIER.
+- **Music/SFX:** Endless rising Shepard-tone-like motif; wind fading to silence at altitude; port bustle.
+- **Thumbnail:** Ribbon rising from an ocean city into space, tiny climber. Text: 'ELEVATOR TO SPACE'. Chip FRONTIER.
+- **Vertical cut-downs:** 7 days to orbit in 60s · Why the sea, not land · How strong is the ribbon?
 
-### L16. Fehmarnbelt: Europe's Longest Immersed Tunnel Is Running Late
-*Alt:* Sinking a Tunnel Under the Baltic · **Series:** Megaproject Files · **Target runtime:** ~10:23 (incl. ident + outro)
+### L16. The 1,000-Passenger Sea Glider
+*Alt:* Machines of Tomorrow: Flying Just Above the Waves · **Series:** Machines of Tomorrow · **Runtime:** ~8:25 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "To link Denmark and Germany, engineers are sinking a building-sized tunnel into the Baltic Sea, one piece at a time."
-- **Logline:** How the 18 km road-rail tunnel works: casting factory, elements, immersion, and why the 2029 opening slipped (vessel delay, trench 30 cm too deep, German rail).
-- **Sections:** 1) Cold open: element floating out to sea **20s** · 2) Why a tunnel, not a bridge **78s** · 3) The element factory **103s** · 4) Float, flood, sink: immersion **128s** · 5) The trench that was too deep **69s** · 6) Delays and phased opening **79s** · 7) What it changes for Scandinavia **79s** · 8) Verdict **44s**
-- **Stitch plan:** 600s generated → **24 generations** (≈$123.42). Seamless multi-segment: §2 Why a tunnel, not a bridge (78s → 30+30+18); §3 The element factory (103s → 30+30+30+13); §4 Float, flood, sink (128s → 30+30+30+30+8); §5 The trench that was too deep (69s → 30+30+9); §6 Delays and phased opening (79s → 30+30+19); §7 What it changes for Scandinavia (79s → 30+30+19); §8 Verdict (44s → 30+14). Hard cut into the trench problem (HUD diagram). Seamless chain for immersion sequence.
-- **Cinematography:** Wide 24mm of concrete element towed by tugs; underwater 35mm descent following element (3 segments continuous downward move); factory interior lateral truck. **Controls vs default:** industrial-fog; underwater the-iron-borough [U look test].
-- **Narration:** Procedural, satisfying step-by-step. **Music/SFX:** Deep sub pulses, water pressure SFX.
-- **Thumbnail:** Giant tunnel section descending into sea. Text: 'SINKING A TUNNEL'. BUILDING stamp.
-- **Vertical cut-downs:** How you sink a tunnel · 30 cm too deep · Bridge vs tunnel
+- **Hook (0–5 s, verbatim):** "It's not a plane and it's not a ship. It flies four metres above the waves at 500 km/h."
+- **Logline:** A wing-in-ground-effect liner linking the floating cities: ground effect physics, the Soviet 'Caspian Sea Monster' ancestor, electric propulsion and wave limits.
+- **Sections:** 1) Cold open: glider skimming waves at dawn **20s** · 2) Ground effect: the air cushion **65s** · 3) The ancestor: 1960s ekranoplans **55s** · 4) Design: wing, hull and hydrofoils **75s** · 5) Power: hydrogen and electric fans **60s** · 6) Riding it: cabin and view **65s** · 7) Limits: waves and storms **55s** · 8) Arriving at Meridian **40s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 480s generated → **20 generations** (≈$98.74). 9 section clips; seamless multi-segment splits: §2 Ground effect (65s → 30+30+5); §3 The ancestor (55s → 30+25); §4 Design (75s → 30+30+15); §5 Power (60s → 30+30); §6 Riding it (65s → 30+30+5); §7 Limits (55s → 30+25); §8 Arriving at Meridian (40s → 30+10); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Retro hard cut §3; scan-line §4; hard cut to arrival §8 (atlas continuity).
+- **Cinematography:** Low 35mm chase just above the water at speed; side-on locked wide with air-cushion overlay; retro 35mm-film archival-style look; cabin gimbal walk to window; arrival crane over Meridian (reuse atlas ref). **Controls vs default:** §1, §6: genre action, pacing dynamic, turquoise-mirage; §3: 35mm-film, warm-vintage, era 1960s; §4–5: ghost-in-the-code; §8: default.
+- **Science grounding:** Wing-in-ground effect reduces induced drag when flying within ~½ wingspan of the surface, boosting lift/drag. Soviet KM ekranoplan (1966) flew at ~500 km/h [U]. Sea state limits operations (waves > ~2–3 m). Tier: PROVEN (physics) / STRETCH (1,000-seat liner).
+- **Music/SFX:** Engine drone, sea spray, driving strings.
+- **Thumbnail:** Huge glider skimming waves, wing tip spray. Text: '4 M ABOVE THE SEA'. Chip STRETCH.
+- **Vertical cut-downs:** Ground effect in 45s · The 1966 monster · Cabin view at 500 km/h
 
-### L17. Lynetteholm: Copenhagen Is Building an Island Against the Sea
-*Alt:* The Island Denmark Is Being Sued Over · **Series:** Climate Frontline · **Target runtime:** ~8:53 (incl. ident + outro)
+### L17. Building a Moon City From Zero
+*Alt:* Robots First: How a Lunar City Gets Built · **Series:** Build It From Zero · **Runtime:** ~9:25 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Copenhagen's answer to rising seas is a brand-new island, and some Danes are suing to stop it."
-- **Logline:** The storm-surge peninsula for ~35K residents [U], its perimeter dam, the M5 metro, and the environmental lawsuit.
-- **Sections:** 1) Cold open: harbour storm surge **20s** · 2) Copenhagen's flood risk **71s** · 3) The plan: 2.8 km² island [U] **81s** · 4) Building the perimeter dam **96s** · 5) Filling it: construction soil [U] **66s** · 6) The M5 metro link **65s** · 7) The lawsuit **71s** · 8) Verdict **40s**
-- **Stitch plan:** 510s generated → **22 generations** (≈$104.91). Seamless multi-segment: §2 Copenhagen's flood risk (71s → 30+30+11); §3 The plan (81s → 30+30+21); §4 Building the perimeter dam (96s → 30+30+30+6); §5 Filling it (66s → 30+30+6); §6 The M5 metro link (65s → 30+30+5); §7 The lawsuit (71s → 30+30+11); §8 Verdict (40s → 30+10). Hard cut from storm to plan (blueprint). Hard cut into the lawsuit (courtroom-free: documents/map treatment).
-- **Cinematography:** Low harbour-level shot with waves; top-down island formation timelapse (locked); dam stonework close-up. **Controls vs default:** the-morning-after-rain; storm: the-investigation.
-- **Narration:** Even-handed across both sides. **Music/SFX:** Nordic minimal strings.
-- **Thumbnail:** New island shape in grey sea beside city. Text: 'A NEW ISLAND'.
-- **Vertical cut-downs:** Island from nothing (top-down) · Why Copenhagen fears 2100 · The lawsuit in 60s
+- **Hook (0–5 s, verbatim):** "The first builders on the Moon won't be people. They'll be robots printing with dust."
+- **Logline:** Step by step from a landing site to a city of 10,000: robotic prospecting, sintered regolith, ice mining, domes, and the first families.
+- **Sections:** 1) Cold open: printer arm lays a regolith course **20s** · 2) Step 0: pick the site (ice at the pole) **60s** · 3) Step 1: robot swarm arrives **60s** · 4) Step 2: sintering roads and pads **70s** · 5) Step 3: mining ice for water, air and fuel **75s** · 6) Step 4: printed domes under regolith **75s** · 7) Step 5: the first crews **60s** · 8) Year 30: the city **75s** · 9) Plausibility verdict **45s**
+- **Stitch plan:** 540s generated → **21 generations** (≈$111.08). 9 section clips; seamless multi-segment splits: §2 Step 0 (60s → 30+30); §3 Step 1 (60s → 30+30); §4 Step 2 (70s → 30+30+10); §5 Step 3 (75s → 30+30+15); §6 Step 4 (75s → 30+30+15); §7 Step 5 (60s → 30+30); §8 Year 30 (75s → 30+30+15); §9 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut at every build step (§2–§7) with year stamp; Seedance end_image_url for before/after stills; dip-to-void at verdict.
+- **Cinematography:** Locked 35mm wide at the same pad across all steps (timelapse continuity via image refs); low tracking beside rovers; macro sintered texture; final crane-up over city at earthrise. **Controls vs default:** §1–7: static-noon, clean-sharp; §8: twilight-fable (earthshine + lit domes).
+- **Science grounding:** Water ice is confirmed in permanently shadowed polar craters; regolith can be sintered by microwaves/solar concentrators into bricks; ~2–3 m of regolith cover shields radiation. Oxygen can be extracted from regolith oxides. Tier: STRETCH.
+- **Music/SFX:** Ticking build percussion; servo whirrs; triumphant motif at Year 30.
+- **Thumbnail:** Robot arms printing a dome under Earthrise. Text: 'ROBOTS BUILD FIRST'. Chip STRETCH.
+- **Vertical cut-downs:** Printing a brick from Moon dust · Year 0 → Year 30 in 45s · Ice to rocket fuel
 
-### L18. Eko Atlantic: The City Built Behind an Ocean Wall
-*Alt:* Lagos Reclaimed 10 km² From the Atlantic · **Series:** Climate Frontline · **Target runtime:** ~8:23 (incl. ident + outro)
+### L18. The Ice City on Mars
+*Alt:* Why Martians Would Live Under Ice · **Series:** Worlds Beyond · **Runtime:** ~8:25 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Lagos pushed the Atlantic back and built a financial district where the ocean used to be."
-- **Logline:** Reclamation, the 'Great Wall of Lagos' sea defence [U length], the new financial district, and the critique: resilience for whom?
-- **Sections:** 1) Cold open: surf against wall, towers behind **20s** · 2) Bar Beach erosion **70s** · 3) Sand from the seabed **85s** · 4) The sea wall **100s** · 5) The financial district rises **85s** · 6) Who gets to live here **75s** · 7) Verdict **45s**
-- **Stitch plan:** 480s generated → **19 generations** (≈$98.74). Seamless multi-segment: §2 Bar Beach erosion (70s → 30+30+10); §3 Sand from the seabed (85s → 30+30+25); §4 The sea wall (100s → 30+30+30+10); §5 The financial district rises (85s → 30+30+25); §6 Who gets to live here (75s → 30+30+15); §7 Verdict (45s → 30+15). Hard cut on the equity question (tone shift).
-- **Cinematography:** Low-angle wave hitting accropode armour units; aerial dredger pumping sand (rainbowing); towers at golden hour. **Controls vs default:** twilight-fable; dredging static-noon.
-- **Narration:** Respectful, specific to Lagos context. **Music/SFX:** Afro-ambient percussion bed (licensed).
-- **Thumbnail:** Giant wave vs sea wall, towers behind. Text: 'OCEAN PUSHED BACK'.
-- **Vertical cut-downs:** How to make land from sand · The Great Wall of Lagos · Eko vs Victoria Island
+- **Hook (0–5 s, verbatim):** "On Mars, the best building material might be the one that melts."
+- **Logline:** A Martian city built under shells of water ice: radiation shielding that lets in light, pressurised ice domes, and what a Martian morning feels like.
+- **Sections:** 1) Cold open: blue-lit ice dome at sunrise **20s** · 2) Mars' three killers: cold, thin air, radiation **60s** · 3) Why ice: shielding you can see through **70s** · 4) Building an ice shell **75s** · 5) Pressure: holding air in a thin world **65s** · 6) Citizen's walk: under the blue dome **90s** · 7) Dust storms and resupply **55s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 480s generated → **19 generations** (≈$98.74). 8 section clips; seamless multi-segment splits: §2 Mars' three killers (60s → 30+30); §3 Why ice (70s → 30+30+10); §4 Building an ice shell (75s → 30+30+15); §5 Pressure (65s → 30+30+5); §6 Citizen's walk (90s → 30+30+30); §7 Dust storms and resupply (55s → 30+25); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Scan-line §3; hard cut into dust storm (§7); verdict locked.
+- **Cinematography:** Low wide 24mm of dome glowing against rust plains; interior blue diffused light gimbal walk; schematic dose-comparison overlay; dust storm rolling in, wide locked. **Controls vs default:** §2: static-noon; §3–5: ghost-in-the-code/clean-sharp; §6: a-dream-in-color (soft blue); §7: genre drama, industrial-fog.
+- **Science grounding:** Hydrogen-rich water ice is an effective radiation shield; NASA Langley's 'Mars Ice Home' concept (2016) proposed an inflatable ice-shell habitat. Mars' surface pressure ~0.6 kPa (0.6% of Earth); internal pressure of ~50 kPa pushes outward, so ice domes act in tension with a membrane. Tier: STRETCH.
+- **Music/SFX:** Crystalline pads, wind at 0.6% pressure (thin, high), storm rumble.
+- **Thumbnail:** Glowing blue ice dome on red plain at dawn. Text: 'HOMES MADE OF ICE'. Chip STRETCH.
+- **Vertical cut-downs:** Why ice blocks radiation · Inside the blue dome · Dust storm vs ice city
 
-### L19. Palm Jebel Ali: Dubai's Second Palm Is Finally Happening
-*Alt:* The Palm That Sat Empty for 15 Years · **Series:** Megaproject Files · **Target runtime:** ~8:53 (incl. ident + outro)
+### L19. The City Inside a Volcano
+*Alt:* Caldera: A City Powered by the Earth Itself · **Series:** How It Could Work · **Runtime:** ~8:30 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "This island was finished in 2008. Then nobody built on it for almost fifteen years."
-- **Logline:** The 2008 crash, the relaunch, 26.75% progress by frond, first villa handovers from late 2026, and the engineering of reclaimed palm islands.
-- **Sections:** 1) Cold open: empty palm from orbit-ish altitude **20s** · 2) The first Palm and the 2008 crash **85s** · 3) Fifteen empty years **65s** · 4) The relaunch **75s** · 5) How to build on reclaimed sand **100s** · 6) Progress by frond **65s** · 7) Handover 2026–28 **60s** · 8) Verdict **40s**
-- **Stitch plan:** 510s generated → **21 generations** (≈$104.91). Seamless multi-segment: §2 The first Palm and the 2008 crash (85s → 30+30+25); §3 Fifteen empty years (65s → 30+30+5); §4 The relaunch (75s → 30+30+15); §5 How to build on reclaimed sand (100s → 30+30+30+10); §6 Progress by frond (65s → 30+30+5); §7 Handover 2026–28 (60s → 30+30); §8 Verdict (40s → 30+10). Hard cut from crash (the-faded-fresco) to relaunch (twilight-fable). Frond progress as HUD bars.
-- **Cinematography:** High top-down drift across palm fronds; before/after locked aerial (empty sand → villas); vibro-compaction machines close-up. **Controls vs default:** 2008 crash flashback: era 2000s, color_palette the-faded-fresco. Relaunch: twilight-fable.
-- **Narration:** Brisk, numbers-led. **Music/SFX:** Glossy synth → stripped for empty years.
-- **Thumbnail:** Palm island half-built from above. Text: '15 YEARS EMPTY'.
-- **Vertical cut-downs:** Empty palm to villas · Building on sand · Palm vs Palm size
+- **Hook (0–5 s, verbatim):** "Most people run from volcanoes. This city was built inside one, on purpose."
+- **Logline:** A terraced city in a dormant caldera: geothermal power, magma monitoring, earthquake engineering, and the evacuation plan.
+- **Sections:** 1) Cold open: city lights in a crater at dusk **20s** · 2) Why a caldera: heat, shelter, minerals **60s** · 3) Geothermal: drilling toward magma **80s** · 4) Monitoring: listening to the mountain **65s** · 5) Engineering for earthquakes **70s** · 6) Citizen's walk: hot springs to terraces **90s** · 7) The evacuation plan **55s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 485s generated → **19 generations** (≈$99.76). 8 section clips; seamless multi-segment splits: §2 Why a caldera (60s → 30+30); §3 Geothermal (80s → 30+30+20); §4 Monitoring (65s → 30+30+5); §5 Engineering for earthquakes (70s → 30+30+10); §6 Citizen's walk (90s → 30+30+30); §7 The evacuation plan (55s → 30+25); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Scan-line §3; hard cut into evacuation drill §7 (drama); verdict locked.
+- **Cinematography:** Aerial 24mm push over the crater rim revealing terraces; vertical drill-string schematic; seismograph overlay on locked wide; gimbal walk through steaming streets; base-isolated building cutaway. **Controls vs default:** §1, §6: twilight-fable; §3: the-iron-borough; §4–5: ghost-in-the-code; §7: genre drama, industrial-fog.
+- **Science grounding:** Iceland's Krafla Magma Testbed aims to drill into magma; the 2009 IDDP-1 accidentally hit magma at ~2 km and produced superheated steam [U: output figures]. Base isolators and damped frames cut seismic loads. Real monitoring uses seismometers, GPS uplift and gas sensors. Tier: STRETCH.
+- **Music/SFX:** Low rumbles, steam hiss, warm cello; drill grind.
+- **Thumbnail:** Terraced city glowing inside a caldera, steam rising. Text: 'BUILT IN A VOLCANO'. Chip STRETCH.
+- **Vertical cut-downs:** Drilling into magma · How a building rides an earthquake · Hot-spring street POV
 
-### L20. Hong Kong's Northern Metropolis: A New City for 2.5 Million
-*Alt:* Hong Kong Is Building Another Hong Kong · **Series:** Megaproject Files · **Target runtime:** ~9:23 (incl. ident + outro)
+### L20. 24 Hours Inside an Underwater City
+*Alt:* Citizen's Walk: A Day 40 Metres Down · **Series:** Citizen's Walk · **Runtime:** ~7:55 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Hong Kong is planning a second city on its northern border, for two and a half million people."
-- **Logline:** Zones, the fast-track bill, rail links, tech hub ambitions, cost range HK$224B–360B+, and the villages being cleared.
-- **Sections:** 1) Cold open: border wetlands at dawn **20s** · 2) Why north **75s** · 3) The zones **100s** · 4) Rail and roads **85s** · 5) The price: HK$224B vs HK$360B **70s** · 6) Villages and wetlands **85s** · 7) Timeline **60s** · 8) Verdict **45s**
-- **Stitch plan:** 540s generated → **21 generations** (≈$111.08). Seamless multi-segment: §2 Why north (75s → 30+30+15); §3 The zones (100s → 30+30+30+10); §4 Rail and roads (85s → 30+30+25); §5 The price (70s → 30+30+10); §6 Villages and wetlands (85s → 30+30+25); §7 Timeline (60s → 30+30); §8 Verdict (45s → 30+15). Hard cut into 'Villages and wetlands' (human cost). Map fly-ins in Remotion.
-- **Cinematography:** Wetland aerial with Shenzhen skyline on horizon; rail viaduct lateral; village lanes eye-level (generic). **Controls vs default:** the-morning-after-rain; villages warm-vintage.
-- **Narration:** Balanced, non-political wording. **Music/SFX:** Urban ambient, birds in wetlands.
-- **Thumbnail:** Wetland with towers rising. Text: 'A SECOND HONG KONG'.
-- **Vertical cut-downs:** 2.5M people in 60s · The cost gap · Wetland vs tower
+- **Hook (0–5 s, verbatim):** "Your alarm is a humpback whale. Your window faces a kelp forest. Welcome to 2190."
+- **Logline:** A day in a shallow-shelf underwater district (40 m): mornings in kelp light, pressure-lock commutes, fish-farm lunch and bioluminescent nights.
+- **Sections:** 1) Dawn: kelp light through the window **40s** · 2) Morning: the pressure-lock commute **65s** · 3) Work: the seafloor lab **60s** · 4) Lunch: fish farms and seaweed **55s** · 5) Afternoon: the dive school **60s** · 6) How air and power reach you **70s** · 7) Night: bioluminescence **55s** · 8) What's real today **45s**
+- **Stitch plan:** 450s generated → **18 generations** (≈$92.56). 8 section clips; seamless multi-segment splits: §1 Dawn (40s → 30+10); §2 Morning (65s → 30+30+5); §3 Work (60s → 30+30); §4 Lunch (55s → 30+25); §5 Afternoon (60s → 30+30); §6 How air and power reach you (70s → 30+30+10); §7 Night (55s → 30+25); §8 What's real today (45s → 30+15). Deliberate hard cuts: Time-stamp hard cuts per section; scan-line overlay in §6; 'what's real' uses schematic.
+- **Cinematography:** All eye-level 35mm gimbal walks behind the Citizen; window POV of kelp; tram-pod gliding through acrylic tunnel; night wide with glowing plankton. **Controls vs default:** §1–5: turquoise-mirage; §6: ghost-in-the-code; §7: after-dark; §8: static-noon.
+- **Science grounding:** At 40 m, ambient pressure ~5 atm; habitats can be kept at 1 atm (like submarines) to avoid decompression. DEEP's Vanguard/Sentinel (Sentinel planned 2027, up to 50 people, 225 m) and Aquarius reef base are real precedents. Kelp grows up to ~0.5 m/day. Tier: STRETCH.
+- **Music/SFX:** Whale song, bubbles, soft marimba; night: glassy chimes.
+- **Thumbnail:** Bedroom window framing a kelp forest and a whale. Text: 'MY WINDOW IS THE SEA'. Chip STRETCH.
+- **Vertical cut-downs:** Whale alarm clock (loop) · Why you don't get the bends at home · Bioluminescent night walk
 
-### L21. The World's Highest Bridge: 625 Metres Above a River
-*Alt:* How China Built a Bridge Twice the Eiffel Tower's Height · **Series:** Scale Check · **Target runtime:** ~9:23 (incl. ident + outro)
+### L21. Flying Cars That Actually Make Sense
+*Alt:* Skyports: How 3D Traffic Would Really Work · **Series:** Machines of Tomorrow · **Runtime:** ~7:55 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Drop a stone from this bridge and it falls for over eleven seconds before it hits the water."
-- **Logline:** Huajiang Grand Canyon Bridge (opened Sept 2025): span, towers, cables, wind, and why Guizhou builds the world's highest bridges.
-- **Sections:** 1) Cold open: fog in canyon, deck appears **20s** · 2) Why Guizhou **71s** · 3) Scale: two Eiffels deep **71s** · 4) Towers and cables **106s** · 5) 1,420 m span **86s** · 6) Wind and fog engineering **86s** · 7) Opening and certification **50s** · 8) What's next **50s**
-- **Stitch plan:** 540s generated → **21 generations** (≈$111.08). Seamless multi-segment: §2 Why Guizhou (71s → 30+30+11); §3 Scale (71s → 30+30+11); §4 Towers and cables (106s → 30+30+30+16); §5 1,420 m span (86s → 30+30+26); §6 Wind and fog engineering (86s → 30+30+26); §7 Opening and certification (50s → 30+20); §8 What's next (50s → 30+20). Hard cut at the scale ghost. Seamless descent shot from deck to river (2 segments).
-- **Cinematography:** Canyon fly-through 24mm under the deck; descent crane-down from deck to river (continuous, 2 segments); cable-saddle close-up. **Controls vs default:** industrial-fog for canyon mist; hero anamorphic.
-- **Narration:** Vivid physical comparisons; verify drop time ≈ sqrt(2·625/9.81) ≈ 11.3 s (ignoring drag). **Music/SFX:** Big low brass swell, wind.
-- **Thumbnail:** Bridge over deep misty gorge, Eiffel ghost below. Text: '625 METERS UP'.
-- **Vertical cut-downs:** 11-second drop · 2 Eiffels deep · Fly under the world's highest bridge
+- **Hook (0–5 s, verbatim):** "Every sci-fi city has flying cars. None of them explain where they land."
+- **Logline:** eVTOL physics, noise, energy, air lanes and skyports, and why the future sky looks like organised corridors, not chaos.
+- **Sections:** 1) Cold open: sky lanes over a city at dusk **20s** · 2) The sci-fi myth vs physics **55s** · 3) Hovering is expensive: the energy math **70s** · 4) Noise and downwash **60s** · 5) Air lanes: 3D traffic control **70s** · 6) Skyports: where they land **70s** · 7) A ride from roof to roof **60s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 450s generated → **18 generations** (≈$92.56). 8 section clips; seamless multi-segment splits: §2 The sci-fi myth vs physics (55s → 30+25); §3 Hovering is expensive (70s → 30+30+10); §4 Noise and downwash (60s → 30+30); §5 Air lanes (70s → 30+30+10); §6 Skyports (70s → 30+30+10); §7 A ride from roof to roof (60s → 30+30); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut myth (§2 neon) to physics schematic (§3); scan-line into skyport reveal (§6); verdict locked.
+- **Cinematography:** Wide 24mm dusk with lane-lights ribbons; schematic rotor downwash; top-down lane grid; skyport crane-down with craft landing; cabin POV. **Controls vs default:** §2: neon-rain-at-midnight, genre noir; §3–5: ghost-in-the-code; §6–7: twilight-fable; §8: default.
+- **Science grounding:** Hover power scales with weight^1.5/√(disk area); eVTOLs use large rotor area and wing-borne cruise. Battery energy density (~250–300 Wh/kg) limits range to ~100–250 km [U]. Downwash and noise dictate vertiports. Tier: PROVEN (eVTOL) / STRETCH (dense 3D traffic).
+- **Music/SFX:** Soft rotor hums, ATC-style blips, optimistic synth.
+- **Thumbnail:** Organised light-ribbon air lanes over a city. Text: 'WHERE DO THEY LAND?'. Chip STRETCH.
+- **Vertical cut-downs:** Why flying cars are loud · Air lanes explained · Roof-to-roof ride POV
 
-### L22. Telosa: The $400 Billion City With No Location
-*Alt:* A Billionaire's Utopia, Five Years Later · **Series:** Built or Busted · **Target runtime:** ~9:53 (incl. ident + outro)
+### L22. 5 Sci-Fi City Tropes, Physics-Checked
+*Alt:* Which Movie Cities Could Actually Stand? · **Series:** Physics Check · **Runtime:** ~8:30 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "A billionaire designed a city for five million people. Five years later, it still doesn't have a site."
-- **Logline:** Marc Lore and BIG's Telosa: 'Equitism' land model, the tower, the 15-minute districts, the 2025 design update, and what's missing: land, water, law.
-- **Sections:** 1) Cold open: Equitism Tower in desert **20s** · 2) The pitch **76s** · 3) Equitism explained **101s** · 4) 36 fifteen-minute districts **86s** · 5) The 2025 design update **70s** · 6) The missing pieces: land & water **101s** · 7) Compare: other private cities **76s** · 8) Verdict **40s**
-- **Stitch plan:** 570s generated → **23 generations** (≈$117.25). Seamless multi-segment: §2 The pitch (76s → 30+30+16); §3 Equitism explained (101s → 30+30+30+11); §4 36 fifteen-minute districts (86s → 30+30+26); §5 The 2025 design update (70s → 30+30+10); §6 The missing pieces (101s → 30+30+30+11); §7 Compare (76s → 30+30+16); §8 Verdict (40s → 30+10). Hard cut from gleaming tower to empty desert parcel at 'missing pieces'.
-- **Cinematography:** Desert tower orbit; district eye-level walk; empty desert wide locked, wind only. **Controls vs default:** mirage-at-noon; empty desert genre drama.
-- **Narration:** Fair to the idea; strict on status. **Music/SFX:** Utopian pads → wind.
-- **Thumbnail:** Gleaming tower alone in desert. Text: 'CITY: TBD'. CONCEPT stamp.
-- **Vertical cut-downs:** Equitism in 60s · No site, no city · Telosa vs NEOM
+- **Hook (0–5 s, verbatim):** "Five famous kinds of sci-fi city. Only one survives the physics."
+- **Logline:** Planet-wide cities, floating rock islands, desert domes, underwater bubbles and ring worlds, each rated on the Plausibility Meter (tropes only, no franchise visuals).
+- **Sections:** 1) Cold open: five cities flash by **20s** · 2) Trope 1: the planet-wide city **90s** · 3) Trope 2: floating rock islands **80s** · 4) Trope 3: the glass dome in the desert **80s** · 5) Trope 4: the underwater bubble **80s** · 6) Trope 5: the ring world **90s** · 7) Final ranking **45s**
+- **Stitch plan:** 485s generated → **18 generations** (≈$99.76). 7 section clips; seamless multi-segment splits: §2 Trope 1 (90s → 30+30+30); §3 Trope 2 (80s → 30+30+20); §4 Trope 3 (80s → 30+30+20); §5 Trope 4 (80s → 30+30+20); §6 Trope 5 (90s → 30+30+30); §7 Final ranking (45s → 30+15). Deliberate hard cuts: Hard cut between every trope (palette flip per trope); Plausibility needle at each section end; ranking locked.
+- **Cinematography:** Each trope: one establishing 24mm reveal + schematic breakdown; ranking on locked void with five miniatures. **Controls vs default:** §2: neon-rain-at-midnight; §3: a-dream-in-color; §4: mirage-at-noon; §5: turquoise-mirage; §6: static-noon; §7: ghost-in-the-code.
+- **Science grounding:** Planet city: waste heat — 1 trillion people × 100 W = 10^14 W, several % of absorbed sunlight [U: calc]. Floating rocks need magnetic levitation (diamagnetic levitation only works at tiny scale). Glass dome: thermal greenhouse and pressure fine on Earth. Underwater bubble: pressure hull shape. Ringworld: material strength far beyond known (Niven's; FRONTIER). Ranking: dome > bubble > planet city > ring > floating rocks.
+- **Music/SFX:** Each trope gets a mini-motif; drumroll-free ranking with needle clacks.
+- **Thumbnail:** Five miniature cities on a meter. Text: 'ONLY 1 WORKS'. Chip mixed.
+- **Vertical cut-downs:** Floating islands: why not · Planet city heat problem · The ranking in 60s
 
-### L23. Paris After Hidalgo: Did the 15-Minute City Work?
-*Alt:* The 15-Minute City Survived Its First Election · **Series:** City of 2075 · **Target runtime:** ~9:23 (incl. ident + outro)
+### L23. The Bishop Ring: A World 1,000 km Wide
+*Alt:* The Habitat Big Enough to Have Its Own Sky · **Series:** Worlds Beyond · **Runtime:** ~8:20 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "The 15-minute city went on the ballot in Paris this year. It won by less than one point."
-- **Logline:** Carlos Moreno's idea, Hidalgo's Paris (bike lanes, school streets, Seine), the backlash and conspiracy theories, and Grégoire's 50.52% win.
-- **Sections:** 1) Cold open: Rue de Rivoli bike lanes **20s** · 2) What a 15-minute city is (and isn't) **85s** · 3) What Paris changed **100s** · 4) The backlash **75s** · 5) Myths vs facts **85s** · 6) March 2026: 50.52% **50s** · 7) The 2075 version **85s** · 8) Verdict **40s**
-- **Stitch plan:** 540s generated → **21 generations** (≈$111.08). Seamless multi-segment: §2 What a 15-minute city is (85s → 30+30+25); §3 What Paris changed (100s → 30+30+30+10); §4 The backlash (75s → 30+30+15); §5 Myths vs facts (85s → 30+30+25); §6 March 2026 (50s → 30+20); §7 The 2075 version (85s → 30+30+25); §8 Verdict (40s → 30+10). Hard cut into myths vs facts (HUD fact cards). Before/after locked streets chained.
-- **Cinematography:** Eye-level bike-lane glide (generic riders from behind); before/after locked street (cars → trees); isochrone map overlay. **Controls vs default:** the-morning-after-rain.
-- **Narration:** Neutral; debunk myths with sources, not sneer. **Music/SFX:** Light jazzy strings (licensed), street ambience.
-- **Thumbnail:** Paris street split cars/trees. Text: '15 MINUTES'.
-- **Vertical cut-downs:** 15-minute city in 60s · Myths vs facts · Paris street before/after
+- **Hook (0–5 s, verbatim):** "This ring is so big it doesn't need a roof. The spin holds the air in."
+- **Logline:** Forrest Bishop's roofless ring habitat: 1,000 km radius, 500 km-wide land strip, 200 km walls, and the materials science that makes it barely conceivable.
+- **Sections:** 1) Cold open: sunrise over a ring landscape **20s** · 2) From cylinders to rings **55s** · 3) No roof: walls hold the air **70s** · 4) Spin and gravity at 1,000 km **65s** · 5) Materials: carbon nanotubes **70s** · 6) Citizen's walk: continents on a ring **90s** · 7) Building it: asteroid mining **60s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 475s generated → **19 generations** (≈$97.71). 8 section clips; seamless multi-segment splits: §2 From cylinders to rings (55s → 30+25); §3 No roof (70s → 30+30+10); §4 Spin and gravity at 1,000 km (65s → 30+30+5); §5 Materials (70s → 30+30+10); §6 Citizen's walk (90s → 30+30+30); §7 Building it (60s → 30+30); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Scan-line §3; hard cut into exterior scale §4; verdict locked.
+- **Cinematography:** Ultra-wide 24mm vista with the ring arcing into the sky; exterior slow orbit showing Earth for scale; schematic atmosphere-wall overlay; walk through forests with the far arc overhead. **Controls vs default:** §1, §6: the-morning-after-rain; §2–5: static-noon, clean-sharp; §7: the-iron-borough.
+- **Science grounding:** 1 g at r = 1,000 km: ω = √(g/r) ≈ 0.003 rad/s → one turn ~35 min; rim speed ~3 km/s. Walls ~200 km tall retain air because pressure scale height is ~8 km. Hoop stress requires tensile strength only CNT-class materials approach. Tier: FRONTIER.
+- **Music/SFX:** Grand, slow strings; wind; wide reverb.
+- **Thumbnail:** Landscape curving upward into the sky as a ring. Text: 'NO ROOF NEEDED'. Chip FRONTIER.
+- **Vertical cut-downs:** Why the air doesn't escape · Ring vs Earth scale · Sunrise on a ring (loop)
 
-### L24. Dubai Loop: Tunnels Under the Burj Khalifa
-*Alt:* Can a Boring Company Tunnel Fix Dubai Traffic? · **Series:** Megaproject Files · **Target runtime:** ~8:53 (incl. ident + outro)
+### L24. Hollowing Out an Asteroid to Build a City
+*Alt:* Spinning Rock: The Asteroid Habitat · **Series:** Worlds Beyond · **Runtime:** ~8:15 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Twenty minutes from DIFC to Dubai Mall. The Dubai Loop promises three."
-- **Logline:** The 6.4 km, 4-station pilot, capacity maths (13K/day), comparison to Dubai Metro and the Las Vegas Loop, and schedule claims [U].
-- **Sections:** 1) Cold open: tunnel mouth under skyline **20s** · 2) Dubai's traffic problem **65s** · 3) The pilot route **75s** · 4) Small tunnels, cheaper? The TBM **100s** · 5) Capacity maths: 13K vs metro **85s** · 6) Las Vegas lessons **75s** · 7) Timeline claims [U] **50s** · 8) Verdict **40s**
-- **Stitch plan:** 510s generated → **21 generations** (≈$104.91). Seamless multi-segment: §2 Dubai's traffic problem (65s → 30+30+5); §3 The pilot route (75s → 30+30+15); §4 Small tunnels, cheaper? The TBM (100s → 30+30+30+10); §5 Capacity maths (85s → 30+30+25); §6 Las Vegas lessons (75s → 30+30+15); §7 Timeline claims [U] (50s → 30+20); §8 Verdict (40s → 30+10). Hard cut into capacity maths (HUD). Tunnel push-in chained.
-- **Cinematography:** Push-in 24mm into tunnel portal (2 segments continuous forward); TBM cutterhead macro; night skyline establishing. **Controls vs default:** after-dark; TBM static-noon.
-- **Narration:** Maths-forward, neutral on Musk (name only). **Music/SFX:** Electronic drive, TBM grind SFX.
-- **Thumbnail:** Glowing tunnel under Burj-like skyline. Text: '20 MIN → 3'.
-- **Vertical cut-downs:** 20 minutes to 3 · Tunnel vs metro capacity · How a TBM digs
+- **Hook (0–5 s, verbatim):** "Take a mountain-sized rock, hollow it out and spin it. You've built a planet."
+- **Logline:** Converting a metallic or rubble-pile asteroid into a spinning habitat: mining, bagging rubble, spin-up, interior design and life inside the rock.
+- **Sections:** 1) Cold open: lights inside a spinning rock **20s** · 2) Choosing the rock **60s** · 3) Rubble piles: why they fly apart **65s** · 4) The bag trick: wrapping a rubble pile **75s** · 5) Spin-up and gravity **60s** · 6) Citizen's walk: inside the rock **90s** · 7) Mining economy **55s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 470s generated → **18 generations** (≈$96.68). 8 section clips; seamless multi-segment splits: §2 Choosing the rock (60s → 30+30); §3 Rubble piles (65s → 30+30+5); §4 The bag trick (75s → 30+30+15); §5 Spin-up and gravity (60s → 30+30); §6 Citizen's walk (90s → 30+30+30); §7 Mining economy (55s → 30+25); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Scan-line into §4; hard cut into interior §6; verdict locked.
+- **Cinematography:** Exterior slow 24mm orbit around the asteroid with hard sunlight; schematic of rubble-pile layers; mesh-bag deployment wide; interior gimbal walk along curved streets with rock ceiling overhead. **Controls vs default:** §1–5: static-noon, clean-sharp; §4: ghost-in-the-code; §6: twilight-fable; §7: the-iron-borough.
+- **Science grounding:** Many asteroids are rubble piles bound by weak gravity; spinning them for 1 g would fling them apart. Proposals (e.g. arXiv 2302.12353 'Autonomous Restructuring of Asteroids into Rotating Space Stations') wrap rubble in a bag or tether. Gravity at r = 500 m needs ~1.3 rpm. Tier: FRONTIER.
+- **Music/SFX:** Metallic resonances, mining thuds, warm interior pads.
+- **Thumbnail:** Asteroid split open showing a city inside. Text: 'A CITY IN A ROCK'. Chip FRONTIER.
+- **Vertical cut-downs:** Why asteroids fall apart · The bag trick · Inside the rock POV
 
-### L25. Scale Check: Every Megaproject vs Manhattan
-*Alt:* How Big Are the World's Biggest Projects, Really? · **Series:** Scale Check · **Target runtime:** ~10:53 (incl. ident + outro)
+### L25. The City Grown From Sand
+*Alt:* Build It From Zero: Bacteria That Make Concrete · **Series:** Build It From Zero · **Runtime:** ~8:15 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Manhattan is about twenty-one kilometres long. The Line was planned to be eight Manhattans."
-- **Logline:** A visual ranking of megaprojects by footprint and height, dropped onto Manhattan: The Line, Mukaab, Palm Jebel Ali, Xiong'an, Maldives Floating City, Jeddah Tower.
-- **Sections:** 1) Cold open: Manhattan from above **20s** · 2) Rules of the comparison **55s** · 3) Jeddah Tower on Midtown **79s** · 4) The Mukaab on Midtown **79s** · 5) Palm Jebel Ali over the Hudson **79s** · 6) Maldives Floating City in the harbour **79s** · 7) Xiong'an vs NYC **80s** · 8) The Line vs Manhattan **104s** · 9) Final ranking **55s**
-- **Stitch plan:** 630s generated → **24 generations** (≈$129.59). Seamless multi-segment: §2 Rules of the comparison (55s → 30+25); §3 Jeddah Tower on Midtown (79s → 30+30+19); §4 The Mukaab on Midtown (79s → 30+30+19); §5 Palm Jebel Ali over the Hudson (79s → 30+30+19); §6 Maldives Floating City in the harbour (79s → 30+30+19); §7 Xiong'an vs NYC (80s → 30+30+20); §8 The Line vs Manhattan (104s → 30+30+30+14); §9 Final ranking (55s → 30+25). Hard cut between each comparison (counter increments). Same locked aerial reused as base plate.
-- **Cinematography:** One locked high aerial of a generic Manhattan-like grid (not photoreal NYC branding) reused; each project composited as scale ghost/generated insert. **Controls vs default:** static-noon throughout for comparability.
-- **Narration:** Brisk countdown energy; state scaled sizes as approximations [U: verify each metric]. **Music/SFX:** Countdown ticks, building pulse.
-- **Thumbnail:** Manhattan with a giant cube dropped in. Text: 'VS MANHATTAN'.
-- **Vertical cut-downs:** The Line vs Manhattan · Mukaab on Midtown · Jeddah Tower vs Empire State
+- **Hook (0–5 s, verbatim):** "What if you could build a city by pouring bacteria onto the desert?"
+- **Logline:** Building a desert city with biocement (microbially induced calcite precipitation), solar farms and dew catchers: from bare dunes to shaded streets.
+- **Sections:** 1) Cold open: sand hardening into walls **20s** · 2) The problem: desert sand is useless for concrete **55s** · 3) Step 1: bacteria that make stone **75s** · 4) Step 2: printing walls with biocement **70s** · 5) Step 3: shade, wind towers and cool streets **70s** · 6) Step 4: water from air and sea **65s** · 7) Year 20: the city lives **70s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 470s generated → **20 generations** (≈$96.68). 8 section clips; seamless multi-segment splits: §2 The problem (55s → 30+25); §3 Step 1 (75s → 30+30+15); §4 Step 2 (70s → 30+30+10); §5 Step 3 (70s → 30+30+10); §6 Step 4 (65s → 30+30+5); §7 Year 20 (70s → 30+30+10); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut per build step with year stamp; Seedance stage-to-stage chaining; verdict locked.
+- **Cinematography:** Macro 85mm of grains cementing (schematic → photoreal); locked 35mm wide of the same dune across steps; low tracking along shaded streets; top-down of solar and dew fields. **Controls vs default:** §1–6: mirage-at-noon; §3: ghost-in-the-code for micro schematic; §7: twilight-fable.
+- **Science grounding:** Desert sand grains are too smooth and rounded for concrete aggregate. MICP: bacteria (e.g. Sporosarcina pasteurii) hydrolyse urea and precipitate calcium carbonate, binding sand (bioMASON-type bricks). Traditional wind towers (barjeel) cool streets passively. Tier: PROVEN (bricks) / STRETCH (city).
+- **Music/SFX:** Hot wind, sparse oud-like plucks (library), gentle percussion build.
+- **Thumbnail:** Sandstone-coloured city emerging from dunes. Text: 'GROWN, NOT BUILT'. Chip STRETCH.
+- **Vertical cut-downs:** Why desert sand can't make concrete · Bacteria make a brick · Wind tower cooling
 
-### L26. City of 2075: How a City Survives 50°C
-*Alt:* Designing a City for Extreme Heat · **Series:** City of 2075 · **Target runtime:** ~10:23 (incl. ident + outro)
+### L26. The Launch Loop: A City That Throws Ships Into Orbit
+*Alt:* Machines of Tomorrow: The 2,000 km Track to Space · **Series:** Machines of Tomorrow · **Runtime:** ~7:45 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "By 2075, some cities may see fifty-degree days. This is how one could stay liveable."
-- **Logline:** Heat-resilient design: shade canopies, cool roofs, district cooling, wind towers, urban forests, heat shelters, drawing on Gulf and Mediterranean precedents.
-- **Sections:** 1) Cold open: heat shimmer street **20s** · 2) The heat projection [U: cite IPCC range] **71s** · 3) Shade as infrastructure **82s** · 4) Cool roofs & materials **71s** · 5) District cooling **82s** · 6) Wind towers, old and new **81s** · 7) Urban forest **71s** · 8) Real cities doing it **81s** · 9) 2075 verdict **41s**
-- **Stitch plan:** 600s generated → **24 generations** (≈$123.42). Seamless multi-segment: §2 The heat projection [U (71s → 30+30+11); §3 Shade as infrastructure (82s → 30+30+22); §4 Cool roofs & materials (71s → 30+30+11); §5 District cooling (82s → 30+30+22); §6 Wind towers, old and new (81s → 30+30+21); §7 Urban forest (71s → 30+30+11); §8 Real cities doing it (81s → 30+30+21); §9 2075 verdict (41s → 30+11). Hard cut from heat shimmer to cool shaded street (temperature HUD drops).
-- **Cinematography:** Low-angle heat shimmer 50mm; lateral walk under canopy; thermal-camera-style clip (ghost-in-the-code) → photoreal. **Controls vs default:** mirage-at-noon; thermal: ghost-in-the-code.
-- **Narration:** Urgent but constructive. **Music/SFX:** Dry, sparse; cooling relief swell.
-- **Thumbnail:** Street with thermal overlay half/cool shade half. Text: '50°C CITY'.
-- **Vertical cut-downs:** Shade = infrastructure · Ancient wind towers · Cool roof test
+- **Hook (0–5 s, verbatim):** "A steel belt racing at fourteen kilometres a second, held eighty kilometres in the sky by its own speed."
+- **Logline:** Keith Lofstrom's launch loop, a dynamic structure that could launch payloads without rockets, and the spaceport city built around it.
+- **Sections:** 1) Cold open: a vehicle rockets along the track **20s** · 2) Rockets are wasteful **55s** · 3) Dynamic structures: speed holds it up **75s** · 4) Riding the loop: acceleration **65s** · 5) The spaceport city **70s** · 6) Energy: where the power comes from **55s** · 7) Failure: if the belt breaks **55s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 440s generated → **18 generations** (≈$90.51). 8 section clips; seamless multi-segment splits: §2 Rockets are wasteful (55s → 30+25); §3 Dynamic structures (75s → 30+30+15); §4 Riding the loop (65s → 30+30+5); §5 The spaceport city (70s → 30+30+10); §6 Energy (55s → 30+25); §7 Failure (55s → 30+25); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Scan-line into §3; hard cut into city §5; drama at §7.
+- **Cinematography:** Long lateral 24mm truck along an elevated track receding into the sky; schematic belt and deflectors; chase of vehicle; spaceport-city aerial at dusk. **Controls vs default:** §1, §4: genre action, pacing dynamic; §3: ghost-in-the-code; §5: twilight-fable; §7: genre drama, industrial-fog.
+- **Science grounding:** Launch loop (Lofstrom, 1980s): an iron rotor ~14 km/s in a vacuum sheath, deflected magnetically to hold an 80 km-high, ~2,000 km track; vehicles accelerate at ~3 g to orbital speeds. Stored energy is enormous (~terajoules), so failure is catastrophic. Tier: FRONTIER.
+- **Music/SFX:** Driving ostinato; magnetic hum; sonic cracks.
+- **Thumbnail:** Glowing track arching into the upper atmosphere. Text: 'NO ROCKETS'. Chip FRONTIER.
+- **Vertical cut-downs:** How speed holds up a track · 3 g ride to orbit POV · If it breaks
 
-### L27. Jakarta Is Sinking. Can a Giant Sea Wall Save It?
-*Alt:* The Sea Wall Plan for a Sinking Megacity · **Series:** Climate Frontline · **Target runtime:** ~9:23 (incl. ident + outro)
+### L27. A Floating Tunnel Under the Atlantic
+*Alt:* The Submerged Train Across an Ocean · **Series:** Machines of Tomorrow · **Runtime:** ~7:55 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Parts of Jakarta are sinking faster than the sea is rising. Much faster."
-- **Logline:** Groundwater-driven subsidence, the Giant Sea Wall (NCICD) plans [U cost/length], why Nusantara was pitched as the escape, and what a wall can and can't fix.
-- **Sections:** 1) Cold open: flooded mosque at high tide **20s** · 2) Subsidence explained **84s** · 3) How fast [U: cm/yr] **69s** · 4) The sea wall plan **104s** · 5) Garuda-shaped islands [U] **79s** · 6) What walls can't fix **79s** · 7) Link to Nusantara **60s** · 8) Verdict **45s**
-- **Stitch plan:** 540s generated → **21 generations** (≈$111.08). Seamless multi-segment: §2 Subsidence explained (84s → 30+30+24); §3 How fast [U (69s → 30+30+9); §4 The sea wall plan (104s → 30+30+30+14); §5 Garuda-shaped islands [U] (79s → 30+30+19); §6 What walls can't fix (79s → 30+30+19); §7 Link to Nusantara (60s → 30+30); §8 Verdict (45s → 30+15). Hard cut from flood to diagram (subsidence cutaway).
-- **Cinematography:** Tidal flooding eye-level (no identifiable faces); cutaway ground layers (blueprint); sea wall aerial render labelled. **Controls vs default:** the-investigation; render: twilight-fable.
-- **Narration:** Serious, humane. **Music/SFX:** Low cello, water.
-- **Thumbnail:** Half-submerged street, wall on horizon. Text: 'SINKING CITY'.
-- **Vertical cut-downs:** Sinking faster than the sea rises · Why pumping groundwater sinks cities · The Garuda wall
+- **Hook (0–5 s, verbatim):** "Not on the seabed. Not on the surface. A tunnel floating 50 metres down, from London to New York."
+- **Logline:** Submerged floating tunnels (Archimedes bridges): buoyancy, tethers, currents and vacuum trains, grounded in Norway's real E39 studies.
+- **Sections:** 1) Cold open: train inside a floating tube **20s** · 2) Why not a bridge or seabed tunnel **60s** · 3) Archimedes' bridge: floating at 50 m **75s** · 4) Tethers vs pontoons **65s** · 5) Currents, ships and earthquakes **65s** · 6) A vacuum train inside **65s** · 7) 5,000 km: the scale problem **55s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 450s generated → **19 generations** (≈$92.56). 8 section clips; seamless multi-segment splits: §2 Why not a bridge or seabed tunnel (60s → 30+30); §3 Archimedes' bridge (75s → 30+30+15); §4 Tethers vs pontoons (65s → 30+30+5); §5 Currents, ships and earthquakes (65s → 30+30+5); §6 A vacuum train inside (65s → 30+30+5); §7 5,000 km (55s → 30+25); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Scan-line §3; hard cut §6 to interior ride; verdict locked.
+- **Cinematography:** Underwater 35mm glide alongside the tube with sun shafts; schematic tether patterns; train interior POV; scale overlay across the Atlantic map. **Controls vs default:** §1, §3–4: turquoise-mirage; §3: ghost-in-the-code for schematic; §5: genre drama, after-dark; §6: default.
+- **Science grounding:** Submerged floating tunnels balance buoyancy against weight with tethers; Norway studied them for E39 fjord crossings (Bjørnafjorden). Depth ~20–50 m avoids ships and waves. The Atlantic (~5,000 km, deep abyss) makes tethers impractical, so it would need dynamic positioning. Tier: STRETCH (fjord) / FRONTIER (Atlantic).
+- **Music/SFX:** Submarine drones, rail hum, current wash.
+- **Thumbnail:** Glowing tube suspended in blue water with a train inside. Text: 'FLOATING TUNNEL'. Chip STRETCH.
+- **Vertical cut-downs:** How a tunnel floats · Norway's real plan · London to New York?
 
-### L28. Beneath the City: Why 2075 Cities Will Grow Down
-*Alt:* The Underground City Is Coming · **Series:** City of 2075 · **Target runtime:** ~9:53 (incl. ident + outro)
+### L28. Could We Build a City on Titan?
+*Alt:* The Only Moon Where You Could Fly With Wings · **Series:** Worlds Beyond · **Runtime:** ~8:00 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "The next frontier for crowded cities isn't up. It's fifty metres down."
-- **Logline:** Underground space planning (Singapore's underground master plan [U], Helsinki's underground plan [U], Montreal's RESO), caverns for storage, data and transit, and what life below ground feels like.
-- **Sections:** 1) Cold open: cavern with daylight shaft **20s** · 2) Why go down **70s** · 3) Montreal's RESO **75s** · 4) Helsinki's plan **75s** · 5) Singapore caverns **100s** · 6) Data centres & logistics **75s** · 7) Can people live below? **85s** · 8) 2075 vision **70s**
-- **Stitch plan:** 570s generated → **23 generations** (≈$117.25). Seamless multi-segment: §2 Why go down (70s → 30+30+10); §3 Montreal's RESO (75s → 30+30+15); §4 Helsinki's plan (75s → 30+30+15); §5 Singapore caverns (100s → 30+30+30+10); §6 Data centres & logistics (75s → 30+30+15); §7 Can people live below? (85s → 30+30+25); §8 2075 vision (70s → 30+30+10). Hard cut per city. Continuous descent opener chained.
-- **Cinematography:** Crane-down through a light shaft 24mm (2 segments); cavern interior wide; logistics tunnel push-in. **Controls vs default:** after-dark; light shaft twilight-fable.
-- **Narration:** Curious; mark plans as plans. **Music/SFX:** Deep drones, dripping reverb.
-- **Thumbnail:** Cross-section of city with glowing levels below. Text: 'CITY BELOW'.
-- **Vertical cut-downs:** 50 m under Singapore · Montreal's hidden city · Could you live underground?
+- **Hook (0–5 s, verbatim):** "On Titan, you could strap wings to your arms and fly."
+- **Logline:** A settlement on Saturn's moon Titan: thick air, methane lakes, -180 °C cold, energy from ... what? And why Titan might be the best place in the outer solar system.
+- **Sections:** 1) Cold open: a person flying over methane lakes **20s** · 2) Titan: thicker air than Earth **55s** · 3) Human-powered flight **60s** · 4) The cold: -180 °C **60s** · 5) Energy: the hard problem **75s** · 6) The city: domes by the shore of a methane sea **85s** · 7) Resources: hydrocarbons everywhere **55s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 455s generated → **17 generations** (≈$93.59). 8 section clips; seamless multi-segment splits: §2 Titan (55s → 30+25); §3 Human-powered flight (60s → 30+30); §4 The cold (60s → 30+30); §5 Energy (75s → 30+30+15); §6 The city (85s → 30+30+25); §7 Resources (55s → 30+25); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut after §1; scan-line at §5; verdict locked.
+- **Cinematography:** Wide 24mm glide over orange haze and dark lakes, flyer silhouette; schematic energy flow overlay; insulated dome city by shore at dim orange noon; Saturn barely visible through haze. **Controls vs default:** §1, §3: a-dream-in-color; §2, §4–5: industrial-fog, clean-sharp; §6: twilight-fable; §8: default.
+- **Science grounding:** Titan surface pressure ~1.5 atm, gravity ~0.14 g, so human-powered flight is plausible (a classic Zubrin/NASA observation). Temperature ~94 K; sunlight is ~1% of Earth's, so power needs fission; burning methane needs imported oxygen. NASA's Dragonfly rotorcraft is due to launch in 2028 [U: date]. Tier: STRETCH.
+- **Music/SFX:** Hazy, slow synth; wing flaps; gentle methane rain.
+- **Thumbnail:** Winged human silhouette over orange lakes with a dome city. Text: 'YOU CAN FLY HERE'. Chip STRETCH.
+- **Vertical cut-downs:** Why you could fly on Titan · -180 °C: what freezes · Methane rain in 30s
 
-### L29. Oxagon: The Part of NEOM That Survived
-*Alt:* NEOM's Floating Port City, Explained · **Series:** Megaproject Files · **Target runtime:** ~8:23 (incl. ident + outro)
+### L29. Commute Through a Megacity of 2200
+*Alt:* Citizen's Walk: Home to Work in the Tomorrowscape · **Series:** Citizen's Walk · **Runtime:** ~7:50 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "While The Line stopped, one piece of NEOM got another three billion dollars. It's a port."
-- **Logline:** Oxagon's octagon design, port operations, industry and data-centre pivot, and why ports beat cities when budgets tighten.
-- **Sections:** 1) Cold open: octagonal port at dawn **20s** · 2) From Line to port: the pivot **82s** · 3) The octagon design **90s** · 4) Port first **90s** · 5) Data centres & AI ambitions **81s** · 6) Why boring wins **71s** · 7) Verdict **46s**
-- **Stitch plan:** 480s generated → **18 generations** (≈$98.74). Seamless multi-segment: §2 From Line to port (82s → 30+30+22); §3 The octagon design (90s → 30+30+30); §4 Port first (90s → 30+30+30); §5 Data centres & AI ambitions (81s → 30+30+21); §6 Why boring wins (71s → 30+30+11); §7 Verdict (46s → 30+16). Hard cut from paused Line (grey) to active port (warm).
-- **Cinematography:** Aerial arc over octagon; container crane close-up; desert data centre halls lateral. **Controls vs default:** mirage-at-noon; data halls ghost-in-the-code.
-- **Narration:** Pragmatic, 'follow the money'. **Music/SFX:** Industrial rhythm, port horns.
-- **Thumbnail:** Octagon port on Red Sea. Text: 'NEOM'S PLAN B'.
-- **Vertical cut-downs:** Line vs Oxagon money · The octagon from above · Why ports beat cities
+- **Hook (0–5 s, verbatim):** "In 2200, your commute crosses three cities, and takes eleven minutes."
+- **Logline:** A single commute linking atlas worlds: a sky-lane shuttle, a hyperloop Waystation, a floating district and a tower-forest office, with the physics of each leg.
+- **Sections:** 1) Morning in the tower-forest apartment **35s** · 2) Skyport shuttle across the bay **65s** · 3) Waystation: the hyperloop hop **70s** · 4) Arrival at Meridian's docks **60s** · 5) The walking market **55s** · 6) Lift to the 400th floor office **55s** · 7) Evening: the ride home at dusk **60s** · 8) How the network fits together **45s**
+- **Stitch plan:** 445s generated → **18 generations** (≈$91.54). 8 section clips; seamless multi-segment splits: §1 Morning in the tower-forest apartment (35s → 30+5); §2 Skyport shuttle across the bay (65s → 30+30+5); §3 Waystation (70s → 30+30+10); §4 Arrival at Meridian's docks (60s → 30+30); §5 The walking market (55s → 30+25); §6 Lift to the 400th floor office (55s → 30+25); §7 Evening (60s → 30+30); §8 How the network fits together (45s → 30+15). Deliberate hard cuts: Hard cuts at each mode change with a time stamp; atlas continuity refs; final schematic map.
+- **Cinematography:** All POV/over-shoulder 35mm behind the Citizen; each mode's signature move (shuttle bank, capsule launch, dock walk, ropeless lift); closing atlas-map schematic. **Controls vs default:** §1: the-morning-after-rain; §2: twilight-fable; §3: ghost-in-the-code/clean-sharp; §4–5: turquoise-mirage; §6: static-noon; §7: twilight-fable; §8: ghost-in-the-code.
+- **Science grounding:** Reuses validated numbers from L01 (Meridian), L09 (arcology lifts), L14 (hyperloop), L21 (eVTOL). Ties the atlas together; each leg gets a one-line physics overlay. Tier mix, labelled per leg.
+- **Music/SFX:** Continuous travelling motif that changes instrumentation per mode.
+- **Thumbnail:** Split quad: shuttle, capsule, floating dock, sky office. Text: '11-MINUTE COMMUTE'. Chip mixed.
+- **Vertical cut-downs:** Shuttle bank over the bay · Hyperloop hop in 30s · 400 floors in 40 seconds
 
-### L30. 7 Future Cities That Never Happened
-*Alt:* Built or Busted: The Graveyard of Utopias · **Series:** Built or Busted · **Target runtime:** ~12:23 (incl. ident + outro)
+### L30. How Big Can a City Actually Get?
+*Alt:* Physics Check: The Hard Limits of Megacities · **Series:** Physics Check · **Runtime:** ~8:20 (incl. 5 s ident + 20 s outro)
 
-- **Hook (0–5 s, verbatim):** "Every one of these cities had a render, a budget, and a launch date. None became what was promised."
-- **Logline:** A countdown of stalled or underfilled city projects (e.g. Masdar, Songdo, Forest City, Kangbashi, Lavasa, Arcosanti, Sindalah [U: verify each status]) and the patterns they share.
-- **Sections:** 1) Cold open: renders dissolve to dust **20s** · 2) #7 **74s** · 3) #6 **74s** · 4) #5 **74s** · 5) #4 **74s** · 6) #3 **79s** · 7) #2 **79s** · 8) #1 **98s** · 9) The 5 patterns of failure **99s** · 10) What this means for NEOM **49s**
-- **Stitch plan:** 720s generated → **29 generations** (≈$148.10). Seamless multi-segment: §2 #7 (74s → 30+30+14); §3 #6 (74s → 30+30+14); §4 #5 (74s → 30+30+14); §5 #4 (74s → 30+30+14); §6 #3 (79s → 30+30+19); §7 #2 (79s → 30+30+19); §8 #1 (98s → 30+30+30+8); §9 The 5 patterns of failure (99s → 30+30+30+9); §10 What this means for NEOM (49s → 30+19). Hard cut on every number (status stamp). Blueprint wipe render→reality each item.
-- **Cinematography:** Each entry: render hero (twilight-fable) → reality (industrial-fog) split; empty plaza dolly-backs. **Controls vs default:** genre drama; the-investigation for pattern section.
-- **Narration:** Countdown pace, fair verdicts, mark statuses precisely. **Music/SFX:** Tension build per number; stamp thunks.
-- **Thumbnail:** Grid of 4 renders with red X stamps. Text: 'NEVER BUILT'.
-- **Vertical cut-downs:** Forest City in 60s · Masdar: half a future · 5 patterns of failed cities
+- **Hook (0–5 s, verbatim):** "Tokyo holds thirty-seven million people. Is there a number where a city simply stops working?"
+- **Logline:** The physics and maths that cap cities: travel time (Marchetti's constant), heat, water, food footprint and energy, and a 1-billion-person design that bends the limits.
+- **Sections:** 1) Cold open: zoom-out over endless lights **20s** · 2) Today's giants **50s** · 3) Limit 1: the one-hour commute **75s** · 4) Limit 2: waste heat **65s** · 5) Limit 3: water and food **70s** · 6) Limit 4: energy **60s** · 7) Designing a billion-person city **90s** · 8) Plausibility verdict **45s**
+- **Stitch plan:** 475s generated → **19 generations** (≈$97.71). 8 section clips; seamless multi-segment splits: §2 Today's giants (50s → 30+20); §3 Limit 1 (75s → 30+30+15); §4 Limit 2 (65s → 30+30+5); §5 Limit 3 (70s → 30+30+10); §6 Limit 4 (60s → 30+30); §7 Designing a billion-person city (90s → 30+30+30); §8 Plausibility verdict (45s → 30+15). Deliberate hard cuts: Hard cut per limit with a counter HUD; scan-line into design §7; verdict locked.
+- **Cinematography:** Continuous orbital zoom-out (chained segments) over a night megacity; schematic isochrone rings; heat-map overlay; final design: multi-level network of arcologies linked by vacuum trains. **Controls vs default:** §1–2: after-dark; §3–6: ghost-in-the-code; §7: twilight-fable; §8: default.
+- **Science grounding:** Marchetti's constant: people accept ~1 h/day travel; city radius scales with transport speed. Urban heat islands add 1–3 °C+; a billion people at ~2 kW each = 2 TW. Tokyo metro ~37M (UN). Water footprint ~100–300 L/person/day domestic. Tier: STRETCH.
+- **Music/SFX:** Minimal pulses rising with each limit; resolving chord at design reveal.
+- **Thumbnail:** Earth-at-night-style city sprawling to the horizon. Text: 'THE LIMIT?'. Chip STRETCH.
+- **Vertical cut-downs:** Marchetti's constant in 45s · How hot can a city get? · A billion-person city
 
 ---
 
-## Short-form (S01–S30), vertical 9:16
+## Short-form (S01–S30, vertical 9:16)
 
-### S01. The Line: 170 km → 2.4 km
-- **Hook (verbatim):** "They planned a city 170 kilometres long. Here's what's left." · **Runtime:** 60s
-- **Beats:** Hook: wall to horizon 6s · Scale ghost: 170 km 12s · Shrink animation 12s · Population drop numbers 11s · Pause stamp 2026 11s · Loop: back to horizon 8s
-- **Stitch plan:** 6 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical tilt-down from sky to wall; top-down wall line shrinking (Remotion mask over one gen).
-- **On-screen text/captions:** Big numerals 170 → 2.4; PAUSED stamp; caption 'Source: Semafor, May 2026'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Final frame = first frame horizon; line 'and that's where it ends…' flows into hook. · **Cover text:** 170 KM → 2.4
+### S01. How a Floating City Stays Put
+- **Hook (verbatim):** "Why doesn't a floating city just drift away?" · **Runtime:** 60s · **Series:** 60-Second City · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: top-down hex city drifting shadow 5s · Tethers revealed underwater 15s · Wave arrives, joints flex 15s · Physics overlay: tension arrows 15s · Loop back to top-down 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Top-down 24mm drift; underwater vertical tilt down a tether; locked wave test. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'NOT ANCHORED. TETHERED.' · 'TENSION 12 MN' [illustrative] · YEAR 2160 · SPECULATIVE; word-by-word captions at 62–70% height.
+- **Loop/ending:** Final top-down frame matches first (Seedance end_image_url). · **Cover text:** IT CAN'T DRIFT
 
-### S02. Jeddah Tower: One Floor a Week
-- **Hook (verbatim):** "This tower grows one floor every week. Watch." · **Runtime:** 75s
-- **Beats:** Hook: core under cranes 5s · Timelapse floors counter 25s · Scale ghosts: Eiffel, Burj 20s · Status 113 floors 15s · 2028 target 10s
-- **Stitch plan:** 5 generations, 75s ≈ $15.43. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical crane-up along core; floors counter HUD top-left.
-- **On-screen text/captions:** Counter 91 → 113; '≈454 m, Sept 2026'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Ends at base shot matching start. · **Cover text:** +1 FLOOR/WEEK
+### S02. Scale Shock: O'Neill Cylinder vs Manhattan
+- **Hook (verbatim):** "This space habitat is longer than Manhattan." · **Runtime:** 60s · **Series:** Scale Shock · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: cylinder in space 5s · Manhattan ghost slides beside 15s · Zoom inside: valleys 20s · Spin number 10s · Zoom-out loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical exterior tilt along cylinder length; ghost overlay; interior tilt-up to overhead land. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '32 KM LONG' · '0.53 RPM = 1 g' · Manhattan outline; word-by-word captions at 62–70% height.
+- **Loop/ending:** Zoom-out ends on the opening frame. · **Cover text:** BIGGER THAN MANHATTAN
 
-### S03. How Tall Is 625 Metres?
-- **Hook (verbatim):** "If you dropped a stone from this bridge, count to eleven." · **Runtime:** 60s
-- **Beats:** Hook: stone release 6s · Fall with counter 15s · Eiffel x2 ghost 15s · Bridge facts 19s · Loop 5s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical crane-down from deck to river across beats 2–3 (beat 3 keyed from beat 2 last frame via Seedance i2v); Eiffel ghost overlay.
-- **On-screen text/captions:** Timer 0.0 → 11.3 s; '625 m above river'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Stone hits water → cut to hand releasing stone. · **Cover text:** 11 SECONDS DOWN
+### S03. Would You Live Here? A Moon Cave Apartment
+- **Hook (verbatim):** "Your apartment is 100 metres under the Moon." · **Runtime:** 60s · **Series:** Would You Live Here? · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: window onto lava-tube terraces 6s · Room tour: regolith walls 18s · Light pipe sunbeam 14s · Low-g jump 12s · Question to camera (text) 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical gimbal POV through a small apartment; tilt-up to light pipe; side low-g jump. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '100 M UNDER THE MOON' · 'RADAR-CONFIRMED CAVE (2024)' · 'WOULD YOU?'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Ends back at the window framing. · **Cover text:** MOON CAVE HOME?
 
-### S04. The Mukaab Is a Hole
-- **Hook (verbatim):** "This cube was supposed to be the biggest building on Earth." · **Runtime:** 60s
-- **Beats:** Hook: cube render 6s · Size claim 11s · Hard cut: pit 11s · 86% excavated 11s · 2040? 11s · CTA 10s
-- **Stitch plan:** 6 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical low-angle cube; top-down pit.
-- **On-screen text/captions:** PAUSED stamp; 'Render' vs 'Status' labels. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Pit fades to render (blueprint wipe). · **Cover text:** THE BIG HOLE
+### S04. One Step of a Walking City
+- **Hook (verbatim):** "Watch a city take one step." · **Runtime:** 60s · **Series:** 60-Second City · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: leg lifting 5s · Leg swing 12s · Foot plants, sand ripples 10s · Ground-pressure overlay 15s · Deck POV: a cup ripples with each step 10s · Next leg starts (loop) 8s
+- **Stitch plan:** 60s → **6 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical low-angle beside one leg; locked; dust plume. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '500,000 TONNES' · 'FOOT 40 M WIDE' · '6 LEGS ALWAYS DOWN'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Next leg starts lifting = opening frame. · **Cover text:** IT WALKS
 
-### S05. Floating City Made of Brain Coral
-- **Hook (verbatim):** "From above, this city looks like a brain." · **Runtime:** 90s
-- **Beats:** Hook top-down 6s · Hex modules explain 24s · 20K residents target 15s · Rises with sea 25s · Delays 15s · Loop 5s
-- **Stitch plan:** 6 generations, 90s ≈ $18.51. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical overhead drift over hexes; water-level tilt up.
-- **On-screen text/captions:** 'Target: ~2027 [plans]'; CONCEPT stamp. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Zoom-out ends at same top-down as open. · **Cover text:** A CITY THAT FLOATS
+### S05. The 5,700-Year Battery Is Real
+- **Hook (verbatim):** "This battery could outlast human civilisation." · **Runtime:** 60s · **Series:** Physics Check · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: glowing diamond sliver 5s · Carbon-14 explained 15s · Half-life counter 15s · Power reality: microwatts 15s · Crystal city verdict 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical macro orbit of a diamond wafer; schematic layers; cavern city tilt-up at end. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'CARBON-14 DIAMOND' · 'HALF-LIFE 5,700 YRS' · 'POWERS A PACEMAKER, NOT A CITY' · Source: Univ. of Bristol 2024; word-by-word captions at 62–70% height.
+- **Loop/ending:** Ends on the same glowing sliver. · **Cover text:** 5,700-YEAR BATTERY
 
-### S06. 7 Days to Space by Elevator
-- **Hook (verbatim):** "Obayashi wants to take you to space in an elevator." · **Runtime:** 120s
-- **Beats:** Hook: climber departs 6s · Day 1 altitude 27s · Day 3 27s · Day 7 GEO 26s · The catch: nanotubes 30s · Loop 4s
-- **Stitch plan:** 6 generations, 120s ≈ $24.68. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical crane-up along tether; Day beats chained via last-frame keyframe, identical heading/speed text.
-- **On-screen text/captions:** Altitude HUD km; 'Concept, 2050 target'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Cable pull-back reveals Earth port again. · **Cover text:** ELEVATOR TO SPACE
+### S06. Why a Teleporter Would Kill You
+- **Hook (verbatim):** "Every teleporter in sci-fi is a murder machine. Here's why." · **Runtime:** 65s · **Series:** Physics Check · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: person steps in gate 5s · Scan: dissolving to particles 15s · No-cloning theorem 20s · The copy walks out 15s · Question 10s
+- **Stitch plan:** 65s → **5 generations** (≈$13.37). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical symmetrical gate push; particle dissolve; second gate exit. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'NO-CLONING THEOREM' · 'ORIGINAL DESTROYED' · 'IS IT STILL YOU?'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Copy steps into the first gate again. · **Cover text:** IS IT STILL YOU?
 
-### S07. Why Hyperloop Tests Go Only 85 km/h
-- **Hook (verbatim):** "The hyperloop record in Europe is slower than your car." · **Runtime:** 60s
-- **Beats:** Hook 6s · Veendam track 420 m 15s · Lane switch explained 19s · Why it matters 15s · Loop 5s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical tube interior push-in; lane-switch overhead diagram.
-- **On-screen text/captions:** 85 km/h big; 'Hardt, Sept 2025'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Pod exits frame bottom → enters top. · **Cover text:** 85 KM/H?!
+### S07. Sunrise Inside a Space Habitat
+- **Hook (verbatim):** "Inside a space colony, sunrise is a mirror opening." · **Runtime:** 65s · **Series:** 60-Second City · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: dark valley 5s · Mirrors rotate outside 15s · Light sweeps the valley 20s · Overlay: mirror geometry 15s · Mirrors close (loop) 10s
+- **Stitch plan:** 65s → **5 generations** (≈$13.37). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical interior tilt from valley floor to overhead land; exterior mirror shot. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'DAY = MIRRORS OPEN' · YEAR 2240 · SPECULATIVE; word-by-word captions at 62–70% height.
+- **Loop/ending:** Mirrors close back to darkness = first frame. · **Cover text:** SUNRISE BY MIRROR
 
-### S08. China's 623 km/h Tube Train
-- **Hook (verbatim):** "China just sent a train through a vacuum tube at 623 km/h." · **Runtime:** 60s
-- **Beats:** Hook streak 5s · Low-vacuum tube 15s · Maglev physics 19s · vs 737 cruise 15s · Loop 6s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical night tube push; speed streaks.
-- **On-screen text/captions:** Speedometer HUD; '[reported]'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Tunnel light rings loop. · **Cover text:** 623 KM/H
+### S08. On Venus, Air Is a Lifting Gas
+- **Hook (verbatim):** "On Venus, the air you breathe would make you float." · **Runtime:** 60s · **Series:** Physics Check · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: balloon of air rising in orange clouds 6s · Density comparison overlay 16s · City envelope reveal 16s · Acid warning 12s · Loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical rise through clouds; schematic density bars; envelope tilt-up. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'CO₂ = 44 · AIR = 29' · '50 KM UP = 1 ATM' · Source: NASA HAVOC; word-by-word captions at 62–70% height.
+- **Loop/ending:** Balloon rises out of frame, next rises in. · **Cover text:** AIR FLOATS HERE
 
-### S09. Toyota's Town Has 3 Kinds of Street
-- **Hook (verbatim):** "Toyota built a town where every street has a job." · **Runtime:** 90s
-- **Beats:** Hook aerial 6s · Street 1: pedestrians 19s · Street 2: mixed 19s · Street 3: autonomous 20s · Underground 20s · Loop 6s
-- **Stitch plan:** 6 generations, 90s ≈ $18.51. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical overhead then eye-level walks, figures from behind.
-- **On-screen text/captions:** Labels per street colour. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Returns to aerial. · **Cover text:** 3 STREETS
+### S09. Scale Shock: A Kilometre Megatower
+- **Hook (verbatim):** "This tower is taller than the Burj Khalifa, and it's a whole city." · **Runtime:** 60s · **Series:** Scale Shock · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: base with tiny people 5s · Tilt up floors counter 20s · Burj ghost 15s · Population number 10s · Tilt down loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical tilt-up 24mm continuous (chained in two beats). 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '1,200 M' · 'BURJ 828 M' · '1,000,000 PEOPLE'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Tilt down returns to the base. · **Cover text:** 1 BUILDING. 1 CITY.
 
-### S10. Sunlight Is Free: Why Vertical Farms Fail
-- **Hook (verbatim):** "Vertical farms compete with something that costs zero: the sun." · **Runtime:** 90s
-- **Beats:** Hook sun vs LED 6s · kWh per kg idea 29s · 3 bankruptcies 24s · What survives 25s · Loop 6s
-- **Stitch plan:** 5 generations, 90s ≈ $18.51. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical split sun field / LED rack.
-- **On-screen text/captions:** LIGHTS OUT stamp; numbers. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** LEDs switch off → sun rises. · **Cover text:** SUN = $0
+### S10. Why Deep-Sea Cities Are Spheres
+- **Hook (verbatim):** "Three kilometres down, cubes crush. Spheres survive." · **Runtime:** 60s · **Series:** 60-Second City · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: cube hull crumples (schematic) 6s · Pressure number 14s · Sphere hull holds 15s · City sphere reveal 15s · Loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical locked schematic compression; descent to glowing sphere. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '300 ATM' · 'EVEN STRESS = SPHERE'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Descent restarts at the surface. · **Cover text:** SPHERES SURVIVE
 
-### S11. Indonesia Cut Its New Capital by 85%
-- **Hook (verbatim):** "Indonesia built a new capital. Then it cut the budget by 85 percent." · **Runtime:** 60s
-- **Beats:** Hook palace 6s · Budget bars 2024→2026 19s · Political capital 2028 15s · 10K residents 15s · Loop 5s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical drone down to palace; empty boulevard.
-- **On-screen text/captions:** $2.7B → $387M. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Bar grows back → palace. · **Cover text:** -85%
+### S11. The City That Outruns the Sunrise
+- **Hook (verbatim):** "This city moves at walking pace, or the sun kills everyone." · **Runtime:** 60s · **Series:** Scale Shock · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: dawn line behind city 6s · Speed number 14s · Rails expanding 15s · Interior calm 15s · Dawn catches up? (loop) 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical low tracking beside wheels; dawn glare. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '430 °C DAYSIDE' · '~3 KM/H' [U] · MERCURY · SPECULATIVE; word-by-word captions at 62–70% height.
+- **Loop/ending:** Ends as the dawn line nears = first frame. · **Cover text:** NEVER STOP
 
-### S12. A Monorail Into the Desert
-- **Hook (verbatim):** "Egypt's new monorail runs 53 km into the desert." · **Runtime:** 75s
-- **Beats:** Hook train 6s · Route map 16s · Iconic Tower 15s · 60-min ride 15s · Occupancy question 15s · Loop 8s
-- **Stitch plan:** 6 generations, 75s ≈ $15.43. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical lateral tracking alongside elevated train.
-- **On-screen text/captions:** 'Opened May 2026'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Train exits right → enters left. · **Cover text:** 53 KM
+### S12. Solarpunk Street: What's Already Real
+- **Hook (verbatim):** "Everything on this street exists today, except one thing." · **Runtime:** 60s · **Series:** 60-Second City · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: lush street 5s · Rain garden tag PROVEN 12s · Timber tower tag PROVEN 12s · Solar canopy tag PROVEN 12s · The one fiction reveal 12s · Loop 7s
+- **Stitch plan:** 60s → **6 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical gimbal walk along the street; tags pop in. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** Tier chips per object · 'SPOT THE FICTION'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Walk ends where it began. · **Cover text:** 1 THING IS FAKE
 
-### S13. The Tunnel Trench Was 30 cm Too Deep
-- **Hook (verbatim):** "They dug a trench under the Baltic. It was 30 centimetres too deep." · **Runtime:** 60s
-- **Beats:** Hook 6s · Why depth matters 16s · Knock-on delays 16s · Road before rail 16s · Loop 6s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical underwater descent; element settling.
-- **On-screen text/captions:** -30 cm HUD; DELAYED stamp. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Rise back to surface. · **Cover text:** 30 CM TOO DEEP
+### S13. Where a Megacity's Rain Goes
+- **Hook (verbatim):** "A kilometre-tall city in a storm. Where does the water go?" · **Runtime:** 60s · **Series:** Physics Check · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: neon rain canyon 5s · Roof catchment schematic 15s · Flow number 15s · Cisterns and turbines 15s · Loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical tilt down from rooftop to street; schematic flow overlay. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '14 M³ EVERY SECOND' · 'STORED, NOT DUMPED'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Drop falls from roof again. · **Cover text:** 14 TONNES/SECOND
 
-### S14. Copenhagen's New Island
-- **Hook (verbatim):** "Copenhagen is building an island to fight the sea." · **Runtime:** 60s
-- **Beats:** Hook 6s · Top-down forming 19s · Storm surge 14s · Lawsuit 15s · Loop 6s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical top-down timelapse locked.
-- **On-screen text/captions:** Area counter km²; '[plans]'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Island erases → water. · **Cover text:** NEW ISLAND
+### S14. What 1,000 km/h Feels Like in a Tube
+- **Hook (verbatim):** "You're doing a thousand kilometres an hour, and your coffee doesn't spill." · **Runtime:** 60s · **Series:** Machines of Tomorrow · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: coffee cup still 5s · Launch acceleration 15s · Cruise overlay: 0.1 g limits 15s · Curve radius map 15s · Arrival (loop) 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical cabin POV; exterior tube chase. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '1,000 KM/H' · 'MAX 0.1 g SIDEWAYS'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Arrival settles to still cup. · **Cover text:** COFFEE STAYS PUT
 
-### S15. Dubai: 20 Minutes → 3
-- **Hook (verbatim):** "A tunnel under Dubai promises to cut 20 minutes to 3." · **Runtime:** 75s
-- **Beats:** Hook 5s · Route 4 stations 22s · How loop vehicles work 21s · Capacity maths 21s · Loop 6s
-- **Stitch plan:** 5 generations, 75s ≈ $15.43. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical tunnel push-in forward.
-- **On-screen text/captions:** Timer 20:00 → 3:00; '[timeline U]'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Tunnel exit = entrance. · **Cover text:** 20 → 3 MIN
+### S15. 7 Days to Orbit on a Space Elevator
+- **Hook (verbatim):** "The slowest, safest ride to space: one week in an elevator." · **Runtime:** 210s · **Series:** Scale Shock · **Platform:** TikTok/Reels master (>180 s). YouTube 180s cut: trim Day 2–3 to 20s, Day 4–5 to 25s, Day 6 to 30s, Day 7 to 30s, loop to 20s → 165s.
+- **Beats:** Hook: climber leaves ocean platform 10s · Day 1: above the clouds 30s · Day 2–3: blackness 35s · Day 4–5: Earth shrinks 35s · Day 6: GEO station 35s · Day 7: counterweight view 35s · Loop to ocean 30s
+- **Stitch plan:** 210s → **11 generations** (≈$43.20). Seamless splits: Day 2–3: blackness (35s → 30+5); Day 4–5: Earth shrinks (35s → 30+5); Day 6: GEO station (35s → 30+5); Day 7: counterweight view (35s → 30+5). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical continuous tilt-up following the ribbon; chained segments across long beats. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** Day counter · Altitude counter to 35,786 km · Source: Obayashi concept; word-by-word captions at 62–70% height.
+- **Loop/ending:** Final beat drops back to ocean platform. · **Cover text:** 7 DAYS UP
 
-### S16. Your Street at 7am, 2075
-- **Hook (verbatim):** "This is your street at 7 a.m. in 2075." · **Runtime:** 120s
-- **Beats:** Hook door open 6s · No parked cars 27s · Pod arrives 27s · Trees & shade 27s · Freight gone underground 27s · Loop 6s
-- **Stitch plan:** 6 generations, 120s ≈ $24.68. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical eye-level walk from behind.
-- **On-screen text/captions:** 'Speculative' tag, CONCEPT stamp. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Walk back to door. · **Cover text:** YOUR STREET, 2075
+### S16. Building a Moon Dome in 90 Seconds
+- **Hook (verbatim):** "Watch robots build a Moon home out of dust." · **Runtime:** 90s · **Series:** Build It From Zero · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: empty crater 5s · Rovers arrive 15s · Sintering pad 20s · Printing dome courses 25s · Regolith cover 15s · Lights on 10s
+- **Stitch plan:** 90s → **6 generations** (≈$18.51). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical locked wide (same camera across beats via image refs). 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** Step counter · 'MICROWAVE-SINTERED REGOLITH'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Final lights-on frame dissolves back to empty crater. · **Cover text:** BUILT BY ROBOTS
 
-### S17. The Delivery Tube Under Your House
-- **Hook (verbatim):** "In 2075, your packages might never touch a road." · **Runtime:** 90s
-- **Beats:** Hook box drops 6s · Tube network 29s · Real precedents [U] 24s · Why it matters 25s · Loop 6s
-- **Stitch plan:** 5 generations, 90s ≈ $18.51. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical cutaway section house → tube (blueprint→photoreal).
-- **On-screen text/captions:** Labels. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Box arrives back at start. · **Cover text:** NO MORE VANS
+### S17. Would You Live in a House of Ice on Mars?
+- **Hook (verbatim):** "This Martian house is made of ice, and it's warm inside." · **Runtime:** 60s · **Series:** Would You Live Here? · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: blue-lit interior 6s · Exterior ice shell 14s · Radiation overlay 15s · Morning routine 15s · Question 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical interior gimbal; exterior dome tilt. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'ICE BLOCKS RADIATION' · Source: NASA Mars Ice Home (2016); word-by-word captions at 62–70% height.
+- **Loop/ending:** Back to blue interior. · **Cover text:** ICE HOUSE ON MARS
 
-### S18. A Rooftop Forest in 2075
-- **Hook (verbatim):** "Every roof in this city is a forest. Here's why." · **Runtime:** 90s
-- **Beats:** Hook tilt-up 6s · Cooling effect 25s · Water retention 25s · Weight engineering 25s · Loop 9s
-- **Stitch plan:** 5 generations, 90s ≈ $18.51. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical crane-up from street to canopy roof.
-- **On-screen text/captions:** Temp HUD -X°C [U]. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Crane-down. · **Cover text:** ROOF FORESTS
+### S18. Drilling Into a Volcano for Power
+- **Hook (verbatim):** "Scientists have already hit magma by accident." · **Runtime:** 60s · **Series:** Physics Check · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: drill rig at caldera 5s · Drill descends schematic 20s · Magma contact 15s · Superheated steam city 15s · Loop 5s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical drill-string descent; tilt-up to city. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'MAGMA AT 2 KM' · Iceland IDDP-1, 2009; word-by-word captions at 62–70% height.
+- **Loop/ending:** Tilt back to rig. · **Cover text:** POWER FROM MAGMA
 
-### S19. Arcology in 90 Seconds
-- **Hook (verbatim):** "What if an entire city fit inside one building?" · **Runtime:** 90s
-- **Beats:** Hook 6s · Soleri's idea 16s · Inside: layers 21s · Elevators problem 15s · Fire & air 15s · Food & farms 10s · Loop 7s
-- **Stitch plan:** 7 generations, 90s ≈ $18.51. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical crane-down through atrium levels.
-- **On-screen text/captions:** Population counter. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Rise back to apex. · **Cover text:** 1 BUILDING CITY
+### S19. The Sphere City That Floats on Sunlight
+- **Hook (verbatim):** "Big enough, and sunlight alone could float a city." · **Runtime:** 60s · **Series:** 60-Second City · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: sphere rising 6s · Square-cube overlay 18s · Sun warms interior 14s · City aloft 12s · Loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical tilt-up tracking the rising sphere. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '1.6 KM WIDE' · '+1 °C = LIFT'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Sphere drifts out top, re-enters bottom. · **Cover text:** FLOATS ON SUNLIGHT
 
-### S20. Telosa's Land Idea: Equitism
-- **Hook (verbatim):** "In this billionaire's city, nobody owns the land. Everyone does." · **Runtime:** 75s
-- **Beats:** Hook 6s · Land endowment 24s · Value capture 24s · Still no site 15s · Loop 6s
-- **Stitch plan:** 5 generations, 75s ≈ $15.43. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical desert tower tilt-up.
-- **On-screen text/captions:** CONCEPT stamp; 'no site chosen'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Tower tilt-down to sand. · **Cover text:** WHO OWNS LAND?
+### S20. How Flying Cars Would Actually Queue
+- **Hook (verbatim):** "Flying cars won't be chaos. They'll be lanes." · **Runtime:** 60s · **Series:** Machines of Tomorrow · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: chaos swarm (myth) 5s · Snap to lanes 15s · Layer altitudes 15s · Skyport landing 15s · Loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical top-down then tilt to horizon. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'MYTH' → 'LANES' · altitude layers; word-by-word captions at 62–70% height.
+- **Loop/ending:** Craft takes off back into lane. · **Cover text:** NOT CHAOS
 
-### S21. Lagos Pushed the Ocean Back
-- **Hook (verbatim):** "Lagos built a city where the ocean used to be." · **Runtime:** 90s
-- **Beats:** Hook wave 6s · Dredging sand 25s · Sea wall armour 25s · Towers rise 25s · Loop 9s
-- **Stitch plan:** 5 generations, 90s ≈ $18.51. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical low wave crash on armour units.
-- **On-screen text/captions:** Reclaimed area HUD [U]. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Wave rewinds. · **Cover text:** OCEAN PUSHED BACK
+### S21. How Fast an Asteroid Must Spin for Gravity
+- **Hook (verbatim):** "Spin this rock fast enough and you can walk inside it." · **Runtime:** 60s · **Series:** Physics Check · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: asteroid spin 5s · Radius and rpm overlay 15s · Rubble flying off 15s · Bag wrap 15s · Interior walk 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical exterior orbit; interior tilt. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'R 500 M → 1.3 RPM' · 'RUBBLE FLIES APART'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Walk exits to the exterior spin. · **Cover text:** SPIN = GRAVITY
 
-### S22. Xiong'an: Farmland to 1.4 Million
-- **Hook (verbatim):** "Nine years ago this was farmland." · **Runtime:** 60s
-- **Beats:** Hook fields 6s · Timeline scrub 24s · 1.41M today 10s · 5M target 14s · Loop 6s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical locked wide, before/after in 2 gens (same camera text).
-- **On-screen text/captions:** Year scrubber 2017 → 2026. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Scrub back to fields. · **Cover text:** 0 → 1.4M
+### S22. Titan: The Moon Where You Could Fly
+- **Hook (verbatim):** "Thick air. Weak gravity. Strap on wings." · **Runtime:** 60s · **Series:** Worlds Beyond · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: flyer launch 5s · Pressure + gravity numbers 15s · Glide over lakes 20s · Cold warning 10s · Landing loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical chase behind the flyer; tilt down to methane lake. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '1.5 ATM' · '0.14 g' · '-180 °C'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Lands and relaunches. · **Cover text:** YOU CAN FLY HERE
 
-### S23. Palm Jebel Ali, Frond by Frond
-- **Hook (verbatim):** "Dubai's second Palm sat empty for 15 years. Here's its progress." · **Runtime:** 60s
-- **Beats:** Hook top-down 6s · Empty years 16s · Frond progress bars 21s · Handover 2026 11s · Loop 6s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical top-down palm drift.
-- **On-screen text/captions:** Progress % per frond (Mar 2026). Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Bars reset. · **Cover text:** 27% BUILT
+### S23. A Tunnel That Floats Underwater
+- **Hook (verbatim):** "Not on the seabed. This tunnel floats." · **Runtime:** 60s · **Series:** Machines of Tomorrow · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: tube in blue water 5s · Buoyancy vs weight 15s · Tethers 15s · Train passes 15s · Loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical underwater tilt from surface to tube. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '30 M DEEP' · Norway E39 studies; word-by-word captions at 62–70% height.
+- **Loop/ending:** Train exits, next enters. · **Cover text:** IT FLOATS
 
-### S24. Hong Kong's HK$136B Question
-- **Hook (verbatim):** "Hong Kong's new city costs HK$224 billion, or maybe HK$360 billion." · **Runtime:** 60s
-- **Beats:** Hook 6s · Gov estimate 14s · S&P estimate 15s · What it buys 19s · Loop 6s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical wetland to towers tilt-up.
-- **On-screen text/captions:** Two bars; gap = HK$136B. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Tilt back down. · **Cover text:** $136B GAP
+### S24. Bacteria That Turn Sand Into Stone
+- **Hook (verbatim):** "These bacteria can turn sand into stone." · **Runtime:** 60s · **Series:** Build It From Zero · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: sand pour 5s · Microbe schematic 15s · Crystals bind grains 15s · Wall rises 15s · Loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical macro to wide pull-back. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'MICP' · 'CALCITE GLUE'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Wall crumbles back to sand (reverse). · **Cover text:** SAND → STONE
 
-### S25. The 15-Minute Test
-- **Hook (verbatim):** "Can you do your whole day within 15 minutes of home?" · **Runtime:** 120s
-- **Beats:** Hook clock 5s · School 22s · Work 22s · Groceries 22s · Park 22s · Paris result 22s · Loop 5s
-- **Stitch plan:** 7 generations, 120s ≈ $24.68. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical walk with isochrone ring overlay.
-- **On-screen text/captions:** Timer per stop. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Returns home at 15:00. · **Cover text:** 15 MIN LIFE?
+### S25. The Track That Throws Ships to Orbit
+- **Hook (verbatim):** "No rockets. Just a belt moving at 14 kilometres a second." · **Runtime:** 60s · **Series:** Machines of Tomorrow · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: vehicle on track 5s · Belt speed overlay 15s · Track rises to 80 km 20s · Launch 10s · Loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical tilt-up along an arching track. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '14 KM/S' · '80 KM HIGH' · FRONTIER; word-by-word captions at 62–70% height.
+- **Loop/ending:** Next vehicle enters bottom. · **Cover text:** NO ROCKETS
 
-### S26. The Line vs Manhattan
-- **Hook (verbatim):** "Lay The Line over Manhattan and it doesn't fit." · **Runtime:** 60s
-- **Beats:** Hook 6s · Manhattan 21.6 km [U] 16s · Line 170 km 16s · New 2.4 km phase 16s · Loop 6s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical top-down map-style gen; ghost overlay.
-- **On-screen text/captions:** Lengths in numerals. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Zoom back to island. · **Cover text:** 8 MANHATTANS
+### S26. How Many People Fit in One Arcology?
+- **Hook (verbatim):** "How many people can one building hold?" · **Runtime:** 60s · **Series:** Scale Shock · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: tower in clouds 5s · Floor count 15s · Density per floor 15s · Stadium equivalents 15s · Loop 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical tilt-up with counters. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** '1,000,000' · '= 10 FULL STADIUMS'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Tilt down to base. · **Cover text:** 10 STADIUMS
 
-### S27. How a Floating Home Survives a Storm
-- **Hook (verbatim):** "A storm hits a floating neighbourhood. Here's what moves." · **Runtime:** 90s
-- **Beats:** Hook waves 6s · Moorings flex 25s · Breakwater 25s · Rise with surge 25s · Loop 9s
-- **Stitch plan:** 5 generations, 90s ≈ $18.51. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical water-level wave shot; underwater mooring.
-- **On-screen text/captions:** 'Concept design (Busan)'. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Calm returns. · **Cover text:** STORM TEST
+### S27. Farming Fish and Kelp 40 Metres Down
+- **Hook (verbatim):** "Lunch in the underwater city grows outside your window." · **Runtime:** 60s · **Series:** Would You Live Here? · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: kelp window 5s · Kelp growth speed 15s · Fish pens 15s · Kitchen 15s · Question 10s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical window POV; tilt through kelp. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'KELP: 0.5 M/DAY' · YEAR 2190 · SPECULATIVE; word-by-word captions at 62–70% height.
+- **Loop/ending:** Back to window. · **Cover text:** LUNCH GROWS OUTSIDE
 
-### S28. Africa's Tallest Tower Isn't in a City (Yet)
-- **Hook (verbatim):** "Africa's tallest building stands in a city most people haven't moved to." · **Runtime:** 60s
-- **Beats:** Hook tilt-up 6s · 394 m 14s · vs Eiffel/Empire 15s · The capital around it 19s · Loop 6s
-- **Stitch plan:** 5 generations, 60s ≈ $12.34. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical tilt-up tower.
-- **On-screen text/captions:** 394 m. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Tilt back down. · **Cover text:** 394 M
+### S28. Tour the Teleport Station That Could Exist
+- **Hook (verbatim):** "This is the only teleport station physics would allow." · **Runtime:** 203s · **Series:** Machines of Tomorrow · **Platform:** TikTok/Reels master (>180 s). YouTube 180s cut: hook 8, matter 22, info 30, hub 40, hyperloop 40, board 25, loop 15 → 180s.
+- **Beats:** Hook: gate glowing 8s · Why matter can't go 30s · What can: quantum info 35s · The hub: telepresence rooms 40s · Hyperloop platforms 40s · Departure board of cities 30s · Loop 20s
+- **Stitch plan:** 203s → **10 generations** (≈$41.76). Seamless splits: What can: quantum info (35s → 30+5); The hub: telepresence rooms (40s → 30+10); Hyperloop platforms (40s → 30+10). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical gimbal walk through the Waystation hub; chained long beats. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** 'MATTER: FICTION' · 'INFORMATION: PROVEN' · Source: Oxford 2025; word-by-word captions at 62–70% height.
+- **Loop/ending:** Walk exits through the same gate. · **Cover text:** REAL TELEPORT STATION
 
-### S29. Parts of Jakarta Sink Faster Than the Sea Rises
-- **Hook (verbatim):** "This city is sinking faster than the ocean is rising." · **Runtime:** 90s
-- **Beats:** Hook tide 6s · Groundwater pumping 29s · Rate [U] 20s · Sea wall plan 29s · Loop 6s
-- **Stitch plan:** 5 generations, 90s ≈ $18.51. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical cutaway ground layers.
-- **On-screen text/captions:** cm/yr counter [U]. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Water rises to top of frame → reset. · **Cover text:** SINKING
+### S29. 5 Impossible Cities Ranked by Physics
+- **Hook (verbatim):** "Five sci-fi cities. Ranked from 'buildable' to 'never'." · **Runtime:** 220s · **Series:** Physics Check · **Platform:** TikTok/Reels master (>180 s). YouTube 180s cut: hook 5, each rank 32s (160), loop 15 → 180s.
+- **Beats:** Hook: five cities flash 8s · #5 Floating rock islands 40s · #4 Ring world 40s · #3 Planet city 40s · #2 Undersea bubble 40s · #1 Desert dome 40s · Loop 12s
+- **Stitch plan:** 220s → **12 generations** (≈$45.25). Seamless splits: #5 Floating rock islands (40s → 30+10); #4 Ring world (40s → 30+10); #3 Planet city (40s → 30+10); #2 Undersea bubble (40s → 30+10); #1 Desert dome (40s → 30+10). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical reveal per city; meter overlay. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** Plausibility meter per city · rank numbers; word-by-word captions at 62–70% height.
+- **Loop/ending:** Rank 1 dissolves to rank 5 opening. · **Cover text:** ONLY 1 IS REAL
 
-### S30. Forest City: The Ghost Town for 700,000
-- **Hook (verbatim):** "This city was built for 700,000 people. Hardly anyone came." · **Runtime:** 240s
-- **Beats:** Hook empty towers 6s · The pitch: 4 reclaimed islands, Johor [U] 20s · Who it was sold to 25s · Capital controls hit buyers [U] 25s · Developer debt crisis [U] 20s · Pandemic border closures 20s · Empty towers today (labelled render) 25s · Residents vs 700K plan [U] 25s · What is planned next [U] 25s · Lessons for NEOM and Nusantara 25s · Your verdict prompt 20s · Loop 4s
-- **Stitch plan:** 12 generations, 240s ≈ $49.37. Each beat = one clip; all beats ≤30 s (single generation). Hard cuts on beat changes except chained moves noted below.
-- **Vertical cinematography:** Vertical empty beach & towers dolly-back.
-- **On-screen text/captions:** BUSTED stamp; figures [U verify]. Word-by-word captions at 62–70% height (Bible §8).
-- **Loop/ending:** Dolly-in back to the opening frame. Note: 240 s exceeds the YouTube Shorts 3-min cap [U: verify current cap]; publish as TikTok/Reels/FB vertical and cut a 180 s YouTube Short. · **Cover text:** GHOST CITY
+### S30. Morning in a Solarpunk Megacity
+- **Hook (verbatim):** "6 a.m., 2150. Listen." · **Runtime:** 60s · **Series:** Would You Live Here? · **Platform:** YouTube Shorts / TikTok / Reels
+- **Beats:** Hook: balcony view 6s · Trams begin 14s · Rooftop farm 14s · Birds and bikes 14s · Question 12s
+- **Stitch plan:** 60s → **5 generations** (≈$12.34). All beats ≤30 s (single generations). Hard cuts on beat changes, except continuous moves chained last-frame→keyframe where noted in cinematography.
+- **Vertical cinematography:** Vertical balcony POV; tilt down to street. 9:16, subject in the middle 60%, HUD top-left.
+- **On-screen text:** YEAR 2150 · SPECULATIVE · 'WOULD YOU?'; word-by-word captions at 62–70% height.
+- **Loop/ending:** Back to balcony dawn. · **Cover text:** WAKE UP HERE
 
 ---
 
-**Totals:** long-form 17610s generated (avg 587s/video, ≈$3,622 for all 30); short-form 2490s (avg 83s, ≈$512 for all 30).
+## Budget summary
+
+- Long-form: 30 ideas, 15195s generated, ≈$3,125.61 (avg ≈$104.19/video).
+- Short-form: 30 ideas, 2293s generated, ≈$471.67 (avg ≈$15.72/Short).
+- Harvested vertical cut-downs from long-form reuse existing clips (recropped only where the subject is vertical) or add ≤20 s of native 9:16 generation each.
