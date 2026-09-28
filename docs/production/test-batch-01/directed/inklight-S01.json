@@ -1,0 +1,265 @@
+{
+ "format": "short",
+ "title": "The Button Said DO NOT PRESS",
+ "altTitles": [
+  "Never Leave Brick Alone With a Button",
+  "He Didn't Press It. Brick Did."
+ ],
+ "description": "Pip found a big red button. It said DO NOT PRESS. Brick didn't read it. #stickfigure #animation #shorts",
+ "tags": [
+  "stick figure",
+  "animation",
+  "3d animation",
+  "comedy",
+  "INKLIGHT",
+  "Pip",
+  "Brick",
+  "shorts"
+ ],
+ "topic": "S01 gag loop: Pip vs the DO NOT PRESS button",
+ "cast": {
+  "Pip": {
+   "color": "#FFB020"
+  },
+  "Brick": {
+   "color": "#7CFF4F"
+  }
+ },
+ "sections": [
+  {
+   "label": "S1 Just a look",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "...Just a little look.",
+     "at": 1.5
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. Vertical frame. In a bright pastel-colored room with a polished floor, Pip stands before a huge glossy blank red button on a pedestal, his hand hovering just above it; he leans closer, his goggles reflecting the red. Locked-off vertical wide shot, static camera, button in the lower third, bright candy lighting. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. Vertical frame. In a bright pastel-colored room with a polished floor, Pip stands before a huge glossy blank red button on a pedestal, his hand hovering just above it; he leans closer, his goggles reflecting the red. Locked-off vertical wide shot, static camera, button in the lower third, bright candy lighting. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a single tiny water drip tink, crisp and bright",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "low steady electrical hum of a big machine, cartoon lab ambience, seamless",
+     "durationSec": 10,
+     "gainDb": -18
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.5,
+     "durationSec": 9.5,
+     "text": "DO NOT PRESS",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#FF2E3A"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 4.5,
+     "toScale": 1.35,
+     "overSec": 0.2,
+     "holdSec": 1.2
+    }
+   ]
+  },
+  {
+   "label": "S2 Don't",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "Don't. Don't. Don't.",
+     "at": 4
+    },
+    {
+     "speaker": "Pip",
+     "text": "I'm not gonna.",
+     "at": 14
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. Vertical frame. In a bright pastel room, Pip circles a huge glossy blank red button on a pedestal, whistling casually, poking the air near it, then sitting on his hands to resist, head tilting. Locked-off vertical wide shot, static camera, bright candy lighting. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. Vertical frame. In a bright pastel room, Pip circles a huge glossy blank red button on a pedestal, whistling casually, poking the air near it, then sitting on his hands to resist, head tilting. Locked-off vertical wide shot, static camera, bright candy lighting. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "playful noodling solo clarinet, sneaky cartoon comedy, light and bouncy, instrumental",
+     "durationSec": 20,
+     "gainDb": -16
+    },
+    {
+     "at": 1,
+     "prompt": "a small cartoon character casually whistling a short tune",
+     "durationSec": 4,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 6,
+     "durationSec": 3,
+     "text": "he's fine.",
+     "position": "lower-third",
+     "style": "caption-bold",
+     "color": "#FFB020"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 19,
+     "toScale": 1.35,
+     "overSec": 0.2,
+     "holdSec": 0.6
+    }
+   ],
+   "highlightWords": [
+    "Don't."
+   ]
+  },
+  {
+   "label": "S3 What button",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "Hm? What button?",
+     "at": 5
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. In a bright pastel room, Brick wanders in munching a snack, and without looking leans his thick elbow on a huge glossy blank red button, pressing it down, while Pip freezes in horror. Locked-off vertical wide shot, static camera, bright candy lighting. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. In a bright pastel room, Brick wanders in munching a snack, and without looking leans his thick elbow on a huge glossy blank red button, pressing it down, while Pip freezes in horror. Locked-off vertical wide shot, static camera, bright candy lighting. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "loud crunchy snack munching, cartoon",
+     "durationSec": 4,
+     "gainDb": -10
+    },
+    {
+     "at": 7.2,
+     "prompt": "one loud satisfying mechanical CLICK of a huge button being pressed",
+     "durationSec": 1,
+     "gainDb": -2
+    }
+   ],
+   "labels": [
+    {
+     "at": 8.2,
+     "durationSec": 1.8,
+     "text": "…",
+     "position": "center",
+     "style": "title"
+    }
+   ]
+  },
+  {
+   "label": "S4 BRIIIICK",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "BRIIIICK!",
+     "at": 3
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. In a pastel room, red alarm lights strobe, confetti cannons blast colorful paper everywhere, and a trapdoor drops open under Pip, who falls through it, while Brick keeps calmly munching his snack with confetti landing on his head. Locked-off vertical wide shot, static camera, strobing red light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. In a pastel room, red alarm lights strobe, confetti cannons blast colorful paper everywhere, and a trapdoor drops open under Pip, who falls through it, while Brick keeps calmly munching his snack with confetti landing on his head. Locked-off vertical wide shot, static camera, strobing red light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "blaring cartoon alarm klaxon, rhythmic, comedic",
+     "durationSec": 6,
+     "gainDb": -8
+    },
+    {
+     "at": 0.5,
+     "prompt": "confetti cannons popping, several bursts, paper flutter",
+     "durationSec": 3,
+     "gainDb": -6
+    },
+    {
+     "at": 3,
+     "prompt": "long descending cartoon falling whistle",
+     "durationSec": 3,
+     "gainDb": -6
+    },
+    {
+     "at": 9,
+     "prompt": "triumphant silly kazoo fanfare, short comedic",
+     "durationSec": 6,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 10,
+     "durationSec": 6,
+     "text": "he pressed it",
+     "position": "lower-third",
+     "style": "caption-bold",
+     "color": "#7CFF4F"
+    }
+   ],
+   "highlightWords": [
+    "BRIIIICK!"
+   ]
+  },
+  {
+   "label": "S5 Oh come on (loop)",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "...Oh, come ON.",
+     "at": 4
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. Vertical frame. In a bright pastel room littered with confetti, Pip climbs out of an open trapdoor, alone; a new, even bigger glossy blank red button rises slowly from the floor on a pedestal, and Pip stares, then his hand slowly drifts up to hover above it. Locked-off vertical wide shot, static camera, bright candy lighting. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. Vertical frame. In a bright pastel room littered with confetti, Pip climbs out of an open trapdoor, alone; a new, even bigger glossy blank red button rises slowly from the floor on a pedestal, and Pip stares, then his hand slowly drifts up to hover above it. Locked-off vertical wide shot, static camera, bright candy lighting. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "endFrame": {
+    "fromSection": 0
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "low steady electrical hum of a big machine, cartoon lab ambience, seamless",
+     "durationSec": 8,
+     "gainDb": -18
+    }
+   ],
+   "zooms": [
+    {
+     "at": 2,
+     "toScale": 1.35,
+     "overSec": 0.2,
+     "holdSec": 1.0
+    }
+   ]
+  }
+ ],
+ "sting": {
+  "at": 5.4,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: Pip Built a Copy Machine. Now There Are Nine Bolts."
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "S01: Pip half Brick's height, goggles on forehead; S2 sitting-on-hands limb merge risk; Brick munching shows no mouth; pastel room stays 3D-lit; loop S5 end = S1 start within 3%; button blank (label is Remotion only). Global: no faces/mouths, no extra limbs, accent colours stable, no text in plates."
+}

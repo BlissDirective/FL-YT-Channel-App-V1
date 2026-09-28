@@ -1,0 +1,460 @@
+{
+ "format": "short",
+ "title": "What If the Moon Were at the ISS's Height?",
+ "altTitles": [
+  "What If the Moon Orbited 400 km Above Us?",
+  "The Moon, 400 km Away (This Is What Happens)"
+ ],
+ "description": "If the Moon orbited at the Space Station's height, tides would grow ~92,000x, and the Moon would crack inside Earth's Roche limit and become a ring. Speculative simulation grounded in real physics. Sources in pinned comment. #whatif #space #moon",
+ "tags": [
+  "what if",
+  "moon",
+  "space",
+  "roche limit",
+  "tides",
+  "planetary rings",
+  "science",
+  "Earthlines"
+ ],
+ "topic": "What if the Moon orbited at ISS height (400 km)",
+ "cast": {
+  "N": {
+   "color": "#FFB547"
+  }
+ },
+ "sections": [
+  {
+   "label": "B1 Hook",
+   "sec": 5,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "The Moon. Four hundred kilometers above your head.",
+     "at": 0.2
+    }
+   ],
+   "videoPrompt": "Vertical photoreal dusk shot: an enormous gibbous Moon filling the top seventy percent of the frame, craters razor-sharp, lit from the left with its terminator curving on the right, a flat dark horizon in the bottom fifth with one tiny human figure seen from behind for scale, deep blue sky. Camera: continuous slow push-in. STAGE: the Moon impossibly close, its disc spanning almost half the sky, grey cratered surface in sharp detail, lit from frame-left with its terminator visible; Earth otherwise as today.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "deep cinematic sub-bass boom, single hit, then silence",
+     "durationSec": 2,
+     "gainDb": -2
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 5,
+     "text": "T+0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0,
+     "durationSec": 5,
+     "text": "MOON AT 400 KM? · SPECULATIVE",
+     "position": "lower-third",
+     "style": "caption-bold"
+    }
+   ],
+   "highlightWords": [
+    "Four",
+    "hundred"
+   ]
+  },
+  {
+   "label": "B2a Orbital",
+   "sec": 7,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "That's the height of the Space Station. From here, the Moon would stretch across almost half the sky — and it wouldn't hang still. It would race around Earth in about two hours.",
+     "at": 0.1
+    }
+   ],
+   "videoPrompt": "Vertical photoreal orbital view: Earth's curved limb across the bottom third, the Moon skimming impossibly low just above the atmosphere, both lit from frame-left. Camera: continuous slow rise.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 7,
+     "text": "T+0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.5,
+     "durationSec": 6.5,
+     "text": "MOON ⌀ IN SKY ≈ 78° (today 0.5°)",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "half",
+    "sky"
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "B2b Time-lapse",
+   "sec": 6,
+   "lines": [],
+   "videoPrompt": "Vertical locked-off time-lapse from the ground: the giant Moon sliding rapidly across the sky from left to right over a flat horizon, shadows swinging. Single-shot.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 1.5,
+     "prompt": "huge deep airy whoosh of a massive object passing overhead",
+     "durationSec": 3,
+     "gainDb": -4
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 6,
+     "text": "T+0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0,
+     "durationSec": 6,
+     "text": "ORBIT ≈ 2.2 h · derived",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "two",
+    "hours."
+   ]
+  },
+  {
+   "label": "B3a Water dome",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Now the real problem: tides. Tidal pull grows with the cube of closeness. Bring the Moon forty-five times closer, and its tidal stretch on Earth grows about ninety thousand times. Oceans heave into a moving mountain of water. Even the crust flexes.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Vertical photoreal wide shot from high cliffs over a generic open ocean coast, the sea surface bulging upward into a colossal smooth dome of water rising toward the giant Moon above, no people, no buildings. Camera: continuous slow tilt-up from water to Moon. STAGE: the Moon impossibly close, its disc spanning almost half the sky, grey cratered surface in sharp detail, lit from frame-left with its terminator visible; Earth otherwise as today.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "industrial-fog"
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "deep rising ocean roar, massive swell of water, rumbling",
+     "durationSec": 8,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "T+1 HR",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.3,
+     "durationSec": 7.7,
+     "text": "TIDES ×~92,000 · (384,400 / 8,508 km)³ · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 0.05,
+     "toScale": 1.12,
+     "overSec": 0.12,
+     "holdSec": 0.5
+    }
+   ],
+   "highlightWords": [
+    "ninety",
+    "thousand"
+   ]
+  },
+  {
+   "label": "B3b Crust",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal aerial of a generic desert plain splitting along a long glowing fissure, dust rising, the giant Moon above. Camera: continuous slow descent. STAGE: the Moon impossibly close, its disc spanning almost half the sky, grey cratered surface in sharp detail, lit from frame-left with its terminator visible; Earth otherwise as today.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "industrial-fog"
+   },
+   "sfx": [
+    {
+     "at": 1.0,
+     "prompt": "deep ground crack and rock splitting, low earthquake rumble",
+     "durationSec": 5,
+     "gainDb": -5
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "T+1 HR",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "B4a Moon cracks",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "And it works both ways. At this distance, the Moon is deep inside Earth's Roche limit — where tides beat a moon's own gravity. So the Moon doesn't crash. It cracks. It stretches, splits, and shatters.",
+     "at": 0.6
+    }
+   ],
+   "videoPrompt": "Vertical photoreal orbital view of the Moon, very close above Earth's limb, stretched slightly into an egg shape, long glowing fractures opening across its surface, lit from frame-left. Camera: continuous slow push. STAGE: the Moon impossibly close, its disc spanning almost half the sky, grey cratered surface in sharp detail, lit from frame-left with its terminator visible; Earth otherwise as today.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.4,
+     "prompt": "single colossal rock crack followed by a long deep rumble in space",
+     "durationSec": 4,
+     "gainDb": -3
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "T+1 DAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.4,
+     "durationSec": 7.6,
+     "text": "ROCHE LIMIT ≈ 18,000 km · MOON AT ≈ 8,500 km",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 0.4,
+     "toScale": 1.15,
+     "overSec": 0.1,
+     "holdSec": 0.6
+    }
+   ],
+   "highlightWords": [
+    "cracks."
+   ]
+  },
+  {
+   "label": "B4b Fragments",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal orbital view: the fractured Moon continuing to separate into huge tumbling fragments drifting apart along its orbit, dust glittering, Earth's limb below. Camera: continuous slow push. STAGE: the Moon impossibly close, its disc spanning almost half the sky, grey cratered surface in sharp detail, lit from frame-left with its terminator visible; Earth otherwise as today.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "T+1 DAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "B5a Ring forms",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "The fragments keep orbiting — spreading out, colliding, flattening into a disk around the equator. Within centuries: a ring. Grey rock, catching the sunlight, arching over every horizon — and some of it raining down as meteors for ages.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Vertical photoreal orbital view of Earth with a thin, flat grey-brown ring in its equatorial plane, lit from frame-left, city lights on the night side. Camera: continuous slow arc upward. STAGE: no Moon; a broad grey-brown rocky ring arch across the sky, lit from frame-left; Earth otherwise as today.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.2,
+     "prompt": "shimmering harp glint, magical and bright, single phrase",
+     "durationSec": 3,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "T+1,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.3,
+     "durationSec": 7.7,
+     "text": "RING: GREY ROCK · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "ring."
+   ]
+  },
+  {
+   "label": "B5b Ring arch",
+   "sec": 7,
+   "lines": [],
+   "videoPrompt": "Vertical photoreal dusk ground shot over the same flat horizon and tiny figure as the opening, a broad grey-gold ring arch spanning the sky above, deep blue sky. Camera: continuous slow tilt-down toward the figure. STAGE: no Moon; a broad grey-brown rocky ring arch across the sky, lit from frame-left; Earth otherwise as today.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 7,
+     "text": "T+1,000 YRS",
+     "position": "top",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "B6 Loop",
+   "sec": 5,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "That's why the Moon can never be four hundred kilometers above your head.",
+     "at": 0.1
+    }
+   ],
+   "videoPrompt": "Vertical photoreal dusk: the tiny figure on the flat horizon beneath the ring arch, framing identical to the opening shot's bottom fifth, sky above. Camera: continuous slow push-in. STAGE: no Moon; a broad grey-brown rocky ring arch across the sky, lit from frame-left; Earth otherwise as today.",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 4.8,
+     "text": "END",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 4.8,
+     "durationSec": 0.2,
+     "text": "T+0",
+     "position": "top",
+     "style": "label"
+    }
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "cinematic ambient score: warm synth pads, low strings and felt piano under calm narration, building tension, a deep brass and taiko hit around 34 seconds, then an awe-filled choir swell for a planetary ring reveal around 50 seconds, instrumental, no vocals except wordless choir",
+  "gainDb": -15,
+  "underVoDb": -9
+ },
+ "sting": {
+  "at": 5.1,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full timeline: What If Earth Had Rings?"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "S01: Moon lit from left in every SC-N shot (terminator right); no second Moon; B4 fragments separate monotonically; B5b/B6 horizon matches B1 (±3%); no buildings/people in B3. Altered content label ON."
+}
