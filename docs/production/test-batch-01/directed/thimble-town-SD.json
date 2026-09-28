@@ -1,0 +1,264 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "Turning a Matchbox Into a Tiny Shed",
+ "altTitles": [
+  "Matchbox → Tiny House (Miniature Build)",
+  "Building Lumen's Matchbox Shed"
+ ],
+ "description": "Three builder beetles turn a matchbox into Lumen's tiny shed in Thimble Town. #miniature #diorama #asmr",
+ "tags": [
+  "miniature",
+  "diorama",
+  "tiny build",
+  "matchbox",
+  "asmr",
+  "cozy",
+  "Thimble Town"
+ ],
+ "topic": "Matchbox shed build short (stage-label arm; becomes Lumen's canon home in LF3)",
+ "sections": [
+  {
+   "sec": 24,
+   "label": "The matchbox opens",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked top-down with a slow 10° rotate, constant speed, no cuts. The drawer slides open; the beetles mark and cut two windows and a door in the sleeve, small toy-like movements.\nAmbient motion: paper dust. Lighting stays warm workbench lamp. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on an open matchbox on a workbench, strong blur top and bottom. The matchbox build site: hand-built\nminiature shed build site on a wooden workbench made from an ordinary red-brown paper matchbox, a pencil, sunflower-seed husks, staples and a bead, laid out on a painted wooden workbench (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nTop-down: the matchbox drawer sliding open, the three builder beetles climbing onto the sleeve with a tiny saw and pencil.\nLighting: warm workbench practical lamp, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: indoor. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on an open matchbox on a workbench, strong blur top and bottom. The matchbox build site: hand-built\nminiature shed build site on a wooden workbench made from an ordinary red-brown paper matchbox, a pencil, sunflower-seed husks, staples and a bead, laid out on a painted wooden workbench (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nTwo window holes and an arched door cut into the matchbox sleeve, the crew beside them.\nLighting: warm workbench practical lamp, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: indoor. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 0.5,
+     "prompt": "a small matchbox drawer sliding open, paper sliding on card, soft and close, no music",
+     "durationSec": 2.5,
+     "gainDb": -6
+    },
+    {
+     "at": 8,
+     "prompt": "a tiny saw rasping through thin card in short strokes, close ASMR, no music",
+     "durationSec": 12,
+     "gainDb": -10
+    },
+    {
+     "at": 3,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 21,
+     "gainDb": -20
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 2,
+     "text": "matchbox",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 35,
+   "label": "Seed-husk roof",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked top-down, constant speed, no cuts. The beetles lay the first rows of husk shingles, each pressed down with a tap, small toy-like movements.\nAmbient motion: husk dust. Lighting stays warm workbench lamp. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 18,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked top-down, constant speed, no cuts. The beetles lay the first rows of husk shingles, each pressed down with a tap, small toy-like movements.\nAmbient motion: husk dust. Lighting stays warm workbench lamp. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 17,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked top-down continues, constant speed, no cuts. The last rows go on; a beetle taps the ridge husk into place, small toy-like movements.\nAmbient motion: husk dust. Lighting stays warm workbench lamp. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on seed-husk shingles on the matchbox roof, strong blur top and bottom. The matchbox build site: hand-built\nminiature shed build site on a wooden workbench made from an ordinary red-brown paper matchbox, a pencil, sunflower-seed husks, staples and a bead, laid out on a painted wooden workbench (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nTop-down: the beetles laying sunflower-seed-husk shingles in overlapping rows on the matchbox roof, one row done.\nLighting: warm workbench practical lamp, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: indoor. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on seed-husk shingles on the matchbox roof, strong blur top and bottom. The matchbox build site: hand-built\nminiature shed build site on a wooden workbench made from an ordinary red-brown paper matchbox, a pencil, sunflower-seed husks, staples and a bead, laid out on a painted wooden workbench (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nThe whole roof shingled in neat husk rows.\nLighting: warm workbench practical lamp, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: indoor. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "tiny seed-husk shingles pressed down with soft taps, steady ASMR rhythm, close-mic, no music",
+     "durationSec": 22,
+     "gainDb": -8
+    },
+    {
+     "at": 22,
+     "prompt": "tiny seed-husk shingles pressed down with soft taps, steady ASMR rhythm, close-mic, no music",
+     "durationSec": 13,
+     "gainDb": -8
+    },
+    {
+     "at": 0,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 13,
+     "gainDb": -20
+    }
+   ],
+   "labels": [
+    {
+     "at": 2,
+     "durationSec": 1.5,
+     "text": "roof",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 30,
+   "label": "Door and lamp",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow push-in, constant speed, no cuts. The beetles press the staple hinge in, swing the door, and fix the bead lamp beside it, small toy-like movements.\nAmbient motion: none. Lighting stays warm workbench lamp. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the door being hinged with a staple, strong blur top and bottom. Lumen's Matchbox Shed: hand-built\nminiature garden shed beside a wall of stacked books made from a red-brown paper matchbox with cut windows, sunflower-seed-husk shingles, a staple hinge door and a bead lamp by the door (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nThe beetles fitting a matchstick-plank door onto the matchbox shed with a staple hinge, a glass bead lamp waiting on the step.\nLighting: warm workbench practical lamp, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: indoor. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the door being hinged with a staple, strong blur top and bottom. Lumen's Matchbox Shed: hand-built\nminiature garden shed beside a wall of stacked books made from a red-brown paper matchbox with cut windows, sunflower-seed-husk shingles, a staple hinge door and a bead lamp by the door (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nBUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.\nThe door hung, the bead lamp fixed beside it, unlit.\nLighting: warm workbench practical lamp, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: indoor. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 6,
+     "prompt": "a tiny staple press click",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 12,
+     "prompt": "a tiny matchstick door creaking open on a staple hinge",
+     "durationSec": 2,
+     "gainDb": -10
+    },
+    {
+     "at": 22,
+     "prompt": "a small glass bead clicking into place",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 0,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+     "durationSec": 8,
+     "gainDb": -20
+    }
+   ],
+   "labels": [
+    {
+     "at": 2,
+     "durationSec": 1.5,
+     "text": "door",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "sec": 20,
+   "label": "Dusk: the owner arrives",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked low angle, constant speed, no cuts. Lumen glides up the path to the shed; the crew steps aside and opens the door, small toy-like movements.\nAmbient motion: leaves on the path. Lighting stays blue hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen approaching the new shed, strong blur top and bottom. Lumen's Matchbox Shed: hand-built\nminiature garden shed beside a wall of stacked books made from a red-brown paper matchbox with cut windows, sunflower-seed-husk shingles, a staple hinge door and a bead lamp by the door (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nBlue hour: Lumen gliding up the path toward the finished matchbox shed, the crew waiting by the door.\nLighting: blue hour with amber lantern, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen approaching the new shed, strong blur top and bottom. Lumen's Matchbox Shed: hand-built\nminiature garden shed beside a wall of stacked books made from a red-brown paper matchbox with cut windows, sunflower-seed-husk shingles, a staple hinge door and a bead lamp by the door (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen at the door, the crew stepping aside.\nLighting: blue hour with amber lantern, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a very soft slow glide of a tiny snail along a garden path, quiet, close-mic, no music",
+     "durationSec": 20,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 20,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "soft music box celesta melody, slow, warm and gentle, instrumental, no vocals",
+     "durationSec": 20,
+     "gainDb": -20
+    }
+   ],
+   "labels": [
+    {
+     "at": 2,
+     "durationSec": 1.5,
+     "text": "Lumen's shed",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 10,
+   "label": "Home (loop)",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked, constant speed, no cuts. Lumen glides inside; the bead lamp and windows glow warm, small toy-like movements.\nAmbient motion: window glow. Lighting stays blue hour. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the matchbox shed doorway, strong blur top and bottom. Lumen's Matchbox Shed: hand-built\nminiature garden shed beside a wall of stacked books made from a red-brown paper matchbox with cut windows, sunflower-seed-husk shingles, a staple hinge door and a bead lamp by the door (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen gliding in through the matchbox shed door, lantern hook catching the frame.\nLighting: blue hour with amber lantern, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the matchbox shed doorway, strong blur top and bottom. Lumen's Matchbox Shed: hand-built\nminiature garden shed beside a wall of stacked books made from a red-brown paper matchbox with cut windows, sunflower-seed-husk shingles, a staple hinge door and a bead lamp by the door (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nFinished shed at blue hour, windows glowing, Lumen's lantern hung inside.\nLighting: blue hour with amber lantern, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16."
+   },
+   "sfx": [
+    {
+     "at": 5,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 10,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "music box celesta phrase gently resolving to a final soft note, warm, instrumental, no vocals",
+     "durationSec": 9.5,
+     "gainDb": -20
+    }
+   ]
+  }
+ ],
+ "sting": {
+  "at": 3.5,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: The Snail Who Lights the Lamps"
+ },
+ "watermark": true,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. SD: matchbox proportions constant (~5.3 × 3.6 cm; 2.5 cm Lumen fits with headroom); staple hinge and bead lamp match LF3 §2; exactly three builder beetles; Beat 5 end = the finished-shed still (loop target). Stage labels only: matchbox / roof / door / Lumen's shed. Result flash (0:00–0:01, last 1s of Beat 5) must be added in the edit — not in this script. Re-time library SFX cues (tink, hero taps) to the landed clips before render."
+}

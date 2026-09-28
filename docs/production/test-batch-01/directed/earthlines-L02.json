@@ -1,0 +1,1408 @@
+{
+ "format": "long",
+ "resolution": "480p",
+ "title": "What If Earth Stopped Spinning?",
+ "altTitles": [
+  "Earth Stops Spinning: The First Second, and the Next Million Years",
+  "What If Earth Stopped Spinning? (The Sun Would Rise in the West)"
+ ],
+ "description": "Two ways to stop a planet: instantly, or over ten thousand years. One is over in seconds; the other redraws every coastline, stretches a day into a year and makes the Sun rise in the west. A speculative timeline grounded in cited science and the Esri no-spin model; model estimates are marked on screen.\n\nChapters: 0:00 How fast you're moving · 1:05 The instant stop · 1:50 The slow stop · 2:20 Oceans run to the poles · 3:35 A year-long day · 4:35 The megacontinent · 5:35 Day side / night side · 6:45 Life in the twilight · 7:45 The magnetic field\n\nSources: Esri ArcUser 'Earth without spin' (Fraczek) · NASA Earth fact sheet (NSSDC) · NASA Venus facts · NASA Glenn speed of sound",
+ "tags": [
+  "what if",
+  "earth stopped spinning",
+  "earth rotation",
+  "megacontinent",
+  "sunrise in the west",
+  "space",
+  "science",
+  "Earthlines"
+ ],
+ "topic": "What if Earth stopped spinning (instant vs slow)",
+ "cast": {
+  "N": {
+   "color": "#FFB547"
+  }
+ },
+ "sections": [
+  {
+   "label": "§1 Hook: how fast you're moving",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "The ground under your feet is moving — at the equator, about one thousand six hundred seventy kilometers an hour.",
+     "at": 0.2
+    },
+    {
+     "speaker": "N",
+     "text": "You don't feel it, because everything moves with you. The air. The oceans. You.",
+     "at": 7.7
+    },
+    {
+     "speaker": "N",
+     "text": "Now imagine it stops.",
+     "at": 17.0
+    }
+   ],
+   "videoPrompt": "Photoreal low-orbit view along the equator at 400 km altitude, clouds and rainforest drifting quickly left to right beneath the camera in accelerated motion, the dawn terminator glowing ahead at frame-right, thin blue limb curving across the top third. Camera: continuous forward glide. STAGE: present-day Earth rotating normally west to east (surface drifting left to right in orbital views); today's oceans, continents, ice and clouds; city lights on night side; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "rising rotating hum, turbine-like drone, building steadily, then cut dead",
+     "durationSec": 18.42,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "T−0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 4.46,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 4.46,
+     "durationSec": 3.24,
+     "text": "EQUATOR SPEED 1,670 km/h · src: NASA/IERS",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 7.7,
+     "durationSec": 12.3,
+     "text": "YOUR LATITUDE → cos(lat)",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "one",
+    "thousand",
+    "six",
+    "hundred",
+    "seventy",
+    "stops."
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "IDENT (shared channel asset, Bible §6.1)",
+   "sec": 5,
+   "lines": [],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 2
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low cinematic sub-boom, single deep hit, then silence",
+     "durationSec": 2,
+     "gainDb": -4
+    },
+    {
+     "at": 3.5,
+     "prompt": "crystalline chime, bright clean shimmer, single hit",
+     "durationSec": 1.5,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 3.5,
+     "durationSec": 1.5,
+     "text": "EARTHLINES",
+     "position": "center",
+     "style": "title"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§2 ‖ Two ways to stop (a)",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "What if Earth stopped spinning? There are two ways to answer that — and they end very differently. Stop the planet instantly, and everything not bolted to the bedrock keeps going. Stop it slowly, over thousands of years, and nothing gets thrown anywhere — but the oceans, the air and the calendar rearrange themselves completely. In both versions, the planet itself stays in one piece. This isn't about breaking Earth. It's about everything riding on it. Let's run the fast version first. It's short.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal Earth centered on deep black space, rotating slowly west to east, sunlight from frame-left, night side with city lights, clean and stable. Camera: continuous slow orbit around the planet from left to right, keeping it centered. The orbit is in progress. STAGE: present-day Earth rotating normally west to east (surface drifting left to right in orbital views); today's oceans, continents, ice and clouds; city lights on night side; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low cinematic drone, dark and steady, instrumental",
+     "durationSec": 20.0,
+     "gainDb": -16
+    },
+    {
+     "at": 2.79,
+     "prompt": "two-note musical motif, one low note then one higher note, resonant, sparse",
+     "durationSec": 3,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "T−0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 3.0,
+     "text": "WHAT IF EARTH STOPPED SPINNING?",
+     "position": "center",
+     "style": "title"
+    },
+    {
+     "at": 6.69,
+     "durationSec": 3.0,
+     "text": "INSTANT",
+     "position": "center",
+     "style": "title",
+     "color": "#FF4A2E"
+    },
+    {
+     "at": 11.31,
+     "durationSec": 2.99,
+     "text": "SLOW",
+     "position": "center",
+     "style": "title",
+     "color": "#4FD1FF"
+    }
+   ],
+   "highlightWords": [
+    "instantly,",
+    "slowly,"
+   ]
+  },
+  {
+   "label": "§2 ‖ Two ways to stop (b)",
+   "sec": 20,
+   "lines": [],
+   "videoPrompt": "Photoreal Earth centered on deep black space, rotating slowly west to east, sunlight from frame-left, night side with city lights, clean and stable. Camera: continuous slow orbit around the planet from left to right, keeping it centered. The orbit continues at the same speed. STAGE: present-day Earth rotating normally west to east (surface drifting left to right in orbital views); today's oceans, continents, ice and clouds; city lights on night side; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low cinematic drone, dark and steady, instrumental",
+     "durationSec": 20.0,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "T−0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§3 ‖ The instant stop (a)",
+   "sec": 23,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus one second.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "The rock stops. The atmosphere doesn't. At the equator, air keeps moving east at about one thousand six hundred seventy kilometers an hour — faster than the speed of sound at sea level. That's a wind stronger than any hurricane ever measured, scouring the surface from the tropics toward the mid-latitudes. The oceans surge east the same way, climbing over coastlines. Anything loose — soil, trees, water — is carried along. The one relief: near the poles, the ground was barely moving to begin with. That's the instant stop. And fortunately, it's physically impossible.",
+     "at": 2.52
+    }
+   ],
+   "videoPrompt": "Photoreal aerial long-lens view over a generic open prairie with scattered trees and a dirt track, a colossal horizontal wall of dust and debris sweeping from frame-left to frame-right, grass flattened toward the right, trees stripped and bending right, a pond's water torn into sheets of spray streaming right, sky churning, harsh high sun at frame-left. No people, no buildings, no vehicles. Camera: continuous shaky long-lens tracking to the right from a distance. The debris wall crosses frame. STAGE: the instant the ground stopped — the atmosphere still moving eastward at supersonic speed; everything loose (dust, water, vegetation) streaming violently from frame-left to frame-right; daylight, sun high at frame-left; no people, no buildings. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "industrial-fog"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "violent wall of wind with debris, heavy sub-bass rumble, relentless",
+     "durationSec": 11.5,
+     "gainDb": -8
+    },
+    {
+     "at": 4.0,
+     "prompt": "single deep taiko drum hit with a debris impact",
+     "durationSec": 1.5,
+     "gainDb": -6
+    },
+    {
+     "at": 11.5,
+     "prompt": "violent wall of wind with debris, heavy sub-bass rumble, relentless",
+     "durationSec": 11.5,
+     "gainDb": -8
+    },
+    {
+     "at": 13.0,
+     "prompt": "single deep taiko drum hit with a debris impact",
+     "durationSec": 1.5,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "T+00:00:01",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 5.71,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 5.72,
+     "durationSec": 5.32,
+     "text": "WIND ~1,670 km/h (equator)",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 11.04,
+     "durationSec": 11.96,
+     "text": "SPEED OF SOUND ~1,235 km/h · src: NASA GRC",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 6.0,
+     "toScale": 1.1,
+     "overSec": 0.12,
+     "holdSec": 0.5
+    },
+    {
+     "at": 15.0,
+     "toScale": 1.1,
+     "overSec": 0.12,
+     "holdSec": 0.5
+    }
+   ],
+   "highlightWords": [
+    "impossible."
+   ]
+  },
+  {
+   "label": "§3 ‖ The instant stop (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal aerial long-lens view over a generic open prairie with scattered trees and a dirt track, a colossal horizontal wall of dust and debris sweeping from frame-left to frame-right, grass flattened toward the right, trees stripped and bending right, a pond's water torn into sheets of spray streaming right, sky churning, harsh high sun at frame-left. No people, no buildings, no vehicles. Camera: continuous shaky long-lens tracking to the right from a distance. The tracking continues; the dust thickens and visibility falls. Monotonic. STAGE: the instant the ground stopped — the atmosphere still moving eastward at supersonic speed; everything loose (dust, water, vegetation) streaming violently from frame-left to frame-right; daylight, sun high at frame-left; no people, no buildings. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "industrial-fog"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "violent wall of wind with debris, heavy sub-bass rumble, relentless",
+     "durationSec": 12.89,
+     "gainDb": -8
+    },
+    {
+     "at": 4.0,
+     "prompt": "single deep taiko drum hit with a debris impact",
+     "durationSec": 1.5,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+00:00:01",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "SPEED OF SOUND ~1,235 km/h · src: NASA GRC",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 8.0,
+     "toScale": 1.1,
+     "overSec": 0.12,
+     "holdSec": 0.5
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§4 Pivot: why it can't happen, and the slow version",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Nothing in the solar system can grab Earth and stop it in a second. Physics needs time — and an enormous twisting force. So let's slow Earth down the way nature slows planets: gradually. It happens. Venus turns so slowly that its day is longer than its year. So let's give Earth a gentle brake… all the way to zero.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal Earth on black space rotating west to east, the rotation visibly and smoothly slowing over the shot, clouds drifting less and less, sunlight from frame-left, the terminator steady, city lights on night side. Camera: continuous very slow push-in. STAGE: present-day Earth rotating normally west to east (surface drifting left to right in orbital views); today's oceans, continents, ice and clouds; city lights on night side; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 8.0,
+     "prompt": "rotating turbine hum slowly winding down in pitch, decelerating to stillness",
+     "durationSec": 22,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "PIVOT",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 13.08,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 13.08,
+     "durationSec": 6.03,
+     "text": "VENUS DAY 243 d > YEAR 225 d · src: NASA",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 19.12,
+     "durationSec": 10.88,
+     "text": "ROTATION 100% → …",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Venus"
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§5a Map morph K0 today → K1 33%",
+   "sec": 25,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus one hundred years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "The slow version: a hypothetical brake that takes ten thousand years to bring Earth's spin to zero. Nothing gets thrown anywhere. But spin does something we rarely notice — it flings the planet outward at the equator. Earth is about forty-three kilometers wider across the equator than from pole to pole, and the oceans bulge along with it. GIS analyst Witold Fraczek at Esri modeled what happens when that spin fades. In his model, the rock holds its shape — it responds far more slowly. The water doesn't. The ocean's equatorial bulge — about eight kilometers high — drains toward where gravity now pulls hardest: the poles. The tropics empty. The far north floods: Canada, Siberia and northern Europe sink beneath a new northern ocean. In the south, a second polar ocean forms. Every coastline on the planet redraws itself — slowly, but completely.",
+     "at": 2.88
+    }
+   ],
+   "videoPrompt": "Photoreal Earth globe from orbit, sunlight from frame-left, ocean water steadily and smoothly retreating from the equator and spreading toward the poles, pale seafloor emerging, continuous gradual change, no rotation, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: a photoreal globe from orbit centred on 30°N 20°W, lit from frame-left so about 85% is lit with a thin terminator at the right edge, no labels, no borders, locked orbital framing. Today's oceans and coastlines. STAGE: present-day Earth rotating normally west to east (surface drifting left to right in orbital views); today's oceans, continents, ice and clouds; city lights on night side; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "deep ocean water draining away, slow low gurgle and rush, seamless",
+     "durationSec": 12.5,
+     "gainDb": -12
+    },
+    {
+     "at": 12.5,
+     "prompt": "deep ocean water draining away, slow low gurgle and rush, seamless",
+     "durationSec": 12.5,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "T+100 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 7.14,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 7.14,
+     "durationSec": 9.94,
+     "text": "ROTATION 100% → 0%",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 17.08,
+     "durationSec": 7.92,
+     "text": "EQUATORIAL BULGE 42.8 km (solid Earth) · src: NASA fact sheet",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "forty-three",
+    "eight",
+    "poles."
+   ],
+   "endFrame": {
+    "fromSection": 8
+   }
+  },
+  {
+   "label": "§5b Map morph K1 33% → K2 66%",
+   "sec": 25,
+   "lines": [],
+   "videoPrompt": "Photoreal Earth globe from orbit, sunlight from frame-left, ocean water steadily and smoothly retreating from the equator and spreading toward the poles, pale seafloor emerging, continuous gradual change, no rotation, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: a photoreal globe from orbit centred on 30°N 20°W, lit from frame-left so about 85% is lit with a thin terminator at the right edge, no labels, no borders, locked orbital framing. 33% migrated: shallow tropical shelves exposed, Hudson Bay and the Baltic expanding. STAGE: Earth's spin slowing; ocean water draining away from the equator and pooling toward both poles; tropical seafloor emerging as pale land; northern continents flooding from the Arctic side. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "deep ocean water draining away, slow low gurgle and rush, seamless",
+     "durationSec": 12.5,
+     "gainDb": -12
+    },
+    {
+     "at": 12.5,
+     "prompt": "deep ocean water draining away, slow low gurgle and rush, seamless",
+     "durationSec": 12.5,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "T+1,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 10.89,
+     "text": "EQUATORIAL BULGE 42.8 km (solid Earth) · src: NASA fact sheet",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 10.9,
+     "durationSec": 14.1,
+     "text": "OCEAN BULGE ~8 km · src: Esri (Fraczek) · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "endFrame": {
+    "fromSection": 9
+   }
+  },
+  {
+   "label": "§5c Map morph K2 66% → K3 end-state",
+   "sec": 25,
+   "lines": [],
+   "videoPrompt": "Photoreal Earth globe from orbit, sunlight from frame-left, ocean water steadily and smoothly retreating from the equator and spreading toward the poles, pale seafloor emerging, continuous gradual change, no rotation, no camera movement. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed map still: a photoreal globe from orbit centred on 30°N 20°W, lit from frame-left so about 85% is lit with a thin terminator at the right edge, no labels, no borders, locked orbital framing. 66% migrated. STAGE: Earth's spin slowing; ocean water draining away from the equator and pooling toward both poles; tropical seafloor emerging as pale land; northern continents flooding from the Arctic side. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "deep ocean water draining away, slow low gurgle and rush, seamless",
+     "durationSec": 12.5,
+     "gainDb": -12
+    },
+    {
+     "at": 12.5,
+     "prompt": "deep ocean water draining away, slow low gurgle and rush, seamless",
+     "durationSec": 12.5,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "T+10,000 YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "OCEAN BULGE ~8 km · src: Esri (Fraczek) · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack",
+   "endFrame": {
+    "prompt": "Designed map still: a photoreal globe from orbit centred on 30°N 20°W, lit from frame-left so about 85% is lit with a thin terminator at the right edge, no labels, no borders, locked orbital framing. The end-state: a continuous equatorial megacontinent, a northern ocean over Canada, Siberia and northern Europe. STAGE: Earth's spin slowing; ocean water draining away from the equator and pooling toward both poles; tropical seafloor emerging as pale land; northern continents flooding from the Arctic side. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "§6 The year-long day: the Sun rises in the west (a)",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus ten thousand years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "Earth has stopped turning relative to the stars. And here's the first surprise: there's still a sunrise, because Earth still orbits the Sun. But now one full day lasts one full year. And because of that orbital motion, the Sun no longer rises in the east. It creeps up over the western horizon, crawls across the sky for six months, and sets in the east.",
+     "at": 2.88
+    },
+    {
+     "speaker": "N",
+     "text": "Earth's tilt still stretches and squeezes those seasons by latitude, but the rhythm is the same everywhere: one sunrise a year. The line between day and night now crosses the equator at about a hundred and ten kilometers a day — around four and a half kilometers an hour. A walking pace. If you never stopped walking, you could keep up with the sunset.",
+     "at": 27.15
+    }
+   ],
+   "videoPrompt": "Locked-off photoreal time-lapse of a vast flat pale plain of dried seabed with scattered salt crust and a lone weathered rock pillar for scale, the sun sitting just above the horizon at frame-left and rising almost imperceptibly over the whole shot, clouds racing overhead while the sun barely moves, very long shadows stretching to frame-right. Single-shot, no camera movement. Clouds racing, sun near the horizon. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "steady dry wind over a vast flat plain, a single sustained low cello note that never resolves",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 15.0,
+     "prompt": "steady dry wind over a vast flat plain, a single sustained low cello note that never resolves",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "T+10K YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 11.75,
+     "text": "SPIN 0% · REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 11.76,
+     "durationSec": 18.24,
+     "text": "SOLAR DAY = 1 YEAR",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 19.57,
+     "durationSec": 2.99,
+     "text": "W",
+     "position": "center",
+     "style": "title",
+     "color": "#FFB547"
+    }
+   ],
+   "highlightWords": [
+    "west.",
+    "walking",
+    "pace."
+   ]
+  },
+  {
+   "label": "§6 The year-long day: the Sun rises in the west (b)",
+   "sec": 30,
+   "lines": [],
+   "videoPrompt": "Locked-off photoreal time-lapse of a vast flat pale plain of dried seabed with scattered salt crust and a lone weathered rock pillar for scale, the sun sitting just above the horizon at frame-left and rising almost imperceptibly over the whole shot, clouds racing overhead while the sun barely moves, very long shadows stretching to frame-right. Single-shot, no camera movement. The time-lapse continues; the sun is a hair higher. Monotonic, with no jump in sun height. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "steady dry wind over a vast flat plain, a single sustained low cello note that never resolves",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 15.0,
+     "prompt": "steady dry wind over a vast flat plain, a single sustained low cello note that never resolves",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "T+10K YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.86,
+     "text": "SOLAR DAY = 1 YEAR",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 8.87,
+     "durationSec": 21.13,
+     "text": "TERMINATOR SPEED (EQUATOR) ≈ 110 km/day ≈ 4.6 km/h · derived",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§7 The equatorial megacontinent (a)",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "What rises from the old seas is a single belt of land wrapping the entire planet at the equator: a megacontinent. Ancient seafloor that never saw sunlight now bakes under it — salt flats, drained trenches, old reefs standing as white limestone hills. In Fraczek's model, the belt runs unbroken around the world, and the two new polar oceans never touch. Rivers have nowhere familiar to run; what little rain reaches the interior pools in salt lakes on the old ocean floor. The air redistributes too. The equatorial land ends up under thinner air, closer to a high plateau than a lowland. We're in model territory now — but the logic is simple: without spin, water and air settle where gravity alone sends them.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal high aerial over a vast exposed ancient seafloor: blinding white salt flats, a colossal dry canyon of a drained ocean trench in the middle distance, pale fossil reef ridges standing like hills, heat haze, sun high at frame-left casting short shadows to the right, dusty tan palette, no water, no people. Camera: continuous slow forward drone flight at 500 m altitude. Flight over the salt flats toward the trench. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "mirage-at-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "dry hot wind, faint heat-shimmer tone, low distant brass, seamless",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 15.0,
+     "prompt": "dry hot wind, faint heat-shimmer tone, low distant brass, seamless",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "T+11K YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 7.04,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 7.05,
+     "durationSec": 22.36,
+     "text": "EQUATORIAL MEGACONTINENT: CONTINUOUS · src: Esri · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 29.41,
+     "durationSec": 0.59,
+     "text": "EQUATORIAL AIR: THINNER · src: Esri · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "megacontinent."
+   ]
+  },
+  {
+   "label": "§7 The equatorial megacontinent (b)",
+   "sec": 30,
+   "lines": [],
+   "videoPrompt": "Photoreal high aerial over a vast exposed ancient seafloor: blinding white salt flats, a colossal dry canyon of a drained ocean trench in the middle distance, pale fossil reef ridges standing like hills, heat haze, sun high at frame-left casting short shadows to the right, dusty tan palette, no water, no people. Camera: continuous slow forward drone flight at 500 m altitude. The flight continues over the trench rim. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "mirage-at-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "dry hot wind, faint heat-shimmer tone, low distant brass, seamless",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 15.0,
+     "prompt": "dry hot wind, faint heat-shimmer tone, low distant brass, seamless",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "T+11K YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "EQUATORIAL AIR: THINNER · src: Esri · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§8 ‖ Six months of day, six months of night (a)",
+   "sec": 24,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Now add the year-long day. Almost everywhere on Earth gets roughly six months of daylight, then six months of night. On the day side, the Sun hangs in the sky for weeks at a time. With no night to cool it, the ground heats into deserts beyond anything alive today. On today's Earth, a single night is too short for the ground to cool very far. Here, half a year of darkness is enough to freeze lakes solid and bury whole regions in snow. On the night side, heat radiates into space, and temperatures plunge. Winds pour from the cold side toward the hot side, and where they meet — along that slowly marching terminator — storms gather. Every place on the planet takes its turn in both. And between the scorched half and the frozen half, one narrow zone stays temperate: a ring of twilight that circles the planet once a year.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view of a non-rotating Earth: left hemisphere sunlit, scorched tan and hazy with a brown equatorial landmass, right hemisphere dark and frozen white under faint starlight, a sharp vertical terminator through center marked by a long chain of towering storm clouds, a deep blue polar ocean visible at the top. No surface drift. Camera: continuous very slow push toward the storm line. The push continues toward the storm line; the planet does not rotate; the storm chain grows larger in frame. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "distant rolling thunder, low and continuous",
+     "durationSec": 12.0,
+     "gainDb": -14
+    },
+    {
+     "at": 0.0,
+     "prompt": "hot dry hiss mixed with icy crackle, split and textured",
+     "durationSec": 12.0,
+     "gainDb": -18
+    },
+    {
+     "at": 12.0,
+     "prompt": "distant rolling thunder, low and continuous",
+     "durationSec": 12.0,
+     "gainDb": -14
+    },
+    {
+     "at": 12.0,
+     "prompt": "hot dry hiss mixed with icy crackle, split and textured",
+     "durationSec": 12.0,
+     "gainDb": -18
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 24.0,
+     "text": "T+12K YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 4.2,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 4.21,
+     "durationSec": 3.19,
+     "text": "DAY/NIGHT ≈ 6 MONTHS EACH",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 7.4,
+     "durationSec": 16.6,
+     "text": "DAY SIDE: EXTREME HEAT · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "six",
+    "months",
+    "twilight"
+   ]
+  },
+  {
+   "label": "§8 ‖ Six months of day, six months of night (b)",
+   "sec": 23,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view of a non-rotating Earth: left hemisphere sunlit, scorched tan and hazy with a brown equatorial landmass, right hemisphere dark and frozen white under faint starlight, a sharp vertical terminator through center marked by a long chain of towering storm clouds, a deep blue polar ocean visible at the top. No surface drift. Camera: continuous very slow push toward the storm line. The push continues toward the storm line; the planet does not rotate; the storm chain grows larger in frame. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "distant rolling thunder, low and continuous",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 0.0,
+     "prompt": "hot dry hiss mixed with icy crackle, split and textured",
+     "durationSec": 11.5,
+     "gainDb": -18
+    },
+    {
+     "at": 11.5,
+     "prompt": "distant rolling thunder, low and continuous",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 11.5,
+     "prompt": "hot dry hiss mixed with icy crackle, split and textured",
+     "durationSec": 11.5,
+     "gainDb": -18
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "T+12K YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 6.12,
+     "text": "DAY SIDE: EXTREME HEAT · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 6.12,
+     "durationSec": 16.88,
+     "text": "NIGHT SIDE: DEEP FREEZE · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "§8 ‖ Six months of day, six months of night (c)",
+   "sec": 23,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view of a non-rotating Earth: left hemisphere sunlit, scorched tan and hazy with a brown equatorial landmass, right hemisphere dark and frozen white under faint starlight, a sharp vertical terminator through center marked by a long chain of towering storm clouds, a deep blue polar ocean visible at the top. No surface drift. Camera: continuous very slow push toward the storm line. The push continues toward the storm line; the planet does not rotate; the storm chain grows larger in frame. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "distant rolling thunder, low and continuous",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 0.0,
+     "prompt": "hot dry hiss mixed with icy crackle, split and textured",
+     "durationSec": 11.5,
+     "gainDb": -18
+    },
+    {
+     "at": 11.5,
+     "prompt": "distant rolling thunder, low and continuous",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 11.5,
+     "prompt": "hot dry hiss mixed with icy crackle, split and textured",
+     "durationSec": 11.5,
+     "gainDb": -18
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "T+12K YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "NIGHT SIDE: DEEP FREEZE · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§9 Life follows the twilight (a)",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus one million years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "Where does life survive? Follow the twilight. On a world where sunset moves at walking pace, the best place to live is on the move. Plants rooted in place face half a year of scorching light and half a year of darkness, so only the toughest endure, sprouting and dying back like desert wildflowers, their seeds waiting out the night underground. Animals migrate, keeping pace with the terminator the way birds today chase the seasons. Whole ecosystems become nomads, circling the planet once a year. In the polar oceans, deep water holds its warmth far longer than land, offering refuge through the long night. This is speculation — but it's grounded in how life already handles extreme light, from Arctic summers to caves.",
+     "at": 2.88
+    }
+   ],
+   "videoPrompt": "Photoreal wide golden-twilight plain on the day-night boundary: the sun resting on the horizon at frame-left, long warm light and long shadows to the right, hardy low shrubs in bloom on the left, frost-covered ground fading into blue dusk on the right, a long line of generic hoofed animals walking steadily from right to left toward the light in the far distance, no people. Camera: continuous slow crane-up revealing the line of animals and the frost boundary. The crane starts low, among the shrubs. Keep the sun height fixed. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "distant hooves of a moving herd, soft wind over open plain",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 15.0,
+     "prompt": "distant hooves of a moving herd, soft wind over open plain",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "T+1M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 4.3,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 4.3,
+     "durationSec": 25.7,
+     "text": "HABITABLE: TWILIGHT BELT · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "twilight."
+   ]
+  },
+  {
+   "label": "§9 Life follows the twilight (b)",
+   "sec": 30,
+   "lines": [],
+   "videoPrompt": "Photoreal wide golden-twilight plain on the day-night boundary: the sun resting on the horizon at frame-left, long warm light and long shadows to the right, hardy low shrubs in bloom on the left, frost-covered ground fading into blue dusk on the right, a long line of generic hoofed animals walking steadily from right to left toward the light in the far distance, no people. Camera: continuous slow crane-up revealing the line of animals and the frost boundary. The crane continues up; the herd line and frost boundary are fully revealed. Keep the sun height fixed. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "distant hooves of a moving herd, soft wind over open plain",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 15.0,
+     "prompt": "distant hooves of a moving herd, soft wind over open plain",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "T+1M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "HABITABLE: TWILIGHT BELT · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§10 The magnetic field question (a)",
+   "sec": 18,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "One question we can't answer confidently: the magnetic field. Earth's field is generated by churning molten iron in the outer core, and rotation helps organize that churning. Slow the spin, and many researchers would expect the field to change — possibly weaken. By how much? Nobody knows. Venus barely spins and has no global magnetic field — but Venus differs in many other ways. So this one wears our speculative badge.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view over the frozen night hemisphere near the pole, a faint green aurora curtain rippling above the limb and slowly dimming over the shot, stars sharp, sunlight glow only at far left edge. No surface drift. Camera: continuous slow lateral drift to the right. The aurora is visible. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "soft electric shimmer pad with faint radio hiss, slowly fading",
+     "durationSec": 18.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 18.0,
+     "text": "SPECULATIVE",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.11,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 8.11,
+     "durationSec": 8.87,
+     "text": "GEODYNAMO: CONVECTION + ROTATION",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 16.99,
+     "durationSec": 1.01,
+     "text": "VENUS: NO GLOBAL FIELD · src: NASA",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "Nobody",
+    "knows."
+   ]
+  },
+  {
+   "label": "§10 The magnetic field question (b)",
+   "sec": 17,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view over the frozen night hemisphere near the pole, a faint green aurora curtain rippling above the limb and slowly dimming over the shot, stars sharp, sunlight glow only at far left edge. No surface drift. Camera: continuous slow lateral drift to the right. The drift continues; the aurora dims further (monotonic). STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "soft electric shimmer pad with faint radio hiss, slowly fading",
+     "durationSec": 17.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 17.0,
+     "text": "SPECULATIVE",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 17.0,
+     "text": "VENUS: NO GLOBAL FIELD · src: NASA",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§11 CTA + next timeline",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "A stopped Earth isn't a dead Earth. It's a stranger one: two polar oceans, one equatorial continent, and a sunset you could walk beside. Same rock, same air, same water — rearranged. So what if it spun faster instead? Pick your next timeline.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal non-rotating Earth centered on black, sunlit from frame-left, tan equatorial belt, blue polar oceans, frozen white night side at right, sharp vertical terminator. Absolutely no surface rotation. Camera: continuous slow pull-back. STAGE: Earth that does not rotate relative to the stars — NO surface drift in orbital views; two great polar oceans covering the far north and far south; a continuous brown, white-salt and tan equatorial megacontinent of exposed seabed; the sunlit hemisphere scorched and hazy, the dark hemisphere frozen white; storm bands along the terminator; no city lights; sun from frame-left. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "T+1M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 11.66,
+     "durationSec": 2.48,
+     "text": "NEXT: WHAT IF EARTH STOPPED ORBITING THE SUN?",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 14.15,
+     "durationSec": 5.85,
+     "text": "NEXT: WHAT IF EARTH SPUN BACKWARDS?",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "OUTRO + end screen (shared channel asset, Bible §6.3)",
+   "sec": 18,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Every change has consequences. Pick your next timeline.",
+     "at": 0.5
+    }
+   ],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 23
+   }
+  }
+ ],
+ "music": {
+  "prompt": "cinematic ambient documentary score, 9 minutes: a tense low drone under calm narration for the first minute; sparse and dark around 1:05 with taiko accents; a slow ritardando winding down around 1:50; rising strings in D minor from 2:20; an endless unresolved dawn register around 3:35; dry low brass around 4:35; wide and stormy around 5:35; strings resolving toward major from 6:45; an electric shimmer pad around 7:45; a sustained chord to the end; restrained, awe not doom, instrumental, no vocals",
+  "gainDb": -15,
+  "underVoDb": -9
+ },
+ "sting": {
+  "at": 63,
+  "sec": 2
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "Brief §3.4 on every clip. L02: SC-A clips rotate left→right. SC-Z orbital clips (§8, §10, §11) show NO rotation — compare cloud positions at t=0 vs t=end; drift >2% of globe width = REGEN. §3 all debris moves left→right, no people/buildings/vehicles. §5 continent outlines fixed while only water changes; equatorial land never shrinks back (map keyframes are SOUL stills — fact-check them against ETOPO/Esri before generation). §6 sun height never drops across the seam. §8 day side stays left, terminator vertical. §9 animals move right→left toward the light, frost stays right. Cinema segments are standalone gens (Q7): check continuity at every intra-section cut. Altered-content label ON. Highest risk: §8, §3, §11, §5."
+}

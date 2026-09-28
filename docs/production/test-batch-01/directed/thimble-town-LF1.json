@@ -1,0 +1,710 @@
+{
+ "version": 1,
+ "format": "long",
+ "resolution": "720p",
+ "title": "A Rainy Night at the Tiny Ramen Shop",
+ "altTitles": [
+  "Miso's Noodle Stand Stays Open Late | Thimble Town",
+  "Tiny Ramen Shop in the Rain — Cozy Miniature ASMR"
+ ],
+ "description": "A rainy autumn night at Miso's Noodle Stand on Noodle Row, in the miniature world of Thimble Town. Wordless tiny-cooking ASMR.\n\n0:00 The rain comes\n0:31 Opening up\n1:11 Broth and noodles\n2:11 The first customer\n3:01 Lamps on Noodle Row\n3:41 One bowl\n4:41 A full counter\n5:41 Late\n6:11 The last customer\n7:11 Closing time\n\nStories and worlds created with AI tools.",
+ "tags": [
+  "miniature",
+  "diorama",
+  "tiny food",
+  "tiny cooking",
+  "asmr",
+  "ramen",
+  "rain",
+  "cozy",
+  "Thimble Town"
+ ],
+ "topic": "LF1 Shop Diaries: wordless rainy-night ramen stall episode (flagship; narration A/B control arm)",
+ "sections": [
+  {
+   "sec": 6,
+   "label": "§0 Cold open: the drop",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked extreme macro, no movement, constant speed, no cuts. The raindrop falls from the awning edge into the ladle of broth; a crown splash and two ripple rings catch amber light; steam curls, small toy-like movements.\nAmbient motion: steam curling off the broth, rain falling out of focus behind. Lighting stays amber stove glow with rain-slate edge. Warm cozy palette, fine film grain.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on the surface of broth in a thimble-sized ladle, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nExtreme close-up: a toothpick-handled ladle full of golden broth fills the lower half of frame; a single raindrop hangs from the tin awning edge directly above it; Miso is a soft blur in the background holding the ladle handle.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on the surface of broth in a thimble-sized ladle, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nThe ripple rings spreading to the ladle rim, broth catching amber light.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 6,
+     "gainDb": -14
+    }
+   ]
+  },
+  {
+   "sec": 5,
+   "label": "Ident \"Lamps On\" (brand pack)",
+   "lines": [],
+   "videoPrompt": "Blue-hour wide of Thimble Town, a hand-built miniature town of teacup houses, tin-can roofs and a sewing-thimble water tower, tilt-shift macro look, single continuous shot. A tiny snail lamplighter's brass lantern touches the first street lamp and it glows amber; the glow cascades down Lantern Lane and every tiny window lights in sequence, window by window; the thimble water tower catches the last glow under a dusk plum sky, gentle toy-like motion, no people, no text.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "single-shot",
+    "camera_model": "35mm-film",
+    "camera_lens": "halation-vintage",
+    "color_palette": "twilight-fable"
+   },
+   "refs": [
+    "refs/thimble-town/lumen_ref.png",
+    "refs/thimble-town/lantern_lane_ref.png",
+    "refs/thimble-town/thimble_tower_ref.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+     "durationSec": 5,
+     "gainDb": -18
+    },
+    {
+     "at": 0.5,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 1.0,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 4,
+     "gainDb": -8
+    },
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 4.0,
+     "durationSec": 1.0,
+     "text": "Thimble Town",
+     "position": "top",
+     "style": "title",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "§1 Rain arrives over Noodle Row",
+   "lines": [],
+   "videoPrompt": "Establishing shot of Thimble Town's Noodle Row, a hand-built miniature town made of teacup houses, tin-can roofs and a sewing-thimble water tower, tilt-shift macro look, blue hour as soft rain begins, tiny amber windows, slow crane down over rooftops toward a glowing ramen stall with a tin-can awning, gentle toy-like motion of tiny figures in the distance, rain beading on tin, no people, no text.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the lit ramen stall at the end of the lane, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nNo residents in frame.\nWide establishing view from rooftop height looking down Noodle Row toward the stall, rain beginning, the thimble tower silhouetted.\nLighting: blue hour with amber windows, soft rain, interior practical lamp glow spilling from the stall, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain arriving. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "35mm-film",
+    "camera_lens": "halation-vintage",
+    "color_palette": "twilight-fable"
+   },
+   "refs": [
+    "refs/thimble-town/noodle_row_set_ref.png",
+    "refs/thimble-town/thimble_tower_ref.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 20,
+     "gainDb": -14
+    },
+    {
+     "at": 0,
+     "prompt": "a distant rain gutter trickling softly into a puddle, gentle water trickle, no voices, no music",
+     "durationSec": 20,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "§2 Shutters up, stove lit",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Miso pushes the wooden shutter up and hooks it in place; the paper lanterns sway and brighten, small toy-like movements.\nAmbient motion: rain drips from the awning edge, pea lanterns sway slightly. Lighting stays blue hour with warm amber practicals. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Miso pushes the wooden shutter up and hooks it in place; the paper lanterns sway and brighten, small toy-like movements.\nAmbient motion: rain drips from the awning edge, pea lanterns sway slightly. Lighting stays blue hour with warm amber practicals. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral macro dolly left-to-right continues, constant speed, no cuts. Miso turns a tiny brass knob under the counter; the tealight stove glows amber beneath the bottlecap pot and she settles behind the counter, small toy-like movements.\nAmbient motion: rain drips from the awning edge, pea lanterns sway slightly. Lighting stays blue hour with warm amber practicals. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Miso at the stall front, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nMiso lifting a wooden roll-shutter above the spool counter with both paws, mid-push, rain beading on the tin awning.\nLighting: blue hour with amber windows, soft rain, interior practical lamp glow spilling from the stall, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Miso at the stall front, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nMiso standing behind the spool counter, paws on her apron, the tealight stove glowing under the bottlecap pot.\nLighting: blue hour with amber windows, soft rain, interior practical lamp glow spilling from the stall, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 22,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -14
+    }
+   ]
+  },
+  {
+   "sec": 60,
+   "label": "§3 Broth and noodles",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in, constant speed, no cuts. Miso stirs the broth, lifts the kombu sheet out, steam rolls up through the lantern light, small toy-like movements.\nAmbient motion: steam rising and curling, simmering bubbles, rain on the window behind. Lighting stays interior practical amber with rain-slate window. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in, constant speed, no cuts. Miso stirs the broth, lifts the kombu sheet out, steam rolls up through the lantern light, small toy-like movements.\nAmbient motion: steam rising and curling, simmering bubbles, rain on the window behind. Lighting stays interior practical amber with rain-slate window. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in continues, constant speed, no cuts. Miso drops the noodle nest into the boiling water, then lifts it in the tiny mesh strainer and gives two neat shakes, small toy-like movements.\nAmbient motion: steam rising and curling, simmering bubbles, rain on the window behind. Lighting stays interior practical amber with rain-slate window. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on the simmering bottlecap pot, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nMiso stirring a simmering bottlecap pot with a toothpick-handled ladle, a kombu sheet the size of a stamp lifting on the ladle, a tiny mesh strainer and a nest of thread-thin noodles on a board beside her.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain outside. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on the simmering bottlecap pot, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nMiso holding the tiny mesh strainer high, noodles steaming, water dripping back into the pot.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain outside. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -17
+    },
+    {
+     "at": 22,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -17
+    },
+    {
+     "at": 44,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 16,
+     "gainDb": -17
+    },
+    {
+     "at": 15,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 37,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 59,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 1,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 50,
+   "label": "§4 The first customer",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: low tracking macro dolly left-to-right, constant speed, no cuts. The frog walks toward the stall under the leaf umbrella, stepping around a puddle, small toy-like movements.\nAmbient motion: rain drumming on the leaf, ripples in puddles. Lighting stays blue hour with amber stall glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: low tracking macro dolly left-to-right, constant speed, no cuts. The frog walks toward the stall under the leaf umbrella, stepping around a puddle, small toy-like movements.\nAmbient motion: rain drumming on the leaf, ripples in puddles. Lighting stays blue hour with amber stall glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 25,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: low tracking macro dolly left-to-right continues, constant speed, no cuts. The frog ducks under the terracotta noren, folds the leaf, shakes off drops and climbs onto a button stool; Miso nods, small toy-like movements.\nAmbient motion: rain drumming on the leaf, ripples in puddles. Lighting stays blue hour with amber stall glow. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the frog under a leaf umbrella, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nFROG (walk-on, batch lock) — an unnamed frog traveller, needle-felted moss-green figurine with a cream belly and tiny black bead eyes, a slate-grey knit scarf, carrying a broad green leaf as an umbrella. About 3 cm tall.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nThe frog walking along wet cobbles toward the glowing stall, leaf umbrella held high, rain drumming on the leaf; Miso a soft blur behind the counter.\nLighting: blue hour with amber windows, soft rain, interior practical lamp glow spilling from the stall, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: steady soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the frog under a leaf umbrella, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nFROG (walk-on, batch lock) — an unnamed frog traveller, needle-felted moss-green figurine with a cream belly and tiny black bead eyes, a slate-grey knit scarf, carrying a broad green leaf as an umbrella. About 3 cm tall.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nThe frog seated on a button stool at the counter, leaf umbrella leaning against the spool, Miso giving a small nod.\nLighting: blue hour with amber windows, soft rain, interior practical lamp glow spilling from the stall, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: steady soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 22,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 44,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 6,
+     "gainDb": -14
+    },
+    {
+     "at": 0,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 44,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 6,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "§5 Lumen lights Noodle Row",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: low snail-height macro dolly left-to-right, constant speed, no cuts. Lumen glides slowly along the wet cobbles to the base of the lamp post, lantern swinging gently, small toy-like movements.\nAmbient motion: rain falling, reflections trembling in puddles. Lighting stays blue hour with amber windows. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: low snail-height macro dolly left-to-right, constant speed, no cuts. Lumen glides slowly along the wet cobbles to the base of the lamp post, lantern swinging gently, small toy-like movements.\nAmbient motion: rain falling, reflections trembling in puddles. Lighting stays blue hour with amber windows. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: low snail-height macro dolly left-to-right continues, constant speed, no cuts. Lumen stretches up and touches his lantern to the glass lamp head; it blooms amber and the glow spreads across the wet stones, small toy-like movements.\nAmbient motion: rain falling, reflections trembling in puddles. Lighting stays blue hour with amber windows. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen and his brass lantern, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nLumen gliding along wet cobbles toward a dark lamp post outside the ramen stall, brass lantern glowing on his shell hook, rain drops on his cap.\nLighting: blue hour with amber windows, soft rain, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Lumen and his brass lantern, strong blur top and bottom. Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nLUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).\nThe lamp head glowing amber above Lumen, its reflection spreading across the wet cobbles.\nLighting: blue hour with amber windows, soft rain, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 22,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -14
+    },
+    {
+     "at": 0,
+     "prompt": "a very soft slow wet glide of a tiny snail over wet cobblestones, quiet, close-mic ASMR, no music",
+     "durationSec": 20,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 18,
+     "gainDb": -22
+    },
+    {
+     "at": 30,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 30,
+     "prompt": "a single music box celesta note C, soft and warm, gentle decay, instrumental",
+     "durationSec": 2,
+     "gainDb": -10
+    }
+   ]
+  },
+  {
+   "sec": 60,
+   "label": "§6 One bowl, built",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked 3/4 top-down with a very slow push-in, constant speed, no cuts. Miso ladles broth into the bowl and folds the noodles in with toothpick chopsticks, laying them in a neat wave, small toy-like movements.\nAmbient motion: steam curling, broth surface shimmering. Lighting stays interior practical amber. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked 3/4 top-down with a very slow push-in, constant speed, no cuts. Miso ladles broth into the bowl and folds the noodles in with toothpick chopsticks, laying them in a neat wave, small toy-like movements.\nAmbient motion: steam curling, broth surface shimmering. Lighting stays interior practical amber. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked 3/4 top-down with a very slow push-in continues, constant speed, no cuts. Miso places a chashu slice, a halved soft egg, scallion rings and a nori sheet one by one; steam curls up through the lantern light, small toy-like movements.\nAmbient motion: steam curling, broth surface shimmering. Lighting stays interior practical amber. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a thimble-sized ceramic ramen bowl, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nMiso pouring golden broth from the ladle into a thimble-sized cream ceramic bowl on the spool counter, toppings laid out in acorn caps beside it.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain outside. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 100mm macro lens look, shallow depth of field\nwith a horizontal focus band on a thimble-sized ceramic ramen bowl, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nThe finished bowl — chashu slice, halved soft egg with amber yolk, scallion rings, a stamp-sized nori sheet — steaming, Miso's chopsticks lifting away.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain outside. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 44,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 16,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 44,
+     "prompt": "lo-fi felt piano keys, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, gentle and sparse, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 16,
+     "gainDb": -22
+    }
+   ]
+  },
+  {
+   "sec": 60,
+   "label": "§7 A full counter",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. The dolly passes the frog lifting noodles with chopsticks and the beetle sipping broth from a tiny spoon, small toy-like movements.\nAmbient motion: steam from four bowls, rain streaks on the foreground glass. Lighting stays interior practical amber. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right, constant speed, no cuts. The dolly passes the frog lifting noodles with chopsticks and the beetle sipping broth from a tiny spoon, small toy-like movements.\nAmbient motion: steam from four bowls, rain streaks on the foreground glass. Lighting stays interior practical amber. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow lateral dolly left-to-right continues, constant speed, no cuts. The dolly passes the vole blowing on noodles and the sparrow tucking a napkin; Miso wipes the counter at the end, small toy-like movements.\nAmbient motion: steam from four bowls, rain streaks on the foreground glass. Lighting stays interior practical amber. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the row of customers at the spool counter, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nFROG (walk-on, batch lock) — an unnamed frog traveller, needle-felted moss-green figurine with a cream belly and tiny black bead eyes, a slate-grey knit scarf, carrying a broad green leaf as an umbrella. About 3 cm tall.\nBEETLE (walk-on, batch lock) — an unnamed beetle customer, hand-painted resin figurine with a glossy walnut-brown shell and a tiny cream knit scarf. About 2 cm long.\nVOLE (walk-on, batch lock) — an unnamed vole, needle-felted soft grey-brown figurine with a terracotta-striped knit scarf. About 3 cm tall.\nSPARROW (walk-on, batch lock) — an unnamed sparrow, felted buff-and-brown figurine with a small sage cloth satchel. About 3 cm tall.\nThe frog, the beetle, the vole and the sparrow seated in a row on button stools eating from thimble-sized bowls; Miso behind the counter sliding a bowl to the beetle.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: steady rain outside. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on the row of customers at the spool counter, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nFROG (walk-on, batch lock) — an unnamed frog traveller, needle-felted moss-green figurine with a cream belly and tiny black bead eyes, a slate-grey knit scarf, carrying a broad green leaf as an umbrella. About 3 cm tall.\nBEETLE (walk-on, batch lock) — an unnamed beetle customer, hand-painted resin figurine with a glossy walnut-brown shell and a tiny cream knit scarf. About 2 cm long.\nVOLE (walk-on, batch lock) — an unnamed vole, needle-felted soft grey-brown figurine with a terracotta-striped knit scarf. About 3 cm tall.\nSPARROW (walk-on, batch lock) — an unnamed sparrow, felted buff-and-brown figurine with a small sage cloth satchel. About 3 cm tall.\nMiso at the end of the counter with the white cloth over her shoulder, all four customers eating.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: steady rain outside. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 22,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 44,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 16,
+     "gainDb": -14
+    },
+    {
+     "at": 0,
+     "prompt": "lo-fi felt piano keys with a soft fingerpicked nylon guitar line, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 22,
+     "prompt": "lo-fi felt piano keys with a soft fingerpicked nylon guitar line, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 22,
+     "gainDb": -20
+    },
+    {
+     "at": 44,
+     "prompt": "lo-fi felt piano keys with a soft fingerpicked nylon guitar line, dusty and warm, slow tempo around 72 bpm, soft vinyl crackle, cozy rainy night, instrumental, no vocals, no drums",
+     "durationSec": 16,
+     "gainDb": -20
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "sec": 30,
+   "label": "§8 Late, and thunder far off",
+   "lines": [],
+   "videoPrompt": "Night view of a hand-built miniature ramen stall with a tin-can awning on a cobbled lane in Thimble Town, tilt-shift macro look, heavy gentle rain, paper lanterns swaying in a gust, a soft blue glow of distant lightning on far clouds, the stall's amber light reflected in puddles, slow orbit, cozy and safe, never scary, no people, no text.",
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the lit stall across the lane, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nNo residents in frame.\nNight wide from across the lane: Noodle Row mostly dark, the ramen stall glowing, paper lanterns tilted by a gust, puddles shining.\nLighting: night with amber windows, practical lamp glow, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: heavier rain, distant thunderstorm. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "35mm-film",
+    "camera_lens": "halation-vintage",
+    "color_palette": "twilight-fable"
+   },
+   "refs": [
+    "refs/thimble-town/noodle_row_night_ref.png",
+    "refs/thimble-town/stall_ref.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "heavier but gentle rain on a small tin roof and puddles, soft swell, cozy, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 22,
+     "prompt": "heavier but gentle rain on a small tin roof and puddles, soft swell, cozy, no thunder, no voices, no music",
+     "durationSec": 8,
+     "gainDb": -14
+    },
+    {
+     "at": 0,
+     "prompt": "soft sustained cello pad, warm and calm, low and gentle, no melody, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -22
+    },
+    {
+     "at": 22,
+     "prompt": "soft sustained cello pad, warm and calm, low and gentle, no melody, instrumental, no vocals",
+     "durationSec": 8,
+     "gainDb": -22
+    },
+    {
+     "at": 2,
+     "prompt": "a tiny paper lantern creaking and squeaking softly as it sways in a gust",
+     "durationSec": 2,
+     "gainDb": -14
+    },
+    {
+     "at": 6,
+     "prompt": "distant low soft thunder rolling far away, gentle and muffled, deep but never harsh, no crack",
+     "durationSec": 7,
+     "gainDb": -18
+    },
+    {
+     "at": 19,
+     "prompt": "distant low soft thunder rolling far away, gentle and muffled, deep but never harsh, no crack",
+     "durationSec": 7,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 60,
+   "label": "§9 The last customer",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in, constant speed, no cuts. Wren shakes her feathers; Miso drapes the white cloth over her and dabs her dry, small toy-like movements.\nAmbient motion: drips from Wren's tail, steam from a fresh bowl. Lighting stays interior practical amber. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in, constant speed, no cuts. Wren shakes her feathers; Miso drapes the white cloth over her and dabs her dry, small toy-like movements.\nAmbient motion: drips from Wren's tail, steam from a fresh bowl. Lighting stays interior practical amber. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 30,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: very slow push-in continues, constant speed, no cuts. Wren offers the damp envelope; Miso sets a small bowl before her, unfolds the letter and lifts out a pressed red leaf and a tiny drawing of a bottle-cap city skyline, small toy-like movements.\nAmbient motion: drips from Wren's tail, steam from a fresh bowl. Lighting stays interior practical amber. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Wren and Miso at the counter, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nWREN — a small wren postbird courier, felted chestnut-brown feathers with fine cream\nbarring, an upturned tail, a tiny terracotta leather satchel across the chest, a folded\npaper envelope often in her beak. About 3 cm tall. Quick, curious. Travels between\ntiny worlds (our \"visit another world\" device).\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nWren just landed on the spool counter, soaked, feathers spiky, a damp folded envelope in her beak; Miso reaching toward her with the white cloth.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: heavy gentle rain outside. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Wren and Miso at the counter, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nWREN — a small wren postbird courier, felted chestnut-brown feathers with fine cream\nbarring, an upturned tail, a tiny terracotta leather satchel across the chest, a folded\npaper envelope often in her beak. About 3 cm tall. Quick, curious. Travels between\ntiny worlds (our \"visit another world\" device).\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nMiso holding a pressed red autumn leaf and a tiny drawing of a bottle-cap skyline up to the lantern light, Wren wrapped in the white cloth eating from a small bowl.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: heavy gentle rain outside. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 22,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 44,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 16,
+     "gainDb": -14
+    },
+    {
+     "at": 39,
+     "prompt": "music box and celesta playing a very slow three-note motif C, E, G, slowed down, warm and tender, single phrase with a long soft decay, instrumental",
+     "durationSec": 6,
+     "gainDb": -8
+    }
+   ]
+  },
+  {
+   "sec": 45,
+   "label": "§10 Closing up",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked medium macro with a very slow push, constant speed, no cuts. Miso stacks the bowls and wipes the counter in slow circles; steam thins, small toy-like movements.\nAmbient motion: thinning steam, rain easing on the awning. Lighting stays interior practical amber dimming evenly. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 23,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked medium macro with a very slow push, constant speed, no cuts. Miso stacks the bowls and wipes the counter in slow circles; steam thins, small toy-like movements.\nAmbient motion: thinning steam, rain easing on the awning. Lighting stays interior practical amber dimming evenly. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 22,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: locked medium macro with a very slow push continues, constant speed, no cuts. Miso lowers the noren and turns the stove knob down; the glow fades to one lantern while Wren sleeps, small toy-like movements.\nAmbient motion: thinning steam, rain easing on the awning. Lighting stays interior practical amber dimming evenly. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Miso stacking bowls, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nWREN — a small wren postbird courier, felted chestnut-brown feathers with fine cream\nbarring, an upturned tail, a tiny terracotta leather satchel across the chest, a folded\npaper envelope often in her beak. About 3 cm tall. Quick, curious. Travels between\ntiny worlds (our \"visit another world\" device).\nMiso stacking thimble-sized bowls beside the pot while Wren dozes on a button stool wrapped in the white cloth.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: rain easing. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 85mm macro lens look, shallow depth of field\nwith a horizontal focus band on Miso stacking bowls, strong blur top and bottom. Inside Miso's Noodle Stand: hand-built\nminiature ramen stall kitchen made from a matchbox kitchen with a bottlecap stock pot on a tealight stove, a thimble-sized ceramic bowl, a spool-top counter, toothpick chopsticks and a button stool, rain-streaked window behind (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nWREN — a small wren postbird courier, felted chestnut-brown feathers with fine cream\nbarring, an upturned tail, a tiny terracotta leather satchel across the chest, a folded\npaper envelope often in her beak. About 3 cm tall. Quick, curious. Travels between\ntiny worlds (our \"visit another world\" device).\nMiso at the stove, the glow dim, one paper lantern lit, Wren asleep under the cloth.\nLighting: interior practical lamp glow from pea-sized paper lanterns and the tealight stove, cool rain-slate blue beyond the window, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: rain easing. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "light easing rain, soft slow drips on a tin awning, calm and quiet, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 22,
+     "prompt": "light easing rain, soft slow drips on a tin awning, calm and quiet, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 44,
+     "prompt": "light easing rain, soft slow drips on a tin awning, calm and quiet, no thunder, no voices, no music",
+     "durationSec": 1,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "lo-fi felt piano playing a final resolving phrase, slowing down and ending on a soft held chord, vinyl crackle, instrumental, no vocals",
+     "durationSec": 22,
+     "gainDb": -20
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "§11 Lamps out, rain stays",
+   "lines": [],
+   "videoPrompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow pull-back, constant speed, no cuts. Miso lowers the shutter halfway and steps inside; the other lanterns along the stall go out one by one, small toy-like movements.\nAmbient motion: soft rain, puddle ripples. Lighting stays night with the single amber lantern. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain.",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow pull-back, constant speed, no cuts. Miso lowers the shutter halfway and steps inside; the other lanterns along the stall go out one by one, small toy-like movements.\nAmbient motion: soft rain, puddle ripples. Lighting stays night with the single amber lantern. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain."
+    },
+    {
+     "sec": 20,
+     "prompt": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth\nof field. Camera: slow pull-back continues, constant speed, no cuts. The pull-back continues over wet rooftops to a town wide; windows go dark while the one stall lantern keeps glowing, small toy-like movements.\nAmbient motion: soft rain, puddle ripples. Lighting stays night with the single amber lantern. Warm cozy palette, fine film grain."
+    }
+   ],
+   "keyframePrompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the half-shuttered stall, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nMiso pulling the shutter halfway down, leaving one lantern burning for sleeping Wren, rain softer.\nLighting: night with one amber lantern and one lit street lamp, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9.",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "Miniature diorama photograph, tilt-shift macro, 60mm macro lens look, shallow depth of field\nwith a horizontal focus band on the half-shuttered stall, strong blur top and bottom. Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.\nMISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.\nTown wide at night, windows dark, the stall's single lantern and the lit street lamp the only warm lights, thimble tower silhouette.\nLighting: night with one amber lantern and one lit street lamp, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain. Season: early autumn: a few fallen leaves stuck to wet cobbles, acorn caps as planters.\nFine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 16:9."
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 22,
+     "gainDb": -14
+    },
+    {
+     "at": 22,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -14
+    }
+   ]
+  },
+  {
+   "sec": 18,
+   "label": "Outro + end screen (brand pack)",
+   "lines": [],
+   "videoPrompt": "Night view of Thimble Town, a hand-built miniature town of teacup houses, tin-can roofs and a sewing-thimble water tower, tilt-shift macro look. A slow pull-back from a single lit window to a town wide, then the frame holds while the tiny amber lights dim one by one, leaving calm open space to the left, to the right and low over the thimble tower, cozy and quiet, gentle toy-like motion, no people, no text.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "single-shot",
+    "camera_model": "35mm-film",
+    "camera_lens": "halation-vintage",
+    "color_palette": "twilight-fable"
+   },
+   "refs": [
+    "refs/thimble-town/town_night_ref.png",
+    "refs/thimble-town/thimble_tower_ref.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "gentle music box and celesta lullaby reprise of a slow three-note motif C, E, G, warm and cozy, slowly winding down and fading out, instrumental, no vocals",
+     "durationSec": 12,
+     "gainDb": -8
+    },
+    {
+     "at": 0,
+     "prompt": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music",
+     "durationSec": 18,
+     "gainDb": -14
+    }
+   ]
+  }
+ ],
+ "sting": {
+  "at": 180.25,
+  "sec": 1.5
+ },
+ "watermark": false,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. LF1: spool counter, bottlecap pot and tin-can awning identical in all interior keyframes (same set ref); rain reads as real-speed water at miniature scale, never snowy/static overlay; every one of the 12 brief sections has ≥1 Lantern Amber source; bowl stays thimble-sized (~1.3× Miso's head); §7 five figurines: no merges or scarf swaps (beetle cream, vole terracotta-striped, frog slate-grey); §9 drawing of the bottle-cap skyline shows no letters, envelope a plain cream fold; §8 thunder/lightning cozy, never scary. Re-time library SFX cues (tink, hero taps) to the landed clips before render."
+}

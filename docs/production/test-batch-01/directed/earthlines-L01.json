@@ -1,0 +1,1402 @@
+{
+ "format": "long",
+ "resolution": "480p",
+ "title": "What If the Moon Disappeared?",
+ "altTitles": [
+  "The Night the Moon Vanished: Hour by Hour",
+  "What If the Moon Disappeared Tonight? (Minute by Minute)"
+ ],
+ "description": "At 9:41 tonight, the Moon is gone. Hour by hour, then million years by million years: brighter stars, weaker tides, lost coral signals, no more eclipses and a tilt that starts to wander. A speculative timeline grounded in cited science; model estimates are marked on screen.\n\nChapters: 0:00 The Moon vanishes · 1:10 First night · 2:15 Tides · 3:25 Lost signals · 4:30 No eclipses · 5:15 The tilt · 6:05 Climate · 7:05 The twist\n\nSources: NOAA tides (oceanservice.noaa.gov) · JPL lunar laser ranging · eLife 2015 coral spawning · Laskar et al. 1993 (Nature) · Lissauer et al. 2012 (Icarus) · Stephenson et al. 2016 (Proc. R. Soc. A)",
+ "tags": [
+  "what if",
+  "moon",
+  "moon disappeared",
+  "tides",
+  "coral spawning",
+  "axial tilt",
+  "eclipses",
+  "space",
+  "science",
+  "Earthlines"
+ ],
+ "topic": "What if the Moon disappeared (L01 flagship, timeline ladder)",
+ "cast": {
+  "N": {
+   "color": "#FFB547"
+  }
+ },
+ "sections": [
+  {
+   "label": "§1a Cold open: Moon present (premise cut at 0:04)",
+   "sec": 4,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "At nine forty-one tonight, the Moon is gone.",
+     "at": 0.6
+    }
+   ],
+   "videoPrompt": "Low-angle wide night shot of a generic rocky Atlantic coastline with no landmarks, a full Moon in the upper-left third casting a silver moon-path across gentle waves, a lone small figure standing on a rock at lower right seen from behind for scale, faint stars. Camera: extremely slow push-in at 1.6 m eye height, continuous. STAGE: present-day Earth. Moon present: full Moon, bright, correct size. Ice extent today. Deep-blue oceans with sun glint. Normal clouds. City lights on night side. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "gentle surf washing over rocks on a calm night shore, soft and continuous",
+     "durationSec": 4,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 4.0,
+     "text": "T−00:00:03",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 4.0,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "gone."
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§1b Cold open: the Moon is gone",
+   "sec": 16,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "No explosion. No flash. Just an empty patch of sky. Most people won't notice for hours. But the ocean notices immediately — and by morning, every coastline on Earth is behaving strangely.",
+     "at": 0.74
+    }
+   ],
+   "videoPrompt": "Low-angle wide night shot of a generic rocky Atlantic coastline with no landmarks, the sea darker and flat, only starlight, the figure motionless. Camera: extremely slow push-in at 1.6 m eye height, continuous. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Low-angle wide night shot of a generic rocky Atlantic coastline with no landmarks, no Moon and no moon-path, stars filling the upper-left third of the sky where the Moon was, the sea darker and flat, only starlight, a lone small figure standing on a rock at lower right seen from behind for scale. Camera: 1.6 m eye height. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.6,
+     "prompt": "single high glassy tone, pure and sustained, eerie calm",
+     "durationSec": 4,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 16.0,
+     "text": "T+00:00:00",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 16.0,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "gone."
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "IDENT (shared channel asset, Bible §6.1)",
+   "sec": 5,
+   "lines": [],
+   "videoPrompt": "Photoreal Earth from deep orbit, a thin glowing cyan line traces a path around the planet like an orbit, then splits into three diverging luminous lines that wrap the globe; the planet's day side subtly shifts color along each line (blue, amber, green). Continuous slow push-in, single-shot, deep black space, no text. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low cinematic sub-boom, single deep hit, then silence",
+     "durationSec": 2,
+     "gainDb": -4
+    },
+    {
+     "at": 3.5,
+     "prompt": "crystalline chime, bright clean shimmer, single hit",
+     "durationSec": 1.5,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 3.5,
+     "durationSec": 1.5,
+     "text": "EARTHLINES",
+     "position": "center",
+     "style": "title"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§2 ‖ Premise + what the Moon does for us (a)",
+   "sec": 23,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "What if the Moon disappeared? To answer that, we need to know what it's been doing for us. The Moon orbits about three hundred eighty-four thousand kilometers away, and it pulls on Earth's oceans harder than the Sun does — about twice as hard. It lights our nights. It sets the rhythm of the tides that shape every coastline. It even helps steady the tilt of the planet itself. And it's slowly drifting away — three point eight centimeters a year, about as fast as your fingernails grow. Tonight, it doesn't drift. It's simply gone. Let's start the clock.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal deep-space wide shot: Earth in the right half of frame, day side lit from frame-left, the Moon small and crisp in the far left background, both in the same sunlight, thin blue atmospheric limb, city lights on Earth's night side. Camera: continuous very slow lateral dolly left-to-right that gradually brings Earth to center. The truck is in progress; Earth moves from right third toward centre and the Moon holds at left. STAGE: present-day Earth. Moon present: full Moon, bright, correct size. Ice extent today. Deep-blue oceans with sun glint. Normal clouds. City lights on night side. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low sustained string pad drone, calm, cinematic, instrumental",
+     "durationSec": 11.5,
+     "gainDb": -16
+    },
+    {
+     "at": 11.5,
+     "prompt": "low sustained string pad drone, calm, cinematic, instrumental",
+     "durationSec": 11.5,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "T−0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.11,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 3.0,
+     "text": "WHAT IF THE MOON DISAPPEARED?",
+     "position": "center",
+     "style": "title"
+    },
+    {
+     "at": 8.11,
+     "durationSec": 4.26,
+     "text": "MOON DIST 384,400 km · src: NASA",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 12.37,
+     "durationSec": 10.63,
+     "text": "LUNAR vs SOLAR TIDE 1 : 0.46 · src: NOAA",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "gone."
+   ]
+  },
+  {
+   "label": "§2 ‖ Premise + what the Moon does for us (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal deep-space wide shot: Earth in the right half of frame, day side lit from frame-left, the Moon small and crisp in the far left background, both in the same sunlight, thin blue atmospheric limb, city lights on Earth's night side. Camera: continuous very slow lateral dolly left-to-right that gradually brings Earth to center. The truck continues; Earth settles at centre and the Moon sits at the far-left edge of frame. STAGE: present-day Earth. Moon present: full Moon, bright, correct size. Ice extent today. Deep-blue oceans with sun glint. Normal clouds. City lights on night side. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "low sustained string pad drone, calm, cinematic, instrumental",
+     "durationSec": 20.0,
+     "gainDb": -16
+    },
+    {
+     "at": 11.03,
+     "prompt": "reversed whoosh, rising and sucking in, cinematic",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 20.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "T−0",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 3.92,
+     "text": "LUNAR vs SOLAR TIDE 1 : 0.46 · src: NOAA",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 3.93,
+     "durationSec": 18.07,
+     "text": "RECESSION 3.8 cm/yr · src: JPL",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 20.0,
+     "durationSec": 2.0,
+     "text": "T+00:00:00",
+     "position": "top",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§3 ‖ First night: the stars come out (a)",
+   "sec": 22,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus one hour.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "The first thing you notice isn't darkness — it's the stars. Away from city lights, a moonless night reveals the full Milky Way, every night of the month, not just the few dark nights around a new moon. For astronomers, it's a gift. For animals, it's a problem. Many nocturnal hunters use moonlight to see. Many of their prey use moonless nights to hide. For millions of years, that rhythm — bright weeks, dark weeks — has shaped when animals hunt, feed and hide. It just stopped. On the beach, the tide is still coming in. For now, nothing looks wrong. The water that was already moving keeps moving. But the force that was doing most of the pulling has vanished. And over the next hours, the ocean settles into a new, smaller rhythm. So how small?",
+     "at": 2.52
+    }
+   ],
+   "videoPrompt": "Photoreal wide night beach under a brilliant Milky Way arching from lower-left to upper-right, no Moon, dark flat sea with small waves catching starlight, a single small figure seen from behind at the waterline for scale, distant faint coastal glow on the far horizon at right. Camera: continuous slow crane-up from sand level toward the sky. The crane rises from wet sand past the figure's shoulders. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "crickets chirping at night on a quiet beach, gentle surf with no swell change, seamless ambience",
+     "durationSec": 22.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+01:00:00",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 6.42,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 6.43,
+     "durationSec": 15.57,
+     "text": "NIGHT SKY BRIGHTNESS: no full-Moon nights · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "stars."
+   ]
+  },
+  {
+   "label": "§3 ‖ First night: the stars come out (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal wide night beach under a brilliant Milky Way arching from lower-left to upper-right, no Moon, dark flat sea with small waves catching starlight, a single small figure seen from behind at the waterline for scale, distant faint coastal glow on the far horizon at right. Camera: continuous slow crane-up from sand level toward the sky. The crane continues rising; the Milky Way fills the upper frame and waves wash in slowly. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "crickets chirping at night on a quiet beach, gentle surf with no swell change, seamless ambience",
+     "durationSec": 22.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+01:00:00",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "NIGHT SKY BRIGHTNESS: no full-Moon nights · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "§3 ‖ First night: the stars come out (c)",
+   "sec": 21,
+   "lines": [],
+   "videoPrompt": "Photoreal wide night beach under a brilliant Milky Way arching from lower-left to upper-right, no Moon, dark flat sea with small waves catching starlight, a single small figure seen from behind at the waterline for scale, distant faint coastal glow on the far horizon at right. Camera: continuous slow crane-up from sand level toward the sky. The crane continues to its high position; the beach is small below and the Milky Way dominant. Hold the drift. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "crickets chirping at night on a quiet beach, gentle surf with no swell change, seamless ambience",
+     "durationSec": 21.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "T+01:00:00",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "NIGHT SKY BRIGHTNESS: no full-Moon nights · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§4 Tides shrink (a)",
+   "sec": 24,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus one day.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "Tides are the ocean being stretched by gravity, and the Moon's stretch was the big one. According to NOAA, the Sun's tide-generating force is only about forty-six percent of the Moon's. So with only the Sun left, tides shrink to roughly a third to a half of what coasts are used to. And spring and neap tides — the monthly swing between big and small tides — disappear entirely. Every day's tide now looks like every other day's. Harbors dredged for deep tidal ranges have mud where they need water. Tidal flats that flooded twice a day sit exposed, drying in the sun. The crabs, mussels and shorebirds that live between the tides are living on a shoreline that just shrank. Tidal power stations, built to harvest the Moon's pull, lose most of their output. None of this is a catastrophe. It's something stranger: a planet whose heartbeat just got weaker.",
+     "at": 2.52
+    }
+   ],
+   "videoPrompt": "Photoreal aerial drone shot at golden hour over a vast generic tidal mudflat with meandering channels, the water line far out and not returning, drying rippled sand, small wading birds in the distance, a lone wooden jetty ending on dry mud for scale, long shadows cast toward frame-right from a low sun at frame-left. Camera: continuous slow forward glide at 60 m altitude. The glide passes over the jetty. Keep the sun height constant (no time-of-day drift). STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "the-morning-after-rain"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "wind over wet mudflats, distant gulls, a slow trickle of water in channels, seamless ambience",
+     "durationSec": 12.0,
+     "gainDb": -14
+    },
+    {
+     "at": 12.0,
+     "prompt": "wind over wet mudflats, distant gulls, a slow trickle of water in channels, seamless ambience",
+     "durationSec": 12.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 24.0,
+     "text": "T+1 DAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 16.72,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 16.72,
+     "durationSec": 7.28,
+     "text": "TIDAL RANGE → ~⅓–½ · src: NOAA (0.46 ratio) · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "forty-six",
+    "percent",
+    "third",
+    "heartbeat"
+   ]
+  },
+  {
+   "label": "§4 Tides shrink (b)",
+   "sec": 23,
+   "lines": [],
+   "videoPrompt": "Photoreal aerial drone shot at golden hour over a vast generic tidal mudflat with meandering channels, the water line far out and not returning, drying rippled sand, small wading birds in the distance, a lone wooden jetty ending on dry mud for scale, long shadows cast toward frame-right from a low sun at frame-left. Camera: continuous slow forward glide at 60 m altitude. The glide continues over the channels, with birds lifting in the distance. Keep the sun height constant (no time-of-day drift). STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "the-morning-after-rain"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "wind over wet mudflats, distant gulls, a slow trickle of water in channels, seamless ambience",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 11.5,
+     "prompt": "wind over wet mudflats, distant gulls, a slow trickle of water in channels, seamless ambience",
+     "durationSec": 11.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "T+1 DAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 2.3,
+     "text": "TIDAL RANGE → ~⅓–½ · src: NOAA (0.46 ratio) · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 2.31,
+     "durationSec": 20.69,
+     "text": "SPRING/NEAP CYCLE: GONE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ]
+  },
+  {
+   "label": "§4 Tides shrink (c)",
+   "sec": 23,
+   "lines": [],
+   "videoPrompt": "Photoreal aerial drone shot at golden hour over a vast generic tidal mudflat with meandering channels, the water line far out and not returning, drying rippled sand, small wading birds in the distance, a lone wooden jetty ending on dry mud for scale, long shadows cast toward frame-right from a low sun at frame-left. Camera: continuous slow forward glide at 60 m altitude. The glide continues toward the far waterline; the sea is a thin line at the horizon. Keep the sun height constant (no time-of-day drift). STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "the-morning-after-rain"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "wind over wet mudflats, distant gulls, a slow trickle of water in channels, seamless ambience",
+     "durationSec": 11.5,
+     "gainDb": -14
+    },
+    {
+     "at": 11.5,
+     "prompt": "wind over wet mudflats, distant gulls, a slow trickle of water in channels, seamless ambience",
+     "durationSec": 11.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "T+1 DAY",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "SPRING/NEAP CYCLE: GONE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§5a Lost signals: reef",
+   "sec": 22,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus one month.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "On Australia's Great Barrier Reef, over a hundred coral species spawn together — on a few nights each year, within the same hour. Their cue comes from the Moon. Research suggests the trigger is the window of darkness between sunset and moonrise in the nights after a full moon. Without a Moon, that window never opens. The signal that synchronized a reef the size of a country is gone — and eggs released out of step are less likely to meet. That matters far beyond the reef: coral reefs cover less than one percent of the ocean floor, yet they support around a quarter of all marine species. Not everything loses. Some dung beetles steer by the glow of the Milky Way itself — and that sky just got brighter. But in oceans and forests, creatures that timed their lives to a thirty-day light cycle are now guessing.",
+     "at": 2.52
+    }
+   ],
+   "videoPrompt": "Photoreal underwater night macro of a healthy branching coral reef lit only by faint blue ambient light, a few pinkish egg-sperm bundles drifting upward out of sync, small fish sheltering, particles floating. Camera: continuous slow macro slider move left-to-right. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "muffled underwater ambience with a soft sonar-like pad, calm and deep",
+     "durationSec": 22.0,
+     "gainDb": -14
+    },
+    {
+     "at": 4.3,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 14.95,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+1 MONTH",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 4.29,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 4.3,
+     "durationSec": 10.64,
+     "text": "CORAL SPECIES SPAWNING TOGETHER 130+ · src: eLife 2015",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 14.95,
+     "durationSec": 7.05,
+     "text": "CUE: POST-FULL-MOON DARK WINDOW",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "window",
+    "darkness"
+   ]
+  },
+  {
+   "label": "§5b Lost signals: reef (continues)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal underwater night macro of a healthy branching coral reef lit only by faint blue ambient light, a few pinkish egg-sperm bundles drifting upward out of sync, small fish sheltering, particles floating. Camera: continuous slow macro slider move left-to-right. The slider move continues across the reef. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "muffled underwater ambience with a soft sonar-like pad, calm and deep",
+     "durationSec": 22.0,
+     "gainDb": -14
+    },
+    {
+     "at": 5.73,
+     "prompt": "single soft glassy chime, clean and short, bright decay",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+1 MONTH",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 5.72,
+     "text": "CUE: POST-FULL-MOON DARK WINDOW",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 5.73,
+     "durationSec": 16.27,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "crossfade"
+  },
+  {
+   "label": "§5c Lost signals: dung beetle",
+   "sec": 21,
+   "lines": [],
+   "videoPrompt": "Photoreal low macro at night on desert sand, a single dung beetle rolling a ball in a straight line away from camera beneath a brilliant Milky Way, starlight only. Camera: continuous slow low tracking behind it. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "gentle desert night wind over sand, quiet and sparse",
+     "durationSec": 21.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "T+1 MONTH",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 21.0,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§6 No more eclipses (a)",
+   "sec": 23,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus one year.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "The sky has lost more than light. There will never be another solar eclipse — there's no Moon to cross the Sun. And never another lunar eclipse — there's no Moon to fall into Earth's shadow. Calendars built on the lunar month, still used to set holidays around the world, now count a Moon that isn't there. From orbit, Earth looks the same. But its ocean bulges now follow only the Sun: the same small tide, twice a day, every day. So far, this is a quieter planet. The real consequences take much longer.",
+     "at": 2.52
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view of Earth from 2,000 km altitude, the day-night terminator running vertically through center-right, day side lit from frame-left with ocean sun glint, night side with city lights, no Moon anywhere in the black sky. Earth rotates slowly west to east (surface drifting left to right). Camera: continuous very slow push toward the terminator. Push in progress. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "stylized orbital room tone, low airy hum, calm and seamless",
+     "durationSec": 11.5,
+     "gainDb": -16
+    },
+    {
+     "at": 11.5,
+     "prompt": "stylized orbital room tone, low airy hum, calm and seamless",
+     "durationSec": 11.5,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "T+1 YR",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 6.42,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 6.43,
+     "durationSec": 4.61,
+     "text": "SOLAR ECLIPSES: 0",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 11.04,
+     "durationSec": 11.96,
+     "text": "LUNAR ECLIPSES: 0",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "never"
+   ]
+  },
+  {
+   "label": "§6 No more eclipses (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Photoreal orbital view of Earth from 2,000 km altitude, the day-night terminator running vertically through center-right, day side lit from frame-left with ocean sun glint, night side with city lights, no Moon anywhere in the black sky. Earth rotates slowly west to east (surface drifting left to right). Camera: continuous very slow push toward the terminator. The push continues until the terminator fills the centre third. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "stylized orbital room tone, low airy hum, calm and seamless",
+     "durationSec": 22.0,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "T+1 YR",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 3.66,
+     "text": "LUNAR ECLIPSES: 0",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 3.66,
+     "durationSec": 18.34,
+     "text": "TIDE: SOLAR ONLY",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§7a Tilt 23.4° → 33° (mild)",
+   "sec": 25,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus one million years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "Earth spins tilted about twenty-three and a half degrees — that tilt is why we have seasons. The Moon helps hold it steady, like a hand on a spinning top. Today, the tilt only nods between about twenty-two and twenty-four and a half degrees. Remove the hand, and the tilt is free to drift. How far? Here, scientists genuinely disagree. A famous 1993 study led by Jacques Laskar found that without the Moon, the tilt could wander chaotically from nearly zero to more than eighty-five degrees. A 2012 study using direct simulations found something much gentler: swings of about ten degrees over billions of years. We'll show you both.",
+     "at": 2.88
+    }
+   ],
+   "videoPrompt": "Photoreal Earth on black space slowly and smoothly tilting its rotation axis while continuing to rotate west to east, sunlight from frame-left, no Moon, continuous motion. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed diagram still: photoreal Earth on black space at 23.4° axial tilt, a thin cyan axis line through the poles and a thin cyan orbit-plane line, sunlight from frame-left, no Moon, locked-off diagram framing. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "slow mechanical gyroscope creak, low and heavy, with dissonant sustained strings",
+     "durationSec": 12.5,
+     "gainDb": -14
+    },
+    {
+     "at": 12.5,
+     "prompt": "slow mechanical gyroscope creak, low and heavy, with dissonant sustained strings",
+     "durationSec": 12.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "T+1M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 4.3,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 12.5,
+     "text": "23.4°",
+     "position": "center",
+     "style": "label",
+     "color": "#4FD1FF"
+    },
+    {
+     "at": 4.3,
+     "durationSec": 18.81,
+     "text": "OBLIQUITY TODAY 23.4° (22.1–24.5° cycle) · src: NASA",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 12.5,
+     "durationSec": 12.5,
+     "text": "±10° (Lissauer 2012)",
+     "position": "center",
+     "style": "label",
+     "color": "#FFB547"
+    },
+    {
+     "at": 23.12,
+     "durationSec": 1.06,
+     "text": "SCIENTISTS DISAGREE · SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 24.18,
+     "durationSec": 0.82,
+     "text": "0–85° · src: Laskar 1993",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "disagree.",
+    "eighty-five",
+    "ten"
+   ],
+   "endFrame": {
+    "fromSection": 17
+   }
+  },
+  {
+   "label": "§7b Tilt 33° → 85° (wild)",
+   "sec": 25,
+   "lines": [],
+   "videoPrompt": "Photoreal Earth on black space slowly and smoothly tilting its rotation axis while continuing to rotate west to east, sunlight from frame-left, no Moon, continuous motion. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "keyframePrompt": "Designed diagram still: photoreal Earth on black space tilted to about 33° (the mild ±10° state), a thin cyan orbit-plane line and an amber ghost axis line at 33.4°, sunlight from frame-left, no Moon, locked-off diagram framing. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "slow mechanical gyroscope creak, low and heavy, with dissonant sustained strings",
+     "durationSec": 12.5,
+     "gainDb": -14
+    },
+    {
+     "at": 12.5,
+     "prompt": "slow mechanical gyroscope creak, low and heavy, with dissonant sustained strings",
+     "durationSec": 12.5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "T+1M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 8.41,
+     "text": "0–85° · src: Laskar 1993",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 25.0,
+     "text": "0–85° (Laskar 1993)",
+     "position": "center",
+     "style": "label",
+     "color": "#FF4A2E"
+    },
+    {
+     "at": 8.41,
+     "durationSec": 16.59,
+     "text": "±10° · src: Lissauer 2012",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack",
+   "endFrame": {
+    "prompt": "Designed diagram still: photoreal Earth on black space tilted to 85° (the wild state), a thin cyan orbit-plane line and a magma-red ghost axis line at 85°, sunlight from frame-left, no Moon, locked-off diagram framing. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space."
+   }
+  },
+  {
+   "label": "§8 Climate swings: ice where it shouldn't be (a)",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "T plus ten million years.",
+     "at": 0.3
+    },
+    {
+     "speaker": "N",
+     "text": "Even the gentle case matters. Earth's ice ages are paced by tilt changes of just a degree or two. Add ten degrees of drift, and seasons stretch toward extremes: hotter summers, harsher winters, ice sheets advancing and retreating on new schedules. Crops, forests and migrations tuned to today's seasons would have to shift — or disappear. In the wild case, the planet could tip so far that the poles receive more sunlight over a year than the equator. Studies of highly tilted planets suggest ice could then build up at low latitudes — frost on coastlines that once grew palms. None of this is certain. It's model territory, and we've marked it that way. But it shows what the Moon really was. Not decoration. A stabilizer.",
+     "at": 2.88
+    }
+   ],
+   "videoPrompt": "Photoreal ground-level wide shot of a wild tropical coastline with palm silhouettes covered in white frost and thin snow, grey winter light, a pale low sun at frame-left behind thin cloud, dark calm sea, drifting snow flurries, no people, no buildings. Camera: continuous slow dolly right along the shoreline. The dolly moves past frosted palms. STAGE: far-future Earth with NO MOON; seasons exaggerated; winter snow and frost reaching unusually low latitudes, reduced summer polar ice; no cities, no artificial lights; wild vegetation. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "the-grey-channel"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "cold wind on a frozen coast, frozen palm fronds creaking, seamless ambience",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 15.0,
+     "prompt": "cold wind on a frozen coast, frozen palm fronds creaking, seamless ambience",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "T+10M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 11.75,
+     "text": "SPECULATIVE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 11.76,
+     "durationSec": 18.24,
+     "text": "SEASONAL EXTREMES ↑ · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "palms",
+    "stabilizer."
+   ]
+  },
+  {
+   "label": "§8 Climate swings: ice where it shouldn't be (b)",
+   "sec": 30,
+   "lines": [],
+   "videoPrompt": "Photoreal ground-level wide shot of a wild tropical coastline with palm silhouettes covered in white frost and thin snow, grey winter light, a pale low sun at frame-left behind thin cloud, dark calm sea, drifting snow flurries, no people, no buildings. Camera: continuous slow dolly right along the shoreline. The dolly continues; snow thickens slightly, which is the monotonic change. STAGE: far-future Earth with NO MOON; seasons exaggerated; winter snow and frost reaching unusually low latitudes, reduced summer polar ice; no cities, no artificial lights; wild vegetation. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "vintage-anamorphic",
+    "era": "2020s",
+    "color_palette": "the-grey-channel"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "cold wind on a frozen coast, frozen palm fronds creaking, seamless ambience",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 15.0,
+     "prompt": "cold wind on a frozen coast, frozen palm fronds creaking, seamless ambience",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 30.0,
+     "text": "T+10M YRS",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 0.57,
+     "text": "SEASONAL EXTREMES ↑ · MODEL EST.",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 0.57,
+     "durationSec": 29.43,
+     "text": "HIGH-TILT WORLDS: LOW-LATITUDE ICE POSSIBLE · src: Williams & Kasting 1997",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "§9 ‖ Twist: the Moon was our brake (a)",
+   "sec": 23,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Here's the strange part. The Moon has been slowing Earth's spin for billions of years. Its tides act like a brake, and ancient eclipse records show that over the last few thousand years, the day has lengthened by nearly two milliseconds per century. About six hundred million years ago, a day lasted only around twenty-two hours. Without the Moon, only the Sun's weaker tides are left on that brake. Our days would stop lengthening at anything like the old rate. The Moon didn't just light our nights. It has been quietly setting the length of our days.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Locked-off photoreal time-lapse from a high desert ridge: the sun arcing across the sky from left to right repeatedly, day and night flickering in steady rhythm, star trails at night with no Moon, cloud shadows racing over the plain, continuous and steady from start to end. Single-shot, no camera movement. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "metallic HUD tick with a soft sub-bass thump, single short hit",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "soft clock-like pulse, steady rhythmic tick, calm and hypnotic",
+     "durationSec": 11.5,
+     "gainDb": -16
+    },
+    {
+     "at": 11.5,
+     "prompt": "soft clock-like pulse, steady rhythmic tick, calm and hypnotic",
+     "durationSec": 11.5,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 23.0,
+     "text": "REFLECTION",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 13.79,
+     "text": "REAL SCIENCE",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 13.79,
+     "durationSec": 1.77,
+     "text": "LOD +1.8 ms/century (observed) · src: Stephenson 2016",
+     "position": "lower-third",
+     "style": "label"
+    },
+    {
+     "at": 15.57,
+     "durationSec": 7.43,
+     "text": "DAY ~620 Myr AGO ≈ 21.9 h · EST. · src: Williams 2000",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "brake,",
+    "twenty-two",
+    "hours."
+   ]
+  },
+  {
+   "label": "§9 ‖ Twist: the Moon was our brake (b)",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "Locked-off photoreal time-lapse from a high desert ridge: the sun arcing across the sky from left to right repeatedly, day and night flickering in steady rhythm, star trails at night with no Moon, cloud shadows racing over the plain, continuous and steady from start to end. Single-shot, no camera movement. The time-lapse continues at the same rhythm (no speed change). STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "twilight-fable"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "soft clock-like pulse, steady rhythmic tick, calm and hypnotic",
+     "durationSec": 22.0,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "REFLECTION",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 0.0,
+     "durationSec": 22.0,
+     "text": "DAY ~620 Myr AGO ≈ 21.9 h · EST. · src: Williams 2000",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "transitionOut": "dipToBlack"
+  },
+  {
+   "label": "§10 CTA + next timeline",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "So: a world without the Moon. Brighter stars, weaker tides, lost signals — and a planet no longer sure of its own tilt. But what if Earth didn't lose a moon… and gained a ring instead? That timeline is next.",
+     "at": 0.3
+    }
+   ],
+   "videoPrompt": "Photoreal orbital view of Earth centered, slowly rotating west to east, terminator vertical through center, city lights on the right night side, no Moon, a faint thin grey arc of a ring barely visible at the very edge of frame as a teaser. Camera: continuous slow pull-back. STAGE: Earth with NO MOON anywhere — no Moon in any sky, no moonlight, no moon-path on water. Night skies dense with stars and a bright Milky Way away from cities. Ice, oceans, clouds, vegetation and city lights exactly as today. Sun from frame-left in orbital views. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "era": "2020s",
+    "color_palette": "after-dark"
+   },
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 20.0,
+     "text": "END",
+     "position": "top",
+     "style": "label"
+    },
+    {
+     "at": 8.47,
+     "durationSec": 11.53,
+     "text": "NEXT TIMELINE: WHAT IF EARTH HAD RINGS?",
+     "position": "lower-third",
+     "style": "label"
+    }
+   ],
+   "highlightWords": [
+    "ring"
+   ]
+  },
+  {
+   "label": "OUTRO + end screen (shared channel asset, Bible §6.3)",
+   "sec": 18,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Every change has consequences. Pick your next timeline.",
+     "at": 0.5
+    }
+   ],
+   "videoPrompt": "Photoreal Earth slowly rotating, perfectly centered in the lower two-thirds, night side with city lights, the terminator advancing, a calm wide negative space above and at left and right for end-screen elements. Continuous single-shot, no camera move except a barely perceptible drift. No text. Photoreal, physically plausible single-sun lighting, NASA ISS photography realism, IMAX scale. No text, no letters, no numbers, no logos, no watermarks, no human faces, no lens flare in space.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "epic",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "era": "2020s",
+    "color_palette": "static-noon"
+   }
+  }
+ ],
+ "music": {
+  "prompt": "cinematic ambient documentary score, 8.5 minutes: near silence for the first 8 seconds, then solo felt piano; a low string pad under calm narration; around 1:10 felt piano in A minor with night textures; strings rising gently from 2:15; soft sonar-like pads around 3:25; thinning to one sustained note around 4:30; dissonant strings around 5:15; low taiko enters around 6:05 for a single orchestral swell; a clock-like pulse from 7:05 resolving to a major chord; a sustained major chord that decays to the end; restrained, awe not doom, instrumental, no vocals",
+  "gainDb": -15,
+  "underVoDb": -9
+ },
+ "sting": {
+  "at": 68,
+  "sec": 2
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "Brief §3.4 on every clip (Stage Card respected, orbital key light frame-left, Earth rotates left→right, no generated text/logos, no faces, no seam jumps, no coastline morphing, no real landmarks). L01: NO Moon in any SC-B/SC-C clip — pixel-peep every sky and water reflection (#1 risk). §1b must match §1a framing within 2% (horizon line, figure position): §1b's keyframe is a SOUL still, not §1a's retouched last frame, so check the premise cut hard. §4 shadows fall to frame-right in all 3 segments. §3 Milky Way keeps its orientation across segments. §7 axis tilts smoothly while Earth keeps rotating left→right; check the SOUL diagram stills show 23.4°/33°/85° geometry with no text. §8 no people/buildings, frost monotonic across the seam. Cinema segments are standalone gens (lessons Q7): check continuity at every intra-section cut. Altered-content label OFF; SPECULATIVE chip on §7–§8. Highest risk: §1b, §3, §8, §5a–b."
+}
