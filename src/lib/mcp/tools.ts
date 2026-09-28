@@ -577,12 +577,9 @@ export const TOOLS: Tool[] = [
   {
     name: "produce_directed",
     description:
-      "Run (or continue) a directed video's asset stage: SOUL keyframes at native aspect, voiced lines (project voice cast), SFX, music bed, then queue one clip job per section with its exact spec. Chunked (~35s of work per call, 4 generations in parallel) + idempotent — call again while done=false. maxUsd is REQUIRED on the first call: refuses when the pre-flight estimate exceeds it.",
+      "Run (or continue) a directed video's asset stage: SOUL keyframes at native aspect, voiced lines (project voice cast), SFX, music bed, then queue one clip job per section with its exact spec. Chunked (~35s of work per call, 4 generations in parallel) + idempotent — call again while done=false. No per-video spend cap (operator decision); the pre-flight estimate is returned for tracking.",
     inputSchema: obj(
-      {
-        videoId: { type: "string" },
-        maxUsd: { type: "number", description: "Spend authorization for this video (estimate must be ≤ this)." },
-      },
+      { videoId: { type: "string" } },
       ["videoId"],
     ),
     handler: async (a, db) => {
@@ -593,12 +590,9 @@ export const TOOLS: Tool[] = [
       if (project.status !== "active") return { ok: false, error: "project is paused" };
       const estimate = estimateDirected(script);
       if (video.status === "SCRIPT_READY") {
-        const maxUsd = Number(a.maxUsd);
-        if (!(maxUsd > 0)) return { ok: false, error: "maxUsd required to start production", estimate };
-        if (estimate.totalUsd > maxUsd) return { ok: false, error: `estimate $${estimate.totalUsd} exceeds maxUsd $${maxUsd}`, estimate };
         const missing = missingVoices(script, project);
         if (missing.length) return { ok: false, error: `no voice for: ${missing.join(", ")}`, estimate };
-        await db.from("approvals").insert({ video_id: videoId, gate: "SCRIPT", decision: "approved", decided_by: "mcp", notes: `directed: authorized $${maxUsd}`, decided_at: new Date().toISOString() });
+        await db.from("approvals").insert({ video_id: videoId, gate: "SCRIPT", decision: "approved", decided_by: "mcp", notes: `directed: production started (est. $${estimate.totalUsd})`, decided_at: new Date().toISOString() });
         await db.from("videos").update({ status: "GENERATING_ASSETS", paused_reason: null }).eq("id", videoId);
       }
       const r = await runDirectedAssets(db, videoId, { budgetMs: 35_000 });
@@ -608,13 +602,12 @@ export const TOOLS: Tool[] = [
   {
     name: "revise_sections",
     description:
-      "One targeted revision round on a directed video (max 2 per video unless force): optionally replace a section's videoPrompt / keyframePrompt, re-roll its keyframe, and regenerate ONLY those sections' clips; the cut is re-compiled and re-rendered back to Final review. sections = [{idx, videoPrompt?, keyframePrompt?, rerollKeyframe?}].",
+      "One targeted revision round on a directed video (no round cap — revise until it passes QC): optionally replace a section's videoPrompt / keyframePrompt, re-roll its keyframe, and regenerate ONLY those sections' clips; the cut is re-compiled and re-rendered back to Final review. sections = [{idx, videoPrompt?, keyframePrompt?, rerollKeyframe?}].",
     inputSchema: obj(
       {
         videoId: { type: "string" },
         sections: { type: "array", items: { type: "object" } },
         note: { type: "string", description: "Why — the QC finding being fixed." },
-        force: { type: "boolean" },
       },
       ["videoId", "sections", "note"],
     ),
@@ -623,7 +616,6 @@ export const TOOLS: Tool[] = [
         videoId: str(a.videoId),
         sections: (Array.isArray(a.sections) ? a.sections : []) as SectionRevision[],
         note: str(a.note),
-        force: a.force === true,
       }),
   },
   {
