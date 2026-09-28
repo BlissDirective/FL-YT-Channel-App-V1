@@ -1,0 +1,475 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "1 vs 20 (He Only Brought a Scarf)",
+ "altTitles": [
+  "1 Stick Figure vs 20",
+  "The Scarf Did Most of the Work"
+ ],
+ "description": "Twenty grey inklings. One Bolt. One scarf. #stickfigure #stickfight #animation #shorts",
+ "tags": [
+  "stick figure",
+  "stick fight",
+  "1 vs 20",
+  "animation",
+  "3d animation",
+  "INKLIGHT",
+  "Bolt",
+  "shorts"
+ ],
+ "topic": "S12 F5 stick-fight Short: Bolt vs 20 grey inklings in a torch-lit arena",
+ "cast": {
+  "Bolt": {
+   "color": "#22D3EE"
+  }
+ },
+ "sections": [
+  {
+   "label": "S1 Hook: the ring closes",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Okay. One at a time?",
+     "at": 2.5
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_7>>> GREY INKLING: a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, no accessories, twenty of them. Vertical frame. In a torch-lit circular stone arena at night, a ring of twenty grey figures slowly closes in around Bolt at the center; he rolls his shoulders, his scarf lifting in the air, and they all lunge at once. Camera descends in a circle from overhead to low angle, warm torchlight, crimson rim haze. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. GREY INKLING: a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, no accessories, twenty of them. Vertical frame. In a torch-lit circular stone arena at night, a ring of twenty grey figures slowly closes in around Bolt at the center; he rolls his shoulders, his scarf lifting in the air, and they all lunge at once. Camera descends in a circle from overhead to low angle, warm torchlight, crimson rim haze. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png",
+    "refs/inklight/env-arena.png",
+    "refs/inklight/ref-grey.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "many feet shuffling on stone, a crowd closing in",
+     "durationSec": 4,
+     "gainDb": -12
+    },
+    {
+     "at": 0,
+     "prompt": "crackling torches in a stone arena at night",
+     "durationSec": 10,
+     "gainDb": -18
+    },
+    {
+     "at": 4.0,
+     "prompt": "a single huge taiko drum hit",
+     "durationSec": 1,
+     "gainDb": -2
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.0,
+     "durationSec": 3.0,
+     "text": "1 vs 20",
+     "position": "center",
+     "style": "title",
+     "color": "#22D3EE"
+    }
+   ]
+  },
+  {
+   "label": "S2 Wave 1",
+   "sec": 25,
+   "lines": [],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_7>>> GREY INKLING: a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, no accessories, five of them. Vertical frame. In a torch-lit stone arena, Bolt fights five grey attackers: dodging, spinning, whipping his scarf in cyan light trails, attackers bursting into ink splashes that turn into glowing sparks on impact. Continuous vertical tracking around Bolt, 24mm, warm torchlight. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png",
+    "refs/inklight/env-arena.png",
+    "refs/inklight/ref-grey.png"
+   ],
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "fast taiko drums at 140 bpm, intense fight rhythm, instrumental",
+     "durationSec": 12.5,
+     "gainDb": -12
+    },
+    {
+     "at": 12.5,
+     "prompt": "fast taiko drums at 140 bpm, intense fight rhythm, instrumental",
+     "durationSec": 12.5,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "stick-figure fight: fast whooshes, scarf whips, bright glassy impact tinks, no flesh hits",
+     "durationSec": 12.5,
+     "gainDb": -10
+    },
+    {
+     "at": 12.5,
+     "prompt": "stick-figure fight: fast whooshes, scarf whips, bright glassy impact tinks, no flesh hits",
+     "durationSec": 12.5,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 4.167,
+     "text": "20",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 4.167,
+     "durationSec": 4.167,
+     "text": "19",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 8.334,
+     "durationSec": 4.167,
+     "text": "18",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 12.501,
+     "durationSec": 4.167,
+     "text": "17",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 16.668,
+     "durationSec": 4.167,
+     "text": "16",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 20.835,
+     "durationSec": 4.165,
+     "text": "15",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    }
+   ]
+  },
+  {
+   "label": "S3 Wave 2",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "That's ten!",
+     "at": 18
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_7>>> GREY INKLING: a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, no accessories, ten of them. Vertical frame. In a torch-lit stone arena, Bolt fights ten grey attackers in fast continuous combos, lassoing two together with his cyan scarf, leaping over a charge, every hit bursting into ink splashes that turn into glowing sparks. Orbiting low-angle tracking, cyan light trails, warm torchlight. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png",
+    "refs/inklight/env-arena.png",
+    "refs/inklight/ref-grey.png"
+   ],
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "punchy brass stabs over fast taiko drums, a hit on every beat, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -12
+    },
+    {
+     "at": 15.0,
+     "prompt": "punchy brass stabs over fast taiko drums, a hit on every beat, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "stick-figure fight: fast whooshes, scarf whips, bright glassy impact tinks, no flesh hits",
+     "durationSec": 15.0,
+     "gainDb": -10
+    },
+    {
+     "at": 15.0,
+     "prompt": "stick-figure fight: fast whooshes, scarf whips, bright glassy impact tinks, no flesh hits",
+     "durationSec": 15.0,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.0,
+     "durationSec": 2.727,
+     "text": "15",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 2.727,
+     "durationSec": 2.727,
+     "text": "14",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 5.454,
+     "durationSec": 2.727,
+     "text": "13",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 8.181,
+     "durationSec": 2.727,
+     "text": "12",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 10.908,
+     "durationSec": 2.727,
+     "text": "11",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 13.635,
+     "durationSec": 2.727,
+     "text": "10",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 16.362,
+     "durationSec": 2.727,
+     "text": "9",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 19.089,
+     "durationSec": 2.727,
+     "text": "8",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 21.816,
+     "durationSec": 2.727,
+     "text": "7",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 24.543,
+     "durationSec": 2.727,
+     "text": "6",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    },
+    {
+     "at": 27.27,
+     "durationSec": 2.73,
+     "text": "5",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    }
+   ],
+   "highlightWords": [
+    "ten"
+   ]
+  },
+  {
+   "label": "S4 Dogpile",
+   "sec": 15,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "...I'm fine!",
+     "at": 10
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. GREY INKLING: a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, no accessories, five of them. Vertical frame. In a torch-lit stone arena, five grey figures lie in a heap on top of someone, the pile shaking and bulging, bright cyan light leaking out through the gaps. Static low wide shot, warm torchlight. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. GREY INKLING: a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, no accessories, five of them. Vertical frame. In a torch-lit stone arena, five grey figures lie in a heap on top of someone, the pile shaking and bulging, bright cyan light leaking out through the gaps. Static low wide shot, warm torchlight. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "muffled thumps and shuffling from inside a pile of bodies",
+     "durationSec": 15,
+     "gainDb": -8
+    }
+   ]
+  },
+  {
+   "label": "S5 Hero landing",
+   "sec": 12,
+   "lines": [],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. Vertical frame. In a torch-lit arena, a heap of grey figures explodes outward into a burst of cyan sparks, and Bolt drops into a hero landing in the center, one hand on the ground, rim light flaring, scarf settling. Extreme slow motion, speed ramp, low angle. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=single-shot camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png",
+    "refs/inklight/env-arena.png",
+    "refs/inklight/ref-grey.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "deep cinematic sub-bass drop",
+     "durationSec": 2,
+     "gainDb": -2
+    },
+    {
+     "at": 0.3,
+     "prompt": "a big bright glass burst shattering into sparkles",
+     "durationSec": 2,
+     "gainDb": -4
+    },
+    {
+     "at": 3,
+     "prompt": "rising brass four-note heroic motif, triumphant",
+     "durationSec": 4,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.0,
+     "durationSec": 11.0,
+     "text": "0",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    }
+   ]
+  },
+  {
+   "label": "S6 Best of three? (loop)",
+   "sec": 13,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "...Best of three?",
+     "at": 8
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. GREY INKLING: a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, no accessories, many of them. Vertical frame. In a torch-lit stone arena, one wobbly grey figure steps up and offers a handshake; Bolt shakes its hand, while behind him all the other grey figures pop back up and re-form a ring around him. Medium shot pulling back to an overhead-leaning wide, warm torchlight. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. GREY INKLING: a plain black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eyes and rim light, no accessories, many of them. Vertical frame. In a torch-lit stone arena, one wobbly grey figure steps up and offers a handshake; Bolt shakes its hand, while behind him all the other grey figures pop back up and re-form a ring around him. Medium shot pulling back to an overhead-leaning wide, warm torchlight. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "endFrame": {
+    "fromSection": 0
+   },
+   "sfx": [
+    {
+     "at": 3,
+     "prompt": "a comedic rubbery handshake squeak",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 6,
+     "prompt": "many feet shuffling on stone, a crowd closing in",
+     "durationSec": 7,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 9,
+     "durationSec": 4,
+     "text": "20",
+     "position": "top",
+     "style": "title",
+     "color": "#22D3EE"
+    }
+   ],
+   "highlightWords": [
+    "Best",
+    "of",
+    "three"
+   ]
+  }
+ ],
+ "sting": {
+  "at": 5.0,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: She Held the Roof of a Runaway Sky Train"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "S12: CS4 at 9:16 is unverified — if S1/S2/S3/S5 fail aspect or look, re-roll those sections on hf-seedance-2-5 (SDi 9:16) from a keyframe (KF-S12-01 is already in the script; S2/S3/S5 would need keyframes added) out of the 67s revision budget. Drift — Bolt is the only cyan and the only scarf; grey figures get no accessories. Limbs — HIGHEST-RISK Short: step through every hit in S2/S3; reject any grey figure merging into Bolt. Faces — none expected; check torchlit close-ups. Style — the arena stays 3D. Seam — loop: S6 end ring ≈ S1 start ring (KF-S12-01). Text — arena walls blank. Counter labels are evenly stepped — retime each decrement to the actual defeats after first render. Global gate (brief §0.3): accent hue shift >6 frames / missing accessory / size swap = re-roll; 3rd limb or fused limb ≥3 frames = re-roll; any mouth, nose, teeth, brows, skin or human face even 1 frame = reject; flat/white/empty bg, 2D look, lost rim light or blood = re-roll; stitch seam at 30s: position jump >5% width, lighting flip, prop changing hands, screen-direction reversal = regenerate the later segment; any legible or pseudo-glyph text in a plate = mask or re-roll (all real text is Remotion labels). Check sourceSpec width/height/duration every clip."
+}

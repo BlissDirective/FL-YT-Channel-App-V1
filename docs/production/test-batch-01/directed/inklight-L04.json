@@ -1,0 +1,801 @@
+{
+ "version": 1,
+ "format": "long",
+ "resolution": "720p",
+ "title": "The Biggest Stick Figure Is Afraid of the Dark",
+ "altTitles": [
+  "What's Down There? | Stick Figure Mini-Movie",
+  "Brick and the Thing in the Cave"
+ ],
+ "description": "Brick is the strongest of them all. He is also afraid of the dark. #stickfigure #animation #INKLIGHT",
+ "tags": [
+  "stick figure",
+  "animation",
+  "3d animation",
+  "mini movie",
+  "INKLIGHT",
+  "Brick",
+  "Pebble",
+  "Bolt",
+  "Pip",
+  "Nova"
+ ],
+ "topic": "L04 F7 heart mini-film + horror-lite chase: Brick alone in the cave, the shadow, Pebble the baby ink-mole",
+ "cast": {
+  "Bolt": {
+   "color": "#22D3EE"
+  },
+  "Pip": {
+   "color": "#FFB020"
+  },
+  "Nova": {
+   "color": "#FF3DA5"
+  },
+  "Brick": {
+   "color": "#7CFF4F"
+  }
+ },
+ "sections": [
+  {
+   "label": "S1 Hook: eyes in the dark",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "...guys?",
+     "at": 2.5
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Almost total darkness inside a cave; only Brick's lime green glowing eyes are visible, blinking open, glancing left and right, then widening in fear, while a very faint lime rim light traces his huge hunched shoulders. Static medium shot, 50mm, no light sources except the eye glow, damp rock barely visible. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Almost total darkness inside a cave; only Brick's lime green glowing eyes are visible, blinking open, glancing left and right, then widening in fear, while a very faint lime rim light traces his huge hunched shoulders. Static medium shot, 50mm, no light sources except the eye glow, damp rock barely visible. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a single water drip in a large echoing cave",
+     "durationSec": 1.5,
+     "gainDb": -6
+    },
+    {
+     "at": 1.0,
+     "prompt": "a tiny soft blink tik",
+     "durationSec": 0.4,
+     "gainDb": -8
+    },
+    {
+     "at": 4.0,
+     "prompt": "a deep slow monstrous breath echoing far off in a cave, with a sub-bass rumble",
+     "durationSec": 3,
+     "gainDb": -4
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "label": "IDENT (shared, reused)",
+   "sec": 5,
+   "lines": [],
+   "sfx": [
+    {
+     "at": 0.3,
+     "prompt": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+     "durationSec": 1.2,
+     "gainDb": -4
+    },
+    {
+     "at": 1.4,
+     "prompt": "fast airy whoosh of light trails racing past, cinematic",
+     "durationSec": 1.5,
+     "gainDb": -6
+    },
+    {
+     "at": 3.0,
+     "prompt": "deep bass THOOM hit, cinematic logo impact, short tail",
+     "durationSec": 2,
+     "gainDb": -3
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 3.5,
+     "text": "INKLIGHT",
+     "position": "center",
+     "style": "title"
+    }
+   ],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 1
+   }
+  },
+  {
+   "label": "S2 Cave-in",
+   "sec": 45,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Twenty minutes earlier, the plan was simple. Walk through the cave. Don't split up.",
+     "at": 0.3
+    },
+    {
+     "speaker": "Bolt",
+     "text": "Brick? BRICK!",
+     "at": 36
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_2>>> PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. The four walk single-file through a narrow rocky cave tunnel lit only by their colored rim lights; the ceiling cracks, dust pours, rocks tumble, and a massive stone slab slams down, cutting Brick off from the others; dust slowly settles around Brick, alone. Tracking behind the group, then wide on the rockfall, dark cave, colored rim light only, dust haze. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=after-dark Segment 1 of 2 (30s): The four walk single-file through a tunnel lit only by their rim lights; the ceiling cracks, dust falls, rocks tumble. The shot ends on this beat: a slab slams down between Brick and the others.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "after-dark"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "footsteps echoing through a narrow rocky cave tunnel",
+     "durationSec": 18,
+     "gainDb": -14
+    },
+    {
+     "at": 19,
+     "prompt": "rock ceiling cracking, dust pouring, rocks tumbling, deep rumble",
+     "durationSec": 10,
+     "gainDb": -8
+    },
+    {
+     "at": 29.5,
+     "prompt": "a massive stone slab SLAMMING down, huge booming impact",
+     "durationSec": 2,
+     "gainDb": 0
+    },
+    {
+     "at": 0.0,
+     "prompt": "low ominous cave drone, dark ambient, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    },
+    {
+     "at": 15.0,
+     "prompt": "low ominous cave drone, dark ambient, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    },
+    {
+     "at": 30.0,
+     "prompt": "low ominous cave drone, dark ambient, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 3,
+     "text": "20 MINUTES EARLIER",
+     "position": "top",
+     "style": "label"
+    }
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_2>>> PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. The four walk single-file through a narrow rocky cave tunnel lit only by their colored rim lights; the ceiling cracks, dust pours, rocks tumble, and a massive stone slab slams down, cutting Brick off from the others; dust slowly settles around Brick, alone. Tracking behind the group, then wide on the rockfall, dark cave, colored rim light only, dust haze. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=after-dark Segment 1 of 2 (30s): The four walk single-file through a tunnel lit only by their rim lights; the ceiling cracks, dust falls, rocks tumble. The shot ends on this beat: a slab slams down between Brick and the others."
+    },
+    {
+     "sec": 15,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_2>>> PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. The four walk single-file through a narrow rocky cave tunnel lit only by their colored rim lights; the ceiling cracks, dust pours, rocks tumble, and a massive stone slab slams down, cutting Brick off from the others; dust slowly settles around Brick, alone. Tracking behind the group, then wide on the rockfall, dark cave, colored rim light only, dust haze. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=after-dark Segment 2 of 2 (15s), a self-contained shot of the same scene that opens just after this moment: a slab slams down between Brick and the others. In this shot: Dust settles; Brick alone on his side, facing the wall."
+    }
+   ]
+  },
+  {
+   "label": "S3 Alone",
+   "sec": 45,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Brick could lift a boulder. He could not lift the dark.",
+     "at": 4
+    },
+    {
+     "speaker": "Brick",
+     "text": "It's fine. It's fine. It's... dark.",
+     "at": 24
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Brick sits alone on a cave floor hugging his thick knees against a wet rock wall, looking around nervously, his lime rim light slowly dimming; water drips fall from the ceiling, catching the lime light, and one lands on his head and he flinches, curling smaller. 50mm, low-key lighting, deep darkness, glistening wet rock. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Brick sits hugging his knees against the rock wall, rim light slowly dimming, looking around at the dark. The shot ends on this beat: a drip lands on his head; he flinches.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Brick sits alone on a cave floor hugging his thick knees against a wet rock wall, looking around nervously, his lime rim light slowly dimming; water drips fall from the ceiling, catching the lime light, and one lands on his head and he flinches, curling smaller. 50mm, low-key lighting, deep darkness, glistening wet rock. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "slow water drips in a quiet cave with a soft low heartbeat underneath",
+     "durationSec": 15.0,
+     "gainDb": -16
+    },
+    {
+     "at": 15.0,
+     "prompt": "slow water drips in a quiet cave with a soft low heartbeat underneath",
+     "durationSec": 15.0,
+     "gainDb": -16
+    },
+    {
+     "at": 30.0,
+     "prompt": "slow water drips in a quiet cave with a soft low heartbeat underneath",
+     "durationSec": 15.0,
+     "gainDb": -16
+    },
+    {
+     "at": 15,
+     "prompt": "a lonely solo tuba playing three slow sad notes",
+     "durationSec": 5,
+     "gainDb": -12
+    },
+    {
+     "at": 29,
+     "prompt": "a single loud water drop plop",
+     "durationSec": 1,
+     "gainDb": -4
+    }
+   ],
+   "labels": [
+    {
+     "at": 1,
+     "durationSec": 2,
+     "text": "BRICK",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#7CFF4F"
+    }
+   ],
+   "highlightWords": [
+    "dark"
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Brick sits alone on a cave floor hugging his thick knees against a wet rock wall, looking around nervously, his lime rim light slowly dimming; water drips fall from the ceiling, catching the lime light, and one lands on his head and he flinches, curling smaller. 50mm, low-key lighting, deep darkness, glistening wet rock. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Brick sits hugging his knees against the rock wall, rim light slowly dimming, looking around at the dark. The shot ends on this beat: a drip lands on his head; he flinches."
+    },
+    {
+     "sec": 15,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Brick sits alone on a cave floor hugging his thick knees against a wet rock wall, looking around nervously, his lime rim light slowly dimming; water drips fall from the ceiling, catching the lime light, and one lands on his head and he flinches, curling smaller. 50mm, low-key lighting, deep darkness, glistening wet rock. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 2 of 2 (15s), continuing directly from the previous moment (a drip lands on his head; he flinches): He makes himself smaller, rim at its dimmest."
+    }
+   ]
+  },
+  {
+   "label": "S4 Radio",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "Brick, describe your surroundings.",
+     "at": 2
+    },
+    {
+     "speaker": "Brick",
+     "text": "Black.",
+     "at": 6
+    },
+    {
+     "speaker": "Pip",
+     "text": "...Helpful.",
+     "at": 9
+    },
+    {
+     "speaker": "Nova",
+     "text": "He's scared. Talk to him.",
+     "at": 14
+    },
+    {
+     "speaker": "Bolt",
+     "text": "Hey buddy. Follow the wall.",
+     "at": 21
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. In a dark cave tunnel beside a huge fallen stone slab, Pip talks into the antennae on his backpack like a walkie-talkie, Bolt pushes hard against the slab, Nova sits calmly and gestures at Pip, and Bolt leans in to the antenna. Locked-off three-shot, static camera, 35mm, lit only by their cyan, amber and magenta rim lights. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. In a dark cave tunnel beside a huge fallen stone slab, Pip talks into the antennae on his backpack like a walkie-talkie, Bolt pushes hard against the slab, Nova sits calmly and gestures at Pip, and Bolt leans in to the antenna. Locked-off three-shot, static camera, 35mm, lit only by their cyan, amber and magenta rim lights. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 1.5,
+     "prompt": "short walkie-talkie radio crackle and click",
+     "durationSec": 0.5,
+     "gainDb": -8
+    },
+    {
+     "at": 5.6,
+     "prompt": "short walkie-talkie radio crackle and click",
+     "durationSec": 0.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 2,
+     "durationSec": 2,
+     "text": "PIP",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#FFB020"
+    },
+    {
+     "at": 14,
+     "durationSec": 2,
+     "text": "NOVA",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 21,
+     "durationSec": 2,
+     "text": "BOLT",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#22D3EE"
+    }
+   ]
+  },
+  {
+   "label": "S5 It glowed",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Then the dark did something unexpected...",
+     "at": 4
+    },
+    {
+     "speaker": "N",
+     "text": "...it glowed.",
+     "at": 13
+    },
+    {
+     "speaker": "Brick",
+     "text": "...Pretty.",
+     "at": 22
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Tiny in frame, Brick shuffles along the wall of a cathedral-sized cave as thousands of glowworms light up across the ceiling like a starfield, washing everything in blue-green bioluminescent light; his lime rim light brightens slightly as he looks up in wonder. Slow tilt up, 16mm ultra-wide, teal volumetric glow, hanging silk threads. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Tiny in frame, Brick shuffles along the wall of a cathedral-sized cave as thousands of glowworms light up across the ceiling like a starfield, washing everything in blue-green bioluminescent light; his lime rim light brightens slightly as he looks up in wonder. Slow tilt up, 16mm ultra-wide, teal volumetric glow, hanging silk threads. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 10,
+     "prompt": "a delicate magical celesta shimmer",
+     "durationSec": 8,
+     "gainDb": -10
+    },
+    {
+     "at": 0.0,
+     "prompt": "soft awe-filled ambient pad, wonder, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    },
+    {
+     "at": 15.0,
+     "prompt": "soft awe-filled ambient pad, wonder, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "label": "S6 The shadow chase",
+   "sec": 75,
+   "lines": [],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Brick flees through narrow glowworm-lit cave tunnels, squeezing through gaps, sliding under low rocks and skidding around corners, while an enormous clawed shadow sweeps across the tunnel walls behind him, growing larger; the creature itself is never visible, only its shadow. Continuous handheld-energy tracking shot, 24mm, teal bioluminescent light and lime rim light, deep shadows. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=horror pacing=dynamic camera_model=modern camera_lens=vintage-anamorphic color_palette=after-dark Segment 1 of 3 (30s): A huge clawed shadow slides across the glowworm-lit walls; Brick bolts into a side tunnel, squeezing through. The shot ends on this beat: he belly-slides under a low rock.",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "horror",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "vintage-anamorphic",
+    "color_palette": "after-dark"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "heavy panicked breathing and a fast heartbeat at 110 bpm",
+     "durationSec": 15,
+     "gainDb": -10
+    },
+    {
+     "at": 15,
+     "prompt": "heavy panicked breathing and a fast heartbeat at 120 bpm",
+     "durationSec": 15,
+     "gainDb": -10
+    },
+    {
+     "at": 30,
+     "prompt": "heavy panicked breathing and a fast heartbeat at 130 bpm",
+     "durationSec": 15,
+     "gainDb": -10
+    },
+    {
+     "at": 45,
+     "prompt": "heavy panicked breathing and a fast heartbeat at 140 bpm",
+     "durationSec": 15,
+     "gainDb": -10
+    },
+    {
+     "at": 60,
+     "prompt": "heavy panicked breathing and a racing heartbeat at 150 bpm",
+     "durationSec": 15,
+     "gainDb": -10
+    },
+    {
+     "at": 0.0,
+     "prompt": "horror-lite suspense drones with sudden tuba stabs and rock scrapes, instrumental",
+     "durationSec": 18.75,
+     "gainDb": -16
+    },
+    {
+     "at": 18.75,
+     "prompt": "horror-lite suspense drones with sudden tuba stabs and rock scrapes, instrumental",
+     "durationSec": 18.75,
+     "gainDb": -16
+    },
+    {
+     "at": 37.5,
+     "prompt": "horror-lite suspense drones with sudden tuba stabs and rock scrapes, instrumental",
+     "durationSec": 18.75,
+     "gainDb": -16
+    },
+    {
+     "at": 56.25,
+     "prompt": "horror-lite suspense drones with sudden tuba stabs and rock scrapes, instrumental",
+     "durationSec": 18.75,
+     "gainDb": -16
+    }
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Brick flees through narrow glowworm-lit cave tunnels, squeezing through gaps, sliding under low rocks and skidding around corners, while an enormous clawed shadow sweeps across the tunnel walls behind him, growing larger; the creature itself is never visible, only its shadow. Continuous handheld-energy tracking shot, 24mm, teal bioluminescent light and lime rim light, deep shadows. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=horror pacing=dynamic camera_model=modern camera_lens=vintage-anamorphic color_palette=after-dark Segment 1 of 3 (30s): A huge clawed shadow slides across the glowworm-lit walls; Brick bolts into a side tunnel, squeezing through. The shot ends on this beat: he belly-slides under a low rock."
+    },
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Brick flees through narrow glowworm-lit cave tunnels, squeezing through gaps, sliding under low rocks and skidding around corners, while an enormous clawed shadow sweeps across the tunnel walls behind him, growing larger; the creature itself is never visible, only its shadow. Continuous handheld-energy tracking shot, 24mm, teal bioluminescent light and lime rim light, deep shadows. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=horror pacing=dynamic camera_model=modern camera_lens=vintage-anamorphic color_palette=after-dark Segment 2 of 3 (30s), a self-contained shot of the same scene that opens just after this moment: he belly-slides under a low rock. In this shot: He scrambles on, the shadow looming larger behind him on every wall. The shot ends on this beat: he skids around a corner."
+    },
+    {
+     "sec": 15,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Brick flees through narrow glowworm-lit cave tunnels, squeezing through gaps, sliding under low rocks and skidding around corners, while an enormous clawed shadow sweeps across the tunnel walls behind him, growing larger; the creature itself is never visible, only its shadow. Continuous handheld-energy tracking shot, 24mm, teal bioluminescent light and lime rim light, deep shadows. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=horror pacing=dynamic camera_model=modern camera_lens=vintage-anamorphic color_palette=after-dark Segment 3 of 3 (15s), a self-contained shot of the same scene that opens just after this moment: he skids around a corner. In this shot: He backs into a dead-end chamber."
+    }
+   ]
+  },
+  {
+   "label": "S7 You're tiny",
+   "sec": 45,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "...You're tiny.",
+     "at": 32
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. In a dead-end cave chamber, Brick raises shaking fists as a giant clawed shadow grows across the wall, projected by a glowworm cluster behind the creature; the shadow stops, and Pebble, a tiny baby ink-mole, steps into the light blinking, and Brick slowly lowers his fists. Low angle, 24mm, single teal glowworm light source behind the creature, dramatic shadow play. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Brick raises shaking fists as the huge shadow grows across the chamber wall. The shot ends on this beat: the shadow stops.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. In a dead-end cave chamber, Brick raises shaking fists as a giant clawed shadow grows across the wall, projected by a glowworm cluster behind the creature; the shadow stops, and Pebble, a tiny baby ink-mole, steps into the light blinking, and Brick slowly lowers his fists. Low angle, 24mm, single teal glowworm light source behind the creature, dramatic shadow play. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "endFrame": {
+    "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. In a dead-end cave chamber, Pebble, a tiny baby ink-mole, stands blinking in the light of a glowworm cluster, and Brick lowers his fists. Low angle, 24mm, single teal glowworm light source, soft shadow on the wall. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory."
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "tense horror-lite drone swelling, heartbeat, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -16
+    },
+    {
+     "at": 15.0,
+     "prompt": "tense horror-lite drone swelling, heartbeat, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -16
+    },
+    {
+     "at": 31.5,
+     "prompt": "one tiny soft high squeak of a small creature",
+     "durationSec": 0.6,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 36,
+     "durationSec": 2,
+     "text": "PEBBLE",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#9AA4B2"
+    }
+   ],
+   "highlightWords": [
+    "tiny"
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. In a dead-end cave chamber, Brick raises shaking fists as a giant clawed shadow grows across the wall, projected by a glowworm cluster behind the creature; the shadow stops, and Pebble, a tiny baby ink-mole, steps into the light blinking, and Brick slowly lowers his fists. Low angle, 24mm, single teal glowworm light source behind the creature, dramatic shadow play. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Brick raises shaking fists as the huge shadow grows across the chamber wall. The shot ends on this beat: the shadow stops."
+    },
+    {
+     "sec": 15,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. In a dead-end cave chamber, Brick raises shaking fists as a giant clawed shadow grows across the wall, projected by a glowworm cluster behind the creature; the shadow stops, and Pebble, a tiny baby ink-mole, steps into the light blinking, and Brick slowly lowers his fists. Low angle, 24mm, single teal glowworm light source behind the creature, dramatic shadow play. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 2 of 2 (15s), continuing directly from the previous moment (the shadow stops): The source steps into the light: a baby ink-mole the size of Pip, blinking; Brick lowers his fists."
+    }
+   ]
+  },
+  {
+   "label": "S8 I get scared too",
+   "sec": 45,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "I get scared too.",
+     "at": 8
+    },
+    {
+     "speaker": "N",
+     "text": "The monster in the dark was small, and hungry, and alone. Brick knew exactly how that felt.",
+     "at": 24
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. Brick sits on the cave floor and breaks a glowing cracker in half, offering a piece to Pebble, who sniffs it and nibbles it into drifting sparkle crumbs, then leans against Brick's thick arm; Brick's lime rim light swells into a warm glow. Two-shot at ground level, 50mm, warm lime bloom mixing with teal glowworm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Brick sits and breaks a glowing snack cracker in half, offering it; Pebble sniffs and nibbles (crumbs as sparkles, no mouth). The shot ends on this beat: Pebble leans on Brick's arm.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. Brick sits on the cave floor and breaks a glowing cracker in half, offering a piece to Pebble, who sniffs it and nibbles it into drifting sparkle crumbs, then leans against Brick's thick arm; Brick's lime rim light swells into a warm glow. Two-shot at ground level, 50mm, warm lime bloom mixing with teal glowworm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 4,
+     "prompt": "a crisp cracker snapping in half, crunch",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 12,
+     "prompt": "a tiny happy squeak",
+     "durationSec": 0.6,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "warm gentle tuba motif in a major key, tender, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    },
+    {
+     "at": 15.0,
+     "prompt": "warm gentle tuba motif in a major key, tender, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    },
+    {
+     "at": 30.0,
+     "prompt": "warm gentle tuba motif in a major key, tender, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    }
+   ],
+   "highlightWords": [
+    "dark"
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. Brick sits on the cave floor and breaks a glowing cracker in half, offering a piece to Pebble, who sniffs it and nibbles it into drifting sparkle crumbs, then leans against Brick's thick arm; Brick's lime rim light swells into a warm glow. Two-shot at ground level, 50mm, warm lime bloom mixing with teal glowworm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Brick sits and breaks a glowing snack cracker in half, offering it; Pebble sniffs and nibbles (crumbs as sparkles, no mouth). The shot ends on this beat: Pebble leans on Brick's arm."
+    },
+    {
+     "sec": 15,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. Brick sits on the cave floor and breaks a glowing cracker in half, offering a piece to Pebble, who sniffs it and nibbles it into drifting sparkle crumbs, then leans against Brick's thick arm; Brick's lime rim light swells into a warm glow. Two-shot at ground level, 50mm, warm lime bloom mixing with teal glowworm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 2 of 2 (15s), continuing directly from the previous moment (Pebble leans on Brick's arm): Both sit, rims warming."
+    }
+   ]
+  },
+  {
+   "label": "S9 Digging out",
+   "sec": 45,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "You know a way out?",
+     "at": 4
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Pebble digs furiously through a rock wall with broad spade paws, pebbles flying, and Brick crawls after him through the freshly dug tunnel, until they break through a thin wall into light and tumble out. Tracking shot from behind, 24mm, lime and pearl rim light, flying dust, then a burst of warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Pebble digs furiously through a rock wall, Brick crawling after through the new tunnel, pebbles flying. The shot ends on this beat: they break through a thin wall into light.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Pebble digs furiously through a rock wall with broad spade paws, pebbles flying, and Brick crawls after him through the freshly dug tunnel, until they break through a thin wall into light and tumble out. Tracking shot from behind, 24mm, lime and pearl rim light, flying dust, then a burst of warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "furious digging and scrabbling through rock, pebbles flying, rocks crumbling",
+     "durationSec": 15.0,
+     "gainDb": -10
+    },
+    {
+     "at": 15.0,
+     "prompt": "furious digging and scrabbling through rock, pebbles flying, rocks crumbling",
+     "durationSec": 15.0,
+     "gainDb": -10
+    },
+    {
+     "at": 30.0,
+     "prompt": "furious digging and scrabbling through rock, pebbles flying, rocks crumbling",
+     "durationSec": 15.0,
+     "gainDb": -10
+    },
+    {
+     "at": 0.0,
+     "prompt": "adventurous tuba and percussion with a steadily rising tempo, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    },
+    {
+     "at": 15.0,
+     "prompt": "adventurous tuba and percussion with a steadily rising tempo, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    },
+    {
+     "at": 30.0,
+     "prompt": "adventurous tuba and percussion with a steadily rising tempo, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    }
+   ],
+   "segments": [
+    {
+     "sec": 30,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Pebble digs furiously through a rock wall with broad spade paws, pebbles flying, and Brick crawls after him through the freshly dug tunnel, until they break through a thin wall into light and tumble out. Tracking shot from behind, 24mm, lime and pearl rim light, flying dust, then a burst of warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 1 of 2 (30s): Pebble digs furiously through a rock wall, Brick crawling after through the new tunnel, pebbles flying. The shot ends on this beat: they break through a thin wall into light."
+    },
+    {
+     "sec": 15,
+     "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Pebble digs furiously through a rock wall with broad spade paws, pebbles flying, and Brick crawls after him through the freshly dug tunnel, until they break through a thin wall into light and tumble out. Tracking shot from behind, 24mm, lime and pearl rim light, flying dust, then a burst of warm light. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. Segment 2 of 2 (15s), continuing directly from the previous moment (they break through a thin wall into light): Both tumble out into a bigger chamber."
+    }
+   ]
+  },
+  {
+   "label": "S10 Reunion",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "You crossed it alone?",
+     "at": 2
+    },
+    {
+     "speaker": "Brick",
+     "text": "Not alone.",
+     "at": 6
+    },
+    {
+     "speaker": "Pip",
+     "text": "Is that a SHARD in its nest?",
+     "at": 14
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. <<<image_1>>> BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. <<<image_2>>> PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. <<<image_3>>> NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. <<<image_4>>> BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. <<<image_6>>> PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. In a cave chamber, Bolt, Nova and Pip rush in and hug Brick while Pebble peeks out from behind Brick's leg; behind them, a nest of smooth pebbles cradles a small glowing golden shard, its warm light mixing with their colored rims. Slow push-in, 35mm, warm gold light, soft haze. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. genre=drama pacing=calm camera_model=modern camera_lens=anamorphic color_palette=a-dream-in-color",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "drama",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "a-dream-in-color"
+   },
+   "refs": [
+    "refs/inklight/ref-bolt.png",
+    "refs/inklight/ref-pip.png",
+    "refs/inklight/ref-nova.png",
+    "refs/inklight/ref-brick.png",
+    "refs/inklight/ref-smudge.png",
+    "refs/inklight/ref-pebble.png"
+   ],
+   "sfx": [
+    {
+     "at": 12.5,
+     "prompt": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+     "durationSec": 1.2,
+     "gainDb": -4
+    },
+    {
+     "at": 0.0,
+     "prompt": "warm soft ensemble: horn, marimba, koto and tuba motifs together, reunion, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    },
+    {
+     "at": 15.0,
+     "prompt": "warm soft ensemble: horn, marimba, koto and tuba motifs together, reunion, instrumental",
+     "durationSec": 15.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "label": "S11 His name is Pebble",
+   "sec": 12,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "...It's following us.",
+     "at": 4
+    },
+    {
+     "speaker": "Brick",
+     "text": "His name is Pebble.",
+     "at": 8
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. At a cave mouth opening onto a bright green valley, Brick and Nova walk out into daylight while Pebble trots behind them; Brick scoops Pebble up and hides him in his arms, and Nova turns and stares at Brick. Locked-off wide shot, static camera, 35mm, bright natural daylight. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff holding the glowing magenta bo staff in her right hand. PEBBLE: a baby ink-mole about the size of PIP, a round velvety matte-black ink body, broad spade-shaped digging paws, a small pointed snout with no mouth, two tiny soft pearl-white glowing eyes and a faint pearl-grey (#9AA4B2) rim light. At a cave mouth opening onto a bright green valley, Brick and Nova walk out into daylight while Pebble trots behind them; Brick scoops Pebble up and hides him in his arms, and Nova turns and stares at Brick. Locked-off wide shot, static camera, 35mm, bright natural daylight. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "bright daytime birdsong in a green valley",
+     "durationSec": 12,
+     "gainDb": -16
+    },
+    {
+     "at": 2,
+     "prompt": "a tiny soft squeak",
+     "durationSec": 0.6,
+     "gainDb": -8
+    },
+    {
+     "at": 10.3,
+     "prompt": "short comedic button-ending music sting",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "highlightWords": [
+    "Pebble"
+   ]
+  },
+  {
+   "label": "OUTRO 0-6s NEXT TIME",
+   "sec": 6,
+   "lines": [],
+   "labels": [
+    {
+     "at": 3,
+     "durationSec": 3,
+     "text": "NEXT: HOLD THE ROOF",
+     "position": "center",
+     "style": "title"
+    }
+   ],
+   "reuse": {
+    "videoId": "TBD-L03",
+    "sectionIdx": 0
+   }
+  },
+  {
+   "label": "OUTRO 6-18s end screen (shared plate, reused)",
+   "sec": 12,
+   "lines": [],
+   "reuse": {
+    "videoId": "TBD-L01",
+    "sectionIdx": 13
+   }
+  }
+ ],
+ "watermark": false,
+ "captions": false,
+ "qc": "L04: Drift — Brick's limb thickness and visor in near-black frames (the model may thin him); the lime rim stays lime under teal light (not cyan, which reads as Bolt). Limbs — S6 squeezing/sliding poses; S9 crawling (Pebble's paws vs Brick's arms merging). Faces — Pebble's snout must never grow a mouth or teeth (reject); the cracker 'nibble' is sparkle crumbs only. Style — darkness keeps readable rims (never pure black >1s except S1); the glowworm ceiling stays 3D volumetric, not a starfield wallpaper. Seams — S6 at 30s/60s: shadow direction and scale (and the creature is never shown, shadow only); S2 at 30s: the slab position holds; S7 at 30s: Brick's raised-fist pose held across the seam. Text — low; check rock walls for glyph-like cracks in S5. S7 reveal: ≥1.5s silence before the squeak; Pebble design fidelity is the payoff. Global gate (brief §0.3): accent hue shift >6 frames / missing accessory / size swap = re-roll; 3rd limb or fused limb ≥3 frames = re-roll; any mouth, nose, teeth, brows, skin or human face even 1 frame = reject; flat/white/empty bg, 2D look, lost rim light or blood = re-roll; stitch seam at 30s: position jump >5% width, lighting flip, prop changing hands, screen-direction reversal = regenerate the later segment; any legible or pseudo-glyph text in a plate = mask or re-roll (all real text is Remotion labels). Check sourceSpec width/height/duration every clip."
+}

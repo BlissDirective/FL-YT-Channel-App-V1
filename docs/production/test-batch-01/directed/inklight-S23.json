@@ -1,0 +1,238 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "Nobody Rang the Bell (Part 1)",
+ "altTitles": [
+  "The Bell Rang at Midnight... (Part 1/3)",
+  "Something Lives in the Bell Tower (Part 1)"
+ ],
+ "description": "At midnight, the bell rang. Nobody was in the tower. Part 1 of 3. #stickfigure #animation #shorts",
+ "tags": [
+  "stick figure",
+  "animation",
+  "3d animation",
+  "mystery",
+  "part 1",
+  "INKLIGHT",
+  "Bolt",
+  "Pip",
+  "Brick",
+  "shorts"
+ ],
+ "topic": "S23 F4 micro-drama Part 1/3: the bell tower, the eyes, the fall",
+ "cast": {
+  "Bolt": {
+   "color": "#22D3EE"
+  },
+  "Pip": {
+   "color": "#FFB020"
+  },
+  "Brick": {
+   "color": "#7CFF4F"
+  }
+ },
+ "sections": [
+  {
+   "label": "S1 Hook: the bell rang",
+   "sec": 15,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "At midnight, the bell rang.",
+     "at": 0.6
+    },
+    {
+     "speaker": "N",
+     "text": "Nobody was in the tower.",
+     "at": 2.55
+    },
+    {
+     "speaker": "Pip",
+     "text": "Nope. No. Absolutely not.",
+     "at": 4.5
+    },
+    {
+     "speaker": "Bolt",
+     "text": "Somebody's up there.",
+     "at": 10
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. At midnight, a huge bronze bell swings by itself inside an old stone bell tower with no one near it; the camera descends through drifting fog to a village rooftop where Bolt, Pip and Brick sit up and turn toward the tower, their rim lights glowing. Crane down, 24mm, cold blue moonlight, thick fog. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. At midnight, a huge bronze bell swings by itself inside an old stone bell tower with no one near it; the camera descends through drifting fog to a village rooftop where Bolt, Pip and Brick sit up and turn toward the tower, their rim lights glowing. Crane down, 24mm, cold blue moonlight, thick fog. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "a huge deep bronze bell BONG with a long reverberant decay",
+     "durationSec": 4,
+     "gainDb": -2
+    },
+    {
+     "at": 0,
+     "prompt": "cold night wind through thick fog over rooftops",
+     "durationSec": 15,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "low ominous drone, suspense, instrumental",
+     "durationSec": 15,
+     "gainDb": -18
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 3,
+     "text": "PART 1/3",
+     "position": "top",
+     "style": "title"
+    }
+   ],
+   "highlightWords": [
+    "Nobody"
+   ]
+  },
+  {
+   "label": "S2 The climb",
+   "sec": 30,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "Please say nobody.",
+     "at": 8
+    },
+    {
+     "speaker": "Bolt",
+     "text": "Hello? Bell person?",
+     "at": 20
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae carried in Brick's arms. Vertical frame. The three climb a narrow stone spiral staircase inside a dark bell tower, lit only by their cyan, lime and amber rim lights; dust shakes loose from the steps with each distant rumble. Camera looking up the spiral, 24mm, very low-key light, dust motes. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae carried in Brick's arms. Vertical frame. The three climb a narrow stone spiral staircase inside a dark bell tower, lit only by their cyan, lime and amber rim lights; dust shakes loose from the steps with each distant rumble. Camera looking up the spiral, 24mm, very low-key light, dust motes. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "footsteps climbing a stone spiral staircase with a slow tense heartbeat underneath",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 15.0,
+     "prompt": "footsteps climbing a stone spiral staircase with a slow tense heartbeat underneath",
+     "durationSec": 15.0,
+     "gainDb": -14
+    },
+    {
+     "at": 5,
+     "prompt": "a distant echoing bronze bell BONG, dust trickling",
+     "durationSec": 4,
+     "gainDb": -8
+    },
+    {
+     "at": 17,
+     "prompt": "a distant echoing bronze bell BONG, dust trickling",
+     "durationSec": 4,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 8,
+     "durationSec": 3,
+     "text": "the tower is empty.",
+     "position": "lower-third",
+     "style": "caption-bold"
+    }
+   ],
+   "highlightWords": [
+    "nobody"
+   ]
+  },
+  {
+   "label": "S3 Full of eyes",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "...It's full of eyes.",
+     "at": 12
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. At the top of a bell tower, a huge bronze bell hangs still above the three; inside its dark mouth, dozens of tiny pearl-grey glowing eyes blink open one by one, and the three lean back slowly. Low angle into the bell, 35mm, moonlight through wooden slats. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. At the top of a bell tower, a huge bronze bell hangs still above the three; inside its dark mouth, dozens of tiny pearl-grey glowing eyes blink open one by one, and the three lean back slowly. Low angle into the bell, 35mm, moonlight through wooden slats. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 8,
+     "prompt": "faint tiny creepy chittering of many small creatures",
+     "durationSec": 10,
+     "gainDb": -10
+    }
+   ],
+   "highlightWords": [
+    "eyes"
+   ]
+  },
+  {
+   "label": "S4 The fall (cliffhanger)",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Back. Back. BACK.",
+     "at": 2
+    }
+   ],
+   "videoPrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. The old wooden beam holding a huge bronze bell cracks and splinters, and the bell drops toward Bolt, Pip and Brick below, who look up with wide eyes. Low angle, 24mm, moonlight, splinters and dust. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds.",
+   "keyframePrompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. The old wooden beam holding a huge bronze bell cracks and splinters, and the bell drops toward Bolt, Pip and Brick below, who look up with wide eyes. Low angle, 24mm, moonlight, splinters and dust. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+   "model": "hf-seedance-2-5",
+   "endFrame": {
+    "prompt": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving. PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae. BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes. Vertical frame. A huge bronze bell falls from a splintered wooden beam directly above Bolt, Pip and Brick, who look up with wide eyes. Low angle, 24mm, moonlight, splinters and dust. Avoid: text, letters, numbers, logos, mouths, noses, teeth, human faces, skin, hair, clothing beyond the listed accessories, extra limbs, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds. stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Vertical 9:16 frame."
+   },
+   "sfx": [
+    {
+     "at": 3,
+     "prompt": "old wooden beam cracking and splintering loudly",
+     "durationSec": 1.5,
+     "gainDb": -2
+    },
+    {
+     "at": 4.5,
+     "prompt": "a massive heavy object falling with a deep whoosh",
+     "durationSec": 2,
+     "gainDb": -4
+    }
+   ],
+   "labels": [
+    {
+     "at": 8,
+     "durationSec": 2,
+     "text": "PART 2 →",
+     "position": "center",
+     "style": "title"
+    }
+   ]
+  }
+ ],
+ "sting": {
+  "at": 6.0,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "card",
+  "sec": 3,
+  "cta": "Full episode: The Biggest Stick Figure Is Afraid of the Dark"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "S23: Drift — Pip is small in Brick's arms (S2). Limbs — carrying poses. Faces — the 'eyes' in the bell are eye-dots only; any creature faces or mouths = reject. Style — fog must not flatten into a grey wash. Seam — the S4-END landing pose (bell falling above them) becomes Part 2's recap keyframe; keep it. Text — none expected. Global gate (brief §0.3): accent hue shift >6 frames / missing accessory / size swap = re-roll; 3rd limb or fused limb ≥3 frames = re-roll; any mouth, nose, teeth, brows, skin or human face even 1 frame = reject; flat/white/empty bg, 2D look, lost rim light or blood = re-roll; stitch seam at 30s: position jump >5% width, lighting flip, prop changing hands, screen-direction reversal = regenerate the later segment; any legible or pseudo-glyph text in a plate = mask or re-roll (all real text is Remotion labels). Check sourceSpec width/height/duration every clip."
+}
