@@ -256,6 +256,35 @@ export async function runDirectedAssets(db: Db, videoId: string, opts: { budgetM
     return { ok: false, error: "HIGGSFIELD_API_KEY not set — SOUL keyframes unavailable", done: false, did: [], remaining: -1 };
   }
 
+  // Lease: only one asset-stage run per video at a time. A caller that
+  // retries while a previous run is still working gets "busy" instead of
+  // paying for the same generations twice.
+  const leaseMs = budgetMs + 150_000;
+  const now = new Date();
+  const { data: leased } = await db
+    .from("videos")
+    .update({ directed_lease_until: new Date(now.getTime() + leaseMs).toISOString() })
+    .eq("id", videoId)
+    .or(`directed_lease_until.is.null,directed_lease_until.lt.${now.toISOString()}`)
+    .select("id");
+  if (!leased || leased.length === 0) {
+    return { ok: true, done: false, did: [], remaining: -1, status: "busy — a previous run is still working; call again in a minute" };
+  }
+  try {
+    return await runDirectedSteps(db, videoId, loaded, started, budgetMs);
+  } finally {
+    await db.from("videos").update({ directed_lease_until: null }).eq("id", videoId);
+  }
+}
+
+async function runDirectedSteps(
+  db: Db,
+  videoId: string,
+  loaded: Loaded,
+  started: number,
+  budgetMs: number,
+): Promise<DirectedStageResult> {
+  const { video, project, script } = loaded;
   const aspect: "9:16" | "16:9" = script.format === "short" ? "9:16" : "16:9";
   const assets = await assetsOf(db, videoId);
   const steps: Step[] = [];
@@ -331,6 +360,7 @@ export async function runDirectedAssets(db: Db, videoId: string, opts: { budgetM
     i += batch.length;
   }
   const remaining = steps.length - i;
+  if (did.length) await db.from("videos").update({ paused_reason: null }).eq("id", videoId);
   if (remaining > 0) return { ok: true, done: false, did, remaining, status: "GENERATING_ASSETS" };
 
   const queued = await enqueueDirectedClips(db, videoId);
@@ -534,7 +564,8 @@ export async function enqueueDirectedClips(
   }
   if (rows.length) {
     const { error } = await db.from("clip_jobs").insert(rows);
-    if (error) return { ok: false, error: error.message };
+    // 23505 = the one-open-job-per-section index: another run queued it first.
+    if (error && error.code !== "23505") return { ok: false, error: error.message };
     await db.from("videos").update({ status: "ASSETS_READY", auto_finish: true, paused_reason: null }).eq("id", videoId);
     return { ok: true, queued: rows.length, status: "ASSETS_READY" };
   }
