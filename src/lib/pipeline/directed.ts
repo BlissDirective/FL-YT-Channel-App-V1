@@ -637,17 +637,15 @@ export type SectionRevision = {
   rerollKeyframe?: boolean;
 };
 
-/** Max targeted revision rounds per directed video (operator brief). */
-export const DIRECTED_REVISION_CAP = 2;
-
 /**
  * One targeted revision round: apply prompt edits, re-roll the named
  * keyframes, re-queue ONLY those sections' clips; the worker re-compiles and
- * the farm re-renders back to Final review. Capped at 2 rounds unless forced.
+ * the farm re-renders back to Final review. No round cap (operator decision:
+ * no per-video limits on quality) — rounds are counted for reporting only.
  */
 export async function reviseDirectedSections(
   db: Db,
-  opts: { videoId: string; sections: SectionRevision[]; note: string; force?: boolean },
+  opts: { videoId: string; sections: SectionRevision[]; note: string },
 ): Promise<{ ok: true; round: number; queued: number; did: string[] } | { ok: false; error: string }> {
   const loaded = await loadDirected(db, opts.videoId);
   if ("error" in loaded) return { ok: false, error: loaded.error };
@@ -663,9 +661,6 @@ export async function reviseDirectedSections(
     .eq("decision", "revision")
     .like("notes", "[directed revision]%");
   const round = (count ?? 0) + 1;
-  if (round > DIRECTED_REVISION_CAP && !opts.force) {
-    return { ok: false, error: `revision cap reached (${DIRECTED_REVISION_CAP} rounds) — pass force to override` };
-  }
   const next: DirectedScript = JSON.parse(JSON.stringify(script));
   for (const r of opts.sections) {
     const s = next.sections[r.idx];

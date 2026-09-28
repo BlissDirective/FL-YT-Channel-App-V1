@@ -43,11 +43,11 @@ A **seamless loop** is a Short whose last frame and sound flow straight back int
 2. **References** (optional). `make_reference_still` makes a SOUL cast sheet or set plate and returns a path to use in `refs`.
 3. **`estimate_directed`** validates the script and returns the pre-flight cost.
 4. **`import_script`** creates the video at the Script gate, marked `directed`. Nothing is spent.
-5. **`produce_directed`** requires `maxUsd` on the first call. It builds keyframes, then lines, SFX and music, then queues one clip job per section. It is chunked and idempotent: call it again while `done=false`.
+5. **`produce_directed`** has no per-video spend cap (operator decision). It returns the pre-flight estimate for tracking. It builds keyframes, then lines, SFX and music, then queues one clip job per section. It is chunked and idempotent: call it again while `done=false`.
 6. **Clip worker** (GitHub Actions). It generates each section from `clip_jobs.spec` and records Higgsfield's **/estimate quote** as the ledger price, with credits and $/s in the description. The price is flagged `catalog` only when the estimate call fails. Sections over 30s are stitched seamlessly: last frame → next segment. When the last clip lands, the worker compiles and validates the EDD and moves the video to ASSEMBLING. Directed videos never go to the MVDA agent.
 7. **Render farm.** It renders the EDD: 9:16 for Shorts, 16:9 for long-form. The video stops at **Final review**. Nothing publishes.
 8. **QC.** `get_video_media` returns signed URLs for the render, clips, keyframes and audio.
-9. **Revisions.** `revise_sections` runs at most **2 rounds** per video unless forced. It edits prompts, re-rolls keyframes and regenerates only the named sections, then the worker recompiles and the farm re-renders.
+9. **Revisions.** `revise_sections` has no round cap (operator decision). Rounds are counted for reporting only. It edits prompts, re-rolls keyframes and regenerates only the named sections, then the worker recompiles and the farm re-renders.
 
 ## Asset conventions
 
