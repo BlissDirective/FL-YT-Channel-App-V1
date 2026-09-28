@@ -404,7 +404,7 @@ export const TOOLS: Tool[] = [
   {
     name: "retry_clips",
     description:
-      "Retry a video's failed clip jobs after a provider outage (e.g. fal balance topped up). Re-renders any keyframe that degraded to a placeholder, then requeues the errored clip jobs for the worker. Voiceover and existing real assets are kept.",
+      "Retry a video's failed clip jobs after a provider outage (e.g. fal balance topped up). Re-renders any keyframe that degraded to a placeholder, then requeues the errored clip jobs for the worker. Voiceover and existing real assets are kept. Directed videos: requeues errored jobs with attempts reset, keeping the persisted Higgsfield request so a finished generation is recovered (no second charge), and pulls the video back from render.",
     inputSchema: obj(
       { videoId: { type: "string", description: "Video whose clip jobs errored." } },
       ["videoId"],
