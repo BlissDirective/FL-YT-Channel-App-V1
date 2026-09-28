@@ -98,7 +98,16 @@ export type VideoClip = {
 export type AudioCue =
   | { kind: "vo"; assetId: string; start: number; gainDb: number; trim?: { in: number; out: number } }
   | { kind: "sfx"; ref: SfxRef; at: TimeAnchor; gainDb: number }
-  | { kind: "music"; assetId: string; start: number; gainDb: number; duck: DuckSpec };
+  | {
+      kind: "music";
+      assetId: string;
+      start: number;
+      gainDb: number;
+      duck: DuckSpec;
+      /** Fade-out at the end (default 1.5s). 0 = play to the last frame
+          (loop Shorts: a fade to silence breaks the seamless loop). */
+      fadeOutSec?: number;
+    };
 
 export type CaptionToken = { text: string; fromMs: number; toMs: number; emphasis: Emphasis };
 export type CaptionPage = {

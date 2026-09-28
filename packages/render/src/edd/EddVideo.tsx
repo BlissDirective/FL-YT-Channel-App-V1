@@ -253,7 +253,7 @@ const EddAudioCue: React.FC<{
   if (cue.kind === "music") {
     // Directed beds (D8 is lifted only for directed documents — the validator
     // still gates agent/human music). Fixed ducking under every VO cue with a
-    // short ramp; the bed fades over the final 1.5s.
+    // short ramp; the bed fades over the final 1.5s (fadeOutSec; 0 on loop Shorts).
     const url = edd.audio[cue.assetId];
     if (!url) return null;
     const from = Math.round(cue.start * FPS);
@@ -278,7 +278,8 @@ const EddAudioCue: React.FC<{
                 k = Math.max(k, Math.min(1, edge / RAMP));
               }
             }
-            const fade = Math.min(1, Math.max(0, (endSec - t) / 1.5));
+            const fadeSec = cue.fadeOutSec ?? 1.5;
+            const fade = fadeSec > 0 ? Math.min(1, Math.max(0, (endSec - t) / fadeSec)) : 1;
             return base * (1 - k + k * duck) * fade;
           }}
         />
