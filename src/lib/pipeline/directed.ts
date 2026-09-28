@@ -539,6 +539,7 @@ export function directedClipSpec(
     controls,
     generateAudio: s.generateAudio === true,
     ...(s.segments ? { segments: s.segments } : {}),
+    ...(s.reverse ? { reverse: true as const } : {}),
   };
   return { ...base, hash: specHash([model, s.sec, base]) };
 }

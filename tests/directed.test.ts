@@ -233,3 +233,13 @@ describe("chained segments (sections > 30s)", () => {
     expect(!b.ok && b.errors.some((e) => e.includes("sum to 35"))).toBe(true);
   });
 });
+
+describe("reverse beats", () => {
+  it("parses reverse and carries it only when set", () => {
+    const raw = s01() as { sections: Record<string, unknown>[] } & Record<string, unknown>;
+    raw.sections[1] = { ...raw.sections[1], reverse: true };
+    const p = parseDirectedScript(raw);
+    expect(p.ok && p.script.sections[1].reverse).toBe(true);
+    expect(p.ok && p.script.sections[0].reverse).toBeUndefined();
+  });
+});

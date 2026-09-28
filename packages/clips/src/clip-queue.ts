@@ -832,7 +832,15 @@ async function processDirectedJob(job: Job, spec: DirectedClipSpec, catalogEst: 
   if (!video) throw new Error("Video not found");
   const dir = mkdtempSync(join(tmpdir(), `dclip-${job.video_id.slice(0, 8)}-`));
   try {
-    const { file, quoteUsd, credits } = await makeDirected(job, spec, dir);
+    const made = await makeDirected(job, spec, dir);
+    const { quoteUsd, credits } = made;
+    let file = made.file;
+    if (spec.reverse) {
+      // A rewind beat: generated forward, played backwards (video + audio).
+      const rev = join(dir, "reversed.mp4");
+      run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", file, "-vf", "reverse", "-af", "areverse", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", rev]);
+      file = rev;
+    }
     const probed = ffprobeSpec(file);
     if (probed) {
       const verdict = validateMediaSpec(probed, { kind: "clip", targetSec: job.target_sec });

@@ -83,6 +83,9 @@ export type DirectedSection = {
       order from the previous segment's last frame. Seconds must sum to `sec`.
       Omit → the worker splits 30s + remainder with `videoPrompt` for all. */
   segments?: { sec: number; prompt: string }[];
+  /** Play this section's generated clip time-reversed (a "B1 reversed"
+      rewind beat). Generated forward, reversed by the worker. */
+  reverse?: boolean;
 };
 
 export type DirectedScript = {
@@ -252,6 +255,7 @@ export function parseDirectedScript(raw: unknown): DirectedParse {
       transitionOut,
       reuse,
       ...(segments ? { segments } : {}),
+      ...(s.reverse === true ? { reverse: true } : {}),
     };
   });
 
@@ -626,6 +630,8 @@ export type DirectedClipSpec = {
   resolution?: "480p";
   /** Per-segment seconds + prompts for a chained section (see DirectedSection.segments). */
   segments?: { sec: number; prompt: string }[];
+  /** Reverse the finished clip (video and audio). */
+  reverse?: true;
   keyframePath?: string;
   endFramePath?: string;
   refPaths?: string[];
