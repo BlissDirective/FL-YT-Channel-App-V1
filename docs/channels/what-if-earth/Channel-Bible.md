@@ -236,7 +236,7 @@ Each rung opens with the **T+ clock slam** (the HUD in §4.3), which gives a re-
 | `camera_model` | `modern` | `35mm-film` for *Rewind Earth* (past-Earth) episodes |
 | `camera_lens` | `anamorphic` | `clean-sharp` for orbital, macro and diagrams; `vintage-anamorphic` for aftermath awe |
 | `era` | `2020s` | Leave as is (contemporary look). The adapter accepts 1960s/1980s/1990s/2000s/2020s. |
-| `color_palette` | `static-noon` (baseline Earth) | Per stage (see the table in §4.4). **Dev note:** `CinemaStudioControls` in `src/lib/adapters/higgsfield.ts` does not yet expose `color_palette`; add it to pass presets. |
+| `color_palette` | `static-noon` (baseline Earth) | Per stage (see the table in §4.4). The channel default is stored in `brand_kit.cinemaControls` and sent on every Cinema Studio request. |
 | `aspect_ratio` | `16:9` long-form, `9:16` Shorts | `21:9` for a cinematic cold open, letterboxed into 16:9 |
 | `resolution` | `720p` | `480p` only for previz or drafts |
 | audio | off | Narration and music are added in post. Generated audio clashes. |
