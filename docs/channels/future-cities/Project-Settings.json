@@ -1,0 +1,23 @@
+{
+  "name": "Tomorrowscape",
+  "niche": "Speculative sci-fi worldbuilding: futuristic cities and future technologies (floating, underwater, underground, walking/rolling, Moon and space cities, teleport stations, future vehicles) visualised cinematically and explained with plausible physics and engineering.",
+  "audience": "16-45, global English-speaking; sci-fi, space, gaming, engineering and futurism fans; worldbuilders; solarpunk and cyberpunk aesthetic followers; students who like 'how it works' explainers.",
+  "angle": "Spectacular AI-cinematic worldbuilding with a 'how it could actually work' layer: every city or machine is built system by system (structure, energy, water, food, transport), tied to real science references, and rated on a Plausibility Meter. Recurring worlds (the Tomorrowscape Atlas) and explicit speculative framing. Not news.",
+  "tone": "curious",
+  "brand_kit": {
+    "primary": "#36E2F0",
+    "secondary": "#FFB547",
+    "thumbnailStyle": "cinematic",
+    "font": "bold-sans",
+    "cinemaControls": {
+      "genre": "epic",
+      "pacing": "calm",
+      "camera_model": "modern",
+      "camera_lens": "anamorphic",
+      "era": "2020s",
+      "color_palette": "twilight-fable"
+    }
+  },
+  "preferred_video_model": "hf-cinema-studio-4",
+  "instructions": "CHANNEL: Tomorrowscape. Speculative worldbuilding of future cities and technologies (floating, underwater, underground crystal-lit, walking/rolling, Moon/space, teleport stations, future vehicles), cinematic and grounded in plausible physics. Every video answers 'how could it actually work?'. Not news; real science is a grounding reference only.\nLOOK: speculative architectural cinema, photoreal, plausible materials (glass, titanium, sintered regolith, CLT timber, bio-concrete, pressure hulls), visible structure (tethers, trusses, spin rings, legs), volumetric atmosphere, scale cues (tiny people, trams, jets). Solarpunk optimism by default; cyberpunk neon only for night-density beats. Form follows physics.\nPALETTE: Deep Void #070B1A, Schematic Cyan #36E2F0 (primary), Solar Gold #FFB547 (secondary), Aurora Violet #9B7BFF, Biolume Teal #1FD1A5, Plasma Magenta #FF4F9A (<=5%), Hull Silver #C7D0DC, Paper White #F2F6FA. Grade: blue-teal shadows, warm gold highlights.\nSTRUCTURE: 0-5s visual paradox + verbatim hook; 5s ident; promise by 45s; 'How It Works' physics overlay every 60-90s (force/energy arrows, one number, max 3 callouts); pattern interrupt every 90-120s; end on Plausibility Meter verdict (PROVEN/STRETCH/FRONTIER/FICTION) and 'what breaks first'. Signature reveal: cyan schematic wireframe on Deep Void -> scan-line wipe -> same shot as living city.\nNARRATION: 'The Cartographer' - warm, precise, curious; 145-155 WPM, slower on reveals; conditional verbs for speculation ('would', 'could'); one sensory detail per section; no hype words.\nACCURACY: cite real numbers with sources; give every subsystem a Plausibility tier; state speculation explicitly ('This city doesn't exist yet'); never call imagined content real, footage, leaked or discovered; YEAR xxxx SPECULATIVE tag on city beats.\nSHOT RULES: one continuous camera move per section, one axis at a time, >=4s; sections >30s are chained segments with identical move, speed, light, palette and continuous secondary motion (no action starting in one segment and ending in the next); hard cuts only at section boundaries. Establishing: 24mm aerial push/crane reveal. Scale: 35mm lateral truck with human/vehicle. Mechanism: 50mm clean, leave overlay space. Human scale: eye-level gimbal walk, figures from behind, no identifiable faces. Space: single hard sun. Underwater: light falloff, bioluminescence. No text, logos, real people, franchise designs or morphing geometry in generations."
+}
