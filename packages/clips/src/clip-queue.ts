@@ -491,11 +491,19 @@ async function makeStitch(
 async function hfQuote(endpoint: string, input: Record<string, unknown>): Promise<{ usd: number; credits: number } | null> {
   try {
     const res = await fetch(`${HF_API}/estimate/${endpoint}`, { method: "POST", headers: hfHeaders(), body: JSON.stringify(input) });
-    if (!res.ok) return null;
-    const j = (await res.json()) as { usd?: number | string; credits?: number | string };
+    const text = await res.text();
+    if (!res.ok) {
+      // Visible in the worker log so a rejected estimate can be diagnosed —
+      // otherwise the ledger silently falls back to the catalog price.
+      console.warn(`💲 estimate ${endpoint} → ${res.status}: ${text.slice(0, 300)}`);
+      return null;
+    }
+    const j = JSON.parse(text) as { usd?: number | string; credits?: number | string };
     const usd = Number(j.usd);
+    if (!Number.isFinite(usd)) console.warn(`💲 estimate ${endpoint}: unexpected body ${text.slice(0, 200)}`);
     return Number.isFinite(usd) ? { usd, credits: Number(j.credits ?? 0) } : null;
-  } catch {
+  } catch (err) {
+    console.warn(`💲 estimate ${endpoint} failed: ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
 }
