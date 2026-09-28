@@ -197,12 +197,12 @@ describe("pre-flight checks (batch 01 lessons)", async () => {
 describe("resolution (spend lever)", async () => {
   const { estimateDirected } = await import("@/lib/pipeline/directed");
   it("parses 480p, rejects other values, and prices it at the 480p rate", () => {
-    const raw = { ...s01(), resolution: "480p" };
+    const raw = { ...(s01() as Record<string, unknown>), resolution: "480p" };
     const p = parseDirectedScript(raw);
     expect(p.ok && p.script.resolution).toBe("480p");
     const e = estimateDirected((p as { script: DirectedScript }).script);
     expect(e.videoUsd).toBeCloseTo(e.generatedSec * 0.2056, 2);
-    expect(parseDirectedScript({ ...s01(), resolution: "1080p" }).ok).toBe(false);
+    expect(parseDirectedScript({ ...(s01() as Record<string, unknown>), resolution: "1080p" }).ok).toBe(false);
     const d = parseDirectedScript(s01());
     expect(d.ok && d.script.resolution).toBeUndefined();
   });
