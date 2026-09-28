@@ -78,6 +78,11 @@ export type DirectedSection = {
   /** Reuse an already-generated clip (a channel ident/outro plate) instead of
       generating: the source video + section. */
   reuse?: { videoId: string; sectionIdx: number };
+  /** Chained segments for a section longer than one generation (> 30s): each
+      segment's own seconds (4–30) and verbatim motion prompt, generated in
+      order from the previous segment's last frame. Seconds must sum to `sec`.
+      Omit → the worker splits 30s + remainder with `videoPrompt` for all. */
+  segments?: { sec: number; prompt: string }[];
 };
 
 export type DirectedScript = {
@@ -213,6 +218,21 @@ export function parseDirectedScript(raw: unknown): DirectedParse {
     const highlightWords = Array.isArray(s.highlightWords)
       ? s.highlightWords.map(str).filter((x): x is string => Boolean(x))
       : undefined;
+    let segments: DirectedSection["segments"];
+    if (s.segments !== undefined) {
+      if (!Array.isArray(s.segments) || s.segments.length < 2) err(`${w}.segments must list 2+ segments`);
+      else {
+        segments = s.segments.map((g, j) => {
+          const gs = isObj(g) ? num(g.sec) : undefined;
+          const gp = isObj(g) ? str(g.prompt) : undefined;
+          if (gs == null || gs < MIN_SEC || gs > 30) err(`${w}.segments[${j}].sec must be ${MIN_SEC}–30`);
+          if (!gp) err(`${w}.segments[${j}].prompt required`);
+          return { sec: gs ?? MIN_SEC, prompt: gp ?? "" };
+        });
+        const total = segments.reduce((n, g) => n + g.sec, 0);
+        if (sec != null && Math.abs(total - sec) > 0.01) err(`${w}.segments seconds sum to ${total}, section is ${sec}`);
+      }
+    }
     return {
       idx: i,
       sec: sec ?? MIN_SEC,
@@ -231,6 +251,7 @@ export function parseDirectedScript(raw: unknown): DirectedParse {
       highlightWords,
       transitionOut,
       reuse,
+      ...(segments ? { segments } : {}),
     };
   });
 
@@ -603,6 +624,8 @@ export type DirectedClipSpec = {
   aspect: "16:9" | "9:16";
   /** Absent = 720p (keeps pre-existing spec hashes stable). */
   resolution?: "480p";
+  /** Per-segment seconds + prompts for a chained section (see DirectedSection.segments). */
+  segments?: { sec: number; prompt: string }[];
   keyframePath?: string;
   endFramePath?: string;
   refPaths?: string[];
@@ -631,6 +654,9 @@ export function directedWarnings(script: DirectedScript): string[] {
     for (const z of s.zooms ?? []) {
       const end = z.at + 2 * Math.max(2 / 30, z.overSec ?? 0.2) + Math.max(0, z.holdSec ?? 1.2);
       if (end > s.sec - 1 / 30) out.push(`${w}: zoom at ${z.at}s ends at ${end.toFixed(2)}s, past the ${s.sec}s section — it would be dropped`);
+    }
+    if (s.sec > 30 && !s.segments && !s.reuse) {
+      out.push(`${w}: ${s.sec}s is generated as chained segments (30s + remainder) all from ONE prompt — add \`segments\` with a prompt per segment`);
     }
     for (const l of s.labels ?? []) {
       if (l.at + l.durationSec > s.sec + 0.05) out.push(`${w}: label "${l.text}" runs ${(l.at + l.durationSec - s.sec).toFixed(2)}s past the section end`);

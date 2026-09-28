@@ -3,6 +3,7 @@ import {
   buildDirectedEddContext,
   compileDirectedEdd,
   directedRuntimeSec,
+  directedWarnings,
   parseDirectedScript,
   snapZoomMotion,
   validateEdd,
@@ -205,5 +206,30 @@ describe("resolution (spend lever)", async () => {
     expect(parseDirectedScript({ ...(s01() as Record<string, unknown>), resolution: "1080p" }).ok).toBe(false);
     const d = parseDirectedScript(s01());
     expect(d.ok && d.script.resolution).toBeUndefined();
+  });
+});
+
+describe("chained segments (sections > 30s)", () => {
+  const long = () => {
+    const raw = s01() as { sections: Record<string, unknown>[] } & Record<string, unknown>;
+    raw.sections[0] = { ...raw.sections[0], sec: 40 };
+    return raw;
+  };
+  it("warns when a >30s section has no per-segment prompts", () => {
+    const p = parseDirectedScript(long());
+    expect(p.ok).toBe(true);
+    expect(directedWarnings((p as { script: DirectedScript }).script).some((w) => w.includes("add `segments`"))).toBe(true);
+  });
+  it("accepts segments that sum to the section and rejects ones that don't", () => {
+    const ok = long();
+    ok.sections[0] = { ...ok.sections[0], segments: [{ sec: 20, prompt: "seg one" }, { sec: 20, prompt: "seg two" }] };
+    const p = parseDirectedScript(ok);
+    expect(p.ok && p.script.sections[0].segments?.map((g) => g.prompt)).toEqual(["seg one", "seg two"]);
+    expect(directedWarnings((p as { script: DirectedScript }).script).some((w) => w.includes("add `segments`"))).toBe(false);
+    const bad = long();
+    bad.sections[0] = { ...bad.sections[0], segments: [{ sec: 20, prompt: "a" }, { sec: 15, prompt: "b" }] };
+    const b = parseDirectedScript(bad);
+    expect(b.ok).toBe(false);
+    expect(!b.ok && b.errors.some((e) => e.includes("sum to 35"))).toBe(true);
   });
 });

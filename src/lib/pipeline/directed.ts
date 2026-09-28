@@ -538,6 +538,7 @@ export function directedClipSpec(
     refPaths: s.refs?.length ? s.refs : undefined,
     controls,
     generateAudio: s.generateAudio === true,
+    ...(s.segments ? { segments: s.segments } : {}),
   };
   return { ...base, hash: specHash([model, s.sec, base]) };
 }

@@ -391,7 +391,11 @@ type Job = {
   /** Directed production: the exact request (verbatim prompt, aspect, refs,
       end frame, look). Null on autonomous jobs. */
   spec?: DirectedClipSpec | null;
+  /** Directed chained sections: segments already landed + the in-flight one. */
+  segment_state?: SegmentState | null;
 };
+
+type SegmentState = { done: { i: number; path: string }[]; current?: number };
 
 /** Probe a local media file with ffprobe → a normalised MediaSpec (#7). Returns
     null when ffprobe is unavailable or errors, so validation is simply skipped
@@ -575,40 +579,79 @@ export function directedRequest(
 }
 
 /** Generate a directed section: one or more chained segments (seamless),
-    end frame on the FINAL segment only. Returns the file + the summed quote. */
+    end frame on the FINAL segment only. Returns the file + the summed quote.
+    Every segment is resume-tracked: a landed segment is saved to storage and
+    listed in clip_jobs.segment_state, and the in-flight segment's request id
+    is persisted — a timeout or crash resumes exactly where it stopped and
+    never pays for a segment twice. `spec.segments` gives each segment its own
+    seconds + prompt; without it the section splits 30s + remainder with one
+    prompt. */
 async function makeDirected(job: Job, spec: DirectedClipSpec, dir: string): Promise<{ file: string; quoteUsd: number | null; credits: number }> {
   if (!isHfModel(job.model)) throw new Error(`directed job on non-Higgsfield model ${job.model}`);
   const segMax = SEG_MAX[job.model] ?? 30;
-  const count = Math.max(1, Math.ceil(job.target_sec / segMax));
+  const plan: { sec: number; prompt: string }[] = spec.segments?.length
+    ? spec.segments
+    : Array.from({ length: Math.max(1, Math.ceil(job.target_sec / segMax)) }, (_, i) => ({
+        sec: Math.max(4, Math.min(segMax, job.target_sec - i * segMax)),
+        prompt: spec.prompt,
+      }));
   const keyUrl = spec.keyframePath ? await signedUrl(spec.keyframePath) : null;
   if (spec.keyframePath && !keyUrl) throw new Error("directed keyframe could not be signed");
   const endUrl = spec.endFramePath ? await signedUrl(spec.endFramePath) : null;
   const refUrls = (await Promise.all((spec.refPaths ?? []).map((p) => (/^https?:\/\//.test(p) ? p : signedUrl(p))))).filter((u): u is string => Boolean(u));
+
+  // Legacy single-segment jobs persisted a request with no segment_state:
+  // that request belongs to segment 0.
+  const state: SegmentState = job.segment_state ?? { done: [], ...(job.provider_request_id ? { current: 0 } : {}) };
+  const saveState = async () => {
+    await db.from("clip_jobs").update({ segment_state: state }).eq("id", job.id);
+  };
 
   let quoteSum = 0;
   let credits = 0;
   let allQuoted = true;
   const segPaths: string[] = [];
   let nextImage = keyUrl;
-  for (let i = 0; i < count; i++) {
-    const segSec = Math.max(4, Math.min(segMax, job.target_sec - i * segMax));
-    const last = i === count - 1;
-    const req = directedRequest(job.model, spec, segSec, nextImage, last ? endUrl : null, refUrls);
-    const q = await hfQuote(req.endpoint, req.input);
-    if (q) {
-      quoteSum += q.usd;
-      credits += q.credits;
-    } else allQuoted = false;
-    let url: string;
-    if (count === 1) {
-      // Single segment: resume-tracked like autonomous jobs (a timed-out poll
-      // resumes the SAME billed generation instead of paying twice).
-      url = await hfResumableRequest(job, req);
-    } else {
-      url = await hfPoll(await hfSubmit(req.endpoint, req.input));
-    }
+  for (let i = 0; i < plan.length; i++) {
+    const last = i === plan.length - 1;
     const seg = join(dir, `seg${i}.mp4`);
-    await download(url, seg);
+    const landed = state.done.find((d) => d.i === i);
+    if (landed) {
+      // Already generated (and paid for) on an earlier pass.
+      const u = await signedUrl(landed.path);
+      if (!u) throw new Error(`landed segment ${i} could not be signed`);
+      await download(u, seg);
+      console.log(`↩️  ${job.id}: segment ${i + 1}/${plan.length} already landed — reused`);
+    } else {
+      const req = directedRequest(job.model, { ...spec, prompt: plan[i].prompt }, plan[i].sec, nextImage, last ? endUrl : null, refUrls);
+      const q = await hfQuote(req.endpoint, req.input);
+      if (q) {
+        quoteSum += q.usd;
+        credits += q.credits;
+      } else allQuoted = false;
+      let url: string | null = null;
+      if (state.current === i) url = await hfResumePersisted(job); // null → safe to submit fresh
+      if (!url) {
+        const h = await hfSubmit(req.endpoint, req.input);
+        state.current = i;
+        job.provider = "higgsfield";
+        job.provider_request_id = h.requestId;
+        job.provider_status_url = h.statusUrl;
+        await db
+          .from("clip_jobs")
+          .update({ provider: "higgsfield", provider_request_id: h.requestId, provider_status_url: h.statusUrl, segment_state: state })
+          .eq("id", job.id);
+        url = await hfPoll(h);
+      }
+      await download(url, seg);
+      if (plan.length > 1) {
+        const segPath = `videos/${job.video_id}/seg-${job.beat_idx}-${spec.hash}-${i}.mp4`;
+        await db.storage.from(BUCKET).upload(segPath, readFileSync(seg), { contentType: "video/mp4", upsert: true });
+        state.done.push({ i, path: segPath });
+        state.current = undefined;
+        await saveState();
+      }
+    }
     segPaths.push(seg);
     if (!last) {
       const frame = join(dir, `frame${i}.jpg`);
@@ -626,17 +669,6 @@ async function makeDirected(job: Job, spec: DirectedClipSpec, dir: string): Prom
     run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", list, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", file]);
   }
   return { file, quoteUsd: allQuoted ? Math.round(quoteSum * 10000) / 10000 : null, credits };
-}
-
-async function hfResumableRequest(job: Job, req: { endpoint: string; input: Record<string, unknown> }): Promise<string> {
-  const resumed = await hfResumePersisted(job);
-  if (resumed) return resumed;
-  const h = await hfSubmit(req.endpoint, req.input);
-  await db
-    .from("clip_jobs")
-    .update({ provider: "higgsfield", provider_request_id: h.requestId, provider_status_url: h.statusUrl })
-    .eq("id", job.id);
-  return hfPoll(h);
 }
 
 /** Compile + stage a directed video's cut once its clips have landed. An
