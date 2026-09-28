@@ -510,6 +510,8 @@ export function compileDirectedEdd(input: DirectedCompileInput): EditDocument {
       start: 0,
       gainDb: script.music?.gainDb ?? -14,
       duck: { mode: "fixed", underVoDb: script.music?.underVoDb ?? -10 },
+      // A loop Short (overlay outro) must not fade to silence at the loop point.
+      ...(script.outro?.mode === "overlay" ? { fadeOutSec: 0 } : {}),
     });
   }
 

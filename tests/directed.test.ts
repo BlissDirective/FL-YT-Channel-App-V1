@@ -100,6 +100,9 @@ describe("compileDirectedEdd", () => {
     const sfx = doc.tracks.audio.find((a) => a.kind === "sfx");
     expect(sfx && sfx.kind === "sfx" && sfx.at).toEqual({ kind: "abs", sec: 12 });
     expect(doc.tracks.audio.some((a) => a.kind === "music")).toBe(true);
+    // Loop Short (overlay outro): the bed must not fade to silence at the loop point.
+    const m = doc.tracks.audio.find((a) => a.kind === "music");
+    expect(m && m.kind === "music" && m.fadeOutSec).toBe(0);
   });
 
   it("emphasizes highlight words and emits overlays", () => {

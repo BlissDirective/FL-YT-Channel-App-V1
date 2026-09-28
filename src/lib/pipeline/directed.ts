@@ -724,21 +724,43 @@ export async function reviseDirectedSections(
 export async function makeReferenceStill(
   db: Db,
   opts: { projectId: string; name: string; prompt: string; aspect?: "16:9" | "9:16" },
-): Promise<{ ok: true; path: string; url: string | null; costUsd: number } | { ok: false; error: string }> {
+): Promise<{ ok: true; path: string; url: string | null; costUsd: number; reused?: boolean } | { ok: false; error: string }> {
   if (!isHiggsfieldLive()) return { ok: false, error: "HIGGSFIELD_API_KEY not set" };
   const slug = opts.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "ref";
-  const out = await generateHiggsfieldImage({ prompt: opts.prompt, aspectRatio: opts.aspect ?? "16:9" });
-  const t = imageType(out.image);
-  const path = `refs/${opts.projectId}/${slug}-${Date.now().toString(36)}.${t.ext}`;
-  await uploadMedia(path, out.image, t.ct);
-  await db.from("cost_ledger").insert({
-    project_id: opts.projectId,
-    video_id: null,
-    provider: "higgsfield",
-    description: `SOUL reference still — ${opts.name}`,
-    usd: out.costUsd,
-  });
-  return { ok: true, path, url: await getSignedMediaUrl(path, 3600), costUsd: out.costUsd };
+  const aspect = opts.aspect ?? "16:9";
+  // Deterministic path (name + prompt + aspect) so a call is idempotent: SOUL
+  // can outlast the MCP client's 60s timeout, and a retry must return the
+  // still the first call already paid for instead of generating another.
+  const base = `refs/${opts.projectId}/${slug}-${sha(`${opts.prompt}|${aspect}`).slice(0, 10)}`;
+  for (const ext of ["png", "jpg", "webp"]) {
+    const url = await getSignedMediaUrl(`${base}.${ext}`, 3600);
+    if (url) return { ok: true, path: `${base}.${ext}`, url, costUsd: 0, reused: true };
+  }
+  // In-flight guard: a retry while the first generation is still running
+  // gets "busy", never a second paid generation.
+  const leaseKey = `ref_lease:${base}`;
+  const { data: lease } = await db.from("app_settings").select("value").eq("key", leaseKey).maybeSingle();
+  const leasedAt = Number((lease?.value as { at?: number } | null)?.at ?? 0);
+  if (leasedAt && Date.now() - leasedAt < 5 * 60_000) {
+    return { ok: false, error: "busy — this still is still generating; call again in a minute (same name + prompt returns it for free)" };
+  }
+  await db.from("app_settings").upsert({ key: leaseKey, value: { at: Date.now() } });
+  try {
+    const out = await generateHiggsfieldImage({ prompt: opts.prompt, aspectRatio: aspect });
+    const t = imageType(out.image);
+    const path = `${base}.${t.ext}`;
+    await uploadMedia(path, out.image, t.ct);
+    await db.from("cost_ledger").insert({
+      project_id: opts.projectId,
+      video_id: null,
+      provider: "higgsfield",
+      description: `SOUL reference still — ${opts.name}`,
+      usd: out.costUsd,
+    });
+    return { ok: true, path, url: await getSignedMediaUrl(path, 3600), costUsd: out.costUsd };
+  } finally {
+    await db.from("app_settings").delete().eq("key", leaseKey);
+  }
 }
 
 /** Signed URLs for everything a reviewer needs to QC a directed video. */

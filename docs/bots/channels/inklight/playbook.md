@@ -3,7 +3,7 @@
 **Channel:** INKLIGHT (working title "Stick Adventures"). Tagline: **"INKLIGHT · Stick-Figure Mini-Movies."**
 **What it is:** episodic, cinematic stick-figure mini-movies with action, comedy and heart. A recurring original cast of glossy ink stick figures lives inside hyper-detailed, volumetrically lit 3D worlds.
 **Default model:** Seedance 2.5 i2v (`hf-seedance-2-5`) for any shot with cast. Cinema Studio 4.0 (`hf-cinema-studio-4`) for action set-pieces and 4–5-character shots.
-**Voices today:** `N` (narrator, "The Author"), `Pip`, `Brick`. Not yet saved: Bolt, Nova, Smudge.
+**Voices:** all six are saved: `N` (narrator, "The Author"), `Pip`, `Brick`, `Bolt`, `Nova`, `Smudge`.
 
 This playbook holds the channel-specific knowledge. The shared operating rules win on any conflict.
 
@@ -136,11 +136,11 @@ Fonts (render side): Bungee (logo/episode cards), Anton (thumbnails, ≤3 words,
 | `N` | "The Author": warm, wry adult storyteller who secretly wrote the First Draft | 140–150 (160 in action) | "Mid-40s male or female, rich mid-low timbre, intimate storybook warmth with trailer gravitas, dry comedic asides, clean studio, no reverb." | Saved |
 | `Pip` | Nervous genius | 185 | "Small, quick, higher pitch, rapid technical mumbling, gasps, adorable panic." | Saved |
 | `Brick` | Gentle giant | 110 | Bible: "Deep, slow, soft, childlike wonder, whispers when scared." (Voice Design blocks "childlike"; the working phrasing is "gentle giant, innocent sense of wonder".) | Saved |
-| `Bolt` | Eager hero | 170 | "Young adult, bright, breathless, earnest, voice cracks when excited." | **Not saved** |
-| `Nova` | Cool fighter | 130 | "Low, controlled, deadpan, economical, a faint smile in the voice." | **Not saved** |
-| `Smudge` | Theatrical villain | 125 | "Velvety, operatic, sing-song menace, stretched vowels, sudden snarls." | **Not saved** |
+| `Bolt` | Eager hero | 170 | "Young adult, bright, breathless, earnest, voice cracks when excited." | Saved |
+| `Nova` | Cool fighter | 130 | "Low, controlled, deadpan, economical, a faint smile in the voice." | Saved |
+| `Smudge` | Theatrical villain | 125 | "Velvety, operatic, sing-song menace, stretched vowels, sudden snarls." | Saved |
 
-- **Only write lines for N, Pip and Brick** until the director adds the other voices (voices are brand-locked). Bolt, Nova and Smudge can appear and act silently; carry their beats with gesture, labels or the narrator.
+- All six speakers have saved voices (brand-locked). Keep character lines sparse; the narrator carries exposition.
 - `cast` colours in the script: `{"Pip": {"color": "#FFB020"}, "Brick": {"color": "#7CFF4F"}}` (add `"N"` when narrated; the batch left N uncoloured).
 - **Dialogue rules:** mostly wordless action; characters speak sparingly: **1–2 lines per scene, each ≤ 8 words.** No lip-sync (no mouths): emotion comes from eyes (squash to lines for blinks, arcs for joy, wide circles for shock), head tilt and posture. The narrator frames acts; keep narration light (~200 words in a pilot; sparse elsewhere).
 - **Timing:** the estimate checks lines at **169 wpm**. Budget Brick's lines at his real 110 wpm (8 words ≈ 4.4s) so the next line doesn't collide; Pip at 185 wpm. The brief's delivery notes ("whisper", "muffled", "falling") have no script field, and `text` is spoken verbatim, so never write stage directions into `text`; carry the delivery with the words themselves and the SFX.

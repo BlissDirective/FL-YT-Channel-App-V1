@@ -36,6 +36,7 @@ import { critiqueFootageFrames, type FootageFrame } from "./footage/frame-critic
 import { pickThumbnail, type ThumbPlacement } from "./thumbnail-pick";
 import { verifyRenderedChart } from "./dataviz/chart-verify";
 import { runMediaQc } from "./media-qc";
+import { normalizeLoudness } from "./loudness";
 import { uploadVideo, youtubeUploadConfigured } from "./youtube";
 import { shortDurationSec } from "./VideoComp";
 
@@ -711,6 +712,9 @@ async function renderOne(
       crf: 23,
       x264Preset: "faster",
     });
+    // Master to -14 LUFS before upload (YouTube never boosts quiet audio).
+    const norm = normalizeLoudness(out);
+    if (norm) console.log(`🔊 ${video.title} [${compId}]: ${norm.inputLufs.toFixed(1)} → -14 LUFS`);
     const durationSec =
       compId === "LongForm"
         ? Math.round(longFormDurationSec(props))
