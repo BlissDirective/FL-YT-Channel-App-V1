@@ -34,6 +34,7 @@ import {
 } from "@/lib/pipeline/directed";
 import { designVoice, saveDesignedVoice } from "@/lib/adapters/voice-design";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
+import { allLedgerRows } from "@/lib/pipeline/ledger";
 
 /**
  * studio-mcp tool registry (Phase 9). Each tool exposes a slice of the studio
@@ -345,12 +346,14 @@ export const TOOLS: Tool[] = [
     inputSchema: obj({ projectId: { type: "string", description: "Optional — scope to one project." } }),
     handler: async (a, db) => {
       const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-      let all = db.from("cost_ledger").select("usd, at, project_id");
-      if (str(a.projectId)) all = all.eq("project_id", str(a.projectId));
-      const { data } = await all;
-      const total = (data ?? []).reduce((s, r) => s + Number(r.usd), 0);
-      const month = (data ?? []).filter((r) => r.at >= monthStart).reduce((s, r) => s + Number(r.usd), 0);
-      return { monthUsd: Math.round(month * 100) / 100, totalUsd: Math.round(total * 100) / 100, entries: (data ?? []).length };
+      const data = await allLedgerRows<{ usd: number; at: string; project_id: string | null }>((from, to) => {
+        let q = db.from("cost_ledger").select("usd, at, project_id").order("id").range(from, to);
+        if (str(a.projectId)) q = q.eq("project_id", str(a.projectId));
+        return q;
+      });
+      const total = data.reduce((s, r) => s + Number(r.usd), 0);
+      const month = data.filter((r) => r.at >= monthStart).reduce((s, r) => s + Number(r.usd), 0);
+      return { monthUsd: Math.round(month * 100) / 100, totalUsd: Math.round(total * 100) / 100, entries: data.length };
     },
   },
   {

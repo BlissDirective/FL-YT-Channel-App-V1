@@ -4,6 +4,7 @@ import { getSignedMediaUrl } from "@/lib/storage";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
 import { COPILOT_AUTO_APPROVE_SCORE } from "@/lib/adapters/qc";
 import { VIDEO_LEDGER_PROVIDERS } from "@/lib/adapters/video-models";
+import { allLedgerRows } from "@/lib/pipeline/ledger";
 import type {
   AnalyticsSnapshot,
   Asset,
@@ -552,17 +553,14 @@ export type PortfolioStats = {
 
 export async function getPortfolioStats(): Promise<PortfolioStats> {
   const supabase = await createClient();
-  const [{ count: projectCount }, videos, { data: ledger }, tracked] =
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const [{ count: projectCount }, videos, ledger, tracked] =
     await Promise.all([
       supabase.from("projects").select("*", { count: "exact", head: true }),
       getVideos(),
-      supabase
-        .from("cost_ledger")
-        .select("usd, at")
-        .gte(
-          "at",
-          new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
-        ),
+      allLedgerRows<{ usd: number }>((from, to) =>
+        supabase.from("cost_ledger").select("usd").gte("at", monthStart).order("id").range(from, to),
+      ),
       getTrackedStats(),
     ]);
 

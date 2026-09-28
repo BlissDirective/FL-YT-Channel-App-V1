@@ -54,6 +54,24 @@ export const RESEARCH_MONTHLY_CAP_USD = Number(process.env.RESEARCH_MONTHLY_CAP_
   ? Number(process.env.RESEARCH_MONTHLY_CAP_USD)
   : 20;
 
+/** Fetch every row of a ledger query, paging past PostgREST's 1000-row
+    response cap (an unpaged read silently truncates — the dashboard spend
+    and get_cost_summary both undercounted once the ledger passed 1000 rows).
+    `page(from, to)` must return the query with `.range(from, to)` applied
+    and a stable order. */
+export async function allLedgerRows<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
+): Promise<T[]> {
+  const size = 1000;
+  const out: T[] = [];
+  for (let from = 0; ; from += size) {
+    const { data, error } = await page(from, from + size - 1);
+    if (error) throw new Error(`cost_ledger read failed: ${JSON.stringify(error)}`);
+    out.push(...(data ?? []));
+    if (!data || data.length < size) return out;
+  }
+}
+
 /** Month-to-date research spend (system scope only). */
 export async function researchMonthSpend(db: Db): Promise<number> {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
