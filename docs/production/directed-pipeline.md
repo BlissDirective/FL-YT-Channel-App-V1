@@ -2,6 +2,8 @@
 
 The autonomous pipeline makes every creative decision itself. It writes the script with Claude, rewrites the visual prompts with the art director, times each section to its voiceover, and cuts with Ken Burns moves. A **directed** video works the other way around: a production brief makes every decision and the pipeline executes it **verbatim**. The test batch 01 briefs (`docs/production/test-batch-01/`) are the first user.
 
+> Read [`lessons-learned.md`](lessons-learned.md) first. It lists the guards and rules that came out of test batch 01.
+
 ## What a directed script pins
 
 `packages/core/src/directed.ts` defines `DirectedScript`, parses it with `parseDirectedScript` (which returns every error at once) and compiles it with `compileDirectedEdd`.

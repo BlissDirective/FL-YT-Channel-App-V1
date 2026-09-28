@@ -19,7 +19,7 @@ import { runIntelligence } from "@/lib/pipeline/intelligence";
 import { recordOperatorDecision, directorStageForStatus } from "@/lib/pipeline/decisions";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
-import { parseDirectedScript } from "@studio/core";
+import { directedWarnings, parseDirectedScript } from "@studio/core";
 import {
   directedMedia,
   estimateDirected,
@@ -564,7 +564,9 @@ export const TOOLS: Tool[] = [
     inputSchema: obj({ script: { type: "object" } }, ["script"]),
     handler: async (a) => {
       const parsed = parseDirectedScript(a.script);
-      return parsed.ok ? { ok: true, estimate: estimateDirected(parsed.script) } : { ok: false, errors: parsed.errors };
+      return parsed.ok
+        ? { ok: true, estimate: estimateDirected(parsed.script), warnings: directedWarnings(parsed.script) }
+        : { ok: false, errors: parsed.errors };
     },
   },
   {
@@ -572,7 +574,11 @@ export const TOOLS: Tool[] = [
     description:
       "Create a DIRECTED video from a brief's full section script, executed verbatim (no Claude rewrite, no art-director pass). script = { format: short|long, title, altTitles?, description?, tags?, cast?: {Speaker:{color}}, sections: [{ sec (4–120), lines: [{speaker, text, at}], videoPrompt, keyframePrompt?, endFrame?: {fromSection}|{prompt}, model?: hf-cinema-studio-4|hf-seedance-2-5, controls?, refs?: [storage paths], generateAudio?, sfx?: [{at, prompt, durationSec?, gainDb?}], labels?: [{at, durationSec, text, position?, style?, color?}], zooms?: [{at, toScale?, overSec?, holdSec?}], highlightWords?, transitionOut?: cut|whip|crossfade|dipToBlack, reuse?: {videoId, sectionIdx} }], music?: {prompt, gainDb?, underVoDb?}, sting?: {at, sec}, outro?: {mode: card|overlay, sec, cta?}, watermark?, captions?, qc? }. Lands at the Script gate; nothing is spent.",
     inputSchema: obj({ projectId: { type: "string" }, script: { type: "object" } }, ["projectId", "script"]),
-    handler: async (a, db) => importDirectedScript(db, { projectId: str(a.projectId), script: a.script }),
+    handler: async (a, db) => {
+      const r = await importDirectedScript(db, { projectId: str(a.projectId), script: a.script });
+      const parsed = parseDirectedScript(a.script);
+      return r.ok && parsed.ok ? { ...r, warnings: directedWarnings(parsed.script) } : r;
+    },
   },
   {
     name: "produce_directed",

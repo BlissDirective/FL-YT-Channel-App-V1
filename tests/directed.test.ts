@@ -166,3 +166,30 @@ describe("app directed helpers", async () => {
     expect(missingVoices(script, { voice_id: null, brand_kit: {} } as never)).toEqual(["Pip"]);
   });
 });
+
+describe("pre-flight checks (batch 01 lessons)", async () => {
+  const { directedWarnings, lineOverlaps } = await import("@studio/core");
+  const script = (parseDirectedScript(s01()) as { script: DirectedScript }).script;
+
+  it("flags a zoom that cannot finish inside its section", () => {
+    const bad = JSON.parse(JSON.stringify(script)) as DirectedScript;
+    bad.sections[1].zooms = [{ at: 19, toScale: 1.35, overSec: 0.2, holdSec: 0.6 }];
+    expect(directedWarnings(bad).some((w) => w.includes("zoom at 19s"))).toBe(true);
+    expect(directedWarnings(script).filter((w) => w.includes("zoom"))).toEqual([]);
+  });
+
+  it("finds dialogue that runs into the next line", () => {
+    const ok = lineOverlaps(script, [
+      { sectionIdx: 0, lineIdx: 0, durationSec: 2 },
+      { sectionIdx: 1, lineIdx: 0, durationSec: 3 },
+      { sectionIdx: 1, lineIdx: 1, durationSec: 1 },
+    ]);
+    expect(ok).toEqual([]);
+    const bad = lineOverlaps(script, [
+      { sectionIdx: 0, lineIdx: 0, durationSec: 2 },
+      { sectionIdx: 1, lineIdx: 0, durationSec: 11 }, // 14s → 25s runs past the 24s line
+      { sectionIdx: 1, lineIdx: 1, durationSec: 1 },
+    ]);
+    expect(bad).toEqual([{ sectionIdx: 1, lineIdx: 0, overlapSec: 1 }]);
+  });
+});
