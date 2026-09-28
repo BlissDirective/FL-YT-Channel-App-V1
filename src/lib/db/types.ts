@@ -334,6 +334,7 @@ export type Video = {
       every autonomous rewrite pass is off. */
   directed?: boolean;
   directed_lease_until?: string | null;
+  bot_agent_id?: string | null;
   /** MVDA conflict #2: clips done → the agent worker claims this flag and
       runs the cut session before the video reaches the CUT gate. */
   edit_session_requested: boolean;

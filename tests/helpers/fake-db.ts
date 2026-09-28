@@ -29,6 +29,7 @@ class QueryBuilder implements PromiseLike<{
   private wantCount = false;
   private head = false;
   private limitN: number | null = null;
+  private offsetN = 0;
   private single_ = false;
 
   constructor(
@@ -172,6 +173,13 @@ class QueryBuilder implements PromiseLike<{
     return this;
   }
 
+  /** PostgREST paging: rows [from, to] inclusive. */
+  range(from: number, to: number) {
+    this.offsetN = from;
+    this.limitN = to - from + 1;
+    return this;
+  }
+
   maybeSingle() {
     this.single_ = true;
     return this;
@@ -185,7 +193,7 @@ class QueryBuilder implements PromiseLike<{
   private rows(): Row[] {
     const all = this.tables[this.table] ?? [];
     let out = all.filter((r) => this.filters.every((f) => f(r)));
-    if (this.limitN != null) out = out.slice(0, this.limitN);
+    if (this.offsetN || this.limitN != null) out = out.slice(this.offsetN, this.limitN != null ? this.offsetN + this.limitN : undefined);
     return out;
   }
 
