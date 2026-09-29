@@ -503,6 +503,12 @@ export function compileDirectedEdd(input: DirectedCompileInput): EditDocument {
     });
   });
 
+  // Shorts render captions at centre, so a centre label shown while a caption
+  // page is up collides with it (batch-01 QC: "W"/"E" over "and the Sun",
+  // place names over narration). Lift it to the top band, or the bottom band
+  // when a top label already holds that time.
+  if (format === "short") relocateCaptionedCenterLabels(overlays, captions);
+
   if (input.music) {
     audio.push({
       kind: "music",
@@ -709,4 +715,22 @@ export function lineOverlaps(
     if (over > toleranceSec) out.push({ sectionIdx: timed[i].sectionIdx, lineIdx: timed[i].lineIdx, overlapSec: Math.round(over * 100) / 100 });
   }
   return out;
+}
+
+type LabelOverlayLike = { kind: string; startSec?: number; durationSec?: number; position?: string };
+
+/** Move centre labels off a Short's centred caption pages (in place). */
+export function relocateCaptionedCenterLabels(
+  overlays: LabelOverlayLike[],
+  captions: { startMs: number; endMs: number }[],
+): void {
+  const span = (o: LabelOverlayLike) => [o.startSec ?? 0, (o.startSec ?? 0) + (o.durationSec ?? 0)] as const;
+  const overlaps = (a: readonly [number, number], b: readonly [number, number]) => a[0] < b[1] && b[0] < a[1];
+  for (const o of overlays) {
+    if (o.kind !== "label" || o.position !== "center") continue;
+    const t = span(o);
+    if (!captions.some((c) => overlaps(t, [c.startMs / 1000, c.endMs / 1000]))) continue;
+    const topBusy = overlays.some((x) => x !== o && x.kind === "label" && x.position === "top" && overlaps(t, span(x)));
+    o.position = topBusy ? "bottom" : "top";
+  }
 }

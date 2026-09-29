@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  relocateCaptionedCenterLabels,
   buildDirectedEddContext,
   compileDirectedEdd,
   directedRuntimeSec,
@@ -110,6 +111,12 @@ describe("compileDirectedEdd", () => {
     expect(toks.filter((t) => t.emphasis === "color").map((t) => t.text)).toEqual(["Don't.", "Don't.", "Don't."]);
     const kinds = doc.tracks.overlays.map((o) => o.kind).sort();
     expect(kinds).toEqual(["endBeat", "label", "sting", "watermark"]);
+  });
+
+  it("lifts a Short's centre label off the centred captions it overlaps", () => {
+    // "DO NOT PRESS" (0.5–9.5s, centre) overlaps the 1.5s caption page.
+    const label = doc.tracks.overlays.find((o) => o.kind === "label");
+    expect(label && label.kind === "label" && label.position).toBe("top");
   });
 
   it("validates against the directed context", () => {
@@ -266,5 +273,22 @@ describe("section revisions (end frames)", async () => {
 
   it("rejects an unknown section", () => {
     expect(applySectionRevisions(script, [{ idx: 9, videoPrompt: "x" }]).ok).toBe(false);
+  });
+});
+
+describe("relocateCaptionedCenterLabels", () => {
+  const cap = [{ startMs: 2000, endMs: 4000 }];
+  it("leaves a centre label alone when no caption is up", () => {
+    const o = [{ kind: "label", startSec: 5, durationSec: 1, position: "center" }];
+    relocateCaptionedCenterLabels(o, cap);
+    expect(o[0].position).toBe("center");
+  });
+  it("uses the bottom band when a top label already holds that time", () => {
+    const o = [
+      { kind: "label", startSec: 0, durationSec: 10, position: "top" },
+      { kind: "label", startSec: 3, durationSec: 2, position: "center" },
+    ];
+    relocateCaptionedCenterLabels(o, cap);
+    expect(o.map((x) => x.position)).toEqual(["top", "bottom"]);
   });
 });
