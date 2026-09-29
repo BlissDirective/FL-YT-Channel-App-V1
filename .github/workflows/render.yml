@@ -13,15 +13,22 @@ on:
       - packages/render/**
       - .github/workflows/render.yml
 
-concurrency:
-  group: render-farm
-  cancel-in-progress: false
-
 permissions:
   contents: read
 
 jobs:
   render:
+    # Parallel lanes: each renders only the queued videos whose id hashes to
+    # its shard (packages/render/src/render-shard.ts), so one hour-long
+    # long-form no longer holds up every other video. Each lane is serialized
+    # with itself; lane 0 also runs EDD previews and publishing.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+    concurrency:
+      group: render-farm-${{ matrix.shard }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 170
     steps:
@@ -67,6 +74,8 @@ jobs:
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         working-directory: packages/render
         env:
+          RENDER_SHARD: ${{ matrix.shard }}
+          RENDER_SHARDS: 3
           SUPABASE_URL: https://reffwibuitzrkertuuvy.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
           # Optional — enables the Tier-1 vision critique of stick shorts (Claude
