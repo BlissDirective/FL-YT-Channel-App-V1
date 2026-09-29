@@ -309,6 +309,24 @@ describe("section revisions (end frames)", async () => {
   it("rejects an unknown section", () => {
     expect(applySectionRevisions(script, [{ idx: 9, videoPrompt: "x" }]).ok).toBe(false);
   });
+
+  it("replaces a section's labels", () => {
+    const r = applySectionRevisions(script, [{ idx: 0, labels: [{ at: 1, durationSec: 3, text: "NEXT", position: "lower-third" }] }]);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.script.sections[0].labels).toEqual([expect.objectContaining({ text: "NEXT", position: "lower-third" })]);
+    expect(script.sections[0].labels?.[0].text).toBe("DO NOT PRESS");
+  });
+
+  it("replaces a chained section's segment prompts, one per segment", () => {
+    const raw = s01() as { sections: Record<string, unknown>[] } & Record<string, unknown>;
+    raw.sections[1] = { ...raw.sections[1], sec: 45, segments: [{ sec: 30, prompt: "old A" }, { sec: 15, prompt: "old B" }] };
+    const chained = (parseDirectedScript(raw) as { script: DirectedScript }).script;
+    const r = applySectionRevisions(chained, [{ idx: 1, segmentPrompts: [" new A ", "new B"] }]);
+    expect(r.ok && r.script.sections[1].segments).toEqual([{ sec: 30, prompt: "new A" }, { sec: 15, prompt: "new B" }]);
+    expect(applySectionRevisions(chained, [{ idx: 1, segmentPrompts: ["only one"] }])).toEqual({ ok: false, error: expect.stringContaining("2 segments") });
+    expect(applySectionRevisions(script, [{ idx: 0, segmentPrompts: ["x"] }])).toEqual({ ok: false, error: expect.stringContaining("no segments") });
+  });
 });
 
 describe("relocateCaptionedCenterLabels", () => {
