@@ -18,6 +18,7 @@ import { ensureBrowser, renderMedia, renderStill, selectComposition } from "@rem
 import { isR2Path, r2Configured, r2Get, r2Put, r2SignedGetUrl, stripR2, toR2Path } from "@studio/storage";
 import { DEFAULT_SFX_LIBRARY, resolveHighlightTiming, validateStageArtifact, type EditDocument } from "@studio/core";
 import { resolveClipMedia } from "./clip-media";
+import { inShard, isLeadShard, renderShardFromEnv } from "./render-shard";
 import {
   FPS,
   INTRO_SEC,
@@ -1240,18 +1241,21 @@ function renderAttempts(reason: string | null | undefined): number {
 }
 
 async function main() {
-  const { data: rows } = await db
+  const shard = renderShardFromEnv();
+  const { data: all } = await db
     .from("videos")
     .select("id, title, paused_reason")
     .eq("status", "ASSEMBLING")
     .order("updated_at", { ascending: true })
-    .limit(10);
+    .limit(60);
+  const rows = (all ?? []).filter((v) => inShard(v.id, shard));
+  if (shard.count > 1) console.log(`Render lane ${shard.index + 1}/${shard.count}: ${rows.length} of ${(all ?? []).length} queued video(s)`);
 
-  const skipped = (rows ?? []).filter((v) => renderAttempts(v.paused_reason) >= MAX_RENDER_ATTEMPTS);
+  const skipped = rows.filter((v) => renderAttempts(v.paused_reason) >= MAX_RENDER_ATTEMPTS);
   for (const v of skipped) {
     console.log(`⏭️  ${v.title}: skipped — ${MAX_RENDER_ATTEMPTS} failed render attempts (needs operator attention)`);
   }
-  const queue = (rows ?? [])
+  const queue = rows
     .filter((v) => renderAttempts(v.paused_reason) < MAX_RENDER_ATTEMPTS)
     .slice(0, 5);
 
@@ -1306,6 +1310,9 @@ async function main() {
 
   // MVDA Phase A pt 2 — EDD preview requests (480p, optional frame range),
   // queued by the /edit UI (and later the agent) via videos.edd_preview.
+  // Previews and publishing are singletons: only the lead lane runs them, so
+  // parallel lanes never upload the same video twice.
+  if (!isLeadShard(shard)) return;
   await renderEddPreviews(getServeUrl);
 
   // Independent of the render queue: publish any videos (long or short) the
