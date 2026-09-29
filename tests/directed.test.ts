@@ -31,6 +31,41 @@ function s01(): unknown {
   };
 }
 
+describe("script snippets", () => {
+  const withSnippets = () => {
+    const raw = s01() as Record<string, unknown> & { sections: Record<string, unknown>[] };
+    raw.snippets = { SET: "Matchbox kitchen, cream plaster wall.", MISO: "Field-mouse cook, navy headband." };
+    raw.sections[0].keyframePrompt = "{{SET}} {{MISO}} Eye-level.";
+    raw.sections[1].videoPrompt = "{{MISO}} slides the bowl.";
+    return raw;
+  };
+
+  it("expands {{NAME}} everywhere and stores the full text", () => {
+    const r = parseDirectedScript(withSnippets());
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.script.sections[0].keyframePrompt).toBe("Matchbox kitchen, cream plaster wall. Field-mouse cook, navy headband. Eye-level.");
+    expect(r.script.sections[1].videoPrompt).toBe("Field-mouse cook, navy headband. slides the bowl.");
+    expect("snippets" in r.script).toBe(false);
+    // Re-parsing the stored (expanded) script is a no-op.
+    const again = parseDirectedScript(r.script);
+    expect(again.ok && again.script.sections[0].keyframePrompt).toBe(r.script.sections[0].keyframePrompt);
+  });
+
+  it("rejects an unknown or nested snippet instead of sending {{NAME}} to the model", () => {
+    const unknown = withSnippets();
+    unknown.sections[2].videoPrompt = "{{NOPE}} walks in.";
+    const r = parseDirectedScript(unknown);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors).toContain("unknown snippet {{NOPE}}");
+
+    const nested = withSnippets();
+    (nested.snippets as Record<string, string>).BOTH = "{{SET}} and more";
+    const n = parseDirectedScript(nested);
+    expect(n.ok).toBe(false);
+  });
+});
+
 describe("parseDirectedScript", () => {
   it("accepts a brief and keeps text verbatim", () => {
     const r = parseDirectedScript(s01());

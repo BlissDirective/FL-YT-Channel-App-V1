@@ -127,15 +127,57 @@ const isObj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof
 const num = (v: unknown): number | undefined => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
 const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim() ? v.trim() : undefined);
 
+const SNIPPET_REF = /\{\{([A-Z0-9_]+)\}\}/g;
+
+/**
+ * Shared prompt text. A series repeats the same set and character locks in
+ * every section (Thimble Town LF2: ~23KB of a 73KB script), so a script may
+ * declare `snippets: { NAME: text }` once and write `{{NAME}}` in any string.
+ * Expanded before validation; the stored script holds the full text, so the
+ * prompts sent to the model are exactly what the author would have repeated.
+ */
+export function expandScriptSnippets(raw: Record<string, unknown>): { ok: true; raw: Record<string, unknown> } | { ok: false; errors: string[] } {
+  if (raw.snippets === undefined) return { ok: true, raw };
+  if (!isObj(raw.snippets)) return { ok: false, errors: ["snippets must be an object of NAME → text"] };
+  const snippets = new Map<string, string>();
+  const errors: string[] = [];
+  for (const [name, text] of Object.entries(raw.snippets)) {
+    if (!/^[A-Z0-9_]+$/.test(name)) errors.push(`snippets.${name}: name must be A–Z, 0–9 or _`);
+    else if (typeof text !== "string" || !text.trim()) errors.push(`snippets.${name} must be non-empty text`);
+    else if (/\{\{[A-Z0-9_]+\}\}/.test(text)) errors.push(`snippets.${name} must not reference another snippet`);
+    else snippets.set(name, text.trim());
+  }
+  const unknown = new Set<string>();
+  const expand = (v: unknown): unknown => {
+    if (typeof v === "string") {
+      return v.replace(SNIPPET_REF, (m, name: string) => {
+        const t = snippets.get(name);
+        if (t === undefined) unknown.add(name);
+        return t ?? m;
+      });
+    }
+    if (Array.isArray(v)) return v.map(expand);
+    if (isObj(v)) return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, expand(x)]));
+    return v;
+  };
+  const { snippets: _declared, ...rest } = raw;
+  const out = expand(rest) as Record<string, unknown>;
+  for (const name of unknown) errors.push(`unknown snippet {{${name}}}`);
+  return errors.length ? { ok: false, errors } : { ok: true, raw: out };
+}
+
 /**
  * Validate + normalize untrusted input (MCP tool args) into a DirectedScript.
  * Returns ALL problems at once so a brief can be fixed in one pass. Text is
  * preserved verbatim (only trimmed) — the whole point is fidelity.
  */
-export function parseDirectedScript(raw: unknown): DirectedParse {
+export function parseDirectedScript(input: unknown): DirectedParse {
   const errors: string[] = [];
   const err = (m: string) => errors.push(m);
-  if (!isObj(raw)) return { ok: false, errors: ["script must be an object"] };
+  if (!isObj(input)) return { ok: false, errors: ["script must be an object"] };
+  const expanded = expandScriptSnippets(input);
+  if (!expanded.ok) return expanded;
+  const raw = expanded.raw;
 
   const format = raw.format === "short" || raw.format === "long" ? raw.format : undefined;
   if (!format) err("format must be 'short' or 'long'");

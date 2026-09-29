@@ -5721,7 +5721,7 @@ export async function reconcileBuildRuns(
  * Only touches videos untouched for ≥20 min, so an in-flight render is never
  * raced. The status guard on each update keeps it safe under concurrency:
  *   • youtube_video_id set → published → TRACKING.
- *   • a stored render cut  → rendered  → FINAL_REVIEW.
+ *   • a stored render newer than the latest staged cut → FINAL_REVIEW.
  *   • neither              → left for the farm / operator Resume.
  */
 export async function reconcileStuckRenders(dbArg?: Db): Promise<{ healed: number }> {
@@ -5747,12 +5747,25 @@ export async function reconcileStuckRenders(dbArg?: Db): Promise<{ healed: numbe
     }
     const { data: render } = await db
       .from("assets")
-      .select("id")
+      .select("created_at")
       .eq("video_id", v.id)
       .eq("kind", "render")
       .not("storage_path", "is", null)
+      .order("created_at", { ascending: false })
       .limit(1);
-    if (render && render.length > 0) {
+    // A cut staged after the newest render (a revision round re-queued it) is
+    // still waiting for the farm: healing it would park the video at Final
+    // review on the stale pre-revision render (9/29: 8 revised videos flipped
+    // back while the farm was busy with a long-form).
+    const { data: edd } = await db
+      .from("edit_documents")
+      .select("created_at")
+      .eq("video_id", v.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const renderedAt = render?.[0]?.created_at as string | undefined;
+    const stagedAt = edd?.[0]?.created_at as string | undefined;
+    if (renderedAt && !(stagedAt && stagedAt > renderedAt)) {
       const { error } = await db
         .from("videos")
         .update({ status: "FINAL_REVIEW", paused_reason: null })
