@@ -655,7 +655,11 @@ export type SectionRevision = {
   keyframePrompt?: string;
   /** Re-roll the keyframe even when its prompt is unchanged. */
   rerollKeyframe?: boolean;
+  /** Replace the section's SFX cues. Audio-only: no clip is regenerated. */
+  sfx?: DirectedSection["sfx"];
 };
+
+const isVisualRevision = (r: SectionRevision) => Boolean(r.videoPrompt?.trim() || r.keyframePrompt?.trim() || r.rerollKeyframe);
 
 /**
  * One targeted revision round: apply prompt edits, re-roll the named
@@ -674,6 +678,13 @@ export async function reviseDirectedSections(
     return { ok: false, error: `revise from Final review or Assets (video is ${video.status})` };
   }
   if (!opts.sections.length) return { ok: false, error: "no sections given" };
+  const audio = opts.sections.filter((r) => r.sfx !== undefined);
+  if (audio.length && audio.length !== opts.sections.length) {
+    return { ok: false, error: "revise audio (sfx) and visuals in separate rounds — audio first, it costs no clip spend" };
+  }
+  if (audio.some(isVisualRevision)) {
+    return { ok: false, error: "an sfx revision can't also change prompts — revise audio and visuals in separate rounds" };
+  }
   const { count } = await db
     .from("approvals")
     .select("id", { count: "exact", head: true })
@@ -687,6 +698,7 @@ export async function reviseDirectedSections(
     if (!s) return { ok: false, error: `section ${r.idx} does not exist` };
     if (r.videoPrompt?.trim()) s.videoPrompt = r.videoPrompt.trim();
     if (r.keyframePrompt?.trim()) s.keyframePrompt = r.keyframePrompt.trim();
+    if (r.sfx !== undefined) s.sfx = Array.isArray(r.sfx) ? r.sfx : [];
   }
   const reparsed = parseDirectedScript(next);
   if (!reparsed.ok) return { ok: false, error: reparsed.errors.join("; ") };
@@ -711,6 +723,14 @@ export async function reviseDirectedSections(
     notes: `[directed revision] round ${round}: sections ${opts.sections.map((s) => s.idx + 1).join(", ")} — ${opts.note}`.slice(0, 2000),
     decided_at: new Date().toISOString(),
   });
+  if (audio.length) {
+    // Audio-only round: the asset stage generates just the changed cues (hash
+    // mismatch), finds every clip already landed with an unchanged spec, and
+    // re-cuts straight to render. No clip spend.
+    await db.from("videos").update({ status: "GENERATING_ASSETS", paused_reason: null }).eq("id", opts.videoId);
+    did.push("audio revised: call produce_directed to generate the new cues and re-cut (no clips re-queued)");
+    return { ok: true, round, queued: 0, did };
+  }
   const q = await enqueueDirectedClips(db, opts.videoId, opts.sections.map((s) => s.idx));
   if (!q.ok) return { ok: false, error: q.error };
   did.push(`queued ${q.queued} clip job(s)`);
