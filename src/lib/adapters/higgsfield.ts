@@ -386,8 +386,11 @@ export function soulStandardInput(opts: {
 
 /** SOUL still timeout. 120s abandoned stills Higgsfield was still rendering
     on busy days (9/29: most keyframes timed out for an hour) — work it may
-    bill for — so wait longer; this still fits the 300s MCP route. */
-export const SOUL_TIMEOUT_MS = 200_000;
+    bill for — so wait longer. 200s still timed out on 9/29 afternoon (a plain
+    one-line still took ~205s), so wait 260s; directed batches only START
+    early enough that the wait still fits the 300s MCP route
+    (DIRECTED_BATCH_START_MS in pipeline/directed.ts). */
+export const SOUL_TIMEOUT_MS = 260_000;
 
 /** Drop-in for fal's generateImage: same return shape so the still pipeline
     (cache, pixel check, perceptual hash) is unchanged. */
