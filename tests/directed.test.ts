@@ -360,3 +360,34 @@ describe("relocateCaptionedCenterLabels", () => {
     expect(o.map((x) => x.position)).toEqual(["top", "bottom"]);
   });
 });
+
+describe("revisions while the asset stage runs", async () => {
+  const { reviseDirectedSections } = await import("@/lib/pipeline/directed");
+  const { fakeDb } = await import("./helpers/fake-db");
+  const seeded = () =>
+    fakeDb({
+      videos: [{ id: "v1", project_id: "p1", directed: true, status: "GENERATING_ASSETS", paused_reason: "keyframe §2: letterbox/border" }],
+      projects: [{ id: "p1" }],
+      scripts: [{ id: "s1", video_id: "v1", version: 1, metadata: { directed: s01() } }],
+      approvals: [],
+    });
+
+  it("saves a new keyframe prompt for the stage to draw, and clears the hold", async () => {
+    const db = seeded();
+    const r = await reviseDirectedSections(db as never, { videoId: "v1", sections: [{ idx: 1, keyframePrompt: "open sky, no window frame" }], note: "letterbox" });
+    expect(r).toEqual(expect.objectContaining({ ok: true, queued: 0 }));
+    const saved = db.inserts("scripts")[0] as { version: number; metadata: { directed: DirectedScript } };
+    expect(saved.version).toBe(2);
+    expect(saved.metadata.directed.sections[1].keyframePrompt).toBe("open sky, no window frame");
+    expect(db.row("videos", "v1")?.paused_reason).toBeNull();
+    expect(db.inserts("clip_jobs")).toEqual([]);
+    expect(db.inserts("approvals")).toEqual([]);
+  });
+
+  it("refuses re-rolls, cues and labels until Final review", async () => {
+    const db = seeded();
+    const r = await reviseDirectedSections(db as never, { videoId: "v1", sections: [{ idx: 1, rerollKeyframe: true }], note: "x" });
+    expect(r).toEqual({ ok: false, error: expect.stringContaining("prompts, refs or controls only") });
+    expect(db.inserts("scripts")).toEqual([]);
+  });
+});
