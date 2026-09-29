@@ -1,0 +1,335 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "The First Frost on Noodle Row",
+ "altTitles": [
+  "A Frosty Morning in a Tiny Town",
+  "First Frost in Thimble Town (Cozy Miniature)"
+ ],
+ "description": "The first frost settles on Noodle Row. Lumen puts out the night lamps, the residents wake one by one, and everyone warms up with hot broth at Miso's stall. Wordless cozy miniature from Thimble Town.\n\n0:00 Frost grows\n0:08 Lumen puts out the lamps\n0:30 Miso lights his stove\n0:50 Bramble opens her shutters\n1:10 Wren fluffs up\n1:30 Hot broth together\n2:20 Melt and refreeze\n\nStories and worlds created with AI tools.\n#miniature #diorama #cozy #asmr #frost",
+ "tags": [
+  "miniature",
+  "diorama",
+  "frost",
+  "cozy",
+  "asmr",
+  "morning",
+  "tiny town",
+  "Thimble Town"
+ ],
+ "topic": "TT-05 ensemble micro-story Short: first frost, lamps out, residents wake, broth together (loop)",
+ "sections": [
+  {
+   "sec": 8,
+   "label": "Frost grows",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked extreme macro with a very slow push-in, constant speed, no cuts. Feathery frost crystals creep across the mica pane from the corners and branch into ferns, small toy-like movements.\n{{SET_STALL}}\nNo residents in frame.\n{{SCALE}}\nAmbient motion: frost ferns growing, a faint sparkle. Lighting stays frosty dawn. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} frost crystals growing across a small mica window pane {{FF}} {{SET_STALL}}\nNo residents in frame.\n{{SCALE}}\n{{NOTEXT}}\nExtreme close-up of the small mica window in the side of Miso's matchbox kitchen: feathery frost crystals spreading inward from the corners of the pane, the frost-rimed sewing pin lying on the painted-wood sill, amber paper-lantern glow through the glass.\n{{LIGHT_DAWN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} frost crystals growing across a small mica window pane {{FF}} {{SET_STALL}}\nNo residents in frame.\n{{SCALE}}\n{{NOTEXT}}\nThe pane almost fully laced with feathery frost ferns, the frost-rimed sewing pin on the sill, amber lantern glow through the frost.\n{{LIGHT_DAWN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "delicate crackling of ice crystals forming on glass, tiny crisp ticks and fizzes, close macro ASMR, no music",
+     "durationSec": 8,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{FROST_BED}}",
+     "durationSec": 8.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 22,
+   "label": "Lumen puts out the lamps",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Lumen touches his lantern to a glowing lamp head and it softly dims to dark; he glides on to the next lamp and dims it, then the last, small toy-like movements.\n{{SET_LANE}}\n{{LUMEN}}\n{{SCALE}}\nAmbient motion: frost glinting, breath-like mist low on the cobbles. Lighting stays frosty dawn. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Lumen dimming a lamp at dawn {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{SCALE}}\n{{NOTEXT}}\nLumen gliding along frosted cobbles at the foot of a pencil-stub lamp post, touching his brass lantern to its glowing pea-sized lamp head; the lamps behind him already dark, the sky pale; the frost-rimed sewing pin on the cobbles.\n{{LIGHT_DAWN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Lumen dimming a lamp at dawn {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{SCALE}}\n{{NOTEXT}}\nAll the lane's lamp heads dark against the pale dawn sky, Lumen's own brass lantern the last warm glow, frost on the cobbles and roofs, the frost-rimed sewing pin on the cobbles.\n{{LIGHT_DAWN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 3,
+     "prompt": "a tiny glass lamp softly dimming out, a gentle muted low glass tonk with a short fading hum, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 11,
+     "prompt": "a tiny glass lamp softly dimming out, a gentle muted low glass tonk with a short fading hum, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 18,
+     "prompt": "a tiny glass lamp softly dimming out, a gentle muted low glass tonk with a short fading hum, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 0,
+     "prompt": "a very soft slow glide of a tiny snail over frosty cobbles, quiet, close-mic, no music",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{FROST_BED}}",
+     "durationSec": 22,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Miso lights his stove",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked eye-level macro, very slow push-in, constant speed, no cuts. Miso strikes a matchstick, lights the tealight wick, shakes out the match, then wipes the frost from his counter with his white cloth as steam begins, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{SCALE}}\nAmbient motion: first steam curling, frost glittering on the awning. Lighting stays cold clear morning with the amber stove glow. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Miso lighting the tealight stove {{FF}} {{SET_STALL}}\n{{MISO}}\n{{SCALE}}\n{{NOTEXT}}\nMedium macro: Miso behind the frosty spool counter striking a tiny matchstick and lighting the tealight under the bottlecap stock pot; a small contained flame; frost on the tin-can awning; the frost-rimed sewing pin on the counter edge.\n{{LIGHT_MORN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Miso lighting the tealight stove {{FF}} {{SET_STALL}}\n{{MISO}}\n{{SCALE}}\n{{NOTEXT}}\nThe tealight glowing under the bottlecap stock pot, first steam curling up, Miso wiping frost from the spool counter with his white cloth, the sewing pin on the counter edge.\n{{LIGHT_MORN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 2,
+     "prompt": "a tiny matchstick striking and flaring softly, close",
+     "durationSec": 1.5,
+     "gainDb": -6
+    },
+    {
+     "at": 4,
+     "prompt": "a small tealight wick catching with a soft gentle flame breath",
+     "durationSec": 1.5,
+     "gainDb": -10
+    },
+    {
+     "at": 10,
+     "prompt": "a soft cloth wiping a small wooden counter, gentle swish, close-mic",
+     "durationSec": 4,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{STALL_BED}}",
+     "durationSec": 20.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Bramble opens her shutters",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow crane up to window height, constant speed, no cuts. Bramble unlatches and pushes the two shutters open; frost sprinkles down; she leans on the sill and looks out, small toy-like movements.\n{{SET_BAKERY}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\nAmbient motion: frost sparkles drifting down, mist over the moss. Lighting stays cold clear morning with amber window glow. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Bramble opening painted-wood shutters {{FF}} {{SET_BAKERY}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\n{{NOTEXT}}\nMedium macro of an upper window of the teapot bakery: Bramble pushing open two tiny painted-wood shutters from inside, a glittering puff of frost falling from their edges, warm amber lamp glow in the room behind her; the frost-rimed sewing pin lying on the frosty moss below the window.\n{{LIGHT_MORN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Bramble opening painted-wood shutters {{FF}} {{SET_BAKERY}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\n{{NOTEXT}}\nBoth shutters folded open, Bramble leaning on the sill peering over her gold spectacles at frosty Thimble Town, warm amber glow behind her, the sewing pin on the moss below.\n{{LIGHT_MORN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 3,
+     "prompt": "two tiny wooden shutters creaking open, a soft latch click, a light sprinkle of frost falling, close-mic, no music",
+     "durationSec": 4,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{FROST_BED}}",
+     "durationSec": 20.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Wren fluffs up",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked eye-level macro, constant speed, no cuts. Wren shivers, fluffs up into a round ball, gives a shake, smooths her feathers and turns her head toward the steam rising from Noodle Row, small toy-like movements.\n{{SET_BRIDGE}}\n{{WREN}}\n{{SCALE}}\nAmbient motion: frost on the thread handrails glinting, the gutter stream glinting below. Lighting stays cold clear morning. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Wren fluffed round on a cotton spool {{FF}} {{SET_BRIDGE}}\n{{WREN}}\n{{SCALE}}\n{{NOTEXT}}\nMedium macro: Wren perched on top of a stacked cotton-thread spool at the end of the Spool Bridge, feathers puffed perfectly round against the cold, frost on the thread handrails and the ruler deck; the frost-rimed sewing pin lying on the ruler deck.\n{{LIGHT_MORN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Wren fluffed round on a cotton spool {{FF}} {{SET_BRIDGE}}\n{{WREN}}\n{{SCALE}}\n{{NOTEXT}}\nWren sleek again on the spool top, satchel straight, head turned toward thin steam rising from Noodle Row beyond, frost on the handrails, the sewing pin on the ruler deck.\n{{LIGHT_MORN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 3,
+     "prompt": "a small bird fluffing and shaking its feathers, soft soft flutter, close-mic, no chirping, no music",
+     "durationSec": 3,
+     "gainDb": -8
+    },
+    {
+     "at": 0,
+     "prompt": "a small gutter stream trickling gently under a bridge, quiet, seamless, no voices, no music",
+     "durationSec": 20,
+     "gainDb": -20
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{FROST_BED}}",
+     "durationSec": 20.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 50,
+   "label": "Hot broth together",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked eye-level macro with a very slow push-in, constant speed, no cuts. Miso ladles steaming broth into each bowl in turn, left to right; Bramble, Wren and Lumen stay seated and lean in to warm themselves over the steam, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{WREN}}\n{{LUMEN}}\n{{SEATING}}\n{{SCALE}}\nAmbient motion: steam curling into cold light, frost on the awning. Lighting stays cold clear morning with the amber stove glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}",
+   "segments": [
+    {
+     "sec": 25,
+     "prompt": "{{CONT}}\nof field. Camera: locked eye-level macro with a very slow push-in, constant speed, no cuts. Miso ladles steaming broth into each bowl in turn, left to right; Bramble, Wren and Lumen stay seated and lean in to warm themselves over the steam, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{WREN}}\n{{LUMEN}}\n{{SEATING}}\n{{SCALE}}\nAmbient motion: steam curling into cold light, frost on the awning. Lighting stays cold clear morning with the amber stove glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}"
+    },
+    {
+     "sec": 25,
+     "prompt": "{{CONT}}\nof field. Camera: locked eye-level macro with a very slow push-in continues, constant speed, no cuts. Everyone stays in the same seats; they sip slowly, steam drifts up into the cold light; Miso wipes the counter; a first golden sunbeam creeps onto the awning edge, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{WREN}}\n{{LUMEN}}\n{{SEATING}}\n{{SCALE}}\nAmbient motion: steam curling into cold light, frost on the awning. Lighting stays cold clear morning with the amber stove glow. Warm cozy palette, fine film grain. {{VNEG}}"
+    }
+   ],
+   "keyframePrompt": "{{HDR}} four friends with steaming bowls at Miso's stall {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{WREN}}\n{{LUMEN}}\n{{SEATING}}\n{{SCALE}}\n{{NOTEXT}}\nEye-level medium macro facing the stall in the seating lock arrangement: Miso behind the spool counter ladling steaming broth into thimble-sized bowls; Bramble, Wren and Lumen in front on their stools; steam glowing in cold blue morning light under the frosty awning; the frost-rimed sewing pin on the counter edge.\n{{LIGHT_MORN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} four friends with steaming bowls at Miso's stall {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{WREN}}\n{{LUMEN}}\n{{SEATING}}\n{{SCALE}}\n{{NOTEXT}}\nAll four still in their fixed seats (Miso behind the counter; Bramble, Wren, Lumen left to right), bowls steaming, steam rising into the cold light, the first golden sunbeam touching the awning edge, the sewing pin on the counter edge.\n{{LIGHT_MORN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 2,
+     "prompt": "a small ladle scooping broth and pouring into a tiny ceramic bowl, gentle liquid pour and soft ceramic clink, close ASMR, no music",
+     "durationSec": 3,
+     "gainDb": -6
+    },
+    {
+     "at": 8,
+     "prompt": "a small ladle scooping broth and pouring into a tiny ceramic bowl, gentle liquid pour and soft ceramic clink, close ASMR, no music",
+     "durationSec": 3,
+     "gainDb": -6
+    },
+    {
+     "at": 14,
+     "prompt": "a small ladle scooping broth and pouring into a tiny ceramic bowl, gentle liquid pour and soft ceramic clink, close ASMR, no music",
+     "durationSec": 3,
+     "gainDb": -6
+    },
+    {
+     "at": 28,
+     "prompt": "tiny ceramic bowls clinking softly and gentle slurps of warm broth, cozy, close-mic, no voices, no music",
+     "durationSec": 8,
+     "gainDb": -12
+    },
+    {
+     "at": 36,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 6,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{STALL_BED}}",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22.0,
+     "prompt": "{{STALL_BED}}",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 44.0,
+     "prompt": "{{STALL_BED}}",
+     "durationSec": 6.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 10,
+   "label": "Melt and refreeze (loop)",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked extreme macro, constant speed, no cuts. The sun reaches the frost and the ferns melt into round beads of water; then the light cools back to pale dawn blue and the drops sprout feathery crystals again, regrowing the opening frost pattern, small toy-like movements.\n{{SET_STALL}}\nNo residents in frame.\n{{SCALE}}\nAmbient motion: drops trembling, frost regrowing. Lighting stays the same window, sun fading back to frosty dawn. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} sunlit frost melting into water drops on a mica pane {{FF}} {{SET_STALL}}\nNo residents in frame.\n{{SCALE}}\n{{NOTEXT}}\nExtreme close-up of the small mica window in the side of Miso's matchbox kitchen: golden sunlight striking the frost ferns, their edges melting into clear round beads of water; the frost-rimed sewing pin lying on the painted-wood sill.\n{{LIGHT_SUN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "fromSection": 0
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "ice gently melting on glass, tiny soft drips and wet ticks, close macro ASMR, no music",
+     "durationSec": 5,
+     "gainDb": -8
+    },
+    {
+     "at": 5,
+     "prompt": "delicate crackling of ice crystals forming on glass, tiny crisp ticks and fizzes, close macro ASMR, no music",
+     "durationSec": 5,
+     "gainDb": -6
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{FROST_BED}}",
+     "durationSec": 10.0,
+     "gainDb": -18
+    }
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "soft music box and gentle felt piano, slow and warm, frosty morning lullaby mood, around 65 bpm, sparse and calm, instrumental, no vocals, no drums",
+  "gainDb": -20,
+  "underVoDb": 0
+ },
+ "sting": {
+  "at": 4,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: A Rainy Night at the Tiny Ramen Shop"
+ },
+ "watermark": true,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. TT-05: all four residents' marks intact in the broth section (four blocks + Bramble head lock: round spiny hedgehog ears, no rabbit/mouse ears, no bonnet); SEATING LOCK holds across the 25s seam (Miso behind counter; Bramble, Wren, Lumen left to right) with no swaps, standing or extra diners; lamps only go OUT in Lumen's section (dim, never flare), soft tonk is NOT the brand lighting tink; fire only the contained tealight; frost-rimed sewing pin visible every section; frost melts only in the last section, then regrows to match section 1 exactly at the loop.",
+ "snippets": {
+  "HDR": "Miniature diorama photograph, 85mm macro lens look, deep focus:",
+  "FF": "in crisp focus and the whole scene sharp right to the top and bottom edges of the frame; the photograph fills the entire frame edge to edge, with no borders, no bars, no blurred bands, no letterbox, no frame-within-frame, no signature or watermark.",
+  "CONT": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth",
+  "TAIL": "Fine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+  "NOTEXT": "All surfaces are blank painted wood, tin, felt or ceramic, or carry simple painted icons only (a bowl, a loaf, a star); there are no letters, numbers or words anywhere in the picture. The residents are handmade figurines with felted or resin paws, wings or bodies, never human hands.",
+  "VNEG": "Wordless: no talking mouths. No text, lettering, numbers or signage anywhere; icons only. No human hands or fingers, no people, no photoreal animals; handmade figurine textures only.",
+  "MISO": "MISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.",
+  "BRAMBLE": "BRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.",
+  "BRAMBLE_EARS": "BRAMBLE HEAD LOCK: small round spiny hedgehog ears half-hidden in the quills, a pointed hedgehog snout with a black button nose; no rabbit ears, no mouse ears, no long or upright ears, no bonnet, no hat, no headscarf.",
+  "LUMEN": "LUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).",
+  "WREN": "WREN — a small wren postbird courier, felted chestnut-brown feathers with fine cream\nbarring, an upturned tail, a tiny terracotta leather satchel across the chest, a folded\npaper envelope often in her beak. About 3 cm tall. Quick, curious. Travels between\ntiny worlds (our \"visit another world\" device).",
+  "SET_STALL": "Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SET_LANE": "Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SET_BAKERY": "Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SET_BRIDGE": "The Spool Bridge: hand-built\nminiature footbridge over a gutter stream made from a wooden ruler deck resting on stacked cotton-thread spools with thread handrails over a glinting gutter stream (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SCALE": "SCALE LOCK: Lumen about 2.5 cm long, Miso and Wren about 3 cm tall, Bramble about 3.5 cm tall; lamp posts pencil-stub high (about 3× Lumen's length) with pea-sized lamp heads; each thimble-sized bowl about 1.3× Miso's head width; frost crystals salt-grain fine; a real steel sewing pin, rimed with frost, lies in frame as the real-object scale cue.",
+  "LIGHT_DAWN": "Lighting: first light of a frosty dawn, cold pale-blue light with warm amber glow from the lamps and windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still, clear, first frost. Season: late autumn: frost on leaf drifts and acorn caps, pumpkin lanterns.",
+  "LIGHT_MORN": "Lighting: cold clear early-morning light, pale blue shadows, warm amber glow from the tealight stove and paper lanterns, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still, clear, first frost. Season: late autumn: frost on leaf drifts and acorn caps, pumpkin lanterns.",
+  "LIGHT_SUN": "Lighting: low golden sunrise from the left reaching the frost, warm honey highlights, amber lantern glow, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: still, clear, first frost melting. Season: late autumn: frost on leaf drifts and acorn caps, pumpkin lanterns.",
+  "SEATING": "SEATING LOCK (fixed for the whole shot; nobody changes place, stands up or swaps seats): Miso stands behind the spool counter at centre facing camera; on three button stools in front of the counter, left to right, sit Bramble (left), Wren (middle) and Lumen resting on the right-hand stool; each has one thimble-sized bowl of steaming broth on the counter in front of them.",
+  "FROST_BED": "cold still dawn air, a very quiet soft hush of a frosty morning, faint distant sparrow chirps, seamless ambience, no voices, no music",
+  "STALL_BED": "a quiet cold morning street ambience with a soft tealight flame murmur and gentle broth simmer, seamless, no voices, no music"
+ }
+}

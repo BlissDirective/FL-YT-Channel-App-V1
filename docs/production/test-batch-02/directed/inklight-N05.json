@@ -1,0 +1,996 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "Pip Pressed Undo on Everything",
+ "altTitles": [
+  "He Found an UNDO Button (Big Mistake)",
+  "Never Give Pip an Undo Remote"
+ ],
+ "description": "Pip found a remote with one button: UNDO. Spills, trips, sneezes, sunsets... then Bolt. #stickfigure #animation #shorts",
+ "tags": [
+  "stick figure",
+  "animation",
+  "3d animation",
+  "comedy",
+  "undo button",
+  "INKLIGHT",
+  "Pip",
+  "Bolt",
+  "Brick",
+  "Nova",
+  "shorts"
+ ],
+ "topic": "INK-05 F1 escalation comedy (Pip lead): an undo remote escalates small, medium, big, too big; lore: the arrow glows Nib-gold",
+ "snippets": {
+  "STYLE": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading.",
+  "LOCK": "Faces are two glowing eye-dots only: no mouth, no nose, no teeth, no brows, no smile. Each figure is one separate distinct body that never merges or fuses with another figure or object. Arms end in simple rounded tips with at most three rounded nubs, never realistic human hands. Every figure keeps its signature accessories in every frame. Consistent glossy 3D render throughout, never flat 2D. Every surface is blank and unmarked, with no readable text or letters; any sign shows a simple icon only.",
+  "BOLT": "BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving",
+  "PIP": "PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae",
+  "NOVA": "NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff",
+  "BRICK": "BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes",
+  "NEG": "Avoid: text, letters, numbers, readable signs, logos, mouths, noses, teeth, eyebrows, smiles, human faces, skin, hair, realistic human hands, five-finger hands, clothing beyond the listed accessories, extra limbs, fused or merged bodies, flat 2D cartoon look, blood, gore, flat or empty backgrounds.",
+  "KF": "stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Deep focus, sharp to the frame edges, full-frame image with no borders or letterbox bands. Vertical 9:16 frame.",
+  "TINK": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+  "REMOTE": "THE REMOTE: a tiny amber plastic remote control the size of Pip's palm, with a single round button bearing an embossed curved-arrow icon that glows warm Nib-gold (#FFC940); blank, no letters or numbers.",
+  "DESK": "a huge sunlit oak writing desk seen at tiny-hero scale: real wood grain, a real glass ink jar, loose cream paper sheets, pencils and wooden toy blocks towering over the figures, soft window light with floating dust motes",
+  "ROOM": "quiet sunlit study room tone, a softly ticking wall clock and faint birdsong through a window, seamless",
+  "REWIND": "a VHS tape rewinding: fast chattering reverse warble with a rising whirr",
+  "REV_NOTE": "Generated forward; the clip is played time-reversed in the edit, so every motion must be one clean, readable action."
+ },
+ "cast": {
+  "Pip": {
+   "color": "#FFB020"
+  },
+  "Bolt": {
+   "color": "#22D3EE"
+  },
+  "Brick": {
+   "color": "#7CFF4F"
+  },
+  "Nova": {
+   "color": "#FF3DA5"
+  }
+ },
+ "sections": [
+  {
+   "label": "S1 Hook: undo",
+   "sec": 7,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "Oops.",
+     "at": 0.8
+    },
+    {
+     "speaker": "Pip",
+     "text": "Good thing I have this.",
+     "at": 2.2
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, a tipped-over glass ink jar lies in a spreading glossy black ink puddle; Pip stands beside it and holds up the tiny amber remote toward camera, then presses its single button with a rounded nub; the curved-arrow icon flares Nib-gold and Pip's amber rim light brightens. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. Remote held in the upper-middle of frame. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, a tipped-over glass ink jar lies in a spreading glossy black ink puddle; Pip stands beside it holding the tiny amber remote up toward camera, its curved-arrow button glowing gold. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. Remote held in the upper-middle of frame. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{TINK}}",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 7,
+     "gainDb": -20
+    },
+    {
+     "at": 4.8,
+     "prompt": "one small crisp plastic button click",
+     "durationSec": 0.6,
+     "gainDb": -4
+    },
+    {
+     "at": 4.9,
+     "prompt": "a short warm golden shimmer chime",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.4,
+     "durationSec": 2.8,
+     "text": "PIP",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#FFB020"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 4.6,
+     "toScale": 1.35,
+     "overSec": 0.2,
+     "holdSec": 1.0
+    }
+   ]
+  },
+  {
+   "label": "S2 Un-spill (reversed)",
+   "sec": 5,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. {{REV_NOTE}} Macro close-up on {{DESK}}: an upright glass ink jar wobbles, tips over and glossy black ink gushes out across the wood grain into a wide puddle. Small in the soft background, Pip stands perfectly still holding the amber remote out, its arrow glowing gold. Locked-off macro vertical shot, static camera, 50mm, warm window light, glossy ink highlights. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. Macro close-up on {{DESK}}: an upright, full glass ink jar stands on the wood grain; small in the background, Pip stands still holding the amber remote out, its arrow glowing gold. Locked-off macro vertical shot, static camera, 50mm, warm window light, glossy ink highlights. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "reverse": true,
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 5,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{REWIND}}",
+     "durationSec": 2.5,
+     "gainDb": -8
+    },
+    {
+     "at": 0.4,
+     "prompt": "a liquid splash played backwards, sucking back into a glass jar, ending in a glass clink",
+     "durationSec": 2,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.2,
+     "durationSec": 2.5,
+     "text": "UNDO #1",
+     "position": "top",
+     "style": "title",
+     "color": "#FFC940"
+    }
+   ]
+  },
+  {
+   "label": "S3 Un-knot (reversed)",
+   "sec": 9,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "Knot? Un-knotted.",
+     "at": 5.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. {{REV_NOTE}} On {{DESK}}, a thick glossy black ink cord lying loose in a lazy S-curve slowly loops over itself and cinches into one tight knot. Pip stands perfectly still beside it, arm out, aiming the amber remote at the cord, its arrow glowing gold, his amber rim steady. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, a thick glossy black ink cord lies loose in a lazy S-curve; Pip stands still beside it, arm out, aiming the amber remote at the cord, its arrow glowing gold. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "reverse": true,
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 9,
+     "gainDb": -20
+    },
+    {
+     "at": 0.2,
+     "prompt": "{{REWIND}}",
+     "durationSec": 3,
+     "gainDb": -8
+    },
+    {
+     "at": 1,
+     "prompt": "a rope creaking and slithering as it loosens, played in reverse",
+     "durationSec": 4,
+     "gainDb": -10
+    },
+    {
+     "at": 7.5,
+     "prompt": "a tiny bright ding",
+     "durationSec": 0.6,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.2,
+     "durationSec": 2.5,
+     "text": "UNDO #2",
+     "position": "top",
+     "style": "title",
+     "color": "#FFC940"
+    }
+   ],
+   "highlightWords": [
+    "Un-knotted."
+   ]
+  },
+  {
+   "label": "S4 Un-fall (reversed)",
+   "sec": 9,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "Gravity? Rewound.",
+     "at": 5.8
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. {{REV_NOTE}} On {{DESK}}, a tall tower of real painted wooden toy blocks stands; the top red block teeters, falls, tumbles across the wood and bounces to rest near Pip. Pip stands perfectly still, holding the amber remote up at the tower, its arrow glowing gold. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. Tower centered, Pip lower right. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, a tall tower of real painted wooden toy blocks stands complete with a red block on top; Pip stands still beside it, holding the amber remote up at the tower, its arrow glowing gold. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. Tower centered, Pip lower right. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "reverse": true,
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 9,
+     "gainDb": -20
+    },
+    {
+     "at": 0.2,
+     "prompt": "{{REWIND}}",
+     "durationSec": 3,
+     "gainDb": -8
+    },
+    {
+     "at": 0.8,
+     "prompt": "wooden toy block clacks and bounces played backwards",
+     "durationSec": 3,
+     "gainDb": -6
+    },
+    {
+     "at": 4,
+     "prompt": "a soft wooden clack as a block lands on a tower",
+     "durationSec": 0.6,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.2,
+     "durationSec": 2.5,
+     "text": "UNDO #3",
+     "position": "top",
+     "style": "title",
+     "color": "#FFC940"
+    }
+   ],
+   "highlightWords": [
+    "Rewound."
+   ]
+  },
+  {
+   "label": "S5 It works",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "It works on EVERYTHING.",
+     "at": 1.2
+    },
+    {
+     "speaker": "Pip",
+     "text": "Okay. Bigger.",
+     "at": 6.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, Pip does one small victory hop, spins once, blows across the amber remote like a gunslinger and tucks it into his backpack strap; his amber rim light flares bright on the landing. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, Pip stands mid-hop with both arms raised, the amber remote in one rounded hand, arrow glowing gold, amber rim light bright. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 10,
+     "gainDb": -20
+    },
+    {
+     "at": 0.5,
+     "prompt": "playful marimba run, rising and bouncy",
+     "durationSec": 2.5,
+     "gainDb": -10
+    },
+    {
+     "at": 2.8,
+     "prompt": "a light hop and a soft landing tap on wood",
+     "durationSec": 1,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.2,
+     "durationSec": 3,
+     "text": "everything.",
+     "position": "lower-third",
+     "style": "caption-bold",
+     "color": "#FFB020"
+    }
+   ],
+   "highlightWords": [
+    "EVERYTHING."
+   ]
+  },
+  {
+   "label": "S6 Bolt trips",
+   "sec": 6,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Morning, Pip— whoa!",
+     "at": 1
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, Bolt jogs toward camera, his cyan scarf trailing light, catches one foot on a yellow pencil and falls flat on his front; Pip in the lower-left foreground, seen from behind, raises the amber remote. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, Bolt jogs toward camera mid-stride, his cyan scarf trailing light, a yellow pencil lying across his path; Pip stands in the lower-left foreground seen from behind, holding the amber remote. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 6,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "light quick jogging footsteps on a wooden table",
+     "durationSec": 3,
+     "gainDb": -10
+    },
+    {
+     "at": 3.3,
+     "prompt": "a light glassy tink and soft thud of a small body hitting wood",
+     "durationSec": 0.8,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.3,
+     "durationSec": 2.5,
+     "text": "BOLT",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#22D3EE"
+    }
+   ]
+  },
+  {
+   "label": "S7 Un-trip (reversed)",
+   "sec": 6,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Did I just un-fall?",
+     "at": 4.2
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. Vertical frame. {{REV_NOTE}} Close low-angle shot on {{DESK}}: Bolt jogs in, catches his foot on a yellow pencil, stumbles and falls flat face-down on the wood, his cyan scarf fluttering down across his back. Locked-off low vertical shot at wood level, static camera, 35mm, warm window light. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. Vertical frame. Close low-angle shot on {{DESK}}: Bolt jogs mid-stride toward a yellow pencil lying across his path, his cyan scarf trailing light. Locked-off low vertical shot at wood level, static camera, 35mm, warm window light. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "reverse": true,
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 6,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{REWIND}}",
+     "durationSec": 2.5,
+     "gainDb": -8
+    },
+    {
+     "at": 0.5,
+     "prompt": "a soft thud and glassy tink played backwards, whooshing upward",
+     "durationSec": 1.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.2,
+     "durationSec": 2.5,
+     "text": "UNDO #4",
+     "position": "top",
+     "style": "title",
+     "color": "#FFC940"
+    }
+   ],
+   "highlightWords": [
+    "un-fall?"
+   ]
+  },
+  {
+   "label": "S8 Brick sneezes",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "Ah... ahh...",
+     "at": 1.2
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. Vertical frame. In a potted meadow of real fluffy white dandelion seed heads taller than him on a sunlit desk, Brick's head tilts back twice, his thick shoulders heaving as a sneeze builds, then his whole body jolts forward in one huge sneeze that blasts a cloud of dandelion seeds outward; his lime rim flickers. Locked-off vertical medium shot, static camera, 35mm, warm backlight through the seeds. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. Vertical frame. In a potted meadow of real fluffy white dandelion seed heads taller than him on a sunlit desk, Brick stands with his head tilted back, thick shoulders raised, lime rim glowing. Locked-off vertical medium shot, static camera, 35mm, warm backlight through the seeds. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft breeze through tall grass, gentle outdoor bed, seamless",
+     "durationSec": 8,
+     "gainDb": -20
+    },
+    {
+     "at": 1,
+     "prompt": "a big gentle giant's building sneeze wind-up, comedic breathy",
+     "durationSec": 3.5,
+     "gainDb": -10
+    },
+    {
+     "at": 5,
+     "prompt": "a huge comedic sneeze blast with a gust of wind and fluff",
+     "durationSec": 1.5,
+     "gainDb": -4
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.5,
+     "durationSec": 2.5,
+     "text": "BRICK",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#7CFF4F"
+    }
+   ]
+  },
+  {
+   "label": "S9 Un-sneeze (reversed)",
+   "sec": 6,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "...My sneeze went back in.",
+     "at": 3.8
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{PIP}}. {{REMOTE}} Vertical frame. {{REV_NOTE}} In a potted meadow of real fluffy white dandelion seed heads, Brick jolts forward in one huge sneeze and a cloud of dandelion seeds bursts outward from around his head and drifts away. Pip stands perfectly still in the lower-right foreground, aiming the amber remote at Brick, its arrow glowing gold. Locked-off vertical medium shot, static camera, 35mm, warm backlight through the seeds. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{PIP}}. {{REMOTE}} Vertical frame. In a potted meadow of real fluffy white dandelion seed heads, Brick stands with his head tilted back mid-wind-up; Pip stands still in the lower-right foreground aiming the amber remote at him, its arrow glowing gold. Locked-off vertical medium shot, static camera, 35mm, warm backlight through the seeds. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "reverse": true,
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "soft breeze through tall grass, gentle outdoor bed, seamless",
+     "durationSec": 6,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{REWIND}}",
+     "durationSec": 2.5,
+     "gainDb": -8
+    },
+    {
+     "at": 0.4,
+     "prompt": "a sneeze played backwards, a long sucking inhale",
+     "durationSec": 1.8,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.2,
+     "durationSec": 2.5,
+     "text": "UNDO #5",
+     "position": "top",
+     "style": "title",
+     "color": "#FFC940"
+    }
+   ]
+  },
+  {
+   "label": "S10 The gold arrow",
+   "sec": 14,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Pip. What IS that?",
+     "at": 1
+    },
+    {
+     "speaker": "N",
+     "text": "The arrow glowed the same gold as the Nib.",
+     "at": 4.5
+    },
+    {
+     "speaker": "Pip",
+     "text": "Medium undos: done. Now... big ones.",
+     "at": 9.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{BOLT}}. {{BRICK}}. {{REMOTE}} Vertical frame. On {{DESK}}, Bolt and Brick stand side by side tilting their heads at Pip; Pip lifts the amber remote between them and the camera pushes slowly in until the curved-arrow button fills the frame, glowing the same warm Nib-gold as a pen nib, gold light washing over all three; Pip's amber rim flares. Slow push-in from a vertical medium-wide to an extreme close-up of the button, 35mm, warm window light, gold glow. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{BOLT}}. {{BRICK}}. {{REMOTE}} Vertical frame. On {{DESK}}, Bolt and Brick stand side by side tilting their heads at Pip, who lifts the amber remote between them, its arrow glowing warm gold. Slow push-in from a vertical medium-wide to an extreme close-up of the button, 35mm, warm window light, gold glow. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 14,
+     "gainDb": -20
+    },
+    {
+     "at": 4.3,
+     "prompt": "{{TINK}}",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 4.4,
+     "prompt": "a low warm golden hum swelling softly",
+     "durationSec": 4,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 5,
+     "durationSec": 3.5,
+     "text": "same gold as the Nib",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#FFC940"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 8.6,
+     "toScale": 1.3,
+     "overSec": 0.2,
+     "holdSec": 0.8
+    }
+   ],
+   "highlightWords": [
+    "Nib.",
+    "big"
+   ]
+  },
+  {
+   "label": "S11 The argument",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "You broke my tower.",
+     "at": 0.8
+    },
+    {
+     "speaker": "Pip",
+     "text": "Technically, I un-broke it twice.",
+     "at": 3.2
+    },
+    {
+     "speaker": "Nova",
+     "text": "Pip.",
+     "at": 7
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{NOVA}}. {{REMOTE}} Vertical frame. On {{DESK}} beside a toppled tower of wooden toy blocks, Nova jabs the tip of her magenta bo staff at the blocks while Pip throws both arms up, their magenta and amber rims flaring hot; Pip whips out the amber remote and clicks it at Nova. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. Two-shot in profile. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{NOVA}}. {{REMOTE}} Vertical frame. On {{DESK}} beside a toppled tower of wooden toy blocks, Nova stands pointing her magenta bo staff at the blocks, facing Pip, who has both arms up. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. Two-shot in profile. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 10,
+     "gainDb": -20
+    },
+    {
+     "at": 0.3,
+     "prompt": "a soft koto-synth pluck motif, tense",
+     "durationSec": 2,
+     "gainDb": -12
+    },
+    {
+     "at": 8.6,
+     "prompt": "one small crisp plastic button click",
+     "durationSec": 0.6,
+     "gainDb": -4
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.4,
+     "durationSec": 2.5,
+     "text": "NOVA",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S12 Rewind the argument (reversed)",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "...What were we arguing about?",
+     "at": 5.6
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{NOVA}}. {{REMOTE}} Vertical frame. {{REV_NOTE}} On {{DESK}}, Pip and Nova face each other mid-argument with big clear gestures: Nova plants her magenta bo staff, swings it in one wide arc and points it; Pip stamps one foot and waves both arms. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. Two-shot in profile. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{NOVA}}. {{REMOTE}} Vertical frame. On {{DESK}}, Pip and Nova stand calmly facing each other, Nova holding her magenta bo staff upright, Pip holding the amber remote. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. Two-shot in profile. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "reverse": true,
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 8,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{REWIND}}",
+     "durationSec": 3,
+     "gainDb": -8
+    },
+    {
+     "at": 0.5,
+     "prompt": "fast reversed garbled cartoon chatter, two voices, no words",
+     "durationSec": 4,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.2,
+     "durationSec": 2.5,
+     "text": "UNDO #6",
+     "position": "top",
+     "style": "title",
+     "color": "#FFC940"
+    }
+   ]
+  },
+  {
+   "label": "S13 Sunset",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "I hate when the day ends.",
+     "at": 1.5
+    },
+    {
+     "speaker": "Pip",
+     "text": "...Undo.",
+     "at": 7
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. On the sill of a huge study window, Pip sits alone with his legs dangling over the edge, a deep orange sun setting over real rooftops outside; he sighs, his amber rim dimming slightly, then lifts the amber remote at the sky. Locked-off vertical shot from behind and slightly beside Pip, static camera, 35mm, warm orange sunset backlight. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. On the sill of a huge study window, Pip sits alone with his legs dangling, a deep orange sun setting over real rooftops outside, the amber remote in his lap. Locked-off vertical shot from behind and slightly beside Pip, static camera, 35mm, warm orange sunset backlight. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "calm evening outdoor ambience, distant birds settling and faint crickets, seamless",
+     "durationSec": 10,
+     "gainDb": -20
+    },
+    {
+     "at": 7.3,
+     "prompt": "one small crisp plastic button click",
+     "durationSec": 0.6,
+     "gainDb": -4
+    }
+   ]
+  },
+  {
+   "label": "S14 Sky rewinds (reversed)",
+   "sec": 12,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Pip? Why is it lunch again?",
+     "at": 8.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. {{REV_NOTE}} Time-lapse, seen from behind: Pip sits perfectly still on the sill of a huge study window while outside the sun arcs down from high noon to a deep orange sunset, clouds racing, window shadows stretching long across the sill; the real sun and clouds stay in the sky, never on the ground. Locked-off vertical time-lapse, static camera, 24mm, light shifting from noon white to orange. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. Seen from behind: Pip sits still on the sill of a huge study window, outside a bright high-noon sky with a high sun, puffy clouds, real rooftops. Locked-off vertical time-lapse, static camera, 24mm, light shifting from noon white to orange. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "reverse": true,
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "calm outdoor ambience, birds and a light breeze, seamless",
+     "durationSec": 12,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{REWIND}}",
+     "durationSec": 3,
+     "gainDb": -8
+    },
+    {
+     "at": 1,
+     "prompt": "a long whooshing time-lapse sweep played backwards",
+     "durationSec": 6,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.2,
+     "durationSec": 2.5,
+     "text": "UNDO #7",
+     "position": "top",
+     "style": "title",
+     "color": "#FFC940"
+    }
+   ],
+   "highlightWords": [
+    "lunch"
+   ]
+  },
+  {
+   "label": "S15 Undo Bolt",
+   "sec": 7,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "Hey, what's for lun—",
+     "at": 0.6
+    },
+    {
+     "speaker": "Pip",
+     "text": "...Uh oh.",
+     "at": 5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} <<<image_1>>> {{BOLT}}. <<<image_2>>> {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}} in bright noon light, Pip aims the amber remote past camera just as Bolt steps into its path waving; a click, a ripple of gold light, and Bolt's glossy black body fades away until only a thin hollow glowing cyan outline of him and his scarf remains, see-through; Pip freezes, his amber rim dimming. Locked-off vertical two-shot at desk-top level, static camera, 35mm, bright noon window light. {{NEG}} genre=comedy pacing=calm camera_model=modern camera_lens=clean-sharp color_palette=static-noon",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}} in bright noon light, Pip aims the amber remote past camera as Bolt steps into its path, waving, his cyan scarf lifting. Locked-off vertical two-shot at desk-top level, static camera, 35mm, bright noon window light. {{NEG}} {{KF}}",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "comedy",
+    "pacing": "calm",
+    "camera_model": "modern",
+    "camera_lens": "clean-sharp",
+    "color_palette": "static-noon"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 7,
+     "gainDb": -20
+    },
+    {
+     "at": 2.6,
+     "prompt": "one small crisp plastic button click",
+     "durationSec": 0.6,
+     "gainDb": -4
+    },
+    {
+     "at": 2.8,
+     "prompt": "a soft eerie glassy fade whoosh, like a sound being erased",
+     "durationSec": 2,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 2.6,
+     "durationSec": 2.5,
+     "text": "UNDO #8",
+     "position": "top",
+     "style": "title",
+     "color": "#FFC940"
+    }
+   ]
+  },
+  {
+   "label": "S16 Button mash",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "No no no no—",
+     "at": 0.4
+    },
+    {
+     "speaker": "Pip",
+     "text": "Redo! REDO!",
+     "at": 3.8
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{BOLT}}. {{REMOTE}} Vertical frame. On {{DESK}}, Pip frantically mashes the amber remote's button with both rounded nubs, gold sparks spraying off it, the window light flickering between day and night, while beside him Bolt remains only a faint flickering see-through cyan outline; Pip's amber rim strobes dim and bright. Handheld vertical medium shot, slight shake, 35mm, flickering light. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{BOLT}}. {{REMOTE}} Vertical frame. On {{DESK}}, Pip hunches over the amber remote with both rounded nubs on its glowing button, while beside him Bolt is only a faint see-through cyan outline. Handheld vertical medium shot, slight shake, 35mm, flickering light. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 8,
+     "gainDb": -20
+    },
+    {
+     "at": 0.2,
+     "prompt": "frantic rapid plastic button clicking, dozens of clicks",
+     "durationSec": 6,
+     "gainDb": -6
+    },
+    {
+     "at": 1,
+     "prompt": "flickering electrical whoosh and day-night swoosh",
+     "durationSec": 5,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 4,
+     "durationSec": 3,
+     "text": "REDO?!",
+     "position": "lower-third",
+     "style": "caption-bold",
+     "color": "#FFB020"
+    }
+   ],
+   "zooms": [
+    {
+     "at": 5.2,
+     "toScale": 1.35,
+     "overSec": 0.2,
+     "holdSec": 1.0
+    }
+   ],
+   "highlightWords": [
+    "REDO!"
+   ]
+  },
+  {
+   "label": "S17 Cake",
+   "sec": 6,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "...Why do I have cake?",
+     "at": 1.6
+    },
+    {
+     "speaker": "Pip",
+     "text": "Don't ask.",
+     "at": 4.2
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, with a bright pop of cyan light Bolt snaps back fully solid and glossy, standing upright, now holding a small plate with a slice of strawberry layer cake in one rounded hand; Pip freezes mid-press, the remote raised; Bolt's cyan rim flares. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{PIP}}. {{REMOTE}} Vertical frame. On {{DESK}}, Bolt stands fully solid and glossy holding a small plate with a slice of strawberry layer cake in one rounded hand; Pip beside him frozen mid-press, remote raised. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 6,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "a bright sparkly magical pop",
+     "durationSec": 1,
+     "gainDb": -4
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.6,
+     "durationSec": 2.5,
+     "text": "cake??",
+     "position": "lower-third",
+     "style": "caption-bold",
+     "color": "#22D3EE"
+    }
+   ],
+   "highlightWords": [
+    "cake?"
+   ]
+  },
+  {
+   "label": "S18 The drawer",
+   "sec": 5,
+   "lines": [
+    {
+     "speaker": "Pip",
+     "text": "Never again.",
+     "at": 2.8
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. Pip gently lays the amber remote, its arrow glowing gold, into an open wooden desk drawer, slides the drawer shut with both arms and pats it once. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. Pip stands at an open wooden desk drawer holding the amber remote above it, its arrow glowing gold. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 5,
+     "gainDb": -20
+    },
+    {
+     "at": 1.5,
+     "prompt": "a wooden drawer sliding shut with a soft knock",
+     "durationSec": 1.2,
+     "gainDb": -6
+    }
+   ]
+  },
+  {
+   "label": "S19 Un-close (reversed)",
+   "sec": 4,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. {{REV_NOTE}} Close on a wooden desk drawer: the drawer slides slowly shut, a warm gold glow from inside narrowing to a thin line and going dark; Pip stands perfectly still beside it, his back to the drawer. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{PIP}}. {{REMOTE}} Vertical frame. Close on a wooden desk drawer standing half open, warm gold glow spilling from inside; Pip stands still beside it, his back to the drawer. Locked-off vertical shot at desk-top level, static camera, 35mm, warm window light. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "reverse": true,
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{ROOM}}",
+     "durationSec": 4,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "a wooden drawer sliding, played backwards, with a slow creak",
+     "durationSec": 2,
+     "gainDb": -6
+    },
+    {
+     "at": 1.8,
+     "prompt": "{{TINK}}",
+     "durationSec": 1,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 2.5,
+     "text": "UNDO #9",
+     "position": "top",
+     "style": "title",
+     "color": "#FFC940"
+    }
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "playful marimba-led comedy underscore with light pizzicato strings and soft woodblock, curious and bouncy, steady tempo, instrumental, no vocals",
+  "gainDb": -18,
+  "underVoDb": -8
+ },
+ "sting": {
+  "at": 6.0,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "card",
+  "sec": 3,
+  "cta": "Full episode: Pip Built a Copy Machine. Now There Are Nine Bolts."
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "INK-05: Reverse beats (S2, S3, S4, S7, S9, S12, S14, S19) are generated forward and reversed by the worker: the keyframe is the FORWARD first frame, so it becomes the reversed LAST frame; check each reversed clip reads as a rewind and that Pip stays still in it (no moonwalk limb tangles). Remote: tiny, amber, one gold curved-arrow button, blank, never bigger than Pip's head; the gold matches the Nib (#FFC940). Drift: Pip keeps goggles + backpack in every shot; Bolt's scarf stays on (also in the S15 outline and the S17 cake return); Nova keeps staff + topknot; Brick keeps lime visor + thick limbs. S8/S9 sneeze: zero mouths or noses, the sneeze is a whole-body jolt. S14 sky: the sun stays in the sky, real rooftops, no flat gradient. S15 is CS4 with refs [1 Bolt, 2 Pip] (subset, tokens renumbered): check 9:16, outline stays see-through cyan, not a second Bolt. S16 flicker must not flatten into 2D. Labels only top (UNDO #n counter) or lower-third, never over faces. Audio: room-tone bed under every section plus music; drip-tink at 0, S10 and S19. Global gate (brief §0.3): accent hue shift >6 frames / missing accessory / size swap = re-roll; 3rd limb or fused/merged body ≥3 frames = re-roll; any mouth, nose, teeth, brows, smile, skin or human face even 1 frame = reject; realistic human hands or more than three nubs = re-roll; flat/white/empty bg, 2D look, lost rim light or blood = re-roll; any legible or pseudo-glyph text in a plate = mask or re-roll (all real text is Remotion labels). Check sourceSpec width/height/duration every clip."
+}

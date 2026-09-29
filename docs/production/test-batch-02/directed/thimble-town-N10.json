@@ -1,0 +1,266 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "Knitting a Scarf for a Frog",
+ "altTitles": [
+  "Tiny Knitting for a Cold Frog (Miniature ASMR)",
+  "Bramble Knits a Far-Too-Long Scarf"
+ ],
+ "description": "A frog shivers at the bakery door, so Bramble knits it a slate-grey scarf by the oven. It is a little too long. Wordless cozy miniature from Thimble Town.\n\n0:00 Click click\n0:06 Cold wind at the door\n0:18 Knitting by the oven\n1:06 Far too long\n1:26 Off it waddles\n1:36 Click again\n\nStories and worlds created with AI tools.\n#miniature #diorama #knitting #asmr #cozy",
+ "tags": [
+  "miniature",
+  "diorama",
+  "knitting",
+  "asmr",
+  "frog",
+  "hedgehog",
+  "cozy",
+  "Thimble Town"
+ ],
+ "topic": "TT-10 character micro-story Short: Bramble knits the frog walk-on its slate-grey scarf (loop)",
+ "sections": [
+  {
+   "sec": 6,
+   "label": "Click click",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked extreme macro with a slow pull-back, constant speed, no cuts. The needles click in a steady rhythm; the camera eases back to show Bramble knitting beside the oven, small toy-like movements.\n{{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\nAmbient motion: warm oven glow flicker, thread twitching off the spool. Lighting stays warm oven glow. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} two toothpick knitting needles mid-stitch {{FF}} {{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\n{{NOTEXT}}\nExtreme close-up: two toothpick knitting needles crossing mid-stitch with a few rows of slate-grey knitting on them, slate-grey thread running down to a cotton-thread spool, the real steel sewing pin lying on the coffee-stirrer floor right beside them; Bramble's paws, gold spectacles and sage cardigan just behind, the domed brick oven glowing.\n{{LIGHT_IN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} two toothpick knitting needles mid-stitch {{FF}} {{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\n{{NOTEXT}}\nSlightly wider: Bramble on a button stool beside the glowing domed oven knitting a short start of slate-grey scarf, the spool at her feet, the sewing pin on the floor.\n{{LIGHT_IN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{CLICK}}",
+     "durationSec": 6,
+     "gainDb": -4
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{OVEN_BED}}",
+     "durationSec": 6.0,
+     "gainDb": -18
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "sec": 12,
+   "label": "Cold wind at the door",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked low macro, constant speed, no cuts. The frog shivers as a gust tugs its leaf umbrella; it hugs itself; the bakery door opens a crack and warm light spills out, small toy-like movements.\n{{SET_BAKERY}}\n{{FROG}}\n{{FROG_BARE}}\n{{SCALE}}\nAmbient motion: leaves skittering past, the leaf umbrella flapping. Lighting stays grey windy afternoon with amber door glow. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} the frog shivering at the bakery door {{FF}} {{SET_BAKERY}}\n{{FROG}}\n{{FROG_BARE}}\n{{SCALE}}\n{{NOTEXT}}\nLow macro: the frog huddled on the doorstep of the arched bakery door, shivering, holding its broad green leaf against the wind, bare neck, leaves blowing past; the real sewing pin stuck upright in the moss beside the step.\n{{LIGHT_OUT}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} the frog shivering at the bakery door {{FF}} {{SET_BAKERY}}\n{{FROG}}\n{{FROG_BARE}}\n{{SCALE}}\n{{NOTEXT}}\nThe arched door opened a crack, warm amber light falling on the shivering frog on the doorstep, leaf umbrella held tight, bare neck, the sewing pin upright in the moss.\n{{LIGHT_OUT}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 7,
+     "prompt": "a small wooden door creaking open a crack, soft and warm",
+     "durationSec": 2,
+     "gainDb": -8
+    },
+    {
+     "at": 1,
+     "prompt": "a broad leaf flapping softly in the wind, papery flutter, close-mic",
+     "durationSec": 4,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{WIND_BED}}",
+     "durationSec": 12.0,
+     "gainDb": -14
+    }
+   ]
+  },
+  {
+   "sec": 48,
+   "label": "Knitting by the oven",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked eye-level macro with a very slow push-in, constant speed, no cuts. Bramble knits steadily, needles clicking; the slate-grey scarf grows across her lap and over her knees, small toy-like movements.\n{{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\nAmbient motion: warm oven glow flicker, the spool turning. Lighting stays warm oven glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}",
+   "segments": [
+    {
+     "sec": 24,
+     "prompt": "{{CONT}}\nof field. Camera: locked eye-level macro with a very slow push-in, constant speed, no cuts. Bramble knits steadily, needles clicking; the slate-grey scarf grows across her lap and over her knees, small toy-like movements.\n{{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\nAmbient motion: warm oven glow flicker, the spool turning. Lighting stays warm oven glow. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}"
+    },
+    {
+     "sec": 24,
+     "prompt": "{{CONT}}\nof field. Camera: locked eye-level macro with a very slow push-in continues, constant speed, no cuts. The scarf spills off her lap and coils across the floor, far too long; she casts off, snips the thread and holds it up, peering over her spectacles, small toy-like movements.\n{{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\nAmbient motion: warm oven glow flicker, the spool turning. Lighting stays warm oven glow. Warm cozy palette, fine film grain. {{VNEG}}"
+    }
+   ],
+   "keyframePrompt": "{{HDR}} Bramble knitting a slate-grey scarf by the oven {{FF}} {{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\n{{NOTEXT}}\nMedium macro: Bramble seated on a button stool beside the glowing domed brick oven, knitting with two toothpick needles, slate-grey thread feeding from the cotton spool at her feet, a slate-grey scarf growing across her lap; the sewing pin on the coffee-stirrer floor.\n{{LIGHT_IN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Bramble knitting a slate-grey scarf by the oven {{FF}} {{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\n{{NOTEXT}}\nBramble holding up the finished slate-grey scarf, peering over her gold spectacles; the scarf coils in long loops across the floor, the spool nearly empty, the oven glowing, the sewing pin on the floor.\n{{LIGHT_IN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "{{CLICK}}",
+     "durationSec": 22,
+     "gainDb": -8
+    },
+    {
+     "at": 22.0,
+     "prompt": "{{CLICK}}",
+     "durationSec": 22,
+     "gainDb": -8
+    },
+    {
+     "at": 44.5,
+     "prompt": "a tiny thread snipped with small scissors, one crisp snip",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{OVEN_BED}}",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22.0,
+     "prompt": "{{OVEN_BED}}",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 44.0,
+     "prompt": "{{OVEN_BED}}",
+     "durationSec": 4.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Far too long",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked eye-level macro, constant speed, no cuts. Bramble winds the scarf round and round; the frog vanishes into the loops up to its eyes; she tucks the end in; plenty still trails on the step, small toy-like movements.\n{{SET_BAKERY}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{FROG}}\n{{FROG_SCARF}}\n{{SCALE}}\nAmbient motion: scarf end stirring in the wind, leaves drifting. Lighting stays grey windy afternoon with amber door glow. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Bramble wrapping a long scarf around the frog {{FF}} {{SET_BAKERY}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{FROG}}\n{{FROG_SCARF}}\n{{SCALE}}\n{{NOTEXT}}\nMedium macro at the arched bakery door: Bramble winding the long slate-grey scarf around the frog's neck, loops piling up, the rest trailing across the doorstep in coils; the frog's leaf umbrella leaning on the door frame; the sewing pin upright in the moss.\n{{LIGHT_OUT}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Bramble wrapping a long scarf around the frog {{FF}} {{SET_BAKERY}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{FROG}}\n{{FROG_SCARF}}\n{{SCALE}}\n{{NOTEXT}}\nThe frog bundled in slate-grey scarf loops up to its eyes, a long tail of scarf trailing across the doorstep, Bramble adjusting her spectacles in the warm doorway, the sewing pin upright in the moss.\n{{LIGHT_OUT}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 1,
+     "prompt": "soft knitted wool wrapping and rustling, gentle fabric swishes, close-mic, no music",
+     "durationSec": 14,
+     "gainDb": -10
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{WIND_BED}}",
+     "durationSec": 20.0,
+     "gainDb": -16
+    }
+   ]
+  },
+  {
+   "sec": 10,
+   "label": "Off it waddles",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked low macro, constant speed, no cuts. The frog waddles off down the path, scarf trailing; Bramble gives a small wave from the doorway, small toy-like movements.\n{{SET_BAKERY}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{FROG}}\n{{FROG_SCARF}}\n{{SCALE}}\nAmbient motion: leaves drifting, scarf tail dragging. Lighting stays grey windy afternoon with amber door glow. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} the frog waddling away trailing its scarf {{FF}} {{SET_BAKERY}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{FROG}}\n{{FROG_SCARF}}\n{{SCALE}}\n{{NOTEXT}}\nLow macro down the mossy path from the bakery door: the frog waddling away holding its leaf umbrella, the far-too-long slate-grey scarf trailing behind it like a tail, Bramble watching from the warm doorway; the sewing pin upright in the moss.\n{{LIGHT_OUT}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} the frog waddling away trailing its scarf {{FF}} {{SET_BAKERY}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{FROG}}\n{{FROG_SCARF}}\n{{SCALE}}\n{{NOTEXT}}\nThe frog further down the mossy path, the scarf tail following it, Bramble in the warm doorway, the sewing pin upright in the moss.\n{{LIGHT_OUT}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 0.5,
+     "prompt": "small soft padded footsteps waddling on moss with a knitted scarf dragging behind, gentle, close-mic",
+     "durationSec": 8,
+     "gainDb": -10
+    },
+    {
+     "at": 3,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 6,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{WIND_BED}}",
+     "durationSec": 10.0,
+     "gainDb": -16
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "sec": 6,
+   "label": "Click again (loop)",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow push-in, constant speed, no cuts. Bramble casts on and the needles start clicking; the camera pushes in to the needles, arriving on the opening close-up, small toy-like movements.\n{{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\nAmbient motion: warm oven glow flicker. Lighting stays warm oven glow. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Bramble picking up her knitting again {{FF}} {{SET_BAKERY_IN}}\n{{BRAMBLE}}\n{{BRAMBLE_EARS}}\n{{SCALE}}\n{{NOTEXT}}\nMedium macro: Bramble back on her button stool by the glowing domed oven, picking up the toothpick needles with fresh slate-grey thread from the spool, the sewing pin on the coffee-stirrer floor.\n{{LIGHT_IN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "fromSection": 0
+   },
+   "sfx": [
+    {
+     "at": 1,
+     "prompt": "{{CLICK}}",
+     "durationSec": 5,
+     "gainDb": -5
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{OVEN_BED}}",
+     "durationSec": 6.0,
+     "gainDb": -18
+    }
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "gentle felt piano and soft plucked strings, warm and cozy, slow around 70 bpm, a little playful, instrumental, no vocals, no drums",
+  "gainDb": -20,
+  "underVoDb": 0
+ },
+ "sting": {
+  "at": 3,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: Building a Tiny Bakery Inside a Teapot"
+ },
+ "watermark": true,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. TT-10: Bramble keeps round spiny hedgehog ears (no rabbit/mouse ears, no bonnet or hat) and all marks; FROG is the verbatim batch lock: bare neck in section 2 only, then ONLY the slate-grey scarf (never cream/terracotta/other); scarf ~12 cm, far longer than the frog; toothpick needles ~4 cm; sewing pin visible in every section (frame 1 especially); click rhythm continuous under the knitting, no gap >1.5s; sections 1→2 and 5→6 are intended hard cuts; loop lands on the section 1 keyframe (needles close-up).",
+ "snippets": {
+  "HDR": "Miniature diorama photograph, 85mm macro lens look, deep focus:",
+  "FF": "in crisp focus and the whole scene sharp right to the top and bottom edges of the frame; the photograph fills the entire frame edge to edge, with no borders, no bars, no blurred bands, no letterbox, no frame-within-frame, no signature or watermark.",
+  "CONT": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth",
+  "TAIL": "Fine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+  "NOTEXT": "All surfaces are blank painted wood, tin, felt or ceramic, or carry simple painted icons only (a bowl, a loaf, a star); there are no letters, numbers or words anywhere in the picture. The residents are handmade figurines with felted or resin paws, wings or bodies, never human hands.",
+  "VNEG": "Wordless: no talking mouths. No text, lettering, numbers or signage anywhere; icons only. No human hands or fingers, no people, no photoreal animals; handmade figurine textures only.",
+  "BRAMBLE": "BRAMBLE — an elderly hedgehog baker and tea-keeper, hand-painted resin figurine, soft\nbrown-grey quills with cream tips, round gold wire spectacles, a sage-green knit cardigan\nwith two wooden buttons, a flour-dusted cream apron. About 3.5 cm tall. Slow, warm,\ngrandmotherly. Runs \"Bramble's Bakery & Tea\" in a teapot-shaped building.",
+  "BRAMBLE_EARS": "BRAMBLE HEAD LOCK: small round spiny hedgehog ears half-hidden in the quills, a pointed hedgehog snout with a black button nose; no rabbit ears, no mouse ears, no long or upright ears, no bonnet, no hat, no headscarf.",
+  "FROG": "FROG (walk-on, batch lock) — an unnamed frog traveller, needle-felted moss-green figurine with a cream belly and tiny black bead eyes, a slate-grey knit scarf, carrying a broad green leaf as an umbrella. About 3 cm tall.",
+  "SET_BAKERY": "Bramble's Bakery & Tea: hand-built\nminiature two-storey bakery on a mossy hill made from a round cream ceramic teapot with an arched wooden door cut into its belly, four small mica-paned windows, the lid as the roof with a chimney through the knob and the spout as a bay window (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SET_BAKERY_IN": "Inside the teapot bakery: hand-built\nminiature bakery interior made from the curved cream ceramic inner wall of a teapot, coffee-stirrer floorboards, a domed oven of rice-grain clay bricks, toothpick shelves with bead jars and tea-bag flour sacks (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SCALE": "SCALE LOCK: Bramble about 3.5 cm tall; the frog about 3 cm tall; the knitting needles are two real wooden toothpicks trimmed to about 4 cm, a little taller than Bramble; the cotton-thread spool a real sewing spool about 2 cm tall, waist-high to Bramble; the finished scarf about 12 cm long, four times the frog's height; a real steel sewing pin, about 2.5 cm, lies in frame as the real-object scale cue.",
+  "FROG_BARE": "SCARF STATE (this shot): the frog's neck is still bare; the slate-grey knit scarf of its lock is the one Bramble is about to knit, so it is not on yet; no other scarf, no hat.",
+  "FROG_SCARF": "SCARF STATE (this shot): the frog now wears the new slate-grey knit scarf of its lock, far too long, looped around its neck with a long tail trailing on the ground; slate-grey only, no other colour.",
+  "LIGHT_IN": "Lighting: warm oven glow and interior practical lamp light, a grey windy afternoon beyond the mica windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: cold gusty wind outside. Season: late autumn: leaf drifts, acorn caps and pumpkin lanterns.",
+  "LIGHT_OUT": "Lighting: grey windy late-autumn afternoon, cool slate light, warm amber glow spilling from the bakery door and windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: cold gusty wind, leaves skittering. Season: late autumn: leaf drifts, acorn caps and pumpkin lanterns.",
+  "CLICK": "two small wooden knitting needles clicking in a steady gentle rhythm, soft yarn slipping, close ASMR, no music",
+  "OVEN_BED": "a soft warm little oven hum with gentle crackling, cozy, quiet, no music",
+  "WIND_BED": "a cold gentle autumn wind gusting softly around a small building, dry leaves skittering, seamless, no voices, no music"
+ }
+}

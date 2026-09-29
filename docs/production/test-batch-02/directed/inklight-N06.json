@@ -1,0 +1,587 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "The Eraser Is Coming",
+ "altTitles": [
+  "A Giant Eraser Is Deleting Their World",
+  "You Can't Erase Brick"
+ ],
+ "description": "Something is erasing the page. Brick has to carry Bolt to the edge... and then stop running. #stickfigure #animation #shorts",
+ "tags": [
+  "stick figure",
+  "animation",
+  "3d animation",
+  "action",
+  "eraser",
+  "INKLIGHT",
+  "Brick",
+  "Bolt",
+  "shorts"
+ ],
+ "topic": "INK-06 heart/horror-lite (Brick lead, with Bolt): a real eraser wipes the page; lore: heavy lines can't be erased",
+ "snippets": {
+  "STYLE": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading.",
+  "LOCK": "Faces are two glowing eye-dots only: no mouth, no nose, no teeth, no brows, no smile. Each figure is one separate distinct body that never merges or fuses with another figure or object. Arms end in simple rounded tips with at most three rounded nubs, never realistic human hands. Every figure keeps its signature accessories in every frame. Consistent glossy 3D render throughout, never flat 2D. Every surface is blank and unmarked, with no readable text or letters; any sign shows a simple icon only.",
+  "BOLT": "BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving",
+  "BRICK": "BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes",
+  "NEG": "Avoid: text, letters, numbers, readable signs, logos, mouths, noses, teeth, eyebrows, smiles, human faces, skin, hair, realistic human hands, five-finger hands, clothing beyond the listed accessories, extra limbs, fused or merged bodies, flat 2D cartoon look, blood, gore, flat or empty backgrounds.",
+  "KF": "stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Deep focus, sharp to the frame edges, full-frame image with no borders or letterbox bands. Vertical 9:16 frame.",
+  "TINK": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+  "ERASER": "THE ERASER: a giant real pink rubber pencil eraser, a physical macro-photographed object taller than a house, soft matte rubber with fine grain, slightly rounded worn edges and pink-grey rubber crumbs, lit like a macro product shot; an inanimate object with no face, no eyes, no mouth and no limbs, NOT a creature, NOT a character; its blank sides carry no printing, logo or letters.",
+  "PAPER": "a vast sheet of real cream drawing paper stretching to the horizon like a landscape, visible paper fibre, gentle folds rising into soft hills, dotted with glossy 3D black-ink drawn landmarks (ink-line trees, a lighthouse, an arched bridge, a windmill), warm late-afternoon sun, volumetric haze",
+  "BLANK": "The erased strip behind the eraser is real blank white paper with visible fibre, soft 3D shading and scattered grey rubber crumbs, never a flat white void.",
+  "WIND": "open wind across a vast paper field, soft paper rustle, seamless",
+  "SCRUB": "a giant rubber eraser scrubbing across paper: deep rubbery squeak, paper friction and crumbling rubber, heavy and relentless"
+ },
+ "cast": {
+  "Brick": {
+   "color": "#7CFF4F"
+  },
+  "Bolt": {
+   "color": "#22D3EE"
+  }
+ },
+ "sections": [
+  {
+   "label": "S1 Hook: the Eraser",
+   "sec": 7,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "...Is the ground disappearing?",
+     "at": 3.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{ERASER}} Vertical frame. Across {{PAPER}}, the giant pink eraser slides sideways toward camera, and an ink-line tree vanishes under it into crumbs, leaving a clean blank strip. {{BLANK}} Brick stands in the lower-right foreground, turns to look, and his lime rim light dims. Locked-off low vertical wide shot, static camera, 24mm, warm late-afternoon light, long shadows. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{ERASER}} Vertical frame. Across {{PAPER}}, the giant pink eraser sits on the horizon beside an ink-line tree; Brick stands in the lower-right foreground, lime rim glowing, looking toward it. Locked-off low vertical wide shot, static camera, 24mm, warm late-afternoon light, long shadows. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{TINK}}",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 7,
+     "gainDb": -20
+    },
+    {
+     "at": 0.5,
+     "prompt": "{{SCRUB}}",
+     "durationSec": 6.5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.5,
+     "durationSec": 2.5,
+     "text": "BRICK",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#7CFF4F"
+    }
+   ]
+  },
+  {
+   "label": "S2 Run",
+   "sec": 12,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "RUN, Brick!",
+     "at": 1
+    },
+    {
+     "speaker": "Brick",
+     "text": "I AM running!",
+     "at": 5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. Bolt and Brick sprint toward camera across {{PAPER}}, Bolt's cyan scarf streaming light, Brick's thick legs pounding and shaking crumbs loose; far behind them the giant pink eraser sweeps an ink-drawn lighthouse away, leaving blank paper. {{BLANK}} Vertical tracking shot moving backward ahead of them, 35mm, warm light, dust and crumbs in the air. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. Bolt and Brick sprint toward camera across {{PAPER}}, Bolt's cyan scarf streaming, the giant pink eraser behind them beside an ink-drawn lighthouse. Vertical tracking shot moving backward ahead of them, 35mm, warm light, dust and crumbs in the air. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 12,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{SCRUB}}",
+     "durationSec": 12,
+     "gainDb": -10
+    },
+    {
+     "at": 0.5,
+     "prompt": "heavy thudding footsteps with lighter quick footsteps on paper",
+     "durationSec": 11,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0.8,
+     "durationSec": 2.5,
+     "text": "BOLT",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#22D3EE"
+    }
+   ]
+  },
+  {
+   "label": "S3 Landmarks",
+   "sec": 11,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "It took the bridge!",
+     "at": 3
+    },
+    {
+     "speaker": "Brick",
+     "text": "I liked that bridge.",
+     "at": 7
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. High wide view over {{PAPER}}: the giant pink eraser scrubs across an ink-drawn arched bridge and then a windmill, and both vanish into grey rubber crumbs, leaving blank paper. {{BLANK}} Bolt and Brick run as tiny cyan and lime lights in the lower foreground. Slow vertical crane-down from high wide, 24mm, warm haze. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. High wide view over {{PAPER}}: the giant pink eraser approaches an ink-drawn arched bridge and a windmill; tiny Bolt and Brick run in the lower foreground. Slow vertical crane-down from high wide, 24mm, warm haze. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 11,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{SCRUB}}",
+     "durationSec": 11,
+     "gainDb": -8
+    },
+    {
+     "at": 2.5,
+     "prompt": "a large ink structure crumbling into dry rubber crumbs",
+     "durationSec": 2.5,
+     "gainDb": -8
+    }
+   ]
+  },
+  {
+   "label": "S4 Closing in",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "It's getting faster!",
+     "at": 3
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. Low angle from behind Bolt and Brick as they run away from camera, looking back over their shoulders: the giant pink eraser's rounded edge looms over them, rubber crumbs raining like hail, its shadow sliding over the paper; Brick's lime rim dims. Vertical tracking shot following behind, 24mm, the eraser's shadow darkening the frame. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. Low angle from behind Bolt and Brick running, the giant pink eraser's rounded edge looming above them, crumbs in the air. Vertical tracking shot following behind, 24mm, the eraser's shadow darkening the frame. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 10,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{SCRUB}}",
+     "durationSec": 10,
+     "gainDb": -6
+    },
+    {
+     "at": 1,
+     "prompt": "rubber crumbs pattering down like hail on paper",
+     "durationSec": 7,
+     "gainDb": -12
+    }
+   ]
+  },
+  {
+   "label": "S5 Bolt freezes",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "Bolt? BOLT!",
+     "at": 3.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. On {{PAPER}}, Bolt stops dead and turns to face the looming giant pink eraser, frozen, his cyan scarf hanging limp, his cyan rim flickering dim; ahead of him Brick skids to a stop and looks back. Locked-off vertical medium-wide shot, static camera, 35mm, the eraser's shadow creeping in. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. On {{PAPER}}, Bolt stands frozen facing the looming giant pink eraser, scarf limp, cyan rim dim; Brick ahead of him mid-skid, looking back. Locked-off vertical medium-wide shot, static camera, 35mm, the eraser's shadow creeping in. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 10,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{SCRUB}}",
+     "durationSec": 10,
+     "gainDb": -12
+    },
+    {
+     "at": 0.5,
+     "prompt": "a slow low heartbeat thump with a thin high ringing tone",
+     "durationSec": 6,
+     "gainDb": -10
+    },
+    {
+     "at": 2.5,
+     "prompt": "a heavy skid on paper",
+     "durationSec": 1,
+     "gainDb": -8
+    }
+   ],
+   "zooms": [
+    {
+     "at": 1.2,
+     "toScale": 1.3,
+     "overSec": 0.2,
+     "holdSec": 1.5
+    }
+   ]
+  },
+  {
+   "label": "S6 Brick carries him",
+   "sec": 20,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "I got you.",
+     "at": 2
+    },
+    {
+     "speaker": "Bolt",
+     "text": "Brick... your rim's dim.",
+     "at": 9
+    },
+    {
+     "speaker": "Brick",
+     "text": "Still got you.",
+     "at": 13.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{BOLT}}. {{ERASER}} Vertical frame. On {{PAPER}}, Brick runs back, scoops the frozen Bolt up in both thick arms and carries him, pounding forward across the paper toward camera, each step shaking crumbs loose, the giant pink eraser sweeping in the background; Bolt's cyan scarf trails over Brick's thick arm, and Brick's lime rim holds steady. Vertical tracking shot moving backward ahead of them, 35mm, warm light, crumbs in the air. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{BOLT}}. {{ERASER}} Vertical frame. On {{PAPER}}, Brick carries Bolt in both thick arms, running toward camera, the giant pink eraser in the background. Vertical tracking shot moving backward ahead of them, 35mm, warm light, crumbs in the air. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 20,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{SCRUB}}",
+     "durationSec": 20,
+     "gainDb": -12
+    },
+    {
+     "at": 0.5,
+     "prompt": "heavy steady thudding footsteps on paper, a big runner",
+     "durationSec": 19,
+     "gainDb": -10
+    },
+    {
+     "at": 12.5,
+     "prompt": "a low warm tuba note swelling",
+     "durationSec": 3,
+     "gainDb": -12
+    }
+   ],
+   "highlightWords": [
+    "Still"
+   ]
+  },
+  {
+   "label": "S7 The page edge",
+   "sec": 12,
+   "lines": [
+    {
+     "speaker": "Bolt",
+     "text": "End of the page.",
+     "at": 4
+    },
+    {
+     "speaker": "Brick",
+     "text": "...Then we stop here.",
+     "at": 8
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. Vertical frame. Brick skids to a stop at the torn, fibrous edge of the paper sheet; beyond it a sheer drop down to a real dark wooden desk far below; Brick gently sets Bolt down on his feet, and both look over the edge. Locked-off vertical wide shot from beyond the edge looking back at them, static camera, 24mm, warm light, deep drop below. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. Vertical frame. Brick, carrying Bolt, stands at the torn fibrous edge of a vast paper sheet, a sheer drop to a real dark wooden desk far below. Locked-off vertical wide shot from beyond the edge looking back at them, static camera, 24mm, warm light, deep drop below. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 12,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{SCRUB}}",
+     "durationSec": 12,
+     "gainDb": -14
+    },
+    {
+     "at": 0.3,
+     "prompt": "a heavy skid and a small tear of paper",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 3,
+     "prompt": "a deep hollow wind rising from a great drop",
+     "durationSec": 8,
+     "gainDb": -14
+    }
+   ]
+  },
+  {
+   "label": "S8 Turn around",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. At the torn paper edge, Bolt and Brick turn around; the giant pink eraser advances and fills the upper frame, macro rubber grain and crumbs sharp in the light; Brick steps in front of Bolt, his lime rim still dim. Locked-off low vertical shot from behind them, static camera, 24mm, the eraser's shadow over them. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. At the torn paper edge, Bolt and Brick seen from behind, facing the giant pink eraser advancing toward them and filling the upper frame. Locked-off low vertical shot from behind them, static camera, 24mm, the eraser's shadow over them. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 8,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{SCRUB}}",
+     "durationSec": 8,
+     "gainDb": -4
+    },
+    {
+     "at": 4,
+     "prompt": "one heavy footstep planted on paper",
+     "durationSec": 0.8,
+     "gainDb": -8
+    }
+   ],
+   "zooms": [
+    {
+     "at": 5.5,
+     "toScale": 1.3,
+     "overSec": 0.2,
+     "holdSec": 1.2
+    }
+   ]
+  },
+  {
+   "label": "S9 Hold the line",
+   "sec": 12,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "Not. Him.",
+     "at": 4
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} <<<image_1>>> {{BOLT}}. <<<image_2>>> {{BRICK}}. {{ERASER}} Vertical frame. At the torn edge of the paper sheet, Brick plants his thick feet and braces both thick arms flat against the front face of the giant pink eraser; it shoves him backward, his feet carving two grooves in the paper, rubber crumbs spraying; Bolt stands just behind him; Brick's lime rim starts to glow brighter. Locked-off low vertical side shot, static camera, anamorphic, warm late-afternoon light, crumbs in the air. {{NEG}} genre=action pacing=single-shot camera_model=modern camera_lens=anamorphic color_palette=oil-ochre",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. {{ERASER}} Vertical frame. At the torn edge of the paper sheet, Brick stands braced with both thick arms flat against the front face of the giant pink eraser, Bolt just behind him. Locked-off low vertical side shot, static camera, anamorphic, warm late-afternoon light, crumbs in the air. {{NEG}} {{KF}}",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "oil-ochre"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 12,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "{{SCRUB}}",
+     "durationSec": 12,
+     "gainDb": -4
+    },
+    {
+     "at": 1,
+     "prompt": "heavy feet sliding and carving grooves in thick paper under strain",
+     "durationSec": 7,
+     "gainDb": -8
+    },
+    {
+     "at": 3.8,
+     "prompt": "a single deep tuba note, determined",
+     "durationSec": 2,
+     "gainDb": -10
+    }
+   ],
+   "zooms": [
+    {
+     "at": 4,
+     "toScale": 1.3,
+     "overSec": 0.2,
+     "holdSec": 1.5
+    }
+   ],
+   "highlightWords": [
+    "Him."
+   ]
+  },
+  {
+   "label": "S10 Too heavy",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "N",
+     "text": "Heavy lines can't be erased.",
+     "at": 3.2
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{BOLT}}. {{ERASER}} Vertical frame. Close on the contact point: the giant pink eraser grinds and squeaks against Brick's thick braced arms and stops dead; its pink rubber face smudges grey where it touches him, but his thick black ink lines stay solid, glossy and whole; Bolt watches from behind. Locked-off vertical close shot, static camera, 50mm macro, warm light, crumbs hanging in the air. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{BOLT}}. {{ERASER}} Vertical frame. Close on Brick's thick braced arms pressed against the pink rubber face of the giant eraser, Bolt behind him. Locked-off vertical close shot, static camera, 50mm macro, warm light, crumbs hanging in the air. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 8,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "a giant rubber eraser squealing and grinding to a stop",
+     "durationSec": 2.5,
+     "gainDb": -6
+    },
+    {
+     "at": 3,
+     "prompt": "{{TINK}}",
+     "durationSec": 1,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 3.2,
+     "durationSec": 3.5,
+     "text": "heavy lines can't be erased",
+     "position": "lower-third",
+     "style": "label",
+     "color": "#7CFF4F"
+    }
+   ],
+   "highlightWords": [
+    "Heavy",
+    "erased."
+   ]
+  },
+  {
+   "label": "S11 The flare",
+   "sec": 4,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{BOLT}}. {{ERASER}} Vertical frame. The giant pink eraser slides backward away from Brick across the paper toward the horizon; Brick straightens and his lime rim light flares brighter than ever, green light blooming across the paper; Bolt beside him, his cyan rim returning. Locked-off low vertical wide shot, static camera, 24mm, warm light, lime bloom. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BRICK}}. {{BOLT}}. {{ERASER}} Vertical frame. Brick stands straight at the paper edge, the giant pink eraser just starting to slide away from him, Bolt beside him. Locked-off low vertical wide shot, static camera, 24mm, warm light, lime bloom. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 4,
+     "gainDb": -20
+    },
+    {
+     "at": 0,
+     "prompt": "a warm triumphant brass and tuba swell hit",
+     "durationSec": 3,
+     "gainDb": -4
+    },
+    {
+     "at": 0.5,
+     "prompt": "a giant rubber eraser sliding away across paper, fading",
+     "durationSec": 3,
+     "gainDb": -12
+    }
+   ]
+  },
+  {
+   "label": "S12 Payoff: the flower",
+   "sec": 6,
+   "lines": [
+    {
+     "speaker": "Brick",
+     "text": "It's perfect.",
+     "at": 3.8
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. Vertical frame. On the blank erased patch of real white paper, Bolt kneels and traces a flower with the rounded tip of his arm, leaving a glowing glossy black ink line; the flower sprouts up into a small 3D ink flower that grows lopsided and leans to one side; Brick stands behind, his lime rim bright. Locked-off vertical medium shot, static camera, 35mm, soft golden light. {{NEG}}",
+   "keyframePrompt": "{{STYLE}} {{LOCK}} {{BOLT}}. {{BRICK}}. Vertical frame. On a blank erased patch of real white paper with visible fibre, Bolt kneels with the rounded tip of his arm touching the paper; Brick stands behind him, lime rim bright. Locked-off vertical medium shot, static camera, 35mm, soft golden light. {{NEG}} {{KF}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{WIND}}",
+     "durationSec": 6,
+     "gainDb": -20
+    },
+    {
+     "at": 0.3,
+     "prompt": "a soft ink line being drawn, gentle scratch and shimmer",
+     "durationSec": 2,
+     "gainDb": -10
+    },
+    {
+     "at": 2.3,
+     "prompt": "a tiny springy sprout pop, slightly wobbly",
+     "durationSec": 1,
+     "gainDb": -8
+    }
+   ],
+   "highlightWords": [
+    "perfect."
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "tense tuba-led chase underscore with low strings and ticking percussion, building urgency, then warm and hopeful, instrumental, no vocals",
+  "gainDb": -18,
+  "underVoDb": -8
+ },
+ "sting": {
+  "at": 5.5,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "card",
+  "sec": 3,
+  "cta": "Full episode: The Biggest Stick Figure Is Afraid of the Dark"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "INK-06: The Eraser is a real macro-lit pink rubber eraser OBJECT: any face, eyes, mouth, limbs or creature read = reject; no printing or letters on its sides. Erased paper stays real paper (fibre, 3D shading, crumbs), never a flat white void. Drift: Bolt keeps his cyan scarf in every shot (incl. when carried); Brick keeps his lime visor and limbs visibly three times thicker than Bolt's. Rim cues: Brick dims S1/S4/S8, steady S6, brightens S9, flares S11; Bolt dims S5, returns S11. Limbs: S6 carry and S9 brace are the fused-body risks; Bolt and Brick must read as two separate bodies, arms end in rounded tips, no human hands. S9 is CS4 with refs [1 Bolt, 2 Brick] (subset, tokens renumbered): check 9:16 and that the eraser stays an object. Labels lower-third only, never over faces. Audio: wind bed + eraser scrub under every section plus music; drip-tink at 0 and on the lore line (S10). Global gate (brief §0.3): accent hue shift >6 frames / missing accessory / size swap = re-roll; 3rd limb or fused/merged body ≥3 frames = re-roll; any mouth, nose, teeth, brows, smile, skin or human face even 1 frame = reject; flat/white/empty bg, 2D look, lost rim light or blood = re-roll; any legible or pseudo-glyph text in a plate = mask or re-roll (all real text is Remotion labels). Check sourceSpec width/height/duration every clip."
+}

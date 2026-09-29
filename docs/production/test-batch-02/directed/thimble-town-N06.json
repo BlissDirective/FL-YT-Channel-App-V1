@@ -1,0 +1,368 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "Building a Boat from a Walnut Shell",
+ "altTitles": [
+  "Tiny Walnut-Shell Boat Build (Miniature ASMR)",
+  "Wren's Walnut Boat Sets Sail"
+ ],
+ "description": "The builder beetles sand a walnut shell, fit a toothpick mast and stitch a leaf sail, and Wren takes it out on the Teacup Harbour. Wordless miniature build ASMR from Thimble Town.\n\n0:00 Result flash\n0:05 Sanding the shell\n0:45 The toothpick mast\n1:25 Stitching the leaf sail\n2:05 Wren inspects\n2:25 Launch\n\nStories and worlds created with AI tools.\n#miniature #diorama #asmr #tinybuild #walnut",
+ "tags": [
+  "miniature",
+  "diorama",
+  "tiny build",
+  "asmr",
+  "walnut shell",
+  "boat",
+  "cozy",
+  "Thimble Town"
+ ],
+ "topic": "TT-06 build Short: walnut-shell boat by the builder beetles, Wren launches it (result flash, loop)",
+ "sections": [
+  {
+   "sec": 5,
+   "label": "Result flash",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow lateral macro dolly left-to-right at water level, constant speed, no cuts. The walnut-shell boat glides across the calm water, leaf sail full, Wren looking ahead from the bow, small toy-like movements.\n{{SET_HARBOUR}}\n{{WREN}}\n{{SCALE}}\nAmbient motion: soft ripples, sun sparkles on the water. Lighting stays bright soft autumn morning. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} the finished walnut-shell boat sailing {{FF}} {{SET_HARBOUR}}\n{{WREN}}\n{{SCALE}}\n{{NOTEXT}}\nLow macro just above calm water: the finished walnut-shell boat with a toothpick mast and a red-gold leaf sail gliding across the Teacup Harbour, Wren sitting in the bow as lookout; the real sewing needle lying along the clothes-peg jetty in the foreground.\n{{LIGHT_HARB}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} the finished walnut-shell boat sailing {{FF}} {{SET_HARBOUR}}\n{{WREN}}\n{{SCALE}}\n{{NOTEXT}}\nThe walnut-shell boat a little further across the calm harbour, leaf sail full, Wren in the bow, the sewing needle on the jetty in the foreground.\n{{LIGHT_HARB}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "a tiny boat hull gliding through calm water, soft ripple and gentle wake, close-mic, no music",
+     "durationSec": 5,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 5.0,
+     "gainDb": -16
+    }
+   ],
+   "transitionOut": "cut"
+  },
+  {
+   "sec": 40,
+   "label": "Sanding the shell",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked top-down with a very slow clockwise rotate, constant speed, no cuts. The three beetles push the emery board back and forth along the ridged back of the upturned shell; fine brown dust puffs with each stroke, small toy-like movements.\n{{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: fine walnut dust drifting in the sun, water sparkle at the frame edge. Lighting stays bright soft autumn morning. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "{{CONT}}\nof field. Camera: locked top-down with a very slow clockwise rotate, constant speed, no cuts. The three beetles push the emery board back and forth along the ridged back of the upturned shell; fine brown dust puffs with each stroke, small toy-like movements.\n{{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: fine walnut dust drifting in the sun, water sparkle at the frame edge. Lighting stays bright soft autumn morning. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}"
+    },
+    {
+     "sec": 20,
+     "prompt": "{{CONT}}\nof field. Camera: locked top-down with a very slow clockwise rotate continues, constant speed, no cuts. The beetles flip the shell upright and sand its rim smooth, then brush the dust away with their caps; the shell gleams pale gold, small toy-like movements.\n{{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: fine walnut dust drifting in the sun, water sparkle at the frame edge. Lighting stays bright soft autumn morning. Warm cozy palette, fine film grain. {{VNEG}}"
+    }
+   ],
+   "keyframePrompt": "{{HDR}} the builder beetles sanding an empty walnut half-shell {{FF}} {{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nTop-down macro on the jetty: the empty, rough half walnut shell upturned, the three builder beetles pushing a real emery board along its ridged back; fine brown dust; the toothpick, thread spool, sewing needle and red-gold leaf laid out beside it.\n{{LIGHT_HARB}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} the builder beetles sanding an empty walnut half-shell {{FF}} {{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nThe half walnut shell turned upright, sanded smooth and pale gold with an even rim, the emery board laid aside, the three beetles standing beside it, the toothpick, spool, needle and leaf laid out on the jetty.\n{{LIGHT_HARB}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 0.0,
+     "prompt": "{{SAND}}",
+     "durationSec": 22,
+     "gainDb": -9
+    },
+    {
+     "at": 22.0,
+     "prompt": "{{SAND}}",
+     "durationSec": 12.0,
+     "gainDb": -9
+    },
+    {
+     "at": 35,
+     "prompt": "a tiny cloth cap brushing dust off a smooth shell, soft whisk, close-mic",
+     "durationSec": 3,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 22,
+     "gainDb": -18
+    },
+    {
+     "at": 22.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 18.0,
+     "gainDb": -18
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 1.5,
+     "text": "sand",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "The toothpick mast",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Two beetles lower the toothpick mast into the putty and press it upright while the third steadies it with the thread line, small toy-like movements.\n{{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: water sparkle, the thread line swaying. Lighting stays bright soft autumn morning. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "{{CONT}}\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Two beetles lower the toothpick mast into the putty and press it upright while the third steadies it with the thread line, small toy-like movements.\n{{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: water sparkle, the thread line swaying. Lighting stays bright soft autumn morning. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}"
+    },
+    {
+     "sec": 20,
+     "prompt": "{{CONT}}\nof field. Camera: slow lateral macro dolly left-to-right continues, constant speed, no cuts. The beetles tie two thread stays from the masthead to the rim, tap the mast straight and step back to check it, small toy-like movements.\n{{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: water sparkle, the thread line swaying. Lighting stays bright soft autumn morning. Warm cozy palette, fine film grain. {{VNEG}}"
+    }
+   ],
+   "keyframePrompt": "{{HDR}} the beetles setting a toothpick mast in the walnut shell {{FF}} {{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nSide macro: two builder beetles lowering a trimmed toothpick mast into a dab of grey putty in the centre of the smooth walnut shell while the third steadies it with a cream thread line; the emery board, spool, sewing needle and red-gold leaf on the jetty.\n{{LIGHT_HARB}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} the beetles setting a toothpick mast in the walnut shell {{FF}} {{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nThe toothpick mast standing straight in the smooth walnut shell with two taut cream thread stays to the rim, the three beetles beside it, spool, needle and leaf on the jetty.\n{{LIGHT_HARB}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 3,
+     "prompt": "a wooden toothpick pressed into soft putty, gentle squish, close ASMR",
+     "durationSec": 2,
+     "gainDb": -8
+    },
+    {
+     "at": 22,
+     "prompt": "fine cotton thread pulled and knotted, soft whisper of thread, close ASMR, no music",
+     "durationSec": 10,
+     "gainDb": -12
+    },
+    {
+     "at": 34,
+     "prompt": "two tiny wooden taps on a toothpick",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 22.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 18.0,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 1.5,
+     "text": "mast",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 40,
+   "label": "Stitching the leaf sail",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked three-quarter macro, very slow push-in, constant speed, no cuts. A beetle pushes the needle through the leaf edge and pulls the cream thread through, stitch after stitch, while the others hold the leaf flat and feed thread, small toy-like movements.\n{{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: the leaf edge fluttering, water sparkle. Lighting stays bright soft autumn morning. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "{{CONT}}\nof field. Camera: locked three-quarter macro, very slow push-in, constant speed, no cuts. A beetle pushes the needle through the leaf edge and pulls the cream thread through, stitch after stitch, while the others hold the leaf flat and feed thread, small toy-like movements.\n{{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: the leaf edge fluttering, water sparkle. Lighting stays bright soft autumn morning. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}"
+    },
+    {
+     "sec": 20,
+     "prompt": "{{CONT}}\nof field. Camera: locked three-quarter macro, very slow push-in continues, constant speed, no cuts. The beetles raise the leaf against the toothpick mast and stitch it on top and bottom; the leaf sail catches a small breeze, small toy-like movements.\n{{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: the leaf edge fluttering, water sparkle. Lighting stays bright soft autumn morning. Warm cozy palette, fine film grain. {{VNEG}}"
+    }
+   ],
+   "keyframePrompt": "{{HDR}} a beetle stitching a leaf sail with needle and thread {{FF}} {{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nClose macro: a builder beetle pushing the real steel sewing needle, trailing cream thread, through the edge of a red-gold autumn leaf held flat by a second beetle; the walnut boat with its toothpick mast beside them; the third beetle feeding thread from the spool.\n{{LIGHT_HARB}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} a beetle stitching a leaf sail with needle and thread {{FF}} {{SET_BOATYARD}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nThe finished boat: smooth walnut shell, toothpick mast and a red-gold leaf sail stitched to it with cream thread, the three beetles admiring it, the needle and spool on the jetty.\n{{LIGHT_HARB}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 1,
+     "prompt": "a fine needle piercing a dry leaf and thread drawn through, soft crisp pops and whispers, slow repeating ASMR, no music",
+     "durationSec": 18,
+     "gainDb": -9
+    },
+    {
+     "at": 21,
+     "prompt": "a fine needle piercing a dry leaf and thread drawn through, soft crisp pops and whispers, slow repeating ASMR, no music",
+     "durationSec": 12,
+     "gainDb": -9
+    },
+    {
+     "at": 35,
+     "prompt": "a small dry leaf sail catching a puff of breeze, soft papery flutter",
+     "durationSec": 2,
+     "gainDb": -10
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 22.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 18.0,
+     "gainDb": -16
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 1.5,
+     "text": "sail",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Wren inspects",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked eye-level macro, constant speed, no cuts. Wren taps the hull with her beak, tugs a sail thread, hops into the shell and gives a small nod, small toy-like movements.\n{{SET_BOATYARD}}\n{{WREN}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: leaf sail stirring, water sparkle. Lighting stays bright soft autumn morning. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Wren inspecting the new walnut boat {{FF}} {{SET_BOATYARD}}\n{{WREN}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nMedium macro on the jetty: Wren hopping up beside the finished walnut-shell boat and peering along its toothpick mast with her head tilted, the three builder beetles waiting beside the hull; the sewing needle and spool on the planks.\n{{LIGHT_HARB}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Wren inspecting the new walnut boat {{FF}} {{SET_BOATYARD}}\n{{WREN}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nWren sitting in the bow of the walnut-shell boat with a small approving nod, the three beetles holding the cream mooring thread, the needle and spool on the planks.\n{{LIGHT_HARB}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 3,
+     "prompt": "a small bird beak tapping a hard walnut shell, two light hollow taps",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 9,
+     "prompt": "a tiny bird hopping into a small wooden shell, soft flutter and a light hollow knock",
+     "durationSec": 2,
+     "gainDb": -10
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 20.0,
+     "gainDb": -16
+    }
+   ]
+  },
+  {
+   "sec": 35,
+   "label": "Launch (loop)",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow lateral macro dolly left-to-right at water level, constant speed, no cuts. The beetles push, the boat slides into the water and wobbles side to side; Wren spreads her wings for balance; it steadies and the leaf sail fills, small toy-like movements.\n{{SET_HARBOUR}}\n{{WREN}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: ripples spreading, sun sparkles. Lighting stays bright soft autumn morning. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}",
+   "segments": [
+    {
+     "sec": 20,
+     "prompt": "{{CONT}}\nof field. Camera: slow lateral macro dolly left-to-right at water level, constant speed, no cuts. The beetles push, the boat slides into the water and wobbles side to side; Wren spreads her wings for balance; it steadies and the leaf sail fills, small toy-like movements.\n{{SET_HARBOUR}}\n{{WREN}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: ripples spreading, sun sparkles. Lighting stays bright soft autumn morning. Motion continues naturally past the end of\nthe clip (do not settle to a stop). Warm cozy palette, fine film grain. {{VNEG}}"
+    },
+    {
+     "sec": 15,
+     "prompt": "{{CONT}}\nof field. Camera: slow lateral macro dolly left-to-right at water level continues, constant speed, no cuts. The boat sails steadily across the calm water of the Teacup Harbour, Wren upright in the bow as lookout, arriving on the opening framing, small toy-like movements.\n{{SET_HARBOUR}}\n{{WREN}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: ripples spreading, sun sparkles. Lighting stays bright soft autumn morning. Warm cozy palette, fine film grain. {{VNEG}}"
+    }
+   ],
+   "keyframePrompt": "{{HDR}} the walnut-shell boat sliding off the jetty with Wren aboard {{FF}} {{SET_HARBOUR}}\n{{WREN}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nLow macro at water level: the three builder beetles pushing the walnut-shell boat off the clothes-peg jetty into calm water, Wren in the bow, leaf sail slack; the real sewing needle lying along the jetty edge.\n{{LIGHT_HARB}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "fromSection": 0
+   },
+   "sfx": [
+    {
+     "at": 3,
+     "prompt": "a tiny wooden boat sliding off a jetty into water, soft splash and plop",
+     "durationSec": 1.5,
+     "gainDb": -6
+    },
+    {
+     "at": 5,
+     "prompt": "a tiny shell boat wobbling on water, gentle slosh and a small hollow creak",
+     "durationSec": 5,
+     "gainDb": -10
+    },
+    {
+     "at": 14,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 6,
+     "gainDb": -12
+    },
+    {
+     "at": 20,
+     "prompt": "a tiny boat hull gliding through calm water, soft ripple and gentle wake, close-mic, no music",
+     "durationSec": 15,
+     "gainDb": -10
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 22,
+     "gainDb": -16
+    },
+    {
+     "at": 22.0,
+     "prompt": "{{WATER_BED}}",
+     "durationSec": 13.0,
+     "gainDb": -16
+    }
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "fingerpicked nylon-string acoustic guitar, warm and gentle, slow cozy autumn mood, around 75 bpm, instrumental, no vocals, no drums",
+  "gainDb": -20,
+  "underVoDb": 0
+ },
+ "sting": {
+  "at": 3,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: Building a Tiny Bakery Inside a Teapot"
+ },
+ "watermark": true,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. TT-06: walnut shell ~3.5 cm, constant ±15% across all sections, Wren fits with head and tail above the rim; exactly three builder beetles; toothpick mast and leaf sail keep the same size/colour (red-gold leaf, cream thread); water stays calm (no waves, no peril); needle visible in every section; section 1 → 2 is an intended hard cut (result flash → empty shell); loop: final frame lands on the section 1 keyframe composition. Stage labels only: sand / mast / sail.",
+ "snippets": {
+  "HDR": "Miniature diorama photograph, 85mm macro lens look, deep focus:",
+  "FF": "in crisp focus and the whole scene sharp right to the top and bottom edges of the frame; the photograph fills the entire frame edge to edge, with no borders, no bars, no blurred bands, no letterbox, no frame-within-frame, no signature or watermark.",
+  "CONT": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth",
+  "TAIL": "Fine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+  "NOTEXT": "All surfaces are blank painted wood, tin, felt or ceramic, or carry simple painted icons only (a bowl, a loaf, a star); there are no letters, numbers or words anywhere in the picture. The residents are handmade figurines with felted or resin paws, wings or bodies, never human hands.",
+  "VNEG": "Wordless: no talking mouths. No text, lettering, numbers or signage anywhere; icons only. No human hands or fingers, no people, no photoreal animals; handmade figurine textures only.",
+  "WREN": "WREN — a small wren postbird courier, felted chestnut-brown feathers with fine cream\nbarring, an upturned tail, a tiny terracotta leather satchel across the chest, a folded\npaper envelope often in her beak. About 3 cm tall. Quick, curious. Travels between\ntiny worlds (our \"visit another world\" device).",
+  "BUILDER": "BUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.",
+  "SET_HARBOUR": "The Teacup Harbour: hand-built\nminiature little harbour made from a saucer-shaped pond edge, a clothes-peg jetty, walnut-shell boats and lamp posts the height of a pencil stub (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SET_BOATYARD": "The walnut boatyard on the jetty: hand-built\nminiature boatyard on the clothes-peg jetty of the Teacup Harbour made from an empty half walnut shell, a real emery board, a real wooden toothpick, a cotton-thread spool with a steel sewing needle and a dry red-gold autumn leaf, laid out on clothes-peg planks beside calm water (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SCALE": "SCALE LOCK: the hull is a real half walnut shell about 3.5 cm long and 2.5 cm wide, just big enough for Wren (about 3 cm tall) to sit in with her head and tail above the rim; each builder beetle about 2 cm long, so the shell is less than two beetles long; the emery board is a real nail file about 9 cm long; the mast is a real wooden toothpick trimmed to about 4 cm; the leaf sail about 3 cm tall; a real steel sewing needle about 4 cm long lies in frame as the real-object scale cue.",
+  "LIGHT_HARB": "Lighting: bright soft autumn morning, low sun from the left, gentle sparkles on the water, warm honey light, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear and calm. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.",
+  "WATER_BED": "calm pond water lapping softly against small wooden posts, gentle and seamless, a faint breeze, no voices, no music",
+  "SAND": "a small emery board sanding a hard walnut shell in slow steady strokes, fine gritty rasp, close ASMR, no voices, no music"
+ }
+}
