@@ -284,6 +284,10 @@ export async function runDirectedAssets(db: Db, videoId: string, opts: { budgetM
   }
 }
 
+/** Latest moment (ms into a call) a new asset batch may start: the 300s
+    route limit minus one full SOUL wait and a margin for upload + checks. */
+export const DIRECTED_BATCH_START_MS = Math.max(5_000, 300_000 - SOUL_TIMEOUT_MS - 10_000);
+
 async function runDirectedSteps(
   db: Db,
   videoId: string,
@@ -350,8 +354,11 @@ async function runDirectedSteps(
   // an MCP client's request timeout. Idempotent: re-call to continue.
   const did: string[] = [];
   let i = 0;
+  // A batch may wait a full SOUL_TIMEOUT_MS, so it must start early enough
+  // to finish inside the 300s route limit — never later than the budget.
+  const startBy = Math.min(budgetMs, DIRECTED_BATCH_START_MS);
   while (i < steps.length) {
-    if (Date.now() - started > budgetMs) break;
+    if (Date.now() - started > startBy) break;
     const batch = steps.slice(i, i + DIRECTED_CONCURRENCY);
     const results = await Promise.allSettled(batch.map((st) => st.run()));
     const failed = results.findIndex((r) => r.status === "rejected");
