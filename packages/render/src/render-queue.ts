@@ -1271,10 +1271,14 @@ async function main() {
     console.log(`Queue: ${queue.length} video(s)`);
     const serveUrl = await getServeUrl();
 
-    // Wall-clock budget: the job is SIGKILLed at 60 min (workflow timeout),
+    // Wall-clock budget: the job is SIGKILLed at 170 min (workflow timeout),
     // which would skip the catch below and strand a mid-render video at
     // ASSEMBLING with no paused_reason. Stop STARTING new renders at ~45 min
-    // so the batch always ends cleanly; the rest wait for the next pass.
+    // so the batch always ends cleanly; the rest wait for the next pass. The
+    // headroom past 45 min is for a long-form started late: an 8.5-min 720p
+    // long-form ran past 52 min on a hosted runner (9/29), so at a 60-min
+    // timeout it was killed every pass and, as the oldest ASSEMBLING row,
+    // blocked every render behind it.
     const startedAt = Date.now();
     const WALL_BUDGET_MS = 45 * 60 * 1000;
 

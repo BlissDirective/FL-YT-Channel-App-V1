@@ -23,7 +23,7 @@ permissions:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 170
     steps:
       # Idle-cron guard (Phase 8): a scheduled pass peeks at the queue with one
       # cheap REST call BEFORE checkout+install — an empty queue used to cost a
