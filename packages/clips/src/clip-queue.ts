@@ -688,6 +688,40 @@ async function stageDirected(videoId: string): Promise<void> {
     await db.from("videos").update({ paused_reason: "directed script missing — cannot compile the cut" }).eq("id", videoId);
     return;
   }
+  // Reuse sections (a series' ident/outro) whose source clip landed after
+  // this video queued: copy the plate in now, or wait for it.
+  const { data: before } = await db.from("assets").select("kind, beat_index").eq("video_id", videoId).eq("kind", "clip");
+  const waiting: string[] = [];
+  for (const s of parsed.script.sections) {
+    if (!s.reuse || (before ?? []).some((a) => a.beat_index === s.idx)) continue;
+    const { data: src } = await db
+      .from("assets")
+      .select("storage_path, provider, meta")
+      .eq("video_id", s.reuse.videoId)
+      .eq("kind", "clip")
+      .eq("beat_index", s.reuse.sectionIdx)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!src?.storage_path) {
+      waiting.push(`${s.reuse.videoId} §${s.reuse.sectionIdx + 1}`);
+      continue;
+    }
+    await db.from("assets").insert({
+      video_id: videoId,
+      kind: "clip",
+      provider: src.provider,
+      storage_path: src.storage_path,
+      beat_index: s.idx,
+      meta: { ...((src.meta as Record<string, unknown>) ?? {}), reusedFrom: s.reuse },
+      cost_usd: 0,
+    });
+  }
+  if (waiting.length) {
+    await db.from("videos").update({ paused_reason: `${REUSE_WAIT} ${waiting.join(", ")}`, auto_finish: true }).eq("id", videoId);
+    console.log(`⏳ ${videoId}: ${REUSE_WAIT} ${waiting.join(", ")}`);
+    return;
+  }
   const { data: assets } = await db.from("assets").select("id, kind, beat_index, storage_path, meta").eq("video_id", videoId);
   const rows = (assets ?? []) as DirectedAssetRow[];
   const primary = (project.brand_kit as { primary?: string } | null)?.primary ?? "#F5B829";
@@ -1017,8 +1051,26 @@ async function reapStaleRunning() {
 const LANES = Math.max(1, Math.min(16, Number(process.env.CLIP_CONCURRENCY) || 4));
 const RUN_BUDGET_MS = Math.max(60_000, Number(process.env.CLIP_RUN_BUDGET_MS) || 22 * 60_000);
 
+/** paused_reason prefix shared with the app (src/lib/pipeline/directed.ts). */
+const REUSE_WAIT = "waiting for reuse source";
+
+/** Re-stage directed videos whose cut was waiting on another video's clip. */
+async function sweepReuseWaits() {
+  const { data } = await db
+    .from("videos")
+    .select("id")
+    .eq("status", "ASSETS_READY")
+    .eq("directed", true)
+    .like("paused_reason", `${REUSE_WAIT}%`);
+  for (const v of (data ?? []) as { id: string }[]) {
+    const { count } = await db.from("clip_jobs").select("id", { count: "exact", head: true }).eq("video_id", v.id).in("status", ["queued", "running"]);
+    if ((count ?? 0) === 0) await stageDirected(v.id);
+  }
+}
+
 async function main() {
   await reapStaleRunning();
+  await sweepReuseWaits();
   const deadline = Date.now() + RUN_BUDGET_MS;
   let processed = 0;
   await Promise.all(
@@ -1033,6 +1085,7 @@ async function main() {
     }),
   );
   if (processed === 0) console.log("No queued clip jobs.");
+  await sweepReuseWaits();
 }
 
 /** Claim one queued job and run it. Returns false when the queue is empty. */
