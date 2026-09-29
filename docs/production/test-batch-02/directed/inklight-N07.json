@@ -1,0 +1,561 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "Nova Fought Her Own Shadow",
+ "altTitles": [
+  "Her Shadow Moved First",
+  "Never Duel Your Own Shadow"
+ ],
+ "description": "Her shadow moved first. So she made it bow. #stickfigure #stickfight #shadow #animation #shorts",
+ "tags": [
+  "stick figure",
+  "stick fight",
+  "shadow fight",
+  "animation",
+  "3d animation",
+  "INKLIGHT",
+  "Nova",
+  "shorts"
+ ],
+ "topic": "INK-07 stick-fight Short: under a desk lamp, Nova duels her own shadow and wins on its delay",
+ "cast": {
+  "Nova": {
+   "color": "#FF3DA5"
+  }
+ },
+ "snippets": {
+  "STYLE": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. Consistent glossy 3D render in every frame, never flat 2D. Each face is only two small glowing eye-dots: no mouth, no nose, no teeth, no brows, no smile. Hands end in at most three rounded nubs. Every figure is a separate, distinct body with clear space around it; bodies never fuse or merge. Hits burst into dry puffs of ink dust and glassy sparks, never blood or splatter.",
+  "NOVA": "NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eye-dots and rim light, a single curved topknot line rising from the head, holding a glowing magenta bo staff in her right hand.",
+  "SHADOW_WALL": "SHADOW: Nova's own cast shadow on the lamp-lit plaster wall, a crisp flat pure-black silhouette with the same topknot and bo-staff outline, no rim light, no glow, no eyes.",
+  "SHADOW_FREE": "SHADOW: Nova's shadow peeled off the wall and standing free, a paper-thin pure matte-black silhouette figure with Nova's exact outline and topknot, holding a black shadow-staff in its left hand as her mirror image, two tiny dim charcoal eye-dots, no rim light, no glow, a real thin 3D body lit and shaded by the lamp.",
+  "SET": "In a dark night study, a single brass desk lamp on a wooden desk throws a hard warm cone of light across a bare pale plaster wall, bookshelves fading into deep shadow, dust motes drifting in the lamp beam, blank unmarked surfaces",
+  "AVOID": "Avoid: text, letters, numbers, logos, mouths, noses, teeth, eyebrows, smiles, human faces, skin, hair, realistic human hands, fingers beyond three rounded nubs, clothing beyond the listed accessories, extra limbs, extra characters, fused or merged bodies, blood, gore, splatter, red liquid, flat 2D cartoon look, flat or empty backgrounds.",
+  "SOUL": "stick figure, NOT a human, no face, no mouth, only two glowing eye-dots, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+  "DRIPTINK": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+  "AMB": "quiet night study room tone: soft electric hum of a desk lamp bulb, a slow ticking clock, seamless",
+  "DUEL": "stick-figure staff duel: fast staff whooshes, sharp wooden clacks doubled like a perfect echo, bright glassy tinks, no flesh hits",
+  "BED": "tense koto-synth and low taiko duel rhythm, mirrored call-and-response phrases, instrumental"
+ },
+ "sections": [
+  {
+   "label": "S1 Hook: the shadow moves first",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "...Hey.",
+     "at": 5.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{NOVA}} {{SHADOW_WALL}} Vertical frame. {{SET}}. Nova stands still in the pool of lamplight, staff lowered in her right hand, her flat black shadow on the wall behind her turned the wrong way; the shadow turns first and snaps its staff up into a ready stance while Nova has not moved; a full beat later Nova raises her staff into the same stance, then freezes and slowly turns her head toward the wall. Static medium-wide shot, 35mm, hard warm lamp key, deep blue shadows. {{AVOID}}",
+   "keyframePrompt": "{{STYLE}} {{NOVA}} {{SHADOW_WALL}} Vertical frame. {{SET}}. Nova stands still in the pool of lamplight, body turned toward frame-right, staff lowered in her right hand; on the wall behind her, her flat black shadow stands facing the wrong way, turned toward frame-left, its staff lowered. Static medium-wide shot, 35mm, hard warm lamp key, deep blue shadows. {{AVOID}} {{SOUL}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{DRIPTINK}}",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 8,
+     "gainDb": -16
+    },
+    {
+     "at": 1.5,
+     "prompt": "a single low tense koto-synth pluck",
+     "durationSec": 1.5,
+     "gainDb": -10
+    },
+    {
+     "at": 3,
+     "prompt": "a soft staff whoosh, then the same whoosh echoed a beat later",
+     "durationSec": 2,
+     "gainDb": -8
+    },
+    {
+     "at": 6,
+     "prompt": "a thin rising tense string drone",
+     "durationSec": 2,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "0 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S2 The peel",
+   "sec": 12,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} {{NOVA}} {{SHADOW_WALL}} {{SHADOW_FREE}} Vertical frame. {{SET}}. Nova faces the wall in a ready stance; her flat black shadow on the wall begins to peel away from the plaster like a sheet of black paper, its edges curling outward from the feet up, then it steps down off the wall onto the floorboards and stands free as a thin black figure facing her. Slow push-in, 35mm, hard warm lamp key, the wall behind left bare and lit. {{AVOID}}",
+   "keyframePrompt": "{{STYLE}} {{NOVA}} {{SHADOW_WALL}} Vertical frame. {{SET}}. Nova stands in a ready stance facing the bare plaster wall, staff raised in her right hand; her crisp flat black shadow is cast on the wall, flat against the plaster, in the same stance. Static medium-wide shot, 35mm, hard warm lamp key. {{AVOID}} {{SOUL}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 12,
+     "gainDb": -16
+    },
+    {
+     "at": 1,
+     "prompt": "a long slow sheet of thick paper peeling away from a wall, crackling",
+     "durationSec": 5,
+     "gainDb": -6
+    },
+    {
+     "at": 6,
+     "prompt": "a soft papery footstep landing on wooden floorboards",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 6,
+     "prompt": "a low rising tense drone with a koto-synth tremolo",
+     "durationSec": 6,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 12,
+     "text": "0 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ],
+   "endFrame": {
+    "prompt": "{{STYLE}} {{NOVA}} {{SHADOW_FREE}} Vertical frame. {{SET}}. Nova and her freestanding black shadow face each other in mirrored ready stances about two meters apart on the floorboards, Nova's glowing magenta staff in her right hand, the shadow-staff in its left hand; the lamp-lit plaster wall behind them is completely bare with no shadow on it. Static medium-wide shot, 35mm, hard warm lamp key. {{AVOID}} {{SOUL}}"
+   }
+  },
+  {
+   "label": "S3 Copycat",
+   "sec": 10,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA}} {{SHADOW_FREE}} Vertical frame. {{SET}}. Nova tests her freestanding shadow: she jabs, spins and sweeps her glowing staff at the air, and the shadow copies every strike exactly as her mirror image at the same instant, its black shadow-staff in its left hand. Slow orbit around both, low angle, magenta staff light trails, hard warm lamp key. {{AVOID}} genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=after-dark",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "after-dark"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 10,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "{{BED}}",
+     "durationSec": 10,
+     "gainDb": -12
+    },
+    {
+     "at": 0,
+     "prompt": "fast staff whooshes, each one doubled exactly like an echo, no impacts",
+     "durationSec": 10,
+     "gainDb": -9
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 10,
+     "text": "0 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S4 Mirror duel",
+   "sec": 15,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA}} {{SHADOW_FREE}} Vertical frame. {{SET}}. Staff against shadow-staff: Nova and her shadow duel in perfect sync, every strike met by an identical mirrored strike at the exact center line, glassy magenta sparks and puffs of black ink dust bursting where the staffs clash, neither able to land a hit. Fast orbiting tracking, low angle, magenta light trails, hard warm lamp key. {{AVOID}} genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=after-dark",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "after-dark"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 15,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "{{BED}}",
+     "durationSec": 15,
+     "gainDb": -12
+    },
+    {
+     "at": 0,
+     "prompt": "{{DUEL}}",
+     "durationSec": 15,
+     "gainDb": -9
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 15,
+     "text": "0 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S5 Stalemate",
+   "sec": 15,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA}} {{SHADOW_FREE}} Vertical frame. {{SET}}. The mirrored duel escalates: Nova vaults over the desk and the shadow vaults the same way as her mirror image, both spin and strike in the air, clash, land, and end locked staff to staff at the center line in a perfect stalemate, magenta light against black. Fast tracking into a slow push-in, low angle, hard warm lamp key. {{AVOID}} genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=after-dark",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "after-dark"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 15,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "{{BED}}",
+     "durationSec": 12,
+     "gainDb": -12
+    },
+    {
+     "at": 0,
+     "prompt": "{{DUEL}}",
+     "durationSec": 12,
+     "gainDb": -9
+    },
+    {
+     "at": 12,
+     "prompt": "two staffs grinding against each other, a tense held metallic hum",
+     "durationSec": 3,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 15,
+     "text": "0 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S6 The late bow",
+   "sec": 15,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "You're late.",
+     "at": 11.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{NOVA}} {{SHADOW_FREE}} Vertical frame. {{SET}}. Nova steps back, lowers her glowing staff in her right hand and bows politely; the freestanding shadow copies the bow, but a full beat late; as it straightens up, its dim eye-dots glint faint crimson for one beat, then go dark again. Nova tilts her head, noticing the delay. Static medium-wide shot, 35mm, hard warm lamp key, deep blue shadows. {{AVOID}}",
+   "keyframePrompt": "{{STYLE}} {{NOVA}} {{SHADOW_FREE}} Vertical frame. {{SET}}. Nova and her freestanding black shadow stand facing each other two meters apart on the floorboards, Nova's glowing staff lowered in her right hand, the shadow-staff lowered in its left hand. Static medium-wide shot, 35mm, hard warm lamp key, deep blue shadows. {{AVOID}} {{SOUL}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 15,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "the duel music stops, a soft low sustained koto-synth pad",
+     "durationSec": 6,
+     "gainDb": -14
+    },
+    {
+     "at": 2,
+     "prompt": "a soft cloth-like rustle of a slow bow",
+     "durationSec": 1.5,
+     "gainDb": -10
+    },
+    {
+     "at": 4.5,
+     "prompt": "the same soft rustle of a slow bow, a beat late",
+     "durationSec": 1.5,
+     "gainDb": -10
+    },
+    {
+     "at": 7.5,
+     "prompt": "a short detuned music box phrase, eerie",
+     "durationSec": 2.5,
+     "gainDb": -8
+    },
+    {
+     "at": 10,
+     "prompt": "a quiet tense string drone",
+     "durationSec": 5,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 15,
+     "text": "0 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ],
+   "highlightWords": [
+    "late"
+   ]
+  },
+  {
+   "label": "S7 The feint",
+   "sec": 10,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA}} {{SHADOW_FREE}} Vertical frame. {{SET}}. Nova sharply feints a strike to her left with her glowing staff and stops short; a beat late, the shadow commits and lunges hard to its side into empty air, stumbling off balance. Quick push-in, low angle, magenta light trail, hard warm lamp key. {{AVOID}} genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=after-dark",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "after-dark"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 10,
+     "gainDb": -16
+    },
+    {
+     "at": 0,
+     "prompt": "a low taiko pulse building, instrumental",
+     "durationSec": 10,
+     "gainDb": -12
+    },
+    {
+     "at": 2,
+     "prompt": "a sharp staff whoosh that stops short",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 3.5,
+     "prompt": "a big clumsy whoosh into empty air, a papery stumble",
+     "durationSec": 1.5,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 10,
+     "text": "0 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S8 The tap",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "Too slow.",
+     "at": 7
+    }
+   ],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA}} {{SHADOW_FREE}} Vertical frame. {{SET}}. While the shadow is off balance, Nova lightly taps the top of its head with the glowing tip of her staff held in her right hand; the shadow freezes, then bursts into a drifting cloud of black ink dust and glassy sparks that settle to the floor. Nova twirls her staff and rests it on her shoulder. Slow-motion speed ramp on the tap, low angle, magenta flare, hard warm lamp key. {{AVOID}} genre=action pacing=single-shot camera_model=modern camera_lens=anamorphic color_palette=after-dark",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "after-dark"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 10,
+     "gainDb": -16
+    },
+    {
+     "at": 3.5,
+     "prompt": "one tiny bright glass tink",
+     "durationSec": 0.8,
+     "gainDb": -4
+    },
+    {
+     "at": 4,
+     "prompt": "a soft burst of glittering glassy sparks and dry ink dust",
+     "durationSec": 2.5,
+     "gainDb": -6
+    },
+    {
+     "at": 5,
+     "prompt": "koto-synth heroic resolving phrase, calm, instrumental",
+     "durationSec": 5,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 4,
+     "text": "0 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 4,
+     "durationSec": 6,
+     "text": "1 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ],
+   "highlightWords": [
+    "slow"
+   ]
+  },
+  {
+   "label": "S9 Flicker (loop)",
+   "sec": 5,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} {{NOVA}} {{SHADOW_WALL}} Vertical frame. {{SET}}. The desk lamp flickers off and on twice; when the light steadies, Nova stands still in the pool of lamplight, body turned toward frame-right, staff lowered in her right hand, and her flat black shadow is back on the wall behind her, but facing the wrong way, turned toward frame-left, its staff lowered. Static medium-wide shot, 35mm, hard warm lamp key, deep blue shadows. {{AVOID}}",
+   "keyframePrompt": "{{STYLE}} {{NOVA}} Vertical frame. {{SET}}. Nova stands in the pool of lamplight next to a settled drift of black ink dust on the floorboards, glowing staff resting on her shoulder in her right hand, the lamp-lit plaster wall behind her bare. Static medium-wide shot, 35mm, hard warm lamp key. {{AVOID}} {{SOUL}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 5,
+     "gainDb": -16
+    },
+    {
+     "at": 0.5,
+     "prompt": "an old desk lamp bulb flickering and buzzing, electric crackle",
+     "durationSec": 2,
+     "gainDb": -6
+    },
+    {
+     "at": 2.5,
+     "prompt": "a low ominous single piano note",
+     "durationSec": 2.5,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 3,
+     "text": "1 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 3,
+     "durationSec": 2,
+     "text": "0 : 0",
+     "position": "top",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ],
+   "endFrame": {
+    "fromSection": 0
+   }
+  }
+ ],
+ "sting": {
+  "at": 7.5,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: She Held the Roof of a Runaway Sky Train"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "INK-07: CS4 at 9:16 is unverified; if S3-S5/S7-S8 fail aspect or look, re-roll on hf-seedance-2-5 (SDi 9:16) from a keyframe. Peel control: S2 is Seedance with an endFrame prompt (shadow free-standing, wall bare); reject if the shadow stays on the wall AND stands free at once (a doubled shadow), or if it fuses with Nova. Shadow: flat pure black on the wall (S1, S2 start, S9); free-standing thin matte figure with mirror-image staff in its LEFT hand (S2 end-S8); never gets a rim light or magenta. Drift: Nova's glowing magenta bo staff always in her RIGHT hand; topknot and magenta rim every shot. Lore: faint crimson eye glint on the shadow for ONE beat in S6 only (~7.5 s, synced to the detuned music box); reject crimson anywhere else. Faces: eye-dots only; any mouth, nose, teeth, brows or smile even 1 frame = reject. Hands: max three rounded nubs. Hits = ink dust + glassy sparks, never blood/splatter. Style: glossy 3D room, never flat 2D (the only flat element is the cast shadow on the wall); wall and books blank. Labels: score counter only, top, never over faces; 0 : 0 through the duel, 1 : 0 at the S8 tap (retime to the burst frame), resets to 0 : 0 when the shadow returns in S9. Audio: room-tone bed under every section, no silence > 1.5 s; drip-tink at 0.0. Seam: loop S9 end (wrong-way shadow) = S1 keyframe (endFrame fromSection 0). Global gate (brief §0.3): accent hue shift >6 frames / missing accessory = re-roll; 3rd or fused limb >=3 frames = re-roll; lost rim light or flat bg = re-roll. Check sourceSpec width/height/duration every clip."
+}

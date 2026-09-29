@@ -1,0 +1,287 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "Fixing a Leaky Roof with a Bottlecap",
+ "altTitles": [
+  "Tiny Beetles Patch a Leak (Miniature Fix)",
+  "A Bottlecap Saves Miso's Ramen"
+ ],
+ "description": "A raindrop lands in Miso's ramen, so the builder beetles patch his stall awning with a red bottlecap. Wordless miniature fix-it ASMR from Thimble Town.\n\n0:00 Plink\n0:08 The ladder arrives\n0:25 Measuring the hole\n0:45 Up the ladder\n1:05 Putty\n1:25 Tink\n\nStories and worlds created with AI tools.\n#miniature #diorama #asmr #tinybuild #cozy",
+ "tags": [
+  "miniature",
+  "diorama",
+  "tiny build",
+  "asmr",
+  "bottlecap",
+  "rain",
+  "cozy",
+  "Thimble Town"
+ ],
+ "topic": "TT-03 fix-it build Short: builder beetles patch Miso's awning with a bottlecap (rain, loop)",
+ "sections": [
+  {
+   "sec": 8,
+   "label": "Plink",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked counter-height macro with a very slow pull-back, constant speed, no cuts. The raindrop lands in the broth with a plink and a ripple; Miso looks up at the hole in the tin awning, then down at his bowl, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{SCALE}}\nAmbient motion: rain streaks beyond the awning, steam curling, ripple rings. Lighting stays rainy blue hour with amber paper lanterns. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} a raindrop splashing into Miso's thimble-sized ramen bowl {{FF}} {{SET_STALL}}\n{{MISO}}\n{{SCALE}}\n{{NOTEXT}}\nClose macro at counter height: the thimble-sized cream ramen bowl of golden broth on the spool counter, a single raindrop falling from a pea-sized hole in the corrugated tin-can awning directly above it, a ripple ring on the broth; Miso behind the bowl holding a toothpick ladle; the sewing pin upright at frame right.\n{{LIGHT_RAIN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} a raindrop splashing into Miso's thimble-sized ramen bowl {{FF}} {{SET_STALL}}\n{{MISO}}\n{{SCALE}}\n{{NOTEXT}}\nThe same counter-height framing: Miso looking up at the pea-sized hole in the awning, a second drop swelling at its edge, rings spreading in the broth.\n{{LIGHT_RAIN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 0.2,
+     "prompt": "a single tiny water droplet plinking into a small bowl of broth, crisp macro ASMR detail",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{RAIN}}",
+     "durationSec": 8.0,
+     "gainDb": -14
+    }
+   ]
+  },
+  {
+   "sec": 17,
+   "label": "The ladder arrives",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked eye-level macro with a slow lateral dolly left-to-right, constant speed, no cuts. The three beetles arrive in single file carrying the matchstick ladder, swing it upright and lean its top against the awning edge beside the leak; Miso watches, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: soft rain, drips from the awning, steam. Lighting stays rainy blue hour with amber paper lanterns. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} the builder beetles carrying a matchstick ladder {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nMedium macro: the three builder beetles trotting over the wet cobbles toward the stall carrying a two-matchstick ladder on their backs, Miso behind the counter gazing up at the leaking awning, the sewing pin upright beside the counter.\n{{LIGHT_RAIN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} the builder beetles carrying a matchstick ladder {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nThe matchstick ladder leaning against the front edge of the tin awning beside the pea-sized hole, the three beetles at its foot, Miso watching from behind the counter.\n{{LIGHT_RAIN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 1,
+     "prompt": "tiny quick beetle footsteps pattering on wet cobblestones, light and close, no music",
+     "durationSec": 8,
+     "gainDb": -12
+    },
+    {
+     "at": 11,
+     "prompt": "a small wooden matchstick ladder clacking softly against a tin edge",
+     "durationSec": 1.5,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{RAIN}}",
+     "durationSec": 17.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 1.5,
+     "text": "ladder",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Measuring the hole",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked high three-quarter macro, very slow push-in, constant speed, no cuts. The beetles pull the thread tape across the hole, hold it, compare it against the red bottlecap waiting at the ladder foot, and make a chalk tick, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: rain beading on the tin, the thread swaying slightly. Lighting stays rainy blue hour with amber paper lanterns. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} a thread measuring tape stretched across the hole in the awning {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nClose macro over the top of the corrugated tin awning: one beetle at the ladder top and one on the tin stretching a cream thread measuring tape across the pea-sized hole, the third beetle steadying the ladder below; Miso beneath the awning edge, the sewing pin upright in the cobbles.\n{{LIGHT_RAIN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} a thread measuring tape stretched across the hole in the awning {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nThe thread tape held taut across the hole, the beetle on the tin giving a small nod, a tiny chalk tick beside the hole, the ladder and Miso below unchanged.\n{{LIGHT_RAIN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 2,
+     "prompt": "a fine cotton thread drawn out and pulled taut, soft whisper of thread, close ASMR, no music",
+     "durationSec": 3,
+     "gainDb": -10
+    },
+    {
+     "at": 13,
+     "prompt": "a tiny chalk tick on tin, one soft scratch",
+     "durationSec": 1,
+     "gainDb": -10
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{RAIN}}",
+     "durationSec": 20.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 1.5,
+     "text": "measure",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Up the ladder",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow crane up following the climb, constant speed, no cuts. Two beetles carry the red bottlecap up the ladder one rung at a time, pause, then heave it over onto the awning, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: soft rain, a drip falling from the hole. Lighting stays rainy blue hour with amber paper lanterns. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} two beetles carrying a red bottlecap up the matchstick ladder {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nSide macro: two builder beetles climbing the matchstick ladder rung by rung carrying a red crown bottlecap between them, crimped edge down, the third beetle holding the ladder foot; Miso under the awning looking up; the sewing pin upright in the cobbles.\n{{LIGHT_RAIN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} two beetles carrying a red bottlecap up the matchstick ladder {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nThe red bottlecap set down on the corrugated tin awning beside the pea-sized hole, both climbing beetles on top of the awning, the third at the ladder foot, Miso looking up.\n{{LIGHT_RAIN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 1,
+     "prompt": "tiny wooden ladder rungs creaking softly under small climbing steps, slow and rhythmic, close-mic, no music",
+     "durationSec": 14,
+     "gainDb": -12
+    },
+    {
+     "at": 16,
+     "prompt": "a small metal bottlecap set down on corrugated tin, a soft light clink",
+     "durationSec": 1.2,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{RAIN}}",
+     "durationSec": 20.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 1.5,
+     "text": "bottlecap",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Putty",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked top-down macro, constant speed, no cuts. The beetles press the bottlecap down into the putty ring, each tapping one side, then smooth the putty around the rim with a toothpick sliver, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: rain beading and rolling on the tin and cap. Lighting stays rainy blue hour with amber paper lanterns. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} a red bottlecap pressed over the hole with putty {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nTop-down macro on the corrugated tin awning: a beetle pressing a ring of soft grey putty around the pea-sized hole while two beetles lower the red bottlecap face up over it; the ladder top at the awning edge; Miso's navy headband visible below the edge.\n{{LIGHT_RAIN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} a red bottlecap pressed over the hole with putty {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nThe red bottlecap sealed over the hole in a neat grey putty ring, the three builder beetles standing back on the tin, the ladder top at the awning edge, Miso's navy headband visible below.\n{{LIGHT_RAIN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 2,
+     "prompt": "soft putty squished and pressed with small taps, gentle squelch, close ASMR, no music",
+     "durationSec": 12,
+     "gainDb": -9
+    },
+    {
+     "at": 15,
+     "prompt": "a toothpick smoothing soft putty, slow gentle scrape, close-mic",
+     "durationSec": 4,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{RAIN}}",
+     "durationSec": 20.0,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 1.5,
+     "durationSec": 1.5,
+     "text": "seal",
+     "position": "top",
+     "style": "label",
+     "color": "#F6EAD3"
+    }
+   ]
+  },
+  {
+   "sec": 15,
+   "label": "Tink (loop)",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow tilt down from the awning to the counter, constant speed, no cuts. The drop hits the bottlecap with a tink and runs off its rim; the camera tilts down to the counter where Miso's bowl sits dry and steaming, arriving on the opening counter-height framing, small toy-like movements.\n{{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\nAmbient motion: rain running off the cap, steam curling. Lighting stays rainy blue hour with amber paper lanterns. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} a raindrop striking the red bottlecap patch {{FF}} {{SET_STALL}}\n{{MISO}}\n{{BUILDER}}\n{{SCALE}}\n{{NOTEXT}}\nClose macro: a fat raindrop falling onto the red bottlecap patch on the tin awning, beads of rain on the cap, the three beetles on the tin beside it; below the awning edge the spool counter and Miso's bowl.\n{{LIGHT_RAIN}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Miso's steaming, dry ramen bowl {{FF}} {{SET_STALL}}\n{{MISO}}\n{{SCALE}}\n{{NOTEXT}}\nClose macro at counter height: the thimble-sized cream ramen bowl of golden broth steaming on the spool counter, dry, no drop falling; the red bottlecap patch sealed in the tin awning directly above it; Miso behind the bowl holding a toothpick ladle; the sewing pin upright at frame right.\n{{LIGHT_RAIN}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 1,
+     "prompt": "a single raindrop hitting a small metal bottlecap, a clean bright tiny tink, crisp macro detail, no music",
+     "durationSec": 1,
+     "gainDb": -4
+    },
+    {
+     "at": 2,
+     "prompt": "a thin trickle of rainwater running off a small metal cap edge, soft",
+     "durationSec": 3,
+     "gainDb": -12
+    },
+    {
+     "at": 8,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 5,
+     "gainDb": -12
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{RAIN}}",
+     "durationSec": 15.0,
+     "gainDb": -14
+    }
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "soft lo-fi electric piano keys, warm and cozy, slow tempo around 70 bpm, gentle and sparse, rainy night ramen shop mood, instrumental, no vocals, no drums for the first 5 seconds",
+  "gainDb": -20,
+  "underVoDb": 0
+ },
+ "sting": {
+  "at": 3.5,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: A Rainy Night at the Tiny Ramen Shop"
+ },
+ "watermark": true,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. TT-03: bowl stays thimble-sized (~1.3× Miso's head) every beat; bottlecap ~2.6 cm, never larger than Miso, constant ±15% across sections; ladder is two matchsticks (~1.5× Miso), exactly three builder beetles; hole pea-sized and in the same awning spot every shot; set is the LF1 Noodle Row stall in every shot (no swap to the interior plate); rain bed continuous, no gap >1.5s; cap tink is a drop-on-metal sound, NOT the brand lamp tink; loop: final frame composition-matches section 1 (bowl, counter height) but dry and patched. Stage labels only: ladder / measure / bottlecap / seal.",
+ "snippets": {
+  "HDR": "Miniature diorama photograph, 85mm macro lens look, deep focus:",
+  "FF": "in crisp focus and the whole scene sharp right to the top and bottom edges of the frame; the photograph fills the entire frame edge to edge, with no borders, no bars, no blurred bands, no letterbox, no frame-within-frame, no signature or watermark.",
+  "CONT": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth",
+  "TAIL": "Fine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+  "NOTEXT": "All surfaces are blank painted wood, tin, felt or ceramic, or carry simple painted icons only (a bowl, a loaf, a star); there are no letters, numbers or words anywhere in the picture. The residents are handmade figurines with felted or resin paws, wings or bodies, never human hands.",
+  "VNEG": "Wordless: no talking mouths. No text, lettering, numbers or signage anywhere; icons only. No human hands or fingers, no people, no photoreal animals; handmade figurine textures only.",
+  "MISO": "MISO — a small field-mouse ramen cook, needle-felted figurine texture, warm fawn-cream fur,\npale pink round ears, tiny black bead eyes, a navy-blue cloth headband (hachimaki) tied at\nthe back, a rust-terracotta half apron over a cream linen shirt with rolled sleeves, a white\ncloth tucked in the apron string. About 3 cm tall. Calm, precise, kind. Runs \"Miso's\nNoodle Stand\" on Noodle Row.",
+  "BUILDER": "BUILDER BEETLES (walk-on crew, batch lock) — three unnamed builder beetles, hand-painted resin figurines with glossy walnut-brown shells, tiny honey-yellow cloth caps and cream canvas tool belts. Each about 2 cm long.",
+  "SET_STALL": "Miso's Noodle Stand on Noodle Row: hand-built\nminiature street ramen stall on a cobbled lane made from an upturned wooden cotton-thread spool as the counter, a matchbox kitchen, a corrugated tin-can awning, pea-sized paper lanterns and a bottlecap stock pot on a tealight stove, with a brass sewing-thimble water tower on toothpick legs behind the rooftops (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SCALE": "SCALE LOCK: Miso about 3 cm tall; the thimble-sized ramen bowl about 1.3× Miso's head width; each builder beetle about 2 cm long; the ladder is two real wooden matchsticks (about 4.5 cm, 1.5× Miso's height) with toothpick-sliver rungs; the leak is a pea-sized hole (about 6 mm) in the corrugated tin-can awning; the red bottlecap is a real crown bottlecap about 2.6 cm across, a little narrower than Miso is tall and wider than one beetle is long; a real steel sewing pin stands upright in the cobbles beside the counter as the real-object scale cue.",
+  "LIGHT_RAIN": "Lighting: rainy blue hour, warm amber glow from pea-sized paper lanterns and the tealight stove under the awning, cool rain-slate blue beyond, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: soft rain. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.",
+  "RAIN": "gentle steady rain pattering on a small tin roof and awning, soft drips, cozy, close-mic, no thunder, no voices, no music"
+ }
+}

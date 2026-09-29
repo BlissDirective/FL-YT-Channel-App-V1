@@ -318,6 +318,11 @@ describe("section revisions (end frames)", async () => {
     expect(script.sections[0].labels?.[0].text).toBe("DO NOT PRESS");
   });
 
+  it("replaces a section's reference images", () => {
+    const r = applySectionRevisions(script, [{ idx: 1, refs: ["refs/p/ref-grey.png"] }]);
+    expect(r.ok && r.script.sections[1].refs).toEqual(["refs/p/ref-grey.png"]);
+  });
+
   it("replaces a chained section's segment prompts, one per segment", () => {
     const raw = s01() as { sections: Record<string, unknown>[] } & Record<string, unknown>;
     raw.sections[1] = { ...raw.sections[1], sec: 45, segments: [{ sec: 30, prompt: "old A" }, { sec: 15, prompt: "old B" }] };

@@ -1,0 +1,228 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "Carving Lanterns from Acorn Caps",
+ "altTitles": [
+  "Tiny Acorn Lanterns (Miniature Carving ASMR)",
+  "Lumen Carves Star Lanterns"
+ ],
+ "description": "Lumen the snail lamplighter carves star windows into acorn caps, strings them on thread and lights them across Lantern Lane. Wordless miniature carving ASMR from Thimble Town.\n\n0:00 Crunch\n0:10 Three star windows\n0:30 Stringing the caps\n0:50 Candle stubs lit\n1:05 Stars on the lane\n\nStories and worlds created with AI tools.\n#miniature #asmr #diorama #acorn #cozy",
+ "tags": [
+  "miniature",
+  "diorama",
+  "carving",
+  "asmr",
+  "acorn",
+  "lantern",
+  "snail",
+  "Thimble Town"
+ ],
+ "topic": "TT-08 cut-ASMR Short: Lumen carves acorn-cap star lanterns (blade in frame 1, loop)",
+ "sections": [
+  {
+   "sec": 10,
+   "label": "Crunch",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow pull-back, constant speed, no cuts. The blade crunches through the cap and the star window pops free; the camera pulls back to show Lumen leaning into the work at the foot of a lamp post, small toy-like movements.\n{{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\nAmbient motion: flakes of acorn cap falling, lantern glow flickering softly. Lighting stays blue hour. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} a tiny carving blade pressed into an acorn cap {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\n{{NOTEXT}}\nExtreme close-up: the tip of the tiny carving blade, held in the brass clip on Lumen's shell, pressed into the scaly side of an upturned acorn cap, a five-point star window half cut, crisp flakes on the cobbles; Lumen's honey-amber shell and brass lantern right behind; the sewing pin lying beside the cap.\n{{LIGHT_BLUE}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} a tiny carving blade pressed into an acorn cap {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\n{{NOTEXT}}\nLumen beside the first acorn cap with a clean five-point star window cut in its side, two uncarved acorn caps waiting on the cobbles at the foot of a lamp post, the sewing pin beside them.\n{{LIGHT_BLUE}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{CRUNCH}}",
+     "durationSec": 4,
+     "gainDb": -4
+    },
+    {
+     "at": 4.5,
+     "prompt": "a tiny star-shaped flake of acorn cap popping free and landing on stone, one soft tick",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{NIGHT_BED}}",
+     "durationSec": 10.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Three star windows",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow lateral macro dolly left-to-right, constant speed, no cuts. Lumen carves the second star window, glides to the third cap and carves the last one, small toy-like movements.\n{{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\nAmbient motion: flakes falling, windows warming behind. Lighting stays blue hour. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Lumen carving a second acorn cap {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\n{{NOTEXT}}\nClose macro: Lumen leaning his shell so the clipped blade carves a star window in a second acorn cap, the finished first cap beside him and a third cap waiting, the sewing pin on the cobbles.\n{{LIGHT_BLUE}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Lumen carving a second acorn cap {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\n{{NOTEXT}}\nThree acorn caps in a row on the cobbles, each with a small five-point star window, Lumen beside them, the sewing pin on the cobbles.\n{{LIGHT_BLUE}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 2,
+     "prompt": "{{CRUNCH}}",
+     "durationSec": 5,
+     "gainDb": -6
+    },
+    {
+     "at": 11,
+     "prompt": "{{CRUNCH}}",
+     "durationSec": 5,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "a very soft slow glide of a tiny snail over cobbles, quiet, close-mic, no music",
+     "durationSec": 20,
+     "gainDb": -18
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{NIGHT_BED}}",
+     "durationSec": 20.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 20,
+   "label": "Stringing the caps",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow crane up, constant speed, no cuts. Lumen threads the three caps onto the cotton thread, climbs the lamp post and hooks the thread over the lamp arm so the caps hang in a gentle swag to the next post, small toy-like movements.\n{{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\nAmbient motion: the thread swaying gently. Lighting stays blue hour. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Lumen stringing acorn caps on thread {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\n{{NOTEXT}}\nMedium macro: Lumen gliding over the cobbles drawing a cream cotton thread from his shell hook through the stems of the three star-cut acorn caps like beads, each cap cup-side up with a tiny candle stub inside; the lamp post rising beside him; the sewing pin on the cobbles.\n{{LIGHT_BLUE}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Lumen stringing acorn caps on thread {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\n{{NOTEXT}}\nThe three star-cut acorn caps hanging cup-side up on a cream thread swagged between two lamp posts, a tiny unlit candle stub in each, Lumen resting on the lamp arm, the sewing pin on the cobbles below.\n{{LIGHT_BLUE}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 1,
+     "prompt": "fine cotton thread drawn slowly through small wooden stems, soft whisper, close ASMR, no music",
+     "durationSec": 8,
+     "gainDb": -10
+    },
+    {
+     "at": 10,
+     "prompt": "a very soft slow glide of a tiny snail up an iron post, quiet, close-mic, no music",
+     "durationSec": 8,
+     "gainDb": -16
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{NIGHT_BED}}",
+     "durationSec": 20.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 15,
+   "label": "Candle stubs lit",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: locked macro, constant speed, no cuts. Lumen touches his lantern to each candle wick in turn; each acorn cap glows through its star window, small toy-like movements.\n{{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\nAmbient motion: three tiny contained candle flames flickering. Lighting stays blue hour. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} Lumen lighting a candle stub inside an acorn cap {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\n{{NOTEXT}}\nClose macro: Lumen on the lamp arm leaning down to touch his brass lantern to the wick of a tiny candle stub inside the first hanging acorn cap, a small contained flame beginning; the other two caps dark; the sewing pin on the cobbles below.\n{{LIGHT_BLUE}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "prompt": "{{HDR}} Lumen lighting a candle stub inside an acorn cap {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\n{{NOTEXT}}\nAll three hanging acorn caps glowing, warm light shining out through their star windows, Lumen on the lamp arm, the sewing pin on the cobbles below.\n{{LIGHT_BLUE}}\n{{TAIL}}"
+   },
+   "sfx": [
+    {
+     "at": 2,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 6.5,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 11,
+     "prompt": "a single soft bright brass lamp tink, a tiny glass lamp head lighting up, clean short chime with a gentle shimmer decay, no music, no voices",
+     "durationSec": 1.5,
+     "gainDb": -4
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{NIGHT_BED}}",
+     "durationSec": 15.0,
+     "gainDb": -18
+    }
+   ]
+  },
+  {
+   "sec": 10,
+   "label": "Stars on the lane (loop)",
+   "lines": [],
+   "videoPrompt": "{{CONT}}\nof field. Camera: slow tilt down, constant speed, no cuts. Tiny star shapes of light sway across the lane; the camera tilts down to the cobbles where Lumen leans his clipped blade into the next uncarved acorn cap, arriving on the opening close-up, small toy-like movements.\n{{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\nAmbient motion: star-shaped light swaying on the cobbles. Lighting stays blue hour. Warm cozy palette, fine film grain. {{VNEG}}",
+   "keyframePrompt": "{{HDR}} acorn-cap lanterns glowing across Lantern Lane {{FF}} {{SET_LANE}}\n{{LUMEN}}\n{{LUMEN_TOOL}}\n{{SCALE}}\n{{NOTEXT}}\nVertical view down Lantern Lane at blue hour: the three glowing acorn-cap lanterns on their thread between lamp posts casting tiny amber star shapes across the cobbles and cottage walls, Lumen gliding down the post; the sewing pin on the cobbles.\n{{LIGHT_BLUE}}\n{{TAIL}}",
+   "model": "hf-seedance-2-5",
+   "generateAudio": true,
+   "endFrame": {
+    "fromSection": 0
+   },
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "music box and celesta playing a slow three-note motif C, E, G, warm and gentle, single phrase with a soft decay, instrumental",
+     "durationSec": 6,
+     "gainDb": -12
+    },
+    {
+     "at": 9,
+     "prompt": "a tiny blade tip touching a dry acorn cap, the first faint woody crackle",
+     "durationSec": 1,
+     "gainDb": -8
+    },
+    {
+     "at": 0.0,
+     "prompt": "{{NIGHT_BED}}",
+     "durationSec": 10.0,
+     "gainDb": -18
+    }
+   ]
+  }
+ ],
+ "music": {
+  "prompt": "soft music box celesta melody, slow, warm and gentle, autumn evening lullaby, sparse, instrumental, no vocals, no drums",
+  "gainDb": -22,
+  "underVoDb": 0
+ },
+ "sting": {
+  "at": 3,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: The Snail Who Lights the Lamps"
+ },
+ "watermark": true,
+ "captions": false,
+ "qc": "Batch §3.4 (every clip): resident marks intact (Miso navy hachimaki/terracotta half-apron/cream shirt/white cloth; Bramble gold wire spectacles/sage cardigan two wooden buttons/flour-dusted apron; Lumen honey-amber shell cream spiral/brass lantern on hook/navy peaked cap; Wren chestnut feathers cream barring/terracotta satchel), no species change, extra limbs, talking mouths, merges or walk-on scarf swaps; scale table holds (no prop drifts >15% between segments, nothing human-sized, town never reads full-size); no human hands/faces/silhouettes/reflections, paws never five-fingered; needle-felt/resin/painted-wood texture + fine 35mm grain, no photoreal/3D-plastic/cel drift, no letters or signage text anywhere; chain seams: resident within ±5% frame width, same light/camera direction/speed, no pose reset or prop teleport; luminance stable ±3% except motivated events; ≥1 Lantern Amber source in every night frame, no pure black, fire only contained tealight/stove/candle glow, weather gentle; foley in sync ±2 frames, no generated voices/mumbles/music left in clip audio, brand tink identical everywhere, no clipping, no audible rain-bed seams. TT-08: blade in contact with the cap in frame 1 and the crunch lands at 0.0s; Lumen never grows hands, paws, arms or tentacles and never holds tools in his mouth: blade in the brass clip beside his shell hook, lantern stays on its hook (SC convention); acorn caps ~1.5 cm (smaller than Lumen's shell), constant ±15%; exactly three caps with star windows; candle flames small and contained inside the caps; the three lighting tinks are the brand library tink; sewing pin visible in every section; loop lands on the section 1 keyframe (blade on a fresh cap).",
+ "snippets": {
+  "HDR": "Miniature diorama photograph, 85mm macro lens look, deep focus:",
+  "FF": "in crisp focus and the whole scene sharp right to the top and bottom edges of the frame; the photograph fills the entire frame edge to edge, with no borders, no bars, no blurred bands, no letterbox, no frame-within-frame, no signature or watermark.",
+  "CONT": "Continuous single shot inside a miniature diorama, tilt-shift macro, shallow depth",
+  "TAIL": "Fine 35mm grain, cozy, warm, no text, no people, no photoreal animals, no human hands or fingers, no lettering or signage text. 9:16.",
+  "NOTEXT": "All surfaces are blank painted wood, tin, felt or ceramic, or carry simple painted icons only (a bowl, a loaf, a star); there are no letters, numbers or words anywhere in the picture. The residents are handmade figurines with felted or resin paws, wings or bodies, never human hands.",
+  "VNEG": "Wordless: no talking mouths. No text, lettering, numbers or signage anywhere; icons only. No human hands or fingers, no people, no photoreal animals; handmade figurine textures only.",
+  "LUMEN": "LUMEN — a snail lamplighter, glossy clay shell in honey-amber with a cream spiral, soft\nsage-grey body, a tiny brass lantern hanging from a hook on the shell, a small navy peaked\ncap. About 2.5 cm long. Unhurried. Lights every street lamp at dusk (the channel ident).",
+  "SET_LANE": "Lantern Lane: hand-built\nminiature cobbled lane of cottages made from painted wooden-block cottages with teacup and tin-can roofs, iron lamp posts the height of a pencil stub with glass lamp heads the size of a pea, the brass sewing-thimble water tower at the far end (scale cue), painted wood, felt, paper and clay\nmicro-props, visible craft texture.",
+  "SCALE": "SCALE LOCK: Lumen about 2.5 cm long; each real oak acorn cap about 1.5 cm across, a little smaller than Lumen's shell; the carving blade sewing-needle fine, about 1 cm; each candle stub a real birthday-candle stub about 8 mm tall that fits inside a cap; lamp posts pencil-stub high (about 3× Lumen's length); a real steel sewing pin lies on the cobbles in frame as the real-object scale cue.",
+  "LUMEN_TOOL": "LUMEN TOOL LOCK (same convention as his lamplighting): Lumen has no hands, paws, arms or tentacles and holds nothing in his mouth; the brass lantern stays on its hook on his shell; the tiny carving blade sits in a small brass clip beside that hook, and he works by slowly leaning and gliding so the shell-mounted blade presses into the cap, exactly as he touches his lantern to a lamp.",
+  "LIGHT_BLUE": "Lighting: blue hour with amber windows, color palette lantern amber #F2B35E, honey #E8A94B, terracotta #C8643B, cream #F6EAD3, sage #9DB28A, dusk plum #5B4A6B. Weather: clear and still. Season: autumn: acorn caps, leaf drifts and pumpkin lanterns.",
+  "NIGHT_BED": "soft distant crickets chirping on a calm autumn night, gentle seamless ambience, no voices, no music",
+  "CRUNCH": "a tiny blade crunching crisply through a dry acorn cap, short crisp woody crunches with small flakes falling, close macro ASMR, no music"
+ }
+}
