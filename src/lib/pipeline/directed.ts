@@ -592,11 +592,15 @@ export async function enqueueDirectedClips(
   const busy = new Set(((open ?? []) as { beat_idx: number }[]).map((j) => j.beat_idx));
 
   const rows: Record<string, unknown>[] = [];
+  const pendingReuse: string[] = [];
   for (const s of script.sections) {
     if (onlySections && !onlySections.includes(s.idx)) continue;
     if (busy.has(s.idx)) continue;
     if (s.reuse) {
-      await reuseClip(db, video, s);
+      // A reuse source still generating (a series' ident/outro) must not
+      // block this video's own clips: queue them now, copy the plate at cut
+      // time (stageDirectedCut / the worker resolve it once it lands).
+      if (!(await reuseClip(db, video, s))) pendingReuse.push(`${s.reuse.videoId} §${s.reuse.sectionIdx + 1}`);
       continue;
     }
     const model = s.model ?? locked;
@@ -626,12 +630,24 @@ export async function enqueueDirectedClips(
     await db.from("videos").update({ status: "ASSETS_READY", auto_finish: true }).eq("id", videoId);
     return { ok: true, queued: 0, status: "ASSETS_READY" };
   }
+  if (pendingReuse.length) {
+    await db
+      .from("videos")
+      .update({ status: "ASSETS_READY", auto_finish: true, paused_reason: `${REUSE_WAIT} ${pendingReuse.join(", ")}` })
+      .eq("id", videoId);
+    return { ok: true, queued: 0, status: "ASSETS_READY" };
+  }
   const staged = await stageDirectedCut(db, videoId);
   return staged.ok ? { ok: true, queued: 0, status: "ASSEMBLING" } : { ok: false, error: staged.error };
 }
 
-/** Copy a previously generated clip (a channel ident / outro plate). */
-async function reuseClip(db: Db, video: Video, s: DirectedSection) {
+/** paused_reason prefix for a cut waiting on another video's clip (the
+    worker re-stages these once the source lands). */
+export const REUSE_WAIT = "waiting for reuse source";
+
+/** Copy a previously generated clip (a channel ident / outro plate). False
+    when the source hasn't landed yet. */
+async function reuseClip(db: Db, video: Pick<Video, "id">, s: DirectedSection): Promise<boolean> {
   const src = s.reuse!;
   const { data } = await db
     .from("assets")
@@ -642,7 +658,7 @@ async function reuseClip(db: Db, video: Video, s: DirectedSection) {
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (!data?.storage_path) throw new Error(`reuse source ${src.videoId} §${src.sectionIdx + 1} has no clip`);
+  if (!data?.storage_path) return false;
   await db.from("assets").delete().eq("video_id", video.id).eq("kind", "clip").eq("beat_index", s.idx);
   await insertAsset(db, {
     video_id: video.id,
@@ -653,6 +669,7 @@ async function reuseClip(db: Db, video: Video, s: DirectedSection) {
     meta: { ...(data.meta as Record<string, unknown>), reusedFrom: src },
     cost_usd: 0,
   });
+  return true;
 }
 
 /** Compile + stage the cut (app side — the worker does the same when the last
@@ -661,6 +678,18 @@ export async function stageDirectedCut(db: Db, videoId: string): Promise<{ ok: t
   const loaded = await loadDirected(db, videoId);
   if ("error" in loaded) return { ok: false, error: loaded.error };
   const { project, script, scriptId } = loaded;
+  // Resolve reuse sections whose source clip landed after this video queued.
+  const have = await assetsOf(db, videoId);
+  const waiting: string[] = [];
+  for (const s of script.sections) {
+    if (!s.reuse || have.some((a) => a.kind === "clip" && a.beat_index === s.idx)) continue;
+    if (!(await reuseClip(db, { id: videoId }, s))) waiting.push(`${s.reuse.videoId} §${s.reuse.sectionIdx + 1}`);
+  }
+  if (waiting.length) {
+    const why = `${REUSE_WAIT} ${waiting.join(", ")}`;
+    await db.from("videos").update({ status: "ASSETS_READY", auto_finish: true, paused_reason: why }).eq("id", videoId);
+    return { ok: false, error: why };
+  }
   const assets = await assetsOf(db, videoId);
   const doc = compileDirectedEdd(
     directedInputFromAssets(script, assets, { primary: (project.brand_kit as { primary?: string } | null)?.primary ?? "#F5B829" }, project.name),
