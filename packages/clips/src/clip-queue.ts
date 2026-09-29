@@ -220,13 +220,19 @@ async function hfSubmit(endpoint: string, input: Record<string, unknown>): Promi
   throw new Error(last);
 }
 
+/** Status-poll ceiling. Every lane polls its in-flight job, and the Higgsfield
+    key allows 60 requests/min and 5,000/day: at a 10s ceiling 8 lanes already
+    made ~48 polls/min. Clips take minutes, so a 30s ceiling costs at most ~20s
+    of latency per clip and cuts poll traffic ~3x (16 lanes ≈ 32 polls/min). */
+const HF_POLL_MAX_MS = 30_000;
+
 async function hfPoll(h: HfHandle): Promise<string> {
   const deadline = Date.now() + POLL_MS;
   let wait = 2000;
   for (;;) {
     if (Date.now() > deadline) throw new Error("higgsfield job timed out");
-    await sleep(wait);
-    wait = Math.min(10_000, Math.round(wait * 1.5));
+    await sleep(wait + Math.floor(Math.random() * 1000));
+    wait = Math.min(HF_POLL_MAX_MS, Math.round(wait * 1.5));
     const st = await fetch(h.statusUrl, { headers: hfHeaders() });
     if (!st.ok) continue;
     const s = (await st.json()) as { status?: string; error?: string; video?: { url?: string } };
