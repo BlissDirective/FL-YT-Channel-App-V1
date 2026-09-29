@@ -629,7 +629,7 @@ export const TOOLS: Tool[] = [
   {
     name: "revise_sections",
     description:
-      "One targeted revision round on a directed video (no round cap — revise until it passes QC): optionally replace a section's videoPrompt / keyframePrompt, re-roll its keyframe, and regenerate ONLY those sections' clips; the cut is re-compiled and re-rendered back to Final review. sections = [{idx, videoPrompt?, keyframePrompt?, rerollKeyframe?, sfx?}]. sfx (the section's full replacement cue list [{at, prompt, durationSec?, gainDb?}]) is an audio-only round: nothing visual may change in the same call, no clip is regenerated, and the video returns to GENERATING_ASSETS — then call produce_directed to generate the new cues and re-cut.",
+      "One targeted revision round on a directed video (no round cap — revise until it passes QC): optionally replace a section's videoPrompt / keyframePrompt, re-roll its keyframe, and regenerate ONLY those sections' clips; the cut is re-compiled and re-rendered back to Final review. sections = [{idx, videoPrompt?, keyframePrompt?, rerollKeyframe?, endFramePrompt?, sfx?}]. endFramePrompt replaces and re-rolls a prompted end frame (the clip morphs keyframe → end frame, so a mismatched end frame shows as a mid-clip set/costume swap). sfx (the section's full replacement cue list [{at, prompt, durationSec?, gainDb?}]) is an audio-only round: nothing visual may change in the same call, no clip is regenerated, and the video returns to GENERATING_ASSETS — then call produce_directed to generate the new cues and re-cut.",
     inputSchema: obj(
       {
         videoId: { type: "string" },

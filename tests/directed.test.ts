@@ -246,3 +246,25 @@ describe("reverse beats", () => {
     expect(p.ok && p.script.sections[0].reverse).toBeUndefined();
   });
 });
+
+describe("section revisions (end frames)", async () => {
+  const { applySectionRevisions } = await import("@/lib/pipeline/directed");
+  const script = (parseDirectedScript(s01()) as { script: DirectedScript }).script;
+
+  it("sets a prompted end frame and leaves the source script untouched", () => {
+    const r = applySectionRevisions(script, [{ idx: 1, endFramePrompt: "  same stall, same apron  " }]);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.script.sections[1].endFrame).toEqual({ prompt: "same stall, same apron" });
+    expect(script.sections[1].endFrame).toBeUndefined();
+  });
+
+  it("refuses to replace a loop end frame (it is another section's keyframe)", () => {
+    const r = applySectionRevisions(script, [{ idx: 2, endFramePrompt: "new end" }]);
+    expect(r).toEqual({ ok: false, error: expect.stringContaining("section 0") });
+  });
+
+  it("rejects an unknown section", () => {
+    expect(applySectionRevisions(script, [{ idx: 9, videoPrompt: "x" }]).ok).toBe(false);
+  });
+});
