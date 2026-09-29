@@ -744,11 +744,17 @@ export type SectionRevision = {
    * a labels-only round re-stages the cut straight to render.
    */
   labels?: DirectedSection["labels"];
+  /**
+   * Replace the section's reference images (Cinema Studio image_urls). A ref
+   * drawn off-model leaks into every clip that cites it (INKLIGHT L01 S8: the
+   * goon ref's crimson smears became pink splatter and red eyes).
+   */
+  refs?: string[];
 };
 
 const isVisualRevision = (r: SectionRevision) =>
   Boolean(
-    r.videoPrompt?.trim() || r.keyframePrompt?.trim() || r.rerollKeyframe || r.endFramePrompt?.trim() || r.segmentPrompts?.length,
+    r.videoPrompt?.trim() || r.keyframePrompt?.trim() || r.rerollKeyframe || r.endFramePrompt?.trim() || r.segmentPrompts?.length || r.refs !== undefined,
   );
 
 /**
@@ -780,6 +786,7 @@ export function applySectionRevisions(
     }
     if (r.sfx !== undefined) s.sfx = Array.isArray(r.sfx) ? r.sfx : [];
     if (r.labels !== undefined) s.labels = Array.isArray(r.labels) ? r.labels : [];
+    if (r.refs !== undefined) s.refs = Array.isArray(r.refs) ? r.refs : [];
   }
   const reparsed = parseDirectedScript(next);
   return reparsed.ok ? { ok: true, script: reparsed.script } : { ok: false, error: reparsed.errors.join("; ") };
