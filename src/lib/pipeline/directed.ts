@@ -810,6 +810,36 @@ export function applySectionRevisions(
  * the farm re-renders back to Final review. No round cap (operator decision:
  * no per-video limits on quality) — rounds are counted for reporting only.
  */
+/**
+ * A prompt fix while the asset stage is still running. A keyframe that fails
+ * the full-frame gate three times holds the stage with "adjust the keyframe
+ * prompt" (INKLIGHT INK-05 S13: the study window drew as dark pillars), and
+ * nothing could adjust it before Final review. The stage keys stills and
+ * clips by prompt hash, so saving the script is the whole fix: the next
+ * produce_directed call draws the new prompt. Re-rolls, cues and labels
+ * wait for Final review.
+ */
+async function savePromptsMidStage(
+  db: Db,
+  loaded: Loaded,
+  sections: SectionRevision[],
+): Promise<{ ok: true; round: number; queued: number; did: string[] } | { ok: false; error: string }> {
+  if (sections.some((r) => r.sfx !== undefined || r.labels !== undefined || r.rerollKeyframe)) {
+    return { ok: false, error: "while assets are generating, revise prompts, refs or controls only — the asset stage draws from the saved script" };
+  }
+  if (!sections.some(isVisualRevision)) return { ok: false, error: "nothing to revise" };
+  const reparsed = applySectionRevisions(loaded.script, sections);
+  if (!reparsed.ok) return reparsed;
+  await saveScriptVersion(db, loaded.video.id, loaded.version, reparsed.script);
+  await db.from("videos").update({ paused_reason: null }).eq("id", loaded.video.id);
+  return {
+    ok: true,
+    round: 0,
+    queued: 0,
+    did: [`prompts saved for sections ${sections.map((r) => r.idx + 1).join(", ")}: call produce_directed to continue the asset stage with them`],
+  };
+}
+
 export async function reviseDirectedSections(
   db: Db,
   opts: { videoId: string; sections: SectionRevision[]; note: string },
@@ -817,10 +847,11 @@ export async function reviseDirectedSections(
   const loaded = await loadDirected(db, opts.videoId);
   if ("error" in loaded) return { ok: false, error: loaded.error };
   const { video, script, version } = loaded;
+  if (!opts.sections.length) return { ok: false, error: "no sections given" };
+  if (video.status === "GENERATING_ASSETS") return savePromptsMidStage(db, loaded, opts.sections);
   if (!["FINAL_REVIEW", "ASSETS_READY"].includes(video.status)) {
     return { ok: false, error: `revise from Final review or Assets (video is ${video.status})` };
   }
-  if (!opts.sections.length) return { ok: false, error: "no sections given" };
   const audio = opts.sections.filter((r) => r.sfx !== undefined);
   if (audio.length && audio.length !== opts.sections.length) {
     return { ok: false, error: "revise audio (sfx) and visuals in separate rounds — audio first, it costs no clip spend" };
