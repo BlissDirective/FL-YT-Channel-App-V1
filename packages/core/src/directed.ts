@@ -58,6 +58,9 @@ export type DirectedSection = {
   videoPrompt: string;
   /** SOUL keyframe (first frame). Omit → text-to-video. */
   keyframePrompt?: string;
+  /** An operator-supplied still (a storage path in the media bucket) used
+      verbatim as the first frame instead of a SOUL keyframe. */
+  keyframeImage?: string;
   /** Landing frame (end_image_url, Seedance 2.5): another section's keyframe
       (a loop: `{ fromSection: 0 }`) or its own prompt. Final segment only. */
   endFrame?: { fromSection: number } | { prompt: string };
@@ -201,6 +204,12 @@ export function parseDirectedScript(input: unknown): DirectedParse {
       ? { videoId: str(s.reuse.videoId)!, sectionIdx: num(s.reuse.sectionIdx)! }
       : undefined;
     if (!videoPrompt && !reuse) err(`${w}.videoPrompt required (or reuse)`);
+    const keyframeImage = str(s.keyframeImage);
+    if (keyframeImage) {
+      if (str(s.keyframePrompt)) err(`${w} takes keyframePrompt or keyframeImage, not both`);
+      if (/^[a-z]+:\/\//i.test(keyframeImage) || keyframeImage.startsWith("/") || keyframeImage.includes(".."))
+        err(`${w}.keyframeImage must be a storage path in the media bucket (e.g. refs/<projectId>/operator-….jpg)`);
+    }
     const lines: DirectedLine[] = [];
     for (const [j, l] of (Array.isArray(s.lines) ? s.lines : []).entries()) {
       const text = isObj(l) ? str(l.text) : undefined;
@@ -285,6 +294,7 @@ export function parseDirectedScript(input: unknown): DirectedParse {
       lines,
       videoPrompt: videoPrompt ?? "",
       keyframePrompt: str(s.keyframePrompt),
+      ...(keyframeImage ? { keyframeImage } : {}),
       endFrame,
       model,
       controls,
@@ -305,7 +315,7 @@ export function parseDirectedScript(input: unknown): DirectedParse {
   for (const s of sections) {
     if (s.endFrame && "fromSection" in s.endFrame) {
       const src = sections[s.endFrame.fromSection];
-      if (src && !src.keyframePrompt) err(`sections[${s.idx}].endFrame references section ${src.idx}, which has no keyframePrompt`);
+      if (src && !src.keyframePrompt && !src.keyframeImage) err(`sections[${s.idx}].endFrame references section ${src.idx}, which has no keyframePrompt`);
     }
   }
 

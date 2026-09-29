@@ -305,6 +305,13 @@ async function runDirectedSteps(
   // 1) Keyframes + prompted end frames (SOUL Standard, native aspect).
   for (const s of script.sections) {
     if (s.reuse) continue;
+    if (s.keyframeImage) {
+      const path = s.keyframeImage;
+      const h = specHash(["operator", path]);
+      if (!has("keyframe", s.idx, "promptHash", h)) {
+        steps.push({ key: `kf${s.idx}`, label: `keyframe §${s.idx + 1} (operator still)`, run: () => placeOperatorStill(db, video, s.idx, path, aspect, h) });
+      }
+    }
     if (s.keyframePrompt) {
       const h = specHash([s.keyframePrompt, aspect]);
       if (!has("keyframe", s.idx, "promptHash", h)) {
@@ -430,6 +437,22 @@ async function makeStill(db: Db, video: Video, kind: "keyframe" | "keyframe_end"
     beat_index: idx,
     meta: { promptHash: h, prompt, aspect, model: "soul/standard", seed: out.seed, stillImage: true },
     cost_usd: out.costUsd,
+  });
+}
+
+/** An operator-supplied first frame: no SOUL call, no full-frame gate (the
+    operator framed it). The file must already be in the media bucket. */
+async function placeOperatorStill(db: Db, video: Video, idx: number, path: string, aspect: "9:16" | "16:9", h: string) {
+  if (!(await getSignedMediaUrl(path, 60))) throw new Error(`operator still not found in storage: ${path}`);
+  await db.from("assets").delete().eq("video_id", video.id).eq("kind", "keyframe").eq("beat_index", idx);
+  await insertAsset(db, {
+    video_id: video.id,
+    kind: "keyframe",
+    provider: "operator",
+    storage_path: path,
+    beat_index: idx,
+    meta: { promptHash: h, source: "operator", aspect, stillImage: true },
+    cost_usd: 0,
   });
 }
 
