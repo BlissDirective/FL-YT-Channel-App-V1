@@ -383,12 +383,12 @@
     "color_palette": "bubblegum-boulevard"
    },
    "refs": [
-    "refs/inklight/ref-bolt.png",
-    "refs/inklight/ref-pip.png",
-    "refs/inklight/ref-nova.png",
-    "refs/inklight/ref-brick.png",
-    "refs/inklight/ref-smudge.png",
-    "refs/inklight/env-camp.png"
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-camp-384facb645.png"
    ],
    "sfx": [
     {
@@ -654,12 +654,12 @@
     "color_palette": "bubblegum-boulevard"
    },
    "refs": [
-    "refs/inklight/ref-bolt.png",
-    "refs/inklight/ref-pip.png",
-    "refs/inklight/ref-nova.png",
-    "refs/inklight/ref-brick.png",
-    "refs/inklight/ref-smudge.png",
-    "refs/inklight/prop-map.png"
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/prop-map-4fcfa265e2.png"
    ],
    "sfx": [
     {

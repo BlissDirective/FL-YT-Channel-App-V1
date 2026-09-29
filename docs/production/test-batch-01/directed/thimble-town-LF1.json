@@ -55,9 +55,9 @@
     "color_palette": "twilight-fable"
    },
    "refs": [
-    "refs/thimble-town/lumen_ref.png",
-    "refs/thimble-town/lantern_lane_ref.png",
-    "refs/thimble-town/thimble_tower_ref.png"
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/lumen-ref-3a4020a13e.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/lantern-lane-ref-03d9b51ceb.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/thimble-tower-ref-7687ba8944.png"
    ],
    "sfx": [
     {
@@ -111,8 +111,8 @@
     "color_palette": "twilight-fable"
    },
    "refs": [
-    "refs/thimble-town/noodle_row_set_ref.png",
-    "refs/thimble-town/thimble_tower_ref.png"
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/noodle-row-set-ref-2760c58455.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/thimble-tower-ref-7687ba8944.png"
    ],
    "sfx": [
     {
@@ -487,8 +487,8 @@
     "color_palette": "twilight-fable"
    },
    "refs": [
-    "refs/thimble-town/noodle_row_night_ref.png",
-    "refs/thimble-town/stall_ref.png"
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/noodle-row-night-ref-7afaa817eb.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/stall-ref-eec0053545.png"
    ],
    "sfx": [
     {
@@ -681,8 +681,8 @@
     "color_palette": "twilight-fable"
    },
    "refs": [
-    "refs/thimble-town/town_night_ref.png",
-    "refs/thimble-town/thimble_tower_ref.png"
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/town-night-ref-dae51f61b2.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/thimble-tower-ref-7687ba8944.png"
    ],
    "sfx": [
     {

@@ -111,8 +111,8 @@
     "color_palette": "oil-ochre"
    },
    "refs": [
-    "refs/thimble-town/town_ref.png",
-    "refs/thimble-town/thimble_tower_ref.png"
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/town-ref-d46a254c44.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/thimble-tower-ref-7687ba8944.png"
    ],
    "sfx": [
     {
@@ -780,9 +780,9 @@
     "color_palette": "twilight-fable"
    },
    "refs": [
-    "refs/thimble-town/town_night_ref.png",
-    "refs/thimble-town/thimble_tower_ref.png",
-    "refs/thimble-town/lumen_ref.png"
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/town-night-ref-dae51f61b2.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/thimble-tower-ref-7687ba8944.png",
+    "refs/5735923b-8396-41f1-95ad-7625b6ad8eac/lumen-ref-3a4020a13e.png"
    ],
    "segments": [
     {

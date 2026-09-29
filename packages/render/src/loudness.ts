@@ -11,7 +11,7 @@ import { renameSync } from "node:fs";
  * 192k). Non-fatal: any failure leaves the original file untouched.
  */
 export const TARGET_LUFS = -14;
-const TARGET_TP = -1.5;
+const TARGET_TP = -2; // AAC re-encode adds ~0.5–1 dB of inter-sample peak; leaves room under -1 dBTP
 const TARGET_LRA = 11;
 
 type Measured = { input_i: string; input_tp: string; input_lra: string; input_thresh: string; target_offset: string };

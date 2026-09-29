@@ -179,6 +179,12 @@
    "sfx": [
     {
      "at": 0,
+     "prompt": "low steady electrical hum of a big machine, cartoon lab ambience, seamless",
+     "durationSec": 20,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
      "prompt": "blaring cartoon alarm klaxon, rhythmic, comedic",
      "durationSec": 6,
      "gainDb": -8
@@ -199,6 +205,18 @@
      "at": 9,
      "prompt": "triumphant silly kazoo fanfare, short comedic",
      "durationSec": 6,
+     "gainDb": -8
+    },
+    {
+     "at": 6,
+     "prompt": "soft confetti and paper streamers fluttering down and settling, gentle rustle",
+     "durationSec": 3,
+     "gainDb": -10
+    },
+    {
+     "at": 15,
+     "prompt": "a small balloon slowly deflating with a sad comedic squeak",
+     "durationSec": 2,
      "gainDb": -8
     }
    ],
