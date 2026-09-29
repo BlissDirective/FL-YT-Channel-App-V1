@@ -97,7 +97,10 @@ class QueryBuilder implements PromiseLike<{
   }
 
   lt(col: string, val: unknown) {
-    this.filters.push((r) => Number(r[col]) < Number(val));
+    // Numbers compare numerically; ISO timestamps (NaN as numbers) as strings.
+    this.filters.push((r) =>
+      typeof val === "number" ? Number(r[col]) < val : r[col] != null && String(r[col]) < String(val),
+    );
     return this;
   }
 
