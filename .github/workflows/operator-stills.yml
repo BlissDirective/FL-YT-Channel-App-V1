@@ -1,0 +1,45 @@
+name: Operator Stills
+
+# Uploads operator-supplied stills (operator-stills/<projectId>/<name>.<jpg|png>)
+# to the media bucket at refs/<projectId>/operator-<name>-<blob sha>.<ext>, so a
+# directed section can use one verbatim as its first frame (keyframeImage).
+# Content-addressed and never overwritten: a changed image gets a new path.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - operator-stills/**
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload stills
+        env:
+          SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          base="https://reffwibuitzrkertuuvy.supabase.co/storage/v1/object/media"
+          shopt -s nullglob
+          for f in operator-stills/*/*.{jpg,jpeg,png}; do
+            project=$(basename "$(dirname "$f")")
+            if ! [[ "$project" =~ ^[0-9a-f-]{36}$ ]]; then echo "skip $f: folder is not a project id"; continue; fi
+            name=$(basename "$f"); ext="${name##*.}"; stem="${name%.*}"
+            stem=$(echo "$stem" | tr -c 'A-Za-z0-9_-' '-' | sed 's/-*$//')
+            sha=$(git hash-object "$f" | cut -c1-10)
+            ct=image/jpeg; [ "$ext" = png ] && ct=image/png
+            path="refs/$project/operator-$stem-$sha.$ext"
+            code=$(curl -s -o /tmp/resp -w '%{http_code}' -X POST "$base/$path" \
+              -H "Authorization: Bearer $SERVICE_KEY" -H "apikey: $SERVICE_KEY" \
+              -H "Content-Type: $ct" -H "x-upsert: false" --data-binary "@$f")
+            if [ "$code" = 200 ]; then msg="uploaded"
+            elif grep -qi "exists" /tmp/resp; then msg="already stored"
+            else echo "::error::$f → HTTP $code $(head -c 300 /tmp/resp)"; exit 1; fi
+            echo "$msg: $path"
+            echo "- \`$path\` ($msg)" >> "$GITHUB_STEP_SUMMARY"
+          done

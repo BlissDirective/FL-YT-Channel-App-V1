@@ -96,6 +96,30 @@ describe("parseDirectedScript", () => {
     expect(r.ok).toBe(false);
   });
 
+  it("takes an operator still as a section's first frame", () => {
+    const raw = s01() as { sections: Record<string, unknown>[] };
+    delete raw.sections[0].keyframePrompt;
+    raw.sections[0].keyframeImage = "refs/p1/operator-parlor-1a2b3c4d.jpg";
+    const r = parseDirectedScript(raw);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.script.sections[0].keyframeImage).toBe("refs/p1/operator-parlor-1a2b3c4d.jpg");
+    expect(r.script.sections[0].keyframePrompt).toBeUndefined();
+  });
+
+  it("rejects an operator still given as a URL, or alongside a keyframe prompt", () => {
+    for (const bad of [
+      { keyframeImage: "https://example.com/a.jpg" },
+      { keyframeImage: "../secrets/a.jpg" },
+      { keyframeImage: "refs/p1/a.jpg", keyframePrompt: "KF 1" },
+    ]) {
+      const raw = s01() as { sections: Record<string, unknown>[] };
+      delete raw.sections[0].keyframePrompt;
+      Object.assign(raw.sections[0], bad);
+      expect(parseDirectedScript(raw).ok).toBe(false);
+    }
+  });
+
   it("rejects a line outside its section", () => {
     const bad = s01() as { sections: { lines: { at: number }[] }[] };
     bad.sections[0].lines[0].at = 12;
