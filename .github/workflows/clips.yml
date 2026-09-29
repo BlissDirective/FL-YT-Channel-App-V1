@@ -5,7 +5,11 @@ name: Long Clip Worker
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    # Every 10 min: with the long-clips concurrency group (no cancel), at
+    # most one run waits behind the active one, so runs chain back-to-back
+    # instead of idling ~8 min per 30 (a run stops at its 22-min budget).
+    # An empty queue costs one cheap REST peek.
+    - cron: "*/10 * * * *"
   push:
     paths:
       - packages/clips/**
