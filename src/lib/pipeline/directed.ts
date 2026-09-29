@@ -750,11 +750,17 @@ export type SectionRevision = {
    * goon ref's crimson smears became pink splatter and red eyes).
    */
   refs?: string[];
+  /**
+   * Cinema Studio controls merged over the section's own (e.g. pacing:
+   * "single-shot"). INKLIGHT INK-03 S1 at pacing "dynamic" cut between
+   * several set-ups and drew an off-model Nova; the prompt can't override it.
+   */
+  controls?: Record<string, string>;
 };
 
 const isVisualRevision = (r: SectionRevision) =>
   Boolean(
-    r.videoPrompt?.trim() || r.keyframePrompt?.trim() || r.rerollKeyframe || r.endFramePrompt?.trim() || r.segmentPrompts?.length || r.refs !== undefined,
+    r.videoPrompt?.trim() || r.keyframePrompt?.trim() || r.rerollKeyframe || r.endFramePrompt?.trim() || r.segmentPrompts?.length || r.refs !== undefined || (r.controls !== undefined && Object.keys(r.controls).length > 0),
   );
 
 /**
@@ -787,6 +793,12 @@ export function applySectionRevisions(
     if (r.sfx !== undefined) s.sfx = Array.isArray(r.sfx) ? r.sfx : [];
     if (r.labels !== undefined) s.labels = Array.isArray(r.labels) ? r.labels : [];
     if (r.refs !== undefined) s.refs = Array.isArray(r.refs) ? r.refs : [];
+    if (r.controls !== undefined && Object.keys(r.controls).length > 0) {
+      if (s.model && s.model !== "hf-cinema-studio-4") {
+        return { ok: false, error: `section ${r.idx} is not a Cinema Studio section — controls only apply to hf-cinema-studio-4` };
+      }
+      s.controls = { ...(s.controls ?? {}), ...r.controls };
+    }
   }
   const reparsed = parseDirectedScript(next);
   return reparsed.ok ? { ok: true, script: reparsed.script } : { ok: false, error: reparsed.errors.join("; ") };

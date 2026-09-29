@@ -323,6 +323,16 @@ describe("section revisions (end frames)", async () => {
     expect(r.ok && r.script.sections[1].refs).toEqual(["refs/p/ref-grey.png"]);
   });
 
+  it("merges Cinema Studio controls, and refuses them on a Seedance section", () => {
+    const r = applySectionRevisions(script, [{ idx: 1, controls: { pacing: "single-shot" } }]);
+    expect(r.ok && r.script.sections[1].controls).toEqual(expect.objectContaining({ pacing: "single-shot" }));
+    expect(script.sections[1].controls?.pacing).not.toBe("single-shot");
+    expect(applySectionRevisions(script, [{ idx: 2, controls: { pacing: "single-shot" } }])).toEqual({
+      ok: false,
+      error: expect.stringContaining("not a Cinema Studio section"),
+    });
+  });
+
   it("replaces a chained section's segment prompts, one per segment", () => {
     const raw = s01() as { sections: Record<string, unknown>[] } & Record<string, unknown>;
     raw.sections[1] = { ...raw.sections[1], sec: 45, segments: [{ sec: 30, prompt: "old A" }, { sec: 15, prompt: "old B" }] };
