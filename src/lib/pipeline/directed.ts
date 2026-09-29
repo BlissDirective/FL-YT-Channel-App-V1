@@ -23,6 +23,7 @@ import type { createAdminClient } from "@/lib/supabase/admin";
 import { recordCost } from "@/lib/pipeline/ledger";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import { generateHiggsfieldImage, HF_PRICES, isHiggsfieldLive, sanitizeCinemaControls } from "@/lib/adapters/higgsfield";
+import { checkFullFrame, firstFullFrame, FRAME_ATTEMPTS } from "@/lib/adapters/frame-check";
 import { synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import { generateSoundEffect, isSfxLive } from "@/lib/adapters/sfx";
 import { generateMusicBed, isMusicLive } from "@/lib/adapters/music";
@@ -387,7 +388,27 @@ async function runDirectedSteps(
 }
 
 async function makeStill(db: Db, video: Video, kind: "keyframe" | "keyframe_end", idx: number, prompt: string, aspect: "9:16" | "16:9", h: string) {
-  const out = await generateHiggsfieldImage({ prompt, aspectRatio: aspect });
+  // Lesson Q15: a still framed as a smaller picture inside blurred letterbox
+  // bands gets animated as-is. Check each still before any clip spend; re-roll
+  // up to FRAME_ATTEMPTS times, then hold the video for review.
+  const label = `${kind === "keyframe" ? "keyframe" : "end frame"} §${idx + 1}`;
+  const picked = await firstFullFrame(
+    () => generateHiggsfieldImage({ prompt, aspectRatio: aspect }),
+    checkFullFrame,
+    async (o, verdict) => {
+      await recordCost(db, video, { provider: "higgsfield", usd: o.costUsd, description: `SOUL ${kind === "keyframe" ? "keyframe" : "end frame"}` }, `section ${idx + 1}`);
+      if (verdict) {
+        await recordCost(db, video, { provider: "anthropic", usd: verdict.costUsd, description: "keyframe full-frame check" }, `section ${idx + 1}`);
+        if (!verdict.fullFrame) console.warn(`⚠️  ${label} not full-frame, re-rolling: ${verdict.reason}`);
+      }
+    },
+  );
+  if (!picked.ok) {
+    const why = `${label}: letterbox/border in ${FRAME_ATTEMPTS} SOUL attempts (${picked.reasons.at(-1) ?? "?"}) — held for review; adjust the keyframe prompt`;
+    await db.from("videos").update({ paused_reason: why.slice(0, 300) }).eq("id", video.id);
+    throw new Error(why);
+  }
+  const out = picked.out;
   const t = imageType(out.image);
   const path = `videos/${video.id}/${kind}-${idx}-${h}.${t.ext}`;
   await uploadMedia(path, out.image, t.ct);
@@ -401,7 +422,6 @@ async function makeStill(db: Db, video: Video, kind: "keyframe" | "keyframe_end"
     meta: { promptHash: h, prompt, aspect, model: "soul/standard", seed: out.seed, stillImage: true },
     cost_usd: out.costUsd,
   });
-  await recordCost(db, video, { provider: "higgsfield", usd: out.costUsd, description: `SOUL ${kind === "keyframe" ? "keyframe" : "end frame"}` }, `section ${idx + 1}`);
 }
 
 async function makeLine(db: Db, video: Video, project: Project, s: DirectedSection, j: number, voiceId: string, h: string) {
@@ -555,6 +575,19 @@ export async function enqueueDirectedClips(
   const assets = await assetsOf(db, videoId);
   const channelControls = ((project.brand_kit as { cinemaControls?: Record<string, string> } | null)?.cinemaControls ?? {}) as Record<string, string>;
   const locked = resolveLockedModelId(project.preferred_video_model ?? null);
+  if (onlySections?.length) {
+    // A revision supersedes a still-QUEUED job for the same section: its spec
+    // holds the old keyframe/prompt, so letting it run would pay for the clip
+    // the revision is replacing. Conditional on status=queued, so it never
+    // races the worker's atomic queued→running claim; a RUNNING job is left
+    // alone (and the section is skipped below as busy).
+    await db
+      .from("clip_jobs")
+      .update({ status: "error", error: "superseded by a revision before it ran (no spend)" })
+      .eq("video_id", videoId)
+      .in("beat_idx", onlySections)
+      .eq("status", "queued");
+  }
   const { data: open } = await db.from("clip_jobs").select("beat_idx").eq("video_id", videoId).in("status", ["queued", "running"]);
   const busy = new Set(((open ?? []) as { beat_idx: number }[]).map((j) => j.beat_idx));
 
