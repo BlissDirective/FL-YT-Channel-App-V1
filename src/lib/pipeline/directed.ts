@@ -734,10 +734,22 @@ export type SectionRevision = {
   endFramePrompt?: string;
   /** Replace the section's SFX cues. Audio-only: no clip is regenerated. */
   sfx?: DirectedSection["sfx"];
+  /**
+   * Replace each segment's prompt of a chained (> 30s) section, one per
+   * segment in order. Those prompts, not videoPrompt, drive its clips.
+   */
+  segmentPrompts?: string[];
+  /**
+   * Replace the section's on-screen labels. Cut-only: no clip is regenerated;
+   * a labels-only round re-stages the cut straight to render.
+   */
+  labels?: DirectedSection["labels"];
 };
 
 const isVisualRevision = (r: SectionRevision) =>
-  Boolean(r.videoPrompt?.trim() || r.keyframePrompt?.trim() || r.rerollKeyframe || r.endFramePrompt?.trim());
+  Boolean(
+    r.videoPrompt?.trim() || r.keyframePrompt?.trim() || r.rerollKeyframe || r.endFramePrompt?.trim() || r.segmentPrompts?.length,
+  );
 
 /**
  * Apply a round's prompt/cue edits to a copy of the script and re-validate it.
@@ -759,7 +771,15 @@ export function applySectionRevisions(
       }
       s.endFrame = { prompt: r.endFramePrompt.trim() };
     }
+    if (r.segmentPrompts?.length) {
+      if (!s.segments) return { ok: false, error: `section ${r.idx} has no segments — revise its videoPrompt instead` };
+      if (r.segmentPrompts.length !== s.segments.length) {
+        return { ok: false, error: `section ${r.idx} has ${s.segments.length} segments; got ${r.segmentPrompts.length} segmentPrompts` };
+      }
+      s.segments = s.segments.map((g, j) => ({ ...g, prompt: r.segmentPrompts![j].trim() }));
+    }
     if (r.sfx !== undefined) s.sfx = Array.isArray(r.sfx) ? r.sfx : [];
+    if (r.labels !== undefined) s.labels = Array.isArray(r.labels) ? r.labels : [];
   }
   const reparsed = parseDirectedScript(next);
   return reparsed.ok ? { ok: true, script: reparsed.script } : { ok: false, error: reparsed.errors.join("; ") };
@@ -789,6 +809,9 @@ export async function reviseDirectedSections(
   if (audio.some(isVisualRevision)) {
     return { ok: false, error: "an sfx revision can't also change prompts — revise audio and visuals in separate rounds" };
   }
+  const visual = opts.sections.filter(isVisualRevision);
+  const labelsOnly = !audio.length && !visual.length && opts.sections.every((r) => r.labels !== undefined);
+  if (!audio.length && !visual.length && !labelsOnly) return { ok: false, error: "nothing to revise" };
   const { count } = await db
     .from("approvals")
     .select("id", { count: "exact", head: true })
@@ -843,7 +866,17 @@ export async function reviseDirectedSections(
     did.push("audio revised: call produce_directed to generate the new cues and re-cut (no clips re-queued)");
     return { ok: true, round, queued: 0, did };
   }
-  const q = await enqueueDirectedClips(db, opts.videoId, opts.sections.map((s) => s.idx));
+  if (labelsOnly) {
+    // Labels are cut overlays: re-compile the cut from the saved script and
+    // send it to render. No clip spend.
+    const staged = await stageDirectedCut(db, opts.videoId);
+    if (!staged.ok) return { ok: false, error: staged.error };
+    did.push(`labels revised: cut v${staged.version} re-staged to render (no clips re-queued)`);
+    return { ok: true, round, queued: 0, did };
+  }
+  // Only sections whose picture changed get new clips; a label change riding
+  // along in the same round lands when the worker re-compiles the cut.
+  const q = await enqueueDirectedClips(db, opts.videoId, visual.map((s) => s.idx));
   if (!q.ok) return { ok: false, error: q.error };
   did.push(`queued ${q.queued} clip job(s)`);
   return { ok: true, round, queued: q.queued, did };
