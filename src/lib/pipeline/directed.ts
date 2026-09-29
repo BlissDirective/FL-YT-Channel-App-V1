@@ -717,11 +717,44 @@ export type SectionRevision = {
   keyframePrompt?: string;
   /** Re-roll the keyframe even when its prompt is unchanged. */
   rerollKeyframe?: boolean;
+  /**
+   * Replace the section's prompted END frame and re-roll it. The clip morphs
+   * from keyframe to end frame, so an end frame drawn as a different set or
+   * costume becomes a mid-clip swap that no keyframe re-roll can fix.
+   */
+  endFramePrompt?: string;
   /** Replace the section's SFX cues. Audio-only: no clip is regenerated. */
   sfx?: DirectedSection["sfx"];
 };
 
-const isVisualRevision = (r: SectionRevision) => Boolean(r.videoPrompt?.trim() || r.keyframePrompt?.trim() || r.rerollKeyframe);
+const isVisualRevision = (r: SectionRevision) =>
+  Boolean(r.videoPrompt?.trim() || r.keyframePrompt?.trim() || r.rerollKeyframe || r.endFramePrompt?.trim());
+
+/**
+ * Apply a round's prompt/cue edits to a copy of the script and re-validate it.
+ * Pure — the DB round (re-rolls, clip queueing) happens in the caller.
+ */
+export function applySectionRevisions(
+  script: DirectedScript,
+  revisions: SectionRevision[],
+): { ok: true; script: DirectedScript } | { ok: false; error: string } {
+  const next: DirectedScript = JSON.parse(JSON.stringify(script));
+  for (const r of revisions) {
+    const s = next.sections[r.idx];
+    if (!s) return { ok: false, error: `section ${r.idx} does not exist` };
+    if (r.videoPrompt?.trim()) s.videoPrompt = r.videoPrompt.trim();
+    if (r.keyframePrompt?.trim()) s.keyframePrompt = r.keyframePrompt.trim();
+    if (r.endFramePrompt?.trim()) {
+      if (s.endFrame && "fromSection" in s.endFrame) {
+        return { ok: false, error: `section ${r.idx} ends on section ${s.endFrame.fromSection}'s keyframe — revise that keyframe instead` };
+      }
+      s.endFrame = { prompt: r.endFramePrompt.trim() };
+    }
+    if (r.sfx !== undefined) s.sfx = Array.isArray(r.sfx) ? r.sfx : [];
+  }
+  const reparsed = parseDirectedScript(next);
+  return reparsed.ok ? { ok: true, script: reparsed.script } : { ok: false, error: reparsed.errors.join("; ") };
+}
 
 /**
  * One targeted revision round: apply prompt edits, re-roll the named
@@ -754,16 +787,8 @@ export async function reviseDirectedSections(
     .eq("decision", "revision")
     .like("notes", "[directed revision]%");
   const round = (count ?? 0) + 1;
-  const next: DirectedScript = JSON.parse(JSON.stringify(script));
-  for (const r of opts.sections) {
-    const s = next.sections[r.idx];
-    if (!s) return { ok: false, error: `section ${r.idx} does not exist` };
-    if (r.videoPrompt?.trim()) s.videoPrompt = r.videoPrompt.trim();
-    if (r.keyframePrompt?.trim()) s.keyframePrompt = r.keyframePrompt.trim();
-    if (r.sfx !== undefined) s.sfx = Array.isArray(r.sfx) ? r.sfx : [];
-  }
-  const reparsed = parseDirectedScript(next);
-  if (!reparsed.ok) return { ok: false, error: reparsed.errors.join("; ") };
+  const reparsed = applySectionRevisions(script, opts.sections);
+  if (!reparsed.ok) return reparsed;
   if (JSON.stringify(reparsed.script) !== JSON.stringify(script)) {
     await saveScriptVersion(db, opts.videoId, version, reparsed.script);
   }
@@ -775,6 +800,10 @@ export async function reviseDirectedSections(
     if (s.keyframePrompt && (r.rerollKeyframe || r.keyframePrompt)) {
       await makeStill(db, video, "keyframe", s.idx, s.keyframePrompt, aspect, specHash([s.keyframePrompt, aspect, Date.now()]));
       did.push(`keyframe §${s.idx + 1} re-rolled`);
+    }
+    if (r.endFramePrompt?.trim() && s.endFrame && "prompt" in s.endFrame) {
+      await makeStill(db, video, "keyframe_end", s.idx, s.endFrame.prompt, aspect, specHash([s.endFrame.prompt, aspect]));
+      did.push(`end frame §${s.idx + 1} re-rolled`);
     }
   }
   await db.from("approvals").insert({
