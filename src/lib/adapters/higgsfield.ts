@@ -384,6 +384,11 @@ export function soulStandardInput(opts: {
   return input;
 }
 
+/** SOUL still timeout. 120s abandoned stills Higgsfield was still rendering
+    on busy days (9/29: most keyframes timed out for an hour) — work it may
+    bill for — so wait longer; this still fits the 300s MCP route. */
+export const SOUL_TIMEOUT_MS = 200_000;
+
 /** Drop-in for fal's generateImage: same return shape so the still pipeline
     (cache, pixel check, perceptual hash) is unchanged. */
 export async function generateHiggsfieldImage(opts: {
@@ -395,7 +400,7 @@ export async function generateHiggsfieldImage(opts: {
   const seed = opts.seed ?? Math.floor(Math.random() * 1_000_000) + 1;
   const input = soulStandardInput({ prompt: opts.prompt, seed, aspectRatio: opts.aspectRatio });
   const handle = await hfSubmit(HF_ENDPOINTS.soulStandard, input);
-  const result = await hfPoll(handle, opts.timeoutMs ?? 120_000);
+  const result = await hfPoll(handle, opts.timeoutMs ?? SOUL_TIMEOUT_MS);
   const url = result.images?.[0]?.url;
   if (!url) throw new HiggsfieldError("SOUL returned no image", 502);
   return {

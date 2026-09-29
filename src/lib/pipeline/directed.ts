@@ -22,7 +22,7 @@ import {
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { recordCost } from "@/lib/pipeline/ledger";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
-import { generateHiggsfieldImage, HF_PRICES, isHiggsfieldLive, sanitizeCinemaControls } from "@/lib/adapters/higgsfield";
+import { generateHiggsfieldImage, HF_PRICES, SOUL_TIMEOUT_MS, isHiggsfieldLive, sanitizeCinemaControls } from "@/lib/adapters/higgsfield";
 import { checkFullFrame, firstFullFrame, FRAME_ATTEMPTS } from "@/lib/adapters/frame-check";
 import { synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import { generateSoundEffect, isSfxLive } from "@/lib/adapters/sfx";
@@ -264,7 +264,9 @@ export async function runDirectedAssets(db: Db, videoId: string, opts: { budgetM
   // Lease: only one asset-stage run per video at a time. A caller that
   // retries while a previous run is still working gets "busy" instead of
   // paying for the same generations twice.
-  const leaseMs = budgetMs + 150_000;
+  // Covers a batch that starts just inside the budget and waits out a slow
+  // SOUL still (SOUL_TIMEOUT_MS), so a retry can never double-pay.
+  const leaseMs = budgetMs + SOUL_TIMEOUT_MS + 60_000;
   const now = new Date();
   const { data: leased } = await db
     .from("videos")
@@ -795,16 +797,28 @@ export async function reviseDirectedSections(
 
   const did: string[] = [];
   const aspect: "9:16" | "16:9" = script.format === "short" ? "9:16" : "16:9";
+  // Stills run in parallel: one SOUL still can take minutes when Higgsfield is
+  // busy, and a keyframe + end frame in sequence could outlast the request.
+  const stills: { label: string; run: () => Promise<void> }[] = [];
   for (const r of opts.sections) {
     const s = reparsed.script.sections[r.idx];
     if (s.keyframePrompt && (r.rerollKeyframe || r.keyframePrompt)) {
-      await makeStill(db, video, "keyframe", s.idx, s.keyframePrompt, aspect, specHash([s.keyframePrompt, aspect, Date.now()]));
-      did.push(`keyframe §${s.idx + 1} re-rolled`);
+      const prompt = s.keyframePrompt;
+      stills.push({ label: `keyframe §${s.idx + 1} re-rolled`, run: () => makeStill(db, video, "keyframe", s.idx, prompt, aspect, specHash([prompt, aspect, Date.now()])) });
     }
     if (r.endFramePrompt?.trim() && s.endFrame && "prompt" in s.endFrame) {
-      await makeStill(db, video, "keyframe_end", s.idx, s.endFrame.prompt, aspect, specHash([s.endFrame.prompt, aspect]));
-      did.push(`end frame §${s.idx + 1} re-rolled`);
+      const prompt = s.endFrame.prompt;
+      stills.push({ label: `end frame §${s.idx + 1} re-rolled`, run: () => makeStill(db, video, "keyframe_end", s.idx, prompt, aspect, specHash([prompt, aspect])) });
     }
+  }
+  const results = await Promise.allSettled(stills.map((st) => st.run()));
+  results.forEach((res, k) => res.status === "fulfilled" && did.push(stills[k].label));
+  const failed = results.find((res): res is PromiseRejectedResult => res.status === "rejected");
+  if (failed) {
+    // No clip is queued against a missing or stale still; the saved script
+    // keeps the new prompts, so the same call can simply be sent again.
+    const msg = failed.reason instanceof Error ? failed.reason.message : String(failed.reason);
+    return { ok: false, error: `still re-roll failed (${did.length}/${stills.length} done): ${msg}` };
   }
   await db.from("approvals").insert({
     video_id: opts.videoId,
