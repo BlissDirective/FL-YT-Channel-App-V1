@@ -1,0 +1,866 @@
+{
+  "version": 1,
+  "format": "short",
+  "resolution": "720p",
+  "title": "How Smudge Drew His Crown",
+  "altTitles": [
+    "The Villain Was Just a Mistake",
+    "Nobody Erased Him: Smudge's Origin"
+  ],
+  "description": "Before he was a villain, Smudge was a mistake: a blot the Author never wiped away. He watched the heroes get clean lines and bright edges. Then a shard of the Nib fell. #stickfigure #animation #villainorigin #INKLIGHT #shorts",
+  "tags": [
+    "stick figure",
+    "animation",
+    "3d animation",
+    "villain origin",
+    "lore",
+    "mini movie",
+    "INKLIGHT",
+    "Smudge",
+    "Bolt",
+    "Pip",
+    "Nova",
+    "Brick",
+    "shorts"
+  ],
+  "topic": "INK-10 lore origin mini-film (F7 authored mini-film + F3 lore drop), lead Smudge: the blot left behind, the heroes drawn clean, failed self-drawings, the fallen Nib shard, the crown, the goons rise; one lore beat = the Nib (plus the First Draft)",
+  "snippets": {
+    "STYLE": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading.",
+    "BOLT": "BOLT: an average-height black ink stick figure with a round glossy head, electric cyan (#22D3EE) glowing eyes and rim light, a long flowing cyan scarf that trails light when moving.",
+    "PIP": "PIP: a short, small black ink stick figure (half BOLT's height) with a round glossy head, amber (#FFB020) glowing eyes and rim light, oversized brass aviator goggles on the forehead, a boxy amber backpack with antennae.",
+    "NOVA": "NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eyes and rim light, a single curved topknot line rising from the head, carrying a glowing magenta bo staff.",
+    "BRICK": "BRICK: a large black ink stick figure with thick heavy limbs (three times normal thickness) and a round glossy head, lime green (#7CFF4F) glowing eyes and rim light, a lime visor band across the eyes.",
+    "SMUDGE": "SMUDGE: a tall black ink stick figure whose body constantly drips and smears ink, a round head with a jagged three-point crown spike, crimson (#FF2E3A) glowing eyes and rim light, leaving smeared ink footprints.",
+    "BLOT": "SMUDGE (early form, before he has a body or a crown): a small glossy black ink blot, a wet domed puddle of ink with a deep crimson sheen, no limbs, no head, no crown, two small crimson (#FF2E3A) glowing oval eye-dots and a thin crimson rim light around its edge, leaving a smeared glossy ink trail.",
+    "HALF": "SMUDGE (half-formed, before his crown): a thin, unsteady black ink stick figure whose body keeps dripping and sagging, a round glossy head with NO crown and nothing on top, two small crimson (#FF2E3A) glowing oval eye-dots and a crimson rim light, standing in a puddle of his own smeared ink.",
+    "GOON": "GOON: a plain black ink stick figure with a round glossy head, two small steel-grey (#9AA4B2) glowing oval eye-dots and a steel-grey rim light, no accessories, no markings, no crimson anywhere on the body.",
+    "PAGE": "SET: the first page of the First Draft sketchbook seen at miniature scale, a colossal sheet of thick cream paper stretching away like a vast pale landscape, visible paper fibers and soft pencil-grain texture, gentle waves and a deep center crease, curled page edges rising like cliffs, faint grey graphite dust, lit from far above by a huge warm desk lamp with volumetric haze and floating paper dust; blank paper, pencil texture only, no writing.",
+    "NEG": "Avoid: text, letters, numbers, handwriting, logos, mouths, noses, teeth, brows, human faces, human hands, human arms, anyone holding a pen, skin, hair, clothing beyond the listed accessories, extra limbs, fused or merged bodies, fingers except three rounded nubs in close-ups, blood, gore, flat or empty backgrounds, 2D drawing look.",
+    "SOUL": "stick figure, NOT a human, no face, no skin, no clothing except listed accessory. Deep focus, the whole image sharp to the frame edges, full frame edge to edge, no borders. Vertical 9:16 frame.",
+    "CS4_DREAM": "genre=drama pacing=calm camera_model=modern camera_lens=anamorphic color_palette=a-dream-in-color",
+    "CS4_CRIMSON": "genre=drama pacing=calm camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+    "DRIPTINK": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+    "DRIPTINK_OFF": "a single glossy ink drip falling and landing, followed by one glass tink played slightly off-key, detuned and sour, a faint wobbling pitch, clean and close",
+    "AMB_PAGE": "quiet room tone over a vast sheet of paper under a warm desk lamp, soft electric lamp hum, faint paper creaks, seamless ambience, no music, no voices",
+    "AMB_INK": "slow sparse wet ink drips and soft viscous smears on paper, close and intimate, seamless, no music, no voices",
+    "AMB_DARK": "low cold ominous room tone with a distant hollow wind over paper, seamless, no music, no voices",
+    "DRAW": "a glowing line drawing itself through the air, soft graphite scratch with a bright shimmering hum, magical, no music",
+    "SAG": "thick wet ink sagging and collapsing, slow viscous glop and long drips, close, no music",
+    "MUSICBOX": "eerie detuned music box melody, slow, unsettling, instrumental",
+    "REF_BOLT": "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "REF_PIP": "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "REF_NOVA": "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "REF_BRICK": "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "REF_SMUDGE": "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "REF_GOON": "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+  },
+  "cast": {
+    "Smudge": {
+      "color": "#FF2E3A"
+    },
+    "Bolt": {
+      "color": "#22D3EE"
+    },
+    "Pip": {
+      "color": "#FFB020"
+    }
+  },
+  "sections": [
+    {
+      "label": "S1 Hook: the blot opens its eyes",
+      "sec": 10,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "Every story starts with a mistake.",
+          "at": 4.2
+        }
+      ],
+      "videoPrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} Extreme macro at page level: a single glossy black ink blot with a deep crimson sheen sits alone on the vast pale page; it quivers once, and two small crimson glowing oval eye-dots blink open in its center as a thin crimson rim light flickers on around its edge. Slow push-in, 85mm macro, warm lamp key from above, crimson glint. {{NEG}}",
+      "keyframePrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} Extreme macro at page level: a single glossy black ink blot with a deep crimson sheen sits alone on the vast pale page, its eye-dots still closed, only a faint crimson rim glowing around its edge. 85mm macro, warm lamp key from above. {{NEG}} {{SOUL}}",
+      "model": "hf-seedance-2-5",
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{DRIPTINK}}",
+          "durationSec": 1.2,
+          "gainDb": -4
+        },
+        {
+          "at": 0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 10,
+          "gainDb": -18
+        },
+        {
+          "at": 1.6,
+          "prompt": "a soft wet blink, two tiny glassy shimmers as small lights switch on, close",
+          "durationSec": 1.2,
+          "gainDb": -8
+        },
+        {
+          "at": 2.8,
+          "prompt": "deep soft sub-bass swell, melancholy, short",
+          "durationSec": 2.5,
+          "gainDb": -10
+        }
+      ],
+      "highlightWords": [
+        "mistake"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S2 A slip of the pen",
+      "sec": 20,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "He was a blot. A slip of the pen, on the first page of the First Draft.",
+          "at": 2.5
+        },
+        {
+          "speaker": "N",
+          "text": "The Author meant to wipe him away. He never did.",
+          "at": 12
+        }
+      ],
+      "videoPrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} High wide shot, slow crane up and away from the blot: it is a tiny dark dot with two crimson eye-dots near the corner of the vast page; in the far distance a fresh grey graphite line sweeps across the paper by itself, as if drawn by an invisible pen, with no hand and no arm anywhere; the far page edge lifts slightly as if about to turn, then settles back. The blot's crimson eye-dots look up at the lamp. 24mm, warm lamp light, volumetric haze. {{NEG}}",
+      "keyframePrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} High wide shot: the blot is a tiny dark dot with two crimson eye-dots near the corner of the vast page, the huge warm lamp glowing far above. 24mm, volumetric haze. {{NEG}} {{SOUL}}",
+      "model": "hf-seedance-2-5",
+      "sfx": [
+        {
+          "at": 0.0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 15.0,
+          "gainDb": -16
+        },
+        {
+          "at": 10.0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 10.0,
+          "gainDb": -16
+        },
+        {
+          "at": 6,
+          "prompt": "a distant soft graphite pencil stroke scratching across paper, one long line",
+          "durationSec": 3,
+          "gainDb": -12
+        },
+        {
+          "at": 10.5,
+          "prompt": "a huge sheet of paper lifting and settling with a soft slow rustle",
+          "durationSec": 3,
+          "gainDb": -12
+        }
+      ],
+      "highlightWords": [
+        "blot",
+        "First",
+        "Draft"
+      ],
+      "transitionOut": "crossfade"
+    },
+    {
+      "label": "S3 The blot stays",
+      "sec": 20,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "So the blot stayed. And waited.",
+          "at": 13
+        }
+      ],
+      "videoPrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} The blot oozes slowly forward across the paper at page level, leaving a glossy smeared ink trail behind it; it stops at the edge of a small still puddle of spilled water on the page and sees its own two crimson eye-dots reflected in it; it blinks slowly, once. Low tracking shot at page level, 35mm, warm lamp light, long soft shadows. {{NEG}}",
+      "keyframePrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} Low shot at page level: the blot sits on the paper with a short glossy smeared ink trail behind it, a small still puddle of spilled water ahead of it. 35mm, warm lamp light, long soft shadows. {{NEG}} {{SOUL}}",
+      "model": "hf-seedance-2-5",
+      "sfx": [
+        {
+          "at": 0.0,
+          "prompt": "{{AMB_INK}}",
+          "durationSec": 15.0,
+          "gainDb": -14
+        },
+        {
+          "at": 10.0,
+          "prompt": "{{AMB_INK}}",
+          "durationSec": 10.0,
+          "gainDb": -14
+        },
+        {
+          "at": 0.0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 15.0,
+          "gainDb": -20
+        },
+        {
+          "at": 10.0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 10.0,
+          "gainDb": -20
+        },
+        {
+          "at": 9,
+          "prompt": "a single soft water droplet plink in a small puddle, gentle ripple",
+          "durationSec": 1.5,
+          "gainDb": -10
+        }
+      ],
+      "highlightWords": [
+        "waited"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S4 The heroes are drawn",
+      "sec": 20,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "Then the Author drew heroes.",
+          "at": 1.5
+        },
+        {
+          "speaker": "N",
+          "text": "Clean lines. Bright edges. Every one of them finished.",
+          "at": 13
+        }
+      ],
+      "videoPrompt": "{{STYLE}} <<<image_1>>> {{BOLT}} <<<image_2>>> {{PIP}} <<<image_3>>> {{NOVA}} <<<image_4>>> {{BRICK}} {{BLOT}} Vertical frame. {{PAGE}} Across the page, warm golden light blooms; glowing golden lines trace themselves through the air by themselves, with no hand and no pen-holder, and swell into four separate glossy 3D ink heroes standing in a clean row with space between them: Bolt, Pip, Nova and Brick, their rim lights igniting cyan, amber, magenta and lime one after another. In the dark lower foreground, soft and out of focus, the small crownless Smudge blot watches, only its two crimson eye-dots lit. Slow push-in past the blot toward the heroes, 35mm, warm gold key, a small crimson accent low in frame. {{NEG}} {{CS4_DREAM}}",
+      "keyframePrompt": "{{STYLE}} {{BOLT}} {{PIP}} {{NOVA}} {{BRICK}} {{BLOT}} Vertical frame. {{PAGE}} Across the page, four glowing golden line outlines hang in the air in a clean row where the heroes are about to appear; in the dark lower foreground, soft and out of focus, the small crownless Smudge blot watches, only its two crimson eye-dots lit. 35mm, warm gold key. {{NEG}} {{SOUL}}",
+      "model": "hf-cinema-studio-4",
+      "controls": {
+        "genre": "drama",
+        "pacing": "calm",
+        "camera_model": "modern",
+        "camera_lens": "anamorphic",
+        "color_palette": "a-dream-in-color"
+      },
+      "refs": [
+        "{{REF_BOLT}}",
+        "{{REF_PIP}}",
+        "{{REF_NOVA}}",
+        "{{REF_BRICK}}",
+        "{{REF_SMUDGE}}"
+      ],
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{DRAW}}",
+          "durationSec": 10,
+          "gainDb": -12
+        },
+        {
+          "at": 9.5,
+          "prompt": "{{DRAW}}",
+          "durationSec": 10.5,
+          "gainDb": -14
+        },
+        {
+          "at": 0.0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 15.0,
+          "gainDb": -20
+        },
+        {
+          "at": 10.0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 10.0,
+          "gainDb": -20
+        },
+        {
+          "at": 4.5,
+          "prompt": "four bright warm glassy chimes rising in pitch, one after another, magical",
+          "durationSec": 6,
+          "gainDb": -8
+        }
+      ],
+      "labels": [
+        {
+          "at": 4.5,
+          "durationSec": 2,
+          "text": "BOLT",
+          "position": "top",
+          "style": "label",
+          "color": "#22D3EE"
+        },
+        {
+          "at": 6.5,
+          "durationSec": 2,
+          "text": "PIP",
+          "position": "top",
+          "style": "label",
+          "color": "#FFB020"
+        },
+        {
+          "at": 8.5,
+          "durationSec": 2,
+          "text": "NOVA",
+          "position": "top",
+          "style": "label",
+          "color": "#FF3DA5"
+        },
+        {
+          "at": 10.5,
+          "durationSec": 2,
+          "text": "BRICK",
+          "position": "top",
+          "style": "label",
+          "color": "#7CFF4F"
+        }
+      ],
+      "highlightWords": [
+        "heroes",
+        "finished"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S5 They walk past",
+      "sec": 15,
+      "lines": [
+        {
+          "speaker": "Pip",
+          "text": "Did you hear something?",
+          "at": 5.5
+        },
+        {
+          "speaker": "Bolt",
+          "text": "Nope. Come on!",
+          "at": 8
+        }
+      ],
+      "videoPrompt": "{{STYLE}} <<<image_1>>> {{BOLT}} <<<image_2>>> {{PIP}} <<<image_3>>> {{NOVA}} <<<image_4>>> {{BRICK}} {{BLOT}} Vertical frame. {{PAGE}} Bolt, Pip, Nova and Brick walk single file from right to left along the page crease, glowing and upbeat, clear space between each of them; in the sharp foreground the small crownless Smudge blot stretches one thin ink tendril up toward them, never touching anyone; Brick steps over the blot's puddle without looking down; Pip pauses, glances back over his shoulder for a moment, then hurries after the others. Low angle at page level, 24mm, the blot sharp in the foreground, heroes in the midground, warm gold key, crimson accent from the blot. {{NEG}} {{CS4_DREAM}}",
+      "keyframePrompt": "{{STYLE}} {{BOLT}} {{PIP}} {{NOVA}} {{BRICK}} {{BLOT}} Vertical frame. {{PAGE}} Low angle at page level: Bolt, Pip, Nova and Brick walk single file from right to left along the page crease with clear space between them; in the sharp foreground the small crownless Smudge blot looks up at them. 24mm, warm gold key. {{NEG}} {{SOUL}}",
+      "model": "hf-cinema-studio-4",
+      "controls": {
+        "genre": "drama",
+        "pacing": "calm",
+        "camera_model": "modern",
+        "camera_lens": "anamorphic",
+        "color_palette": "a-dream-in-color"
+      },
+      "refs": [
+        "{{REF_BOLT}}",
+        "{{REF_PIP}}",
+        "{{REF_NOVA}}",
+        "{{REF_BRICK}}",
+        "{{REF_SMUDGE}}"
+      ],
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "light cheerful footsteps of several small figures walking on paper, soft taps, passing by",
+          "durationSec": 15,
+          "gainDb": -12
+        },
+        {
+          "at": 0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 15,
+          "gainDb": -20
+        },
+        {
+          "at": 3,
+          "prompt": "a thin wet ink tendril stretching, soft viscous creak, close",
+          "durationSec": 2,
+          "gainDb": -10
+        }
+      ],
+      "highlightWords": [
+        "something"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S6 They never looked down",
+      "sec": 15,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "They never looked down.",
+          "at": 5
+        }
+      ],
+      "videoPrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} The heroes' colored glow fades away into the far distance; the blot sits alone on the empty expanse of page, its crimson rim light dimming low; a single drop of ink falls from above and lands beside it with a tiny splash. Static wide shot, 50mm, the lamp light dims slightly, long shadows. {{NEG}}",
+      "keyframePrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} The blot sits alone on the wide expanse of page, a faint warm colored glow far away in the distance, its crimson rim light dim. Static wide shot, 50mm, long shadows. {{NEG}} {{SOUL}}",
+      "model": "hf-seedance-2-5",
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 15,
+          "gainDb": -16
+        },
+        {
+          "at": 0,
+          "prompt": "distant cheerful footsteps on paper fading away into silence",
+          "durationSec": 5,
+          "gainDb": -16
+        },
+        {
+          "at": 9,
+          "prompt": "a single soft ink drop landing with a tiny wet splash, close",
+          "durationSec": 1.5,
+          "gainDb": -8
+        }
+      ],
+      "highlightWords": [
+        "never"
+      ],
+      "transitionOut": "crossfade"
+    },
+    {
+      "label": "S7 First try: legs",
+      "sec": 15,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "So he tried to draw himself.",
+          "at": 1
+        }
+      ],
+      "videoPrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} One clear action: the blot pulls a thin line of ink up out of itself and stretches it into one wobbly stick leg, then a second; it rises onto the two legs unsteadily, wet and glossy, crimson eye-dots wide; then both legs sag, drip and fold, and it sinks back down into a puddle. Medium shot at page level, 50mm, warm lamp, crimson rim flickering. {{NEG}}",
+      "keyframePrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} Medium shot at page level: the blot on the paper, a thin line of ink starting to rise up out of it. 50mm, warm lamp. {{NEG}} {{SOUL}}",
+      "model": "hf-seedance-2-5",
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{AMB_INK}}",
+          "durationSec": 15,
+          "gainDb": -16
+        },
+        {
+          "at": 2,
+          "prompt": "wet ink stretching upward, a soft viscous rising creak",
+          "durationSec": 3,
+          "gainDb": -10
+        },
+        {
+          "at": 8.5,
+          "prompt": "{{SAG}}",
+          "durationSec": 4,
+          "gainDb": -8
+        }
+      ],
+      "highlightWords": [
+        "himself"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S8 Second try: a body",
+      "sec": 20,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "The lines would not hold.",
+          "at": 14.5
+        }
+      ],
+      "videoPrompt": "{{STYLE}} {{HALF}} Vertical frame. {{PAGE}} Second try: the ink rises taller and draws itself a thin body, two thin arms and a round glossy head with no crown and nothing on top, crimson eye-dots lit; the figure stands for a moment and lifts its arms; then the arms droop, the head slumps, ink runs down in long drips, and the whole figure slowly melts back onto the paper. Slow orbit, 35mm, warm lamp, crimson rim flickering and dimming. {{NEG}}",
+      "keyframePrompt": "{{STYLE}} {{HALF}} Vertical frame. {{PAGE}} The half-formed figure stands unsteadily on the paper in a puddle of ink, thin body, thin arms, round glossy head with no crown, crimson eye-dots lit. 35mm, warm lamp. {{NEG}} {{SOUL}}",
+      "model": "hf-seedance-2-5",
+      "sfx": [
+        {
+          "at": 0.0,
+          "prompt": "{{AMB_INK}}",
+          "durationSec": 15.0,
+          "gainDb": -16
+        },
+        {
+          "at": 10.0,
+          "prompt": "{{AMB_INK}}",
+          "durationSec": 10.0,
+          "gainDb": -16
+        },
+        {
+          "at": 1,
+          "prompt": "wet ink stretching upward, a soft viscous rising creak",
+          "durationSec": 3,
+          "gainDb": -10
+        },
+        {
+          "at": 9,
+          "prompt": "{{SAG}}",
+          "durationSec": 5,
+          "gainDb": -7
+        }
+      ],
+      "highlightWords": [
+        "hold"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S9 Puddle",
+      "sec": 15,
+      "lines": [],
+      "videoPrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} The blot lies flat as a still puddle on the page; its two crimson eye-dots dim to faint embers; the lamp far above flickers once; tiny paper dust drifts through the light. Top-down shot, slow pull-back revealing how small the puddle is on the vast page, 24mm. {{NEG}}",
+      "keyframePrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} Top-down shot: the blot lies flat as a still puddle on the page, its two crimson eye-dots dim embers. 24mm, warm lamp haze. {{NEG}} {{SOUL}}",
+      "model": "hf-seedance-2-5",
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{MUSICBOX}}",
+          "durationSec": 15,
+          "gainDb": -12
+        },
+        {
+          "at": 0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 15,
+          "gainDb": -20
+        },
+        {
+          "at": 6,
+          "prompt": "an old desk lamp flickering, a soft electric buzz and tick",
+          "durationSec": 1.5,
+          "gainDb": -12
+        }
+      ],
+      "transitionOut": "dipToBlack"
+    },
+    {
+      "label": "S10 A shard of the Nib",
+      "sec": 15,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "Then something fell from the Author's pen. A shard of the Nib.",
+          "at": 4
+        }
+      ],
+      "videoPrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} A tiny gold spark falls from far above and lands in the page crease with a flash; a small glowing golden pen-nib shard lies half-buried in the crease, radiating warm halation; the puddle's crimson eye-dots flare bright, and it oozes toward the gold light. Macro, 85mm, strong gold halation bloom, crimson accent, floating dust motes. {{NEG}}",
+      "keyframePrompt": "{{STYLE}} {{BLOT}} Vertical frame. {{PAGE}} Macro: a dark page crease at night-dim lamp light, the small blot puddle with dim crimson eye-dots at the left of frame. 85mm, floating dust motes. {{NEG}} {{SOUL}}",
+      "model": "hf-seedance-2-5",
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{AMB_PAGE}}",
+          "durationSec": 15,
+          "gainDb": -18
+        },
+        {
+          "at": 0.5,
+          "prompt": "a tiny falling spark whistling down from high above",
+          "durationSec": 1.2,
+          "gainDb": -10
+        },
+        {
+          "at": 1.5,
+          "prompt": "{{DRIPTINK}}",
+          "durationSec": 1.2,
+          "gainDb": -4
+        },
+        {
+          "at": 2.5,
+          "prompt": "soft ethereal wordless choir pad, awe and wonder, instrumental",
+          "durationSec": 12.5,
+          "gainDb": -16
+        }
+      ],
+      "highlightWords": [
+        "Nib"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S11 He draws a crown",
+      "sec": 20,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "He didn't draw a door.",
+          "at": 15.5
+        }
+      ],
+      "videoPrompt": "{{STYLE}} {{HALF}} Vertical frame. {{PAGE}} The half-formed dripping figure, crown not yet drawn, holds the glowing golden nib shard at the rounded tip of one thin arm, raises it to the top of his round head and draws: a glowing golden line traces a jagged three-point crown spike on his head, point by point; the gold line sets into glossy black ink with a crimson rim, and his dripping slows. Close-up, low angle, slow push-in, 50mm, gold key from the shard, crimson rim light. {{NEG}}",
+      "keyframePrompt": "{{STYLE}} {{HALF}} Vertical frame. {{PAGE}} Close-up, low angle: the half-formed dripping figure with a plain round head and no crown holds the glowing golden nib shard at the rounded tip of one thin arm, gold light on his glossy head. 50mm. {{NEG}} {{SOUL}}",
+      "model": "hf-seedance-2-5",
+      "endFrame": {
+        "prompt": "{{STYLE}} {{SMUDGE}} Vertical frame. {{PAGE}} Close-up, low angle: Smudge stands with the jagged three-point crown spike complete on his round head, the glowing golden nib shard held at the rounded tip of one thin arm beside the crown, ink dripping from his body, crimson eyes bright. 50mm, gold key from the shard, crimson rim light. {{NEG}} {{SOUL}}"
+      },
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{AMB_DARK}}",
+          "durationSec": 10.5,
+          "gainDb": -18
+        },
+        {
+          "at": 10,
+          "prompt": "{{AMB_DARK}}",
+          "durationSec": 10,
+          "gainDb": -18
+        },
+        {
+          "at": 1,
+          "prompt": "{{DRIPTINK}}",
+          "durationSec": 1.2,
+          "gainDb": -6
+        },
+        {
+          "at": 3,
+          "prompt": "a golden pen-tip scratching three firm sharp strokes, each ending in a bright crystalline ring",
+          "durationSec": 8,
+          "gainDb": -8
+        },
+        {
+          "at": 11,
+          "prompt": "a single deep resonant crystalline tone as a line sets hard, short shimmer tail",
+          "durationSec": 3,
+          "gainDb": -6
+        }
+      ],
+      "highlightWords": [
+        "door"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S12 The lines hold",
+      "sec": 15,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "He drew a crown. And this time... the lines held.",
+          "at": 2.5
+        }
+      ],
+      "videoPrompt": "{{STYLE}} <<<image_5>>> {{SMUDGE}} Vertical frame. {{PAGE}} Smudge rises to his full height on the page, the jagged three-point crown spike holding its shape, ink still dripping from his body and pooling in smeared footprints, the golden nib shard glowing at the rounded tip of one thin arm; he tilts his head as if testing the weight of the crown, his crimson eyes narrowing into thin arcs. Dutch tilt, low angle, slow push-in, 35mm, crimson backlight, gold fill from the shard. {{NEG}} {{CS4_CRIMSON}}",
+      "keyframePrompt": "{{STYLE}} {{SMUDGE}} Vertical frame. {{PAGE}} Dutch tilt, low angle: Smudge stands tall on the page with the jagged three-point crown spike on his round head, ink dripping from his body into smeared footprints, the golden nib shard glowing at the rounded tip of one thin arm. 35mm, crimson backlight, gold fill. {{NEG}} {{SOUL}}",
+      "model": "hf-cinema-studio-4",
+      "controls": {
+        "genre": "drama",
+        "pacing": "calm",
+        "camera_model": "modern",
+        "camera_lens": "anamorphic",
+        "color_palette": "the-crimson-ballet"
+      },
+      "refs": [
+        "{{REF_BOLT}}",
+        "{{REF_PIP}}",
+        "{{REF_NOVA}}",
+        "{{REF_BRICK}}",
+        "{{REF_SMUDGE}}"
+      ],
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{MUSICBOX}}",
+          "durationSec": 15,
+          "gainDb": -12
+        },
+        {
+          "at": 0,
+          "prompt": "{{AMB_INK}}",
+          "durationSec": 15,
+          "gainDb": -18
+        },
+        {
+          "at": 7.5,
+          "prompt": "deep cinematic sub-bass drop, single hit",
+          "durationSec": 1.5,
+          "gainDb": -6
+        }
+      ],
+      "labels": [
+        {
+          "at": 8,
+          "durationSec": 3,
+          "text": "SMUDGE",
+          "position": "bottom",
+          "style": "label",
+          "color": "#FF2E3A"
+        }
+      ],
+      "highlightWords": [
+        "crown",
+        "held"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S13 The goons rise",
+      "sec": 15,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "And every drop he spilled... stood up.",
+          "at": 8
+        }
+      ],
+      "videoPrompt": "{{STYLE}} <<<image_5>>> {{SMUDGE}} <<<image_6>>> {{GOON}} Vertical frame. {{PAGE}} Drips fall from Smudge's arms onto the page; each small puddle bubbles and rises into a separate plain black GOON stick figure with steel-grey eye-dots, five of them one after another, each standing on its own with clear space between every body and none touching Smudge. Wide low angle, 24mm, crimson backlight on Smudge, cold grey haze, steel-grey rim lights on the goons. {{NEG}} {{CS4_CRIMSON}}",
+      "keyframePrompt": "{{STYLE}} {{SMUDGE}} {{GOON}} Vertical frame. {{PAGE}} Wide low angle: crowned Smudge stands on the page with five small glossy ink puddles around his feet, clear space between them. 24mm, crimson backlight, cold grey haze. {{NEG}} {{SOUL}}",
+      "model": "hf-cinema-studio-4",
+      "controls": {
+        "genre": "drama",
+        "pacing": "calm",
+        "camera_model": "modern",
+        "camera_lens": "anamorphic",
+        "color_palette": "the-crimson-ballet"
+      },
+      "refs": [
+        "{{REF_BOLT}}",
+        "{{REF_PIP}}",
+        "{{REF_NOVA}}",
+        "{{REF_BRICK}}",
+        "{{REF_SMUDGE}}",
+        "{{REF_GOON}}"
+      ],
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{AMB_DARK}}",
+          "durationSec": 15,
+          "gainDb": -18
+        },
+        {
+          "at": 0.5,
+          "prompt": "wet ink puddles bubbling and rising up one after another, viscous stretching, low ominous swell",
+          "durationSec": 10,
+          "gainDb": -9
+        },
+        {
+          "at": 10.5,
+          "prompt": "five soft glassy tinks as small grey lights switch on in a row",
+          "durationSec": 3,
+          "gainDb": -10
+        }
+      ],
+      "highlightWords": [
+        "stood"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S14 A crown needs a kingdom",
+      "sec": 15,
+      "lines": [
+        {
+          "speaker": "N",
+          "text": "A crown needs a kingdom.",
+          "at": 6
+        }
+      ],
+      "videoPrompt": "{{STYLE}} <<<image_5>>> {{SMUDGE}} <<<image_6>>> {{GOON}} Vertical frame. {{PAGE}} Smudge stands on top of a curled page edge like a cliff, five goons in a loose row behind him with clear space between each; far across the vast page a tiny cluster of warm cyan, amber, magenta and lime glows shines in the distance; Smudge turns his head toward it and his crimson eyes brighten. Wide shot from behind, 24mm, Dutch tilt, dim lamp, crimson rim light, cold haze. {{NEG}} {{CS4_CRIMSON}}",
+      "keyframePrompt": "{{STYLE}} {{SMUDGE}} {{GOON}} Vertical frame. {{PAGE}} Wide shot from behind: Smudge stands on top of a curled page edge like a cliff, five goons in a loose row behind him; far across the page a tiny cluster of warm colored glows. 24mm, Dutch tilt, crimson rim light. {{NEG}} {{SOUL}}",
+      "model": "hf-cinema-studio-4",
+      "controls": {
+        "genre": "drama",
+        "pacing": "calm",
+        "camera_model": "modern",
+        "camera_lens": "anamorphic",
+        "color_palette": "the-crimson-ballet"
+      },
+      "refs": [
+        "{{REF_BOLT}}",
+        "{{REF_PIP}}",
+        "{{REF_NOVA}}",
+        "{{REF_BRICK}}",
+        "{{REF_SMUDGE}}",
+        "{{REF_GOON}}"
+      ],
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{AMB_DARK}}",
+          "durationSec": 15,
+          "gainDb": -16
+        },
+        {
+          "at": 0,
+          "prompt": "{{MUSICBOX}}",
+          "durationSec": 15,
+          "gainDb": -14
+        },
+        {
+          "at": 9,
+          "prompt": "deep rising sub-bass swell",
+          "durationSec": 3,
+          "gainDb": -10
+        }
+      ],
+      "highlightWords": [
+        "kingdom"
+      ],
+      "transitionOut": "cut"
+    },
+    {
+      "label": "S15 Final frame: Mine.",
+      "sec": 10,
+      "lines": [
+        {
+          "speaker": "Smudge",
+          "text": "Mine.",
+          "at": 6.2
+        }
+      ],
+      "videoPrompt": "{{STYLE}} <<<image_5>>> {{SMUDGE}} Vertical frame. {{PAGE}} Extreme close-up on Smudge's round glossy head and jagged three-point crown spike, crimson eyes half-lidded; ink runs slowly down from the crown; a single bright glint travels along the crown's edge and flares at the tallest point. Static macro, 85mm, dark hazy page behind him, crimson rim light, one gold glint. {{NEG}} {{CS4_CRIMSON}}",
+      "keyframePrompt": "{{STYLE}} {{SMUDGE}} Vertical frame. {{PAGE}} Extreme close-up on Smudge's round glossy head and jagged three-point crown spike, crimson eyes half-lidded, ink running slowly down from the crown. 85mm, dark hazy page behind him, crimson rim light. {{NEG}} {{SOUL}}",
+      "model": "hf-cinema-studio-4",
+      "controls": {
+        "genre": "drama",
+        "pacing": "calm",
+        "camera_model": "modern",
+        "camera_lens": "anamorphic",
+        "color_palette": "the-crimson-ballet"
+      },
+      "refs": [
+        "{{REF_BOLT}}",
+        "{{REF_PIP}}",
+        "{{REF_NOVA}}",
+        "{{REF_BRICK}}",
+        "{{REF_SMUDGE}}"
+      ],
+      "sfx": [
+        {
+          "at": 0,
+          "prompt": "{{AMB_DARK}}",
+          "durationSec": 10,
+          "gainDb": -18
+        },
+        {
+          "at": 0,
+          "prompt": "{{MUSICBOX}}",
+          "durationSec": 7.5,
+          "gainDb": -12
+        },
+        {
+          "at": 3.5,
+          "prompt": "a single bright metallic glint shimmer, short",
+          "durationSec": 1.2,
+          "gainDb": -8
+        },
+        {
+          "at": 8.2,
+          "prompt": "{{DRIPTINK_OFF}}",
+          "durationSec": 1.5,
+          "gainDb": -3
+        }
+      ],
+      "highlightWords": [
+        "Mine"
+      ],
+      "transitionOut": "cut"
+    }
+  ],
+  "music": {
+    "prompt": "slow melancholy solo music box melody, slightly detuned, with soft low strings and a distant felt piano, lonely and tender, sparse, around 60 bpm, instrumental, no vocals, no drums",
+    "gainDb": -18,
+    "underVoDb": -10
+  },
+  "sting": {
+    "at": 3.0,
+    "sec": 0.5
+  },
+  "outro": {
+    "mode": "card",
+    "sec": 3,
+    "cta": "Full episode: The Stick Figures Woke Up as Their World Tore Apart"
+  },
+  "watermark": true,
+  "captions": true,
+  "qc": "N10: Smudge look — S12–S15 must match L01 DESC_SMUDGE and ref-smudge exactly (jagged three-point crown spike, constant drips, smeared footprints, crimson #FF2E3A eyes and rim); S1–S11 are his crownless forms (blot, then half-formed figure with a plain round head): any crown before S11's drawing beat = re-roll. S4/S5 pass all five cast refs in fixed order but only tokens 1–4 are in the prompt, on purpose, so the crowned ref does not leak onto the blot; check it stays crownless. S11 SDi endFrame lands the crown: crown must be black ink with crimson rim, not gold, once set. Drift — S4/S5 4-cast CS4: Pip half Bolt's height, Brick's limbs 3× thick, Nova's topknot one curved line and staff in hand, Bolt the only scarf. Faces — eye-dots only on everyone (blot included): any mouth, teeth or brows = reject; S12 'eyes narrowing' must read as eye arcs only. Hands — lines draw themselves (S2, S4): any human hand, arm or pen-holder even 1 frame = reject. Limbs/fusion — S5 tendril never touches a hero; S13/S14 goons stand apart, no goon merging into Smudge or each other; count limbs on S7/S8 melt beats. Goons — plain black, steel-grey eye-dots and rim, no accessories, no crimson smears (ref is ref-grey, not ref-goon, for that reason). Style — the page is a lit 3D paper landscape, never a flat white card; S4's golden lines must swell into glossy 3D bodies, not stay 2D drawings; S9/S15 low light must keep rims visible. Text — the page is blank (pencil texture only); any glyphs = mask or re-roll. Labels — hero tags at top (S4), SMUDGE tag at bottom (S12): never over a face; nudge if a head sits in that band. Sound — drip-tink at 0:00 (frame 1) and at every shard beat (S10, S11); final drip-tink at 3:58 must be audibly off-key; music bed plus per-section ambience means no silence over 1.5s anywhere (check media QC gaps, especially S9→S10 dip to black). Close — 'Mine.' is a whisper (re-take the VO if it reads full voice), then hard cut from the crown glint straight to the end card: no fade; if the card does not open on black, add a 0.5s black hold in edit. CS4 at 9:16 is unverified: S4, S5, S12–S15 fall back to hf-seedance-2-5 from their keyframes (already in the script) if aspect or look fails. Global gate (brief §0.3): accent hue shift >6 frames / missing accessory / size swap = re-roll; 3rd limb or fused limb ≥3 frames = re-roll; any mouth, nose, teeth, brows, skin or human face even 1 frame = reject; flat/white/empty bg, 2D look, lost rim light or blood = re-roll; any legible or pseudo-glyph text in a plate = mask or re-roll (all real text is Remotion labels). Check sourceSpec width/height/duration (720×1280) every clip."
+}

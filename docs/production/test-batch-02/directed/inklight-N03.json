@@ -1,0 +1,926 @@
+{
+ "version": 1,
+ "format": "short",
+ "resolution": "720p",
+ "title": "1 vs 50 (Nova Only Had a Broom)",
+ "altTitles": [
+  "1 Stick Figure vs 50 With a Broom",
+  "She Swept Up 50 Bad Guys"
+ ],
+ "description": "Fifty grey goons. One Nova. One broom (then half a broom). #stickfigure #stickfight #1vs50 #animation #shorts",
+ "tags": [
+  "stick figure",
+  "stick fight",
+  "1 vs 50",
+  "animation",
+  "3d animation",
+  "INKLIGHT",
+  "Nova",
+  "broom",
+  "shorts"
+ ],
+ "topic": "INK-03 F5 stick-fight Short: Nova vs 50 grey goons in a paper courtyard, armed only with a broom",
+ "cast": {
+  "Nova": {
+   "color": "#FF3DA5"
+  }
+ },
+ "snippets": {
+  "STYLE": "Cinematic 3D animated film. The characters are stylized stick figures: glossy matte-black ink bodies with uniform thin cylindrical limbs, perfectly round glossy black heads with no facial features except two small glowing oval eyes, and a thin emissive rim light in each character's signature color. They are set inside a hyper-detailed, physically lit 3D environment with volumetric light shafts, atmospheric haze, real materials, shallow depth of field and film-grade color grading. Consistent glossy 3D render in every frame, never flat 2D. Each face is only two small glowing eye-dots: no mouth, no nose, no teeth, no brows, no smile. Hands end in at most three rounded nubs. Every figure is a separate, distinct body with clear space around it; bodies never fuse or merge. Hits burst into dry puffs of ink dust and glassy sparks, never blood or splatter.",
+  "NOVA_BROOM": "NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eye-dots and rim light, a single curved topknot line rising from the head, holding a plain wooden push-broom with pale straw bristles in her right hand as her staff.",
+  "NOVA_HALF": "NOVA: a tall slender black ink stick figure with a round glossy head, magenta (#FF3DA5) glowing eye-dots and rim light, a single curved topknot line rising from the head, holding a snapped half of a wooden broom (short splintered handle, pale straw bristles) in her right hand as her staff.",
+  "GOON": "GOON: a plain matte-black ink stick figure with a round glossy head, steel-grey (#9AA4B2) glowing eye-dots and a steel-grey rim light, no accessories, no markings",
+  "SET": "In a circular courtyard of pale stone flagstones ringed by tall folded-paper walls and warm paper lanterns at dusk, blank unmarked paper",
+  "AVOID": "Avoid: text, letters, numbers, logos, mouths, noses, teeth, eyebrows, smiles, human faces, skin, hair, realistic human hands, fingers beyond three rounded nubs, clothing beyond the listed accessories, extra limbs, fused or merged bodies, more than ten goons in frame, blood, gore, splatter, red liquid, flat 2D cartoon look, flat or empty backgrounds.",
+  "SOUL": "stick figure, NOT a human, no face, no mouth, only two glowing eye-dots, no skin, no clothing except listed accessory. Vertical 9:16 frame.",
+  "DRIPTINK": "a single glossy ink drip falling and landing, followed by one bright crisp glass tink, clean and close",
+  "AMB": "calm dusk courtyard ambience: soft wind through paper walls, paper lanterns creaking gently, seamless",
+  "FIGHT": "stick-figure fight: fast broom whooshes, straw bristle swishes, bright glassy impact tinks and soft ink-dust puffs, no flesh hits",
+  "DRUMS": "fast taiko drums at 140 bpm with koto-synth accents, intense fight rhythm, instrumental"
+ },
+ "sections": [
+  {
+   "label": "S1 Hook: fifty around a broom",
+   "sec": 8,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "I just swept here.",
+     "at": 3
+    }
+   ],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_BROOM}} <<<image_7>>> {{GOON}}, ten of them in frame. Vertical frame. {{SET}}. Nova calmly sweeps the flagstones at the center while a close ring of ten goons, each standing apart with clear space between them, slowly closes in around her; dozens more are implied only by long steel-grey shadows stretching into frame from beyond the edges. She stops sweeping, plants the broom, and her magenta rim light brightens. Camera descends in a circle from overhead to low angle, warm lantern light, soft amber dusk haze. {{AVOID}} genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{DRIPTINK}}",
+     "durationSec": 1,
+     "gainDb": -6
+    },
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 8,
+     "gainDb": -18
+    },
+    {
+     "at": 0.5,
+     "prompt": "many light feet shuffling on stone, a crowd closing in",
+     "durationSec": 6,
+     "gainDb": -12
+    },
+    {
+     "at": 1,
+     "prompt": "slow rhythmic straw broom sweeping on stone",
+     "durationSec": 3,
+     "gainDb": -10
+    },
+    {
+     "at": 6.5,
+     "prompt": "a single huge taiko drum hit",
+     "durationSec": 1,
+     "gainDb": -2
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 8,
+     "text": "50",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ],
+   "keyframePrompt": "{{STYLE}} {{NOVA_BROOM}} {{GOON}}, ten of them in frame. Vertical frame. {{SET}}. Nova sweeps the flagstones at the center of a close ring of ten evenly spaced goons, each standing apart, dozens more implied only by long steel-grey shadows reaching into frame from beyond the edges. High overhead angle, warm lantern light, soft amber dusk haze. {{AVOID}} {{SOUL}}"
+  },
+  {
+   "label": "S2 Wave 1: five sweeps",
+   "sec": 22,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_BROOM}} <<<image_7>>> {{GOON}}, five of them. Vertical frame. {{SET}}. Five goons attack Nova one at a time; she dispatches each with a single wide broom sweep, roughly one every four seconds, and each goon bursts into a dry puff of ink dust and glassy sparks the instant the bristles connect, until all five are gone. Magenta rim flares on every hit. Continuous vertical tracking around Nova, 24mm, warm lantern light. {{AVOID}} genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 11,
+     "gainDb": -18
+    },
+    {
+     "at": 11,
+     "prompt": "{{AMB}}",
+     "durationSec": 11,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "{{DRUMS}}",
+     "durationSec": 11,
+     "gainDb": -12
+    },
+    {
+     "at": 11,
+     "prompt": "{{DRUMS}}",
+     "durationSec": 11,
+     "gainDb": -12
+    },
+    {
+     "at": 0,
+     "prompt": "{{FIGHT}}",
+     "durationSec": 11,
+     "gainDb": -10
+    },
+    {
+     "at": 11,
+     "prompt": "{{FIGHT}}",
+     "durationSec": 11,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 3,
+     "text": "50",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 3,
+     "durationSec": 4,
+     "text": "49",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 7,
+     "durationSec": 4,
+     "text": "48",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 11,
+     "durationSec": 4,
+     "text": "47",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 15,
+     "durationSec": 4,
+     "text": "46",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 19,
+     "durationSec": 3,
+     "text": "45",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S3 Wave 2: the broom snaps",
+   "sec": 15,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_BROOM}} <<<image_7>>> {{GOON}}, ten of them. Vertical frame. {{SET}}. Ten goons rush Nova together, each keeping clear space between bodies; she sweeps five of them away in fast continuous combos, one about every two and a half seconds, each bursting into ink dust and glassy sparks; on the fifth hit the wooden broom handle snaps cleanly in half with a burst of splinters, leaving the bristle half in her right hand while five goons still circle. Orbiting low-angle tracking, magenta light trails, warm lantern light. {{AVOID}} genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 15,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "{{DRUMS}}",
+     "durationSec": 15,
+     "gainDb": -12
+    },
+    {
+     "at": 0,
+     "prompt": "{{FIGHT}}",
+     "durationSec": 12,
+     "gainDb": -10
+    },
+    {
+     "at": 12,
+     "prompt": "a loud dry wooden stick snapping in half, splinters",
+     "durationSec": 1,
+     "gainDb": -3
+    },
+    {
+     "at": 13,
+     "prompt": "a comedic record-scratch pause",
+     "durationSec": 1,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 2,
+     "text": "45",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 2,
+     "durationSec": 2.5,
+     "text": "44",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 4.5,
+     "durationSec": 2.5,
+     "text": "43",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 7,
+     "durationSec": 2.5,
+     "text": "42",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 9.5,
+     "durationSec": 2.5,
+     "text": "41",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 12,
+     "durationSec": 3,
+     "text": "40",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S4 Half a broom",
+   "sec": 15,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "That was my good broom.",
+     "at": 0.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_HALF}} <<<image_7>>> {{GOON}}, five of them. Vertical frame. {{SET}}. Nova looks at the snapped broom half in her right hand, shrugs, and fights on: she dispatches the five remaining goons one at a time with short, sharp jabs and flicks of the bristle half, one about every two and a half seconds, each goon bursting into ink dust and glassy sparks. Punchy vertical tracking, low angle, magenta light trails, warm lantern light. {{AVOID}} genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 15,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "{{DRUMS}}",
+     "durationSec": 15,
+     "gainDb": -12
+    },
+    {
+     "at": 0,
+     "prompt": "stick-figure fight: short sharp stick jabs, straw bristle flicks, bright glassy impact tinks and soft ink-dust puffs, no flesh hits",
+     "durationSec": 15,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 2,
+     "text": "40",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 2,
+     "durationSec": 2.5,
+     "text": "39",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 4.5,
+     "durationSec": 2.5,
+     "text": "38",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 7,
+     "durationSec": 2.5,
+     "text": "37",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 9.5,
+     "durationSec": 2.5,
+     "text": "36",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 12,
+     "durationSec": 3,
+     "text": "35",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ],
+   "highlightWords": [
+    "broom"
+   ]
+  },
+  {
+   "label": "S5 Wave 3: pile-up",
+   "sec": 10,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_HALF}} <<<image_7>>> {{GOON}}, ten of them. Vertical frame. {{SET}}. Ten goons leap at Nova from every side at once and land on her one after another, stacking into a tall heap of clearly separate stick bodies that buries her completely; only a faint magenta glow shows between the bodies. Low wide shot, slight slow motion on the leaps, warm lantern light. {{AVOID}} genre=action pacing=dynamic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "dynamic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 10,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "many quick cartoon jump whooshes, one after another",
+     "durationSec": 4,
+     "gainDb": -8
+    },
+    {
+     "at": 3,
+     "prompt": "a series of soft rubbery thuds as bodies land on a pile",
+     "durationSec": 5,
+     "gainDb": -8
+    },
+    {
+     "at": 8,
+     "prompt": "the fight music cuts out, a low tense sustained drone",
+     "durationSec": 2,
+     "gainDb": -14
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 10,
+     "text": "35",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S6 Buried",
+   "sec": 10,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "...Rude.",
+     "at": 5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{GOON}}, ten of them in a heap. Vertical frame. {{SET}}. A tall heap of ten goons lies in the middle of the courtyard, each body clearly separate and stacked, the heap trembling and bulging; bright magenta light leaks out through the gaps between bodies, growing stronger. Static low wide shot, warm lantern light. {{AVOID}}",
+   "keyframePrompt": "{{STYLE}} {{GOON}}, ten of them in a heap. Vertical frame. {{SET}}. A tall heap of ten goons lies in the middle of the courtyard, each body clearly separate and stacked, the heap trembling and bulging; bright magenta light leaks out through the gaps between bodies, growing stronger. Static low wide shot, warm lantern light. {{AVOID}} {{SOUL}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 10,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "muffled thumps and shuffling from inside a pile of bodies",
+     "durationSec": 10,
+     "gainDb": -8
+    },
+    {
+     "at": 6,
+     "prompt": "a rising electric magenta hum, building energy",
+     "durationSec": 4,
+     "gainDb": -10
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 10,
+     "text": "35",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S7 Magenta flare",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_HALF}} <<<image_7>>> {{GOON}}, ten of them. Vertical frame. {{SET}}. The heap of ten goons explodes outward as Nova's magenta rim light flares blindingly bright; she spins out of the center with the bristle half in her right hand, and all ten goons burst mid-air into ink dust and glassy magenta-lit sparks. Extreme slow motion into a speed ramp, low angle. {{AVOID}} genre=action pacing=single-shot camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 8,
+     "gainDb": -18
+    },
+    {
+     "at": 1.5,
+     "prompt": "deep cinematic sub-bass drop",
+     "durationSec": 2,
+     "gainDb": -2
+    },
+    {
+     "at": 1.8,
+     "prompt": "a big bright glass burst shattering into sparkles",
+     "durationSec": 2,
+     "gainDb": -4
+    },
+    {
+     "at": 3,
+     "prompt": "koto-synth heroic rising phrase over taiko, triumphant, instrumental",
+     "durationSec": 5,
+     "gainDb": -8
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 2,
+     "text": "35",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 2,
+     "durationSec": 6,
+     "text": "25",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S8 Spin: seven",
+   "sec": 6,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_HALF}} <<<image_7>>> {{GOON}}, seven of them. Vertical frame. {{SET}}. Seven goons charge Nova in a line; she spins once with the bristle half in her right hand, and all seven burst together into ink dust and glassy sparks. Whip-pan tracking, low angle, magenta light trail. {{AVOID}} genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 6,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "{{DRUMS}}",
+     "durationSec": 6,
+     "gainDb": -12
+    },
+    {
+     "at": 2.8,
+     "prompt": "one huge spinning whoosh into a cascade of bright glassy tinks",
+     "durationSec": 1.5,
+     "gainDb": -4
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 3,
+     "text": "25",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 3,
+     "durationSec": 3,
+     "text": "18",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S9 Spin: six",
+   "sec": 6,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_HALF}} <<<image_7>>> {{GOON}}, six of them. Vertical frame. {{SET}}. Six goons charge Nova from the other side; she spins again with the bristle half in her right hand, and all six burst together into ink dust and glassy sparks. Whip-pan tracking, low angle, magenta light trail. {{AVOID}} genre=action pacing=chaotic camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "chaotic",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 6,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "{{DRUMS}}",
+     "durationSec": 6,
+     "gainDb": -12
+    },
+    {
+     "at": 2.8,
+     "prompt": "one huge spinning whoosh into a cascade of bright glassy tinks",
+     "durationSec": 1.5,
+     "gainDb": -4
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 3,
+     "text": "18",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 3,
+     "durationSec": 3,
+     "text": "12",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S10 Finisher: one sweep (first six)",
+   "sec": 8,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_HALF}} <<<image_7>>> {{GOON}}, six of them. Vertical frame. {{SET}}. The last goons advance; six stand in an arc in front of Nova. She plants her feet and begins one long, low, continuous sweep of the bristle half in her right hand, rolling all six goons across the flagstones into a neat tidy pile, each body still separate. Slow tracking arc following the sweep, low angle, warm lantern light. {{AVOID}} genre=action pacing=single-shot camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 8,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "a slow building taiko roll with koto-synth, instrumental",
+     "durationSec": 8,
+     "gainDb": -12
+    },
+    {
+     "at": 3,
+     "prompt": "one long deep broom sweep across stone, bodies tumbling with soft glassy tinks",
+     "durationSec": 3,
+     "gainDb": -6
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 5,
+     "text": "12",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 5,
+     "durationSec": 3,
+     "text": "6",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S11 Finisher: the last six",
+   "sec": 7,
+   "lines": [],
+   "videoPrompt": "{{STYLE}} <<<image_3>>> {{NOVA_HALF}} <<<image_7>>> {{GOON}}, six of them. Vertical frame. {{SET}}. The same continuous sweep carries on around the arc: Nova's bristle half rolls the last six goons across the flagstones onto the neat pile; the very last goon tumbles onto the top and a tiny sliver of a golden glowing shard drops from it and lands on the stone with a gold glint. Continuous tracking arc, low angle, warm lantern light, gold halation on the shard. {{AVOID}} genre=action pacing=single-shot camera_model=modern camera_lens=anamorphic color_palette=the-crimson-ballet",
+   "model": "hf-cinema-studio-4",
+   "controls": {
+    "genre": "action",
+    "pacing": "single-shot",
+    "camera_model": "modern",
+    "camera_lens": "anamorphic",
+    "color_palette": "the-crimson-ballet"
+   },
+   "refs": [
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-bolt-117ca05836.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-pip-79f7c3b73a.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-nova-f442dd19be.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-brick-ae29c140d0.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-smudge-fd664ef117.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/env-arena-3f28b124a3.png",
+    "refs/bd3c85ff-152d-49ba-b572-55f3df7387fd/ref-grey-1dae772cef.png"
+   ],
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 7,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "one long deep broom sweep across stone, bodies tumbling with soft glassy tinks",
+     "durationSec": 4,
+     "gainDb": -6
+    },
+    {
+     "at": 4,
+     "prompt": "a final huge taiko hit that ends the fight music",
+     "durationSec": 1,
+     "gainDb": -2
+    },
+    {
+     "at": 5,
+     "prompt": "{{DRIPTINK}}",
+     "durationSec": 1,
+     "gainDb": -4
+    },
+    {
+     "at": 5.2,
+     "prompt": "a soft shimmering golden chime glow",
+     "durationSec": 1.8,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 4,
+     "text": "6",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 4,
+     "durationSec": 3,
+     "text": "0",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ]
+  },
+  {
+   "label": "S12 Tag: sweep it up (loop)",
+   "sec": 5,
+   "lines": [
+    {
+     "speaker": "Nova",
+     "text": "...Missed a spot.",
+     "at": 0.5
+    }
+   ],
+   "videoPrompt": "{{STYLE}} {{NOVA_BROOM}} {{GOON}}, ten of them in frame. Vertical frame. {{SET}}. Nova, now holding a fresh whole push-broom in her right hand, calmly goes back to sweeping, nudging the neat pile of goons; the goons in the pile stir, pop up one by one, and step back out into an evenly spaced ring of ten around her, each standing apart. Medium shot pulling back and rising to high overhead, warm lantern light. {{AVOID}}",
+   "keyframePrompt": "{{STYLE}} {{NOVA_BROOM}} {{GOON}}, ten of them in frame. Vertical frame. {{SET}}. Nova, now holding a fresh whole push-broom in her right hand, calmly goes back to sweeping, nudging the neat pile of goons; the goons in the pile stir, pop up one by one, and step back out into an evenly spaced ring of ten around her, each standing apart. Medium shot pulling back and rising to high overhead, warm lantern light. {{AVOID}} {{SOUL}}",
+   "model": "hf-seedance-2-5",
+   "sfx": [
+    {
+     "at": 0,
+     "prompt": "{{AMB}}",
+     "durationSec": 5,
+     "gainDb": -18
+    },
+    {
+     "at": 0,
+     "prompt": "slow rhythmic straw broom sweeping on stone",
+     "durationSec": 2.5,
+     "gainDb": -10
+    },
+    {
+     "at": 2.5,
+     "prompt": "many light feet shuffling on stone, a crowd closing in",
+     "durationSec": 2.5,
+     "gainDb": -12
+    }
+   ],
+   "labels": [
+    {
+     "at": 0,
+     "durationSec": 3,
+     "text": "0",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    },
+    {
+     "at": 3,
+     "durationSec": 2,
+     "text": "50",
+     "position": "lower-third",
+     "style": "title",
+     "color": "#FF3DA5"
+    }
+   ],
+   "endFrame": {
+    "fromSection": 0
+   }
+  }
+ ],
+ "sting": {
+  "at": 6.0,
+  "sec": 0.5
+ },
+ "outro": {
+  "mode": "overlay",
+  "sec": 2.5,
+  "cta": "Full episode: She Held the Roof of a Runaway Sky Train"
+ },
+ "watermark": true,
+ "captions": true,
+ "qc": "INK-03: CS4 at 9:16 is unverified; if S1-S5 or S7-S11 fail aspect or look, re-roll on hf-seedance-2-5 (SDi 9:16) from a keyframe (KF-N03-01 is in the script). Counter: labels step exactly with on-screen defeats (5 + 5 + 5 + 10 + 7 + 6 + 6 + 6 = 50); after first render retime every decrement to the actual burst/sweep frame, and if a clip shows a different number of defeats, re-roll it rather than editing the count. Crowd: at most 10 goons in any frame (S1/S5/S6/S12 = 10, S3 = 10); reject any shot with more, and any fused or merged bodies (step through S5/S6 pile and S7 burst). Drift: broom always in Nova's RIGHT hand, full broom S1-S3, half broom from the S3 snap through S11; S12 gag = she is back with a fresh whole broom so the loop lands on the S1 full-broom keyframe; topknot and magenta rim in every shot. Goons plain matte black with steel-grey eye-dots, no accessories, no crimson. Faces: eye-dots only; any mouth, nose, teeth, brows or smile even 1 frame = reject. Hands: max three rounded nubs. Hits = ink dust + glassy sparks, never blood/splatter. Style: glossy 3D, never flat 2D; paper walls blank. Labels: counter only, lower third, never over faces. Audio: ambience bed under every section, no silence > 1.5 s; drip-tink at 0.0 and on the shard (S11 5.0). Lore: Nib-shard sliver gold glint in S11. Seam: loop S12 end ring = S1 start ring (KF-N03-01, endFrame on Seedance). Global gate (brief §0.3): accent hue shift >6 frames / missing accessory = re-roll; 3rd or fused limb >=3 frames = re-roll; lost rim light or flat bg = re-roll. Check sourceSpec width/height/duration every clip."
+}
