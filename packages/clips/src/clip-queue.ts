@@ -35,6 +35,7 @@ import {
   type FallbackSelection,
   type MediaSpec,
 } from "@studio/core";
+import { cutIsStale } from "./directed-restage";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -979,6 +980,10 @@ async function maybeFinish(videoId: string) {
     .select("auto_finish, status, project_id, director_cut, directed")
     .eq("id", videoId)
     .maybeSingle();
+  if (video?.directed && video.status !== "ASSETS_READY") {
+    await restageIfStale(videoId, video.status as string);
+    return;
+  }
   if (!video?.auto_finish || video.status !== "ASSETS_READY") return;
   const { count } = await db
     .from("clip_jobs")
@@ -1023,6 +1028,27 @@ async function maybeFinish(videoId: string) {
   });
   await db.from("videos").update({ status: "ASSEMBLING", auto_finish: false }).eq("id", videoId);
   console.log(`▶️  ${videoId}: all clips done → ASSEMBLING (render → Final review)`);
+}
+
+/** A clip that lands after its video's cut was compiled (a revision queued
+    it in the gap before the compile) re-compiles the cut; see
+    directed-restage.ts. */
+async function restageIfStale(videoId: string, status: string) {
+  const [{ count }, { data: cut }, { data: clip }] = await Promise.all([
+    db.from("clip_jobs").select("id", { count: "exact", head: true }).eq("video_id", videoId).in("status", ["queued", "running"]),
+    db.from("edit_documents").select("created_at").eq("video_id", videoId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    db.from("assets").select("created_at").eq("video_id", videoId).eq("kind", "clip").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  const stale = cutIsStale({
+    directed: true,
+    status,
+    openJobs: count ?? 0,
+    latestCutAt: (cut?.created_at as string | undefined) ?? null,
+    latestClipAt: (clip?.created_at as string | undefined) ?? null,
+  });
+  if (!stale) return;
+  console.log(`🔁 ${videoId}: a clip landed after the cut was compiled — re-compiling`);
+  await stageDirected(videoId);
 }
 
 /** Send crashed 'running' rows back to 'queued' (bounded by attempts) — a
