@@ -47,7 +47,7 @@ jobs:
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
       - uses: pnpm/action-setup@v4
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: github.event_name != 'schedule' || steps.peek.outputs.count != '0'
         with:
           node-version: 22
