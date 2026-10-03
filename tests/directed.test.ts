@@ -6,6 +6,8 @@ import {
   directedRuntimeSec,
   directedWarnings,
   parseDirectedScript,
+  reuseWindowErrors,
+  sectionTrim,
   snapZoomMotion,
   validateEdd,
   type DirectedScript,
@@ -187,6 +189,61 @@ describe("compileDirectedEdd", () => {
     ];
     const v = validateEdd(doc, buildDirectedEddContext(assets, script));
     expect(v.errors).toEqual([]);
+  });
+});
+
+describe("reuse windows (cutdowns from existing clips)", () => {
+  const LF = "de557b8f-0077-4413-81a2-1d41408edaf1";
+  const cut = (reuse: Record<string, unknown>, sec = 20) =>
+    parseDirectedScript({
+      format: "long",
+      title: "Ramen Shop: the short cut",
+      sections: [{ sec, lines: [], reuse: { videoId: LF, ...reuse }, generateAudio: true }],
+    });
+
+  it("parses a start time, and drops a zero one", () => {
+    const r = cut({ sectionIdx: 4, fromSec: 22.5 });
+    expect(r.ok && r.script.sections[0].reuse).toEqual({ videoId: LF, sectionIdx: 4, fromSec: 22.5 });
+    const z = cut({ sectionIdx: 4, fromSec: 0 });
+    expect(z.ok && z.script.sections[0].reuse).toEqual({ videoId: LF, sectionIdx: 4 });
+  });
+
+  it("rejects a negative or non-numeric start time", () => {
+    expect(cut({ sectionIdx: 4, fromSec: -1 }).ok).toBe(false);
+    expect(cut({ sectionIdx: 4, fromSec: "middle" }).ok).toBe(false);
+  });
+
+  it("plays the window from the start time in the compiled cut", () => {
+    const r = cut({ sectionIdx: 4, fromSec: 22.5 });
+    if (!r.ok) throw new Error(r.errors.join("; "));
+    const doc = compileDirectedEdd({
+      script: r.script,
+      sections: [{ idx: 0, assetId: "c0", sourceSec: 60.1, isVideo: true }],
+      lines: [],
+      sfx: [],
+      brand: { primary: "#F5B829" },
+      channelName: "Thimble Town",
+    });
+    expect(doc.tracks.video[0].trim).toEqual({ in: 22.5, out: 42.5 });
+    expect(doc.tracks.video[0].duration).toBe(20);
+  });
+
+  it("keeps a generated clip's window at 0 (unchanged behavior)", () => {
+    expect(sectionTrim({ sec: 10 }, { isVideo: true, sourceSec: 10.04 })).toEqual({ in: 0, out: 10 });
+    expect(sectionTrim({ sec: 10 }, { isVideo: true, sourceSec: 8 })).toEqual({ in: 0, out: 8 });
+    expect(sectionTrim({ sec: 10 }, { isVideo: false })).toEqual({ in: 0, out: 10 });
+  });
+
+  it("flags a window that runs past the end of its source clip", () => {
+    const r = cut({ sectionIdx: 4, fromSec: 50 });
+    if (!r.ok) throw new Error(r.errors.join("; "));
+    const input = { sections: [{ idx: 0, assetId: "c0", sourceSec: 60.1, isVideo: true }] };
+    expect(reuseWindowErrors(r.script, input)).toEqual([`§1 plays 50s–70s of ${LF} §5, which is 60.1s long`]);
+    const ok = cut({ sectionIdx: 4, fromSec: 40 });
+    expect(ok.ok && reuseWindowErrors(ok.script, input)).toEqual([]);
+    // A plain reuse (an ident plate) keeps its legacy loop; only start-time windows are held.
+    const plain = cut({ sectionIdx: 4 }, 90);
+    expect(plain.ok && reuseWindowErrors(plain.script, input)).toEqual([]);
   });
 });
 
