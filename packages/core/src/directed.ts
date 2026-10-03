@@ -78,9 +78,11 @@ export type DirectedSection = {
   /** Words to color-emphasize in this section's captions. */
   highlightWords?: string[];
   transitionOut?: DirectedTransition;
-  /** Reuse an already-generated clip (a channel ident/outro plate) instead of
-      generating: the source video + section. */
-  reuse?: { videoId: string; sectionIdx: number };
+  /** Reuse an already-generated clip (a channel ident/outro plate, or a
+      window of a long-form for a cutdown) instead of generating: the source
+      video + section, and optionally the second of the source clip to start
+      from (default 0). The section plays sec seconds from there. */
+  reuse?: { videoId: string; sectionIdx: number; fromSec?: number };
   /** Chained segments for a section longer than one generation (> 30s): each
       segment's own seconds (4–30) and verbatim motion prompt, generated in
       order from the previous segment's last frame. Seconds must sum to `sec`.
@@ -200,8 +202,16 @@ export function parseDirectedScript(input: unknown): DirectedParse {
     const sec = num(s.sec);
     if (sec == null || sec < MIN_SEC || sec > MAX_SEC) err(`${w}.sec must be ${MIN_SEC}–${MAX_SEC}`);
     const videoPrompt = str(s.videoPrompt);
+    const fromSec = isObj(s.reuse) ? num(s.reuse.fromSec) : undefined;
+    if (isObj(s.reuse) && s.reuse.fromSec !== undefined && (fromSec == null || fromSec < 0)) {
+      err(`${w}.reuse.fromSec must be a number of seconds ≥ 0`);
+    }
     const reuse = isObj(s.reuse) && str(s.reuse.videoId) && num(s.reuse.sectionIdx) != null
-      ? { videoId: str(s.reuse.videoId)!, sectionIdx: num(s.reuse.sectionIdx)! }
+      ? {
+          videoId: str(s.reuse.videoId)!,
+          sectionIdx: num(s.reuse.sectionIdx)!,
+          ...(fromSec != null && fromSec > 0 ? { fromSec } : {}),
+        }
       : undefined;
     if (!videoPrompt && !reuse) err(`${w}.videoPrompt required (or reuse)`);
     const keyframeImage = str(s.keyframeImage);
@@ -437,6 +447,39 @@ function transitionFor(t: DirectedTransition | undefined, isLast: boolean, dur: 
   return { kind: "dipToBlack", sec: Math.min(0.6, cap) };
 }
 
+/** The source window a section plays: from its reuse start (0 for a
+    generated clip) for sec seconds, clamped to the clip's real length. */
+export function sectionTrim(
+  s: Pick<DirectedSection, "sec" | "reuse">,
+  land?: { isVideo?: boolean; sourceSec?: number },
+): { in: number; out: number } {
+  const src = land?.isVideo ? land.sourceSec : undefined;
+  const from = land?.isVideo ? (s.reuse?.fromSec ?? 0) : 0;
+  const tIn = src != null ? Math.min(from, Math.max(0, src - FRAME)) : from;
+  const out = Math.min(tIn + s.sec, src ?? tIn + s.sec);
+  return { in: r3(tIn), out: r3(Math.max(tIn + FRAME, out)) };
+}
+
+/** Start-time reuse windows that run past the end of their source clip. The
+    player would loop the window back to its start mid-section, so the cut is
+    held instead. A plain reuse (no fromSec) keeps its legacy loop. */
+export function reuseWindowErrors(script: Pick<DirectedScript, "sections">, input: Pick<DirectedCompileInput, "sections">): string[] {
+  const out: string[] = [];
+  for (const s of script.sections) {
+    if (!s.reuse?.fromSec) continue;
+    const land = input.sections.find((x) => x.idx === s.idx);
+    if (!land?.isVideo || land.sourceSec == null) continue;
+    const from = s.reuse.fromSec;
+    const need = from + s.sec;
+    if (need > land.sourceSec + 0.1) {
+      out.push(
+        `§${s.idx + 1} plays ${from}s–${r3(need)}s of ${s.reuse.videoId} §${s.reuse.sectionIdx + 1}, which is ${r3(land.sourceSec)}s long`,
+      );
+    }
+  }
+  return out;
+}
+
 /**
  * Compile a directed script + its landed assets into an EDD. Every duration
  * is the brief's (never the VO's). Lines play at their scripted offsets;
@@ -480,7 +523,7 @@ export function compileDirectedEdd(input: DirectedCompileInput): EditDocument {
       source: land?.isVideo ? "ai-clip" : "still",
       start: r3(start),
       duration: s.sec,
-      trim: { in: 0, out: Math.max(FRAME, Math.min(s.sec, land?.sourceSec ?? s.sec)) },
+      trim: sectionTrim(s, land),
       motion: s.zooms?.length
         ? snapZoomMotion(s.zooms, s.sec)
         : land?.isVideo

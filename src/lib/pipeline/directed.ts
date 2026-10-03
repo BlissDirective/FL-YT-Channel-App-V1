@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import {
   buildDirectedEddContext,
   compileDirectedEdd,
+  reuseWindowErrors,
   directedInputFromAssets,
   directedRuntimeSec,
   lineOverlaps,
@@ -723,9 +724,14 @@ export async function stageDirectedCut(db: Db, videoId: string): Promise<{ ok: t
     return { ok: false, error: why };
   }
   const assets = await assetsOf(db, videoId);
-  const doc = compileDirectedEdd(
-    directedInputFromAssets(script, assets, { primary: (project.brand_kit as { primary?: string } | null)?.primary ?? "#F5B829" }, project.name),
-  );
+  const input = directedInputFromAssets(script, assets, { primary: (project.brand_kit as { primary?: string } | null)?.primary ?? "#F5B829" }, project.name);
+  const windows = reuseWindowErrors(script, input);
+  if (windows.length) {
+    const msg = `reuse window past the source clip — ${windows.join("; ")}. Lower reuse.fromSec or the section's sec.`;
+    await db.from("videos").update({ paused_reason: msg.slice(0, 300) }).eq("id", videoId);
+    return { ok: false, error: msg };
+  }
+  const doc = compileDirectedEdd(input);
   const v = validateEdd(doc, buildDirectedEddContext(assets, script));
   if (!v.ok) {
     const msg = v.errors.slice(0, 4).map((e) => `${e.rule}: ${e.msg}`).join("; ");

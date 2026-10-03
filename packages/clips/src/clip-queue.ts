@@ -23,6 +23,7 @@ import {
   buildFallbackChain,
   buildVisualPrompt,
   compileDirectedEdd,
+  reuseWindowErrors,
   directedInputFromAssets,
   fallbackForAttempt,
   insertEddVersion,
@@ -732,7 +733,15 @@ async function stageDirected(videoId: string): Promise<void> {
   const { data: assets } = await db.from("assets").select("id, kind, beat_index, storage_path, meta").eq("video_id", videoId);
   const rows = (assets ?? []) as DirectedAssetRow[];
   const primary = (project.brand_kit as { primary?: string } | null)?.primary ?? "#F5B829";
-  const doc = compileDirectedEdd(directedInputFromAssets(parsed.script, rows, { primary }, project.name as string));
+  const input = directedInputFromAssets(parsed.script, rows, { primary }, project.name as string);
+  const windows = reuseWindowErrors(parsed.script, input);
+  if (windows.length) {
+    const msg = `reuse window past the source clip — ${windows.join("; ")}. Lower reuse.fromSec or the section's sec.`;
+    await db.from("videos").update({ paused_reason: msg.slice(0, 300), auto_finish: false }).eq("id", videoId);
+    console.error(`⛔ ${videoId}: ${msg}`);
+    return;
+  }
+  const doc = compileDirectedEdd(input);
   const v = validateEdd(doc, buildDirectedEddContext(rows, parsed.script));
   if (!v.ok) {
     const msg = v.errors.slice(0, 4).map((e) => `${e.rule}: ${e.msg}`).join("; ");
