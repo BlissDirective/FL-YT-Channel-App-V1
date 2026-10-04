@@ -63,8 +63,12 @@ export function getRefImageModel(id: string): RefImageModel | undefined {
   return REF_IMAGE_MODELS.find((m) => m.id === id);
 }
 
-export function estimateRefImageCost(model: RefImageModel, count = 1): number {
-  return Math.round(model.usdPerImage * Math.max(1, count) * 1000) / 1000;
+export type RefImageAspect = "16:9" | "1:1" | "9:16" | "3:2" | "2:3" | "4:3" | "3:4";
+export type RefImageResolution = "1K" | "2K" | "4K";
+
+export function estimateRefImageCost(model: RefImageModel, count = 1, resolution?: RefImageResolution): number {
+  const rate = model.id === "nano-banana-pro" && resolution === "4K" ? model.usdPerImage * 2 : model.usdPerImage;
+  return Math.round(rate * Math.max(1, count) * 1000) / 1000;
 }
 
 export type RefImageResult =
@@ -89,7 +93,9 @@ export async function generateReferenceImage(opts: {
   referenceUrls?: string[];
   /** How many candidates to return (the Studio's grid). */
   count?: number;
-  aspectRatio?: "16:9" | "1:1" | "9:16";
+  aspectRatio?: RefImageAspect;
+  /** Nano Banana Pro output size (fal default 1K); 4K bills at twice the rate. */
+  resolution?: RefImageResolution;
 }): Promise<RefImageResult> {
   const count = Math.min(Math.max(opts.count ?? 1, 1), 8);
   if (!isFalLive()) {
@@ -104,6 +110,7 @@ export async function generateReferenceImage(opts: {
     aspect_ratio: opts.aspectRatio ?? "16:9",
     enable_safety_checker: true,
   };
+  if (opts.resolution && opts.model.id === "nano-banana-pro") input.resolution = opts.resolution;
   if (refs.length > 0) input.image_urls = refs;
 
   const res = await fetch(`https://fal.run/${endpoint}`, {
@@ -132,7 +139,7 @@ export async function generateReferenceImage(opts: {
   return {
     provider: "fal-ref-image",
     images,
-    costUsd: estimateRefImageCost(opts.model, images.length),
+    costUsd: estimateRefImageCost(opts.model, images.length, opts.resolution),
     modelId: opts.model.id,
   };
 }
