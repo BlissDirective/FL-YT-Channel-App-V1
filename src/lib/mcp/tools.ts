@@ -33,6 +33,7 @@ import {
   type SectionRevision,
 } from "@/lib/pipeline/directed";
 import { designVoice, saveDesignedVoice } from "@/lib/adapters/voice-design";
+import { makeCharacterImage } from "@/lib/pipeline/character-image";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import { allLedgerRows } from "@/lib/pipeline/ledger";
 import {
@@ -672,6 +673,36 @@ export const TOOLS: Tool[] = [
       }),
   },
   {
+    name: "make_character_image",
+    description:
+      "Generate one photoreal character image on a reference-capable model (Nano Banana Pro by default, ~$0.15/image at 1K-2K, ~$0.30 at 4K). references = storage paths of earlier images of the same person (max 6): the new image keeps that identity, so a master look plus one call per view builds a consistent multi-view character sheet. Idempotent: the same inputs return the stored image for free. Returns its storage path and a signed URL.",
+    inputSchema: obj(
+      {
+        projectId: { type: "string" },
+        name: { type: "string" },
+        prompt: { type: "string" },
+        references: { type: "array", items: { type: "string" }, description: "storage paths, max 6" },
+        aspect: { type: "string", description: "2:3 (default) | 3:4 | 1:1 | 4:3 | 3:2 | 16:9 | 9:16" },
+        resolution: { type: "string", description: "1K | 2K (default) | 4K" },
+        model: { type: "string", description: "nano-banana-pro (default) | flux-2-pro" },
+      },
+      ["projectId", "name", "prompt"],
+    ),
+    handler: async (a, db) => {
+      const aspects = ["2:3", "3:4", "1:1", "4:3", "3:2", "16:9", "9:16"] as const;
+      const res = ["1K", "2K", "4K"] as const;
+      return makeCharacterImage(db, {
+        projectId: str(a.projectId),
+        name: str(a.name),
+        prompt: str(a.prompt),
+        references: Array.isArray(a.references) ? a.references.map((r) => String(r)) : undefined,
+        aspect: aspects.find((x) => x === a.aspect),
+        resolution: res.find((x) => x === a.resolution),
+        model: typeof a.model === "string" ? a.model : undefined,
+      });
+    },
+  },
+  {
     name: "get_video_media",
     description: "Signed URLs (2h) for a video's render(s), section clips, keyframes, voiced lines, SFX and music, plus its clip jobs with real Higgsfield quotes — for QC.",
     inputSchema: obj({ videoId: { type: "string" } }, ["videoId"]),
@@ -911,6 +942,7 @@ const MUTATING_TOOLS = new Set([
   "revise_sections",
   "stage_directed_cut",
   "make_reference_still",
+  "make_character_image",
   "design_voice",
   "save_voice",
   "add_lesson",
