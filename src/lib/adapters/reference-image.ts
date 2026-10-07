@@ -102,17 +102,7 @@ export async function generateReferenceImage(opts: {
     return { provider: "mock", images: [], costUsd: 0, modelId: opts.model.id };
   }
 
-  const refs = (opts.referenceUrls ?? []).slice(0, opts.model.maxReferences);
-  const endpoint = refs.length > 0 ? opts.model.refEndpoint : opts.model.endpoint;
-  const input: Record<string, unknown> = {
-    prompt: opts.prompt,
-    num_images: count,
-    aspect_ratio: opts.aspectRatio ?? "16:9",
-    enable_safety_checker: true,
-  };
-  if (opts.resolution && opts.model.id === "nano-banana-pro") input.resolution = opts.resolution;
-  if (refs.length > 0) input.image_urls = refs;
-
+  const { endpoint, input } = refImageRequest(opts, count);
   const res = await fetch(`https://fal.run/${endpoint}`, {
     method: "POST",
     headers: {
@@ -125,23 +115,108 @@ export async function generateReferenceImage(opts: {
   if (!res.ok) {
     throw new Error(`fal ${endpoint} ${res.status}: ${(await res.text()).slice(0, 200)}`);
   }
-  const data = (await res.json()) as { images?: { url?: string }[] };
-  const urls = (data.images ?? []).map((i) => i.url).filter((u): u is string => Boolean(u));
-  if (urls.length === 0) throw new Error("fal returned no images");
-
-  const images = await Promise.all(
-    urls.map(async (url) => {
-      const dl = await fetch(url);
-      if (!dl.ok) throw new Error(`image download failed (${dl.status})`);
-      return Buffer.from(await dl.arrayBuffer());
-    }),
-  );
+  const images = await downloadImages((await res.json()) as FalImagesOutput);
   return {
     provider: "fal-ref-image",
     images,
     costUsd: estimateRefImageCost(opts.model, images.length, opts.resolution),
     modelId: opts.model.id,
   };
+}
+
+type RefImageRequestOpts = {
+  model: RefImageModel;
+  prompt: string;
+  referenceUrls?: string[];
+  aspectRatio?: RefImageAspect;
+  resolution?: RefImageResolution;
+};
+
+function refImageRequest(opts: RefImageRequestOpts, count: number): { endpoint: string; input: Record<string, unknown> } {
+  const refs = (opts.referenceUrls ?? []).slice(0, opts.model.maxReferences);
+  const endpoint = refs.length > 0 ? opts.model.refEndpoint : opts.model.endpoint;
+  const input: Record<string, unknown> = {
+    prompt: opts.prompt,
+    num_images: count,
+    aspect_ratio: opts.aspectRatio ?? "16:9",
+    enable_safety_checker: true,
+  };
+  if (opts.resolution && opts.model.id === "nano-banana-pro") input.resolution = opts.resolution;
+  if (refs.length > 0) input.image_urls = refs;
+  return { endpoint, input };
+}
+
+type FalImagesOutput = { images?: { url?: string }[] };
+
+async function downloadImages(data: FalImagesOutput): Promise<Buffer[]> {
+  const urls = (data.images ?? []).map((i) => i.url).filter((u): u is string => Boolean(u));
+  if (urls.length === 0) throw new Error("fal returned no images");
+  return Promise.all(
+    urls.map(async (url) => {
+      const dl = await fetch(url);
+      if (!dl.ok) throw new Error(`image download failed (${dl.status})`);
+      return Buffer.from(await dl.arrayBuffer());
+    }),
+  );
+}
+
+/** A fal queue job for one image. Holds no credential (fal auth is a header),
+    so it is safe to persist and resume from a later request. */
+export type RefImageJob = { statusUrl: string; responseUrl: string };
+
+/** fal finished the job without an image (failed, rejected, or expired).
+    Anything else thrown while checking is transient: check again later. */
+export class RefImageJobFailed extends Error {}
+
+const falHeaders = () => ({ Authorization: `Key ${process.env.FAL_KEY}`, "content-type": "application/json" });
+
+/**
+ * Queue one image on fal and return the job without waiting for it. Unlike
+ * generateReferenceImage, a slow model can't lose the image: the job keeps
+ * running on fal and checkReferenceImageJob collects it whenever it's done.
+ */
+export async function submitReferenceImageJob(opts: RefImageRequestOpts): Promise<RefImageJob> {
+  const { endpoint, input } = refImageRequest(opts, 1);
+  const res = await fetch(`https://queue.fal.run/${endpoint}`, {
+    method: "POST",
+    headers: falHeaders(),
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!res.ok) throw new Error(`fal ${endpoint} submit ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const q = (await res.json()) as { status_url?: string; response_url?: string };
+  if (!q.status_url || !q.response_url) throw new Error("fal queue returned no status/response URL");
+  return { statusUrl: q.status_url, responseUrl: q.response_url };
+}
+
+/**
+ * Poll a queued image job until it finishes or `waitMs` runs out. "pending"
+ * means it's still running on fal — check again later with the same job.
+ * Throws when fal reports the job failed (e.g. a safety-checker rejection).
+ */
+export async function checkReferenceImageJob(
+  job: RefImageJob,
+  waitMs: number,
+): Promise<{ state: "pending" } | { state: "done"; image: Buffer }> {
+  const deadline = Date.now() + waitMs;
+  for (;;) {
+    const st = await fetch(job.statusUrl, { headers: falHeaders(), cache: "no-store", signal: AbortSignal.timeout(15_000) }).catch(() => null);
+    if (st?.status === 404) throw new RefImageJobFailed("fal no longer has this job");
+    const status = st?.ok ? ((await st.json()) as { status?: string }).status : undefined;
+    if (status === "COMPLETED") break;
+    if (status === "FAILED" || status === "ERROR") throw new RefImageJobFailed("fal reported the image job failed");
+    if (Date.now() + 3000 > deadline) return { state: "pending" };
+    await new Promise((r) => setTimeout(r, 3000));
+  }
+  const resp = await fetch(job.responseUrl, { headers: falHeaders(), cache: "no-store", signal: AbortSignal.timeout(30_000) });
+  if (resp.status >= 400 && resp.status < 500) {
+    throw new RefImageJobFailed(`fal image job failed ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+  }
+  if (!resp.ok) throw new Error(`fal result ${resp.status}`);
+  const data = (await resp.json()) as FalImagesOutput;
+  if (!data.images?.some((i) => i.url)) throw new RefImageJobFailed("fal returned no images");
+  const [image] = await downloadImages(data);
+  return { state: "done", image };
 }
 
 /* ------------------------------------------------------------------ */

@@ -675,7 +675,7 @@ export const TOOLS: Tool[] = [
   {
     name: "make_character_image",
     description:
-      "Generate one photoreal character image on a reference-capable model (Nano Banana Pro by default, ~$0.15/image at 1K-2K, ~$0.30 at 4K). references = storage paths of earlier images of the same person (max 6): the new image keeps that identity, so a master look plus one call per view builds a consistent multi-view character sheet. Idempotent: the same inputs return the stored image for free. Returns its storage path and a signed URL.",
+      "Generate one photoreal character image on a reference-capable model (Nano Banana Pro by default, ~$0.15/image at 1K-2K, ~$0.30 at 4K). references = storage paths of earlier images of the same person (max 6): the new image keeps that identity, so a master look plus one call per view builds a consistent multi-view character sheet. Idempotent: the same inputs return the stored image for free. Returns its storage path and a signed URL; if the model is slow it returns busy after ~40s while the job keeps running on fal, and calling again with the same inputs collects that image (no second charge).",
     inputSchema: obj(
       {
         projectId: { type: "string" },

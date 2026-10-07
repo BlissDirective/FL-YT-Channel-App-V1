@@ -4,9 +4,12 @@ import type { createAdminClient } from "@/lib/supabase/admin";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import {
   DEFAULT_REF_IMAGE_MODEL_ID,
+  checkReferenceImageJob,
   estimateRefImageCost,
-  generateReferenceImage,
   getRefImageModel,
+  submitReferenceImageJob,
+  RefImageJobFailed,
+  type RefImageJob,
   type RefImageAspect,
   type RefImageResolution,
 } from "@/lib/adapters/reference-image";
@@ -65,6 +68,7 @@ export function characterImagePath(o: CharacterImageOpts): string {
 export async function makeCharacterImage(
   db: Db,
   o: CharacterImageOpts,
+  waitMs = CHARACTER_IMAGE_WAIT_MS,
 ): Promise<{ ok: true; path: string; url: string | null; costUsd: number; reused?: boolean } | { ok: false; error: string }> {
   const errs = characterImageErrors(o);
   if (errs.length) return { ok: false, error: errs.join("; ") };
@@ -77,9 +81,10 @@ export async function makeCharacterImage(
   }
   const leaseKey = `char_lease:${base}`;
   const { data: lease } = await db.from("app_settings").select("value").eq("key", leaseKey).maybeSingle();
-  const leasedAt = Number((lease?.value as { at?: number } | null)?.at ?? 0);
-  if (leasedAt && Date.now() - leasedAt < 5 * 60_000) {
-    return { ok: false, error: "busy — this image is still generating; call again in a minute (same inputs return it for free)" };
+  const held = (lease?.value ?? null) as CharacterImageLease | null;
+  if (held?.job) return collect(db, o, base, leaseKey, held.job, held.at, waitMs);
+  if (held?.at && Date.now() - held.at < 5 * 60_000) {
+    return { ok: false, error: BUSY };
   }
   const refUrls: string[] = [];
   for (const r of o.references ?? []) {
@@ -87,22 +92,82 @@ export async function makeCharacterImage(
     if (!u) return { ok: false, error: `reference not found in storage: ${r}` };
     refUrls.push(u);
   }
-  await db.from("app_settings").upsert({ key: leaseKey, value: { at: Date.now() } });
+  const at = Date.now();
+  await db.from("app_settings").upsert({ key: leaseKey, value: { at } });
+  let job: RefImageJob;
   try {
-    const out = await generateReferenceImage({
+    job = await submitReferenceImageJob({
       model,
       prompt: o.prompt,
       referenceUrls: refUrls,
-      count: 1,
       aspectRatio: o.aspect ?? "2:3",
       resolution: o.resolution ?? "2K",
     });
-    if (out.provider === "mock" || !out.images[0]) return { ok: false, error: "image model returned no image" };
-    const img = out.images[0];
-    const t = imageType(img);
-    const path = `${base}.${t.ext}`;
-    await uploadMedia(path, img, t.ct);
-    const usd = estimateRefImageCost(model, 1, o.resolution ?? "2K");
+  } catch (e) {
+    await db.from("app_settings").delete().eq("key", leaseKey);
+    return { ok: false, error: errText(e) };
+  }
+  // Persist the fal job before waiting on it: if this request times out, the
+  // next call with the same inputs collects the image instead of paying again.
+  await db.from("app_settings").upsert({ key: leaseKey, value: { at, job } satisfies CharacterImageLease });
+  return collect(db, o, base, leaseKey, job, at, waitMs);
+}
+
+type CharacterImageLease = { at: number; job?: RefImageJob };
+type CharacterImageResult = Awaited<ReturnType<typeof makeCharacterImage>>;
+
+const BUSY = "busy — this image is still generating; call again in a minute (same inputs return it for free)";
+/** Long enough for a typical image, short enough to answer inside an MCP
+    client's 60s tool timeout. */
+export const CHARACTER_IMAGE_WAIT_MS = 40_000;
+/** A queued job still pending after this long is treated as lost. */
+const STALE_JOB_MS = 2 * 60 * 60_000;
+const errText = (e: unknown) => (e instanceof Error ? e.message.slice(0, 300) : String(e));
+
+/** Wait briefly on a queued fal job; store and bill the image once it lands. */
+async function collect(
+  db: Db,
+  o: CharacterImageOpts,
+  base: string,
+  leaseKey: string,
+  job: RefImageJob,
+  since: number,
+  waitMs: number,
+): Promise<CharacterImageResult> {
+  let image: Buffer;
+  try {
+    const r = await checkReferenceImageJob(job, waitMs);
+    if (r.state === "pending") {
+      if (Date.now() - since > STALE_JOB_MS) {
+        await db.from("app_settings").delete().eq("key", leaseKey);
+        return { ok: false, error: "fal never finished this image; call again to start a new one" };
+      }
+      const mins = Math.max(1, Math.round((Date.now() - since) / 60_000));
+      return { ok: false, error: `${BUSY} (queued on fal ${mins} min ago)` };
+    }
+    image = r.image;
+  } catch (e) {
+    // A failed job is cleared so the next call starts fresh; a network blip
+    // keeps the job so the next call collects it, unless fal has been erroring
+    // on a job this old (a 5xx result that never clears).
+    if (e instanceof RefImageJobFailed || Date.now() - since > 15 * 60_000) {
+      await db.from("app_settings").delete().eq("key", leaseKey);
+    }
+    return { ok: false, error: errText(e) };
+  }
+  const t = imageType(image);
+  const path = `${base}.${t.ext}`;
+  try {
+    await uploadMedia(path, image, t.ct);
+  } catch (e) {
+    return { ok: false, error: errText(e) };
+  }
+  // Only the call that clears the lease bills, so two calls collecting the
+  // same job at once ledger it once.
+  const { data: cleared } = await db.from("app_settings").delete().eq("key", leaseKey).select("key");
+  const model = getRefImageModel(o.model ?? DEFAULT_REF_IMAGE_MODEL_ID)!;
+  const usd = estimateRefImageCost(model, 1, o.resolution ?? "2K");
+  if (cleared?.length) {
     await db.from("cost_ledger").insert({
       project_id: o.projectId,
       video_id: null,
@@ -110,10 +175,6 @@ export async function makeCharacterImage(
       description: `${model.label} character image — ${o.name}`,
       usd,
     });
-    return { ok: true, path, url: await getSignedMediaUrl(path, 3600), costUsd: usd };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message.slice(0, 300) : String(e) };
-  } finally {
-    await db.from("app_settings").delete().eq("key", leaseKey);
   }
+  return { ok: true, path, url: await getSignedMediaUrl(path, 3600), costUsd: cleared?.length ? usd : 0 };
 }
