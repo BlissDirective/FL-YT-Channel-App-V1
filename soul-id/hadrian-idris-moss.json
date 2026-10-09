@@ -1,0 +1,32 @@
+{
+  "characterId": "5d3f3c88-8989-44e6-863c-d882616f1b05",
+  "name": "Hadrian Idris Moss",
+  "modelVersions": [
+    "v1",
+    "v2"
+  ],
+  "images": [
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-01-full-body-front-db51a9346b.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-02-full-body-left-side-89c1b3791f.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-03-full-body-back-94f2ef0dc8.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-04-full-body-right-side-38a94d1829.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-05-torso-front-1659a52edf.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-06-torso-back-6802896ed9.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-07-torso-3q-right-6926b5eefd.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-08-torso-3q-left-895f1f7729.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-09-face-smile-b1a84d49ea.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-10-face-profile-left-315e2af1fb.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-11-face-profile-right-3c75e152c6.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirt-open-12-back-of-head-b085750bd3.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirtless-09-face-smile-3403c730ac.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirtless-10-face-profile-left-617a90837a.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirtless-11-face-profile-right-3ece1f66eb.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-shirtless-12-back-of-head-875ee60c70.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-face-shirt-open-05-torso-front-8921aa1c3f.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-face-shirt-open-07-torso-3q-right-3cde31379d.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-face-shirt-open-08-torso-3q-left-976e00ecdf.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-face-shirtless-05-torso-front-5f2759129a.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-face-shirtless-07-torso-3q-right-fc15b7893a.jpg",
+    "refs/32182c0d-52cf-47ec-93f4-13faebda27a9/operator-hadrian-face-shirtless-08-torso-3q-left-3630890d31.jpg"
+  ]
+}
