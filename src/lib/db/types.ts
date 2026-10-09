@@ -334,6 +334,10 @@ export type Video = {
       every autonomous rewrite pass is off. */
   directed?: boolean;
   directed_lease_until?: string | null;
+  /** Hook-first directed video (0088): set when the operator approves section 1. */
+  hook_approved_at?: string | null;
+  /** The format library entry this video was made from (0088). */
+  format_id?: string | null;
   bot_agent_id?: string | null;
   /** MVDA conflict #2: clips done → the agent worker claims this flag and
       runs the cut session before the video reaches the CUT gate. */

@@ -8,6 +8,7 @@ import {
   directedRuntimeSec,
   lineOverlaps,
   insertEddVersion,
+  paceIssues,
   parseDirectedScript,
   sectionSpokenText,
   specHash,
@@ -29,6 +30,7 @@ import { synthesizeSpeech, voiceProviderFor } from "@/lib/adapters/voice";
 import { generateSoundEffect, isSfxLive } from "@/lib/adapters/sfx";
 import { generateMusicBed, isMusicLive } from "@/lib/adapters/music";
 import { resolveLockedModelId } from "@/lib/adapters/video-models";
+import { markFormatUsed } from "@/lib/pipeline/formats";
 import type { Project, Video } from "@/lib/db/types";
 
 /**
@@ -143,13 +145,19 @@ function beatsFor(script: DirectedScript) {
 
 export async function importDirectedScript(
   db: Db,
-  opts: { projectId: string; script: unknown },
+  opts: { projectId: string; script: unknown; formatId?: string },
 ): Promise<{ ok: true; videoId: string; estimate: DirectedEstimate; missingVoices: string[] } | { ok: false; errors: string[] }> {
   const parsed = parseDirectedScript(opts.script);
   if (!parsed.ok) return { ok: false, errors: parsed.errors };
   const script = parsed.script;
+  const pace = paceIssues(script);
+  if (pace.errors.length) return { ok: false, errors: pace.errors };
   const { data: project } = await db.from("projects").select("*").eq("id", opts.projectId).maybeSingle();
   if (!project) return { ok: false, errors: ["project not found"] };
+  if (opts.formatId) {
+    const { data: fmt } = await db.from("formats").select("id").eq("id", opts.formatId).maybeSingle();
+    if (!fmt) return { ok: false, errors: [`format ${opts.formatId} not found`] };
+  }
   const runtime = directedRuntimeSec(script);
   const { data: video, error } = await db
     .from("videos")
@@ -163,10 +171,12 @@ export async function importDirectedScript(
       directed: true,
       enable_captions: script.captions !== false,
       enable_highlights: false,
+      ...(opts.formatId ? { format_id: opts.formatId } : {}),
     })
     .select("id")
     .single();
   if (error || !video) return { ok: false, errors: [error?.message ?? "could not create video"] };
+  if (opts.formatId) await markFormatUsed(db, opts.formatId);
   await db.from("scripts").insert({
     video_id: video.id,
     version: 1,
@@ -623,10 +633,15 @@ export async function enqueueDirectedClips(
   }
   const { data: open } = await db.from("clip_jobs").select("beat_idx").eq("video_id", videoId).in("status", ["queued", "running"]);
   const busy = new Set(((open ?? []) as { beat_idx: number }[]).map((j) => j.beat_idx));
+  // Hook-first: until the hook is approved only section 1 is queued, even on
+  // a revision, and the video holds with auto_finish off so the worker never
+  // cuts a video that only has its hook.
+  const holdForHook = Boolean(script.hookFirst) && !video.hook_approved_at;
 
   const rows: Record<string, unknown>[] = [];
   const pendingReuse: string[] = [];
   for (const s of script.sections) {
+    if (holdForHook && s.idx !== 0) continue;
     if (onlySections && !onlySections.includes(s.idx)) continue;
     if (busy.has(s.idx)) continue;
     if (s.reuse) {
@@ -652,6 +667,14 @@ export async function enqueueDirectedClips(
       spec,
     });
   }
+  if (holdForHook) {
+    if (rows.length) {
+      const { error } = await db.from("clip_jobs").insert(rows);
+      if (error && error.code !== "23505") return { ok: false, error: error.message };
+    }
+    await db.from("videos").update({ status: "ASSETS_READY", auto_finish: false, paused_reason: HOOK_REVIEW }).eq("id", videoId);
+    return { ok: true, queued: rows.length, status: "ASSETS_READY" };
+  }
   if (rows.length) {
     const { error } = await db.from("clip_jobs").insert(rows);
     // 23505 = the one-open-job-per-section index: another run queued it first.
@@ -672,6 +695,35 @@ export async function enqueueDirectedClips(
   }
   const staged = await stageDirectedCut(db, videoId);
   return staged.ok ? { ok: true, queued: 0, status: "ASSEMBLING" } : { ok: false, error: staged.error };
+}
+
+/** paused_reason while a hook-first video waits for its hook to be approved. */
+export const HOOK_REVIEW = "hook review — section 1 renders first; check it, then approve_hook to queue the rest (or revise_sections on section 1)";
+
+/**
+ * Approve a hook-first video's hook and queue every other section. Refused
+ * until the hook clip has landed, so the operator always judges a real clip.
+ */
+export async function approveHook(
+  db: Db,
+  videoId: string,
+): Promise<{ ok: true; queued: number; status: string } | { ok: false; error: string }> {
+  const loaded = await loadDirected(db, videoId);
+  if ("error" in loaded) return { ok: false, error: loaded.error };
+  const { video, script } = loaded;
+  if (!script.hookFirst) return { ok: false, error: "this video is not hook-first" };
+  if (video.hook_approved_at) return { ok: false, error: "hook already approved" };
+  const { data: hook } = await db
+    .from("assets")
+    .select("id")
+    .eq("video_id", videoId)
+    .eq("kind", "clip")
+    .eq("beat_index", 0)
+    .limit(1)
+    .maybeSingle();
+  if (!hook) return { ok: false, error: "the hook clip (section 1) hasn't landed yet" };
+  await db.from("videos").update({ hook_approved_at: new Date().toISOString(), paused_reason: null }).eq("id", videoId);
+  return enqueueDirectedClips(db, videoId);
 }
 
 /** paused_reason prefix for a cut waiting on another video's clip (the

@@ -19,8 +19,9 @@ import { runIntelligence } from "@/lib/pipeline/intelligence";
 import { recordOperatorDecision, directorStageForStatus } from "@/lib/pipeline/decisions";
 import { DEMO_TOPICS } from "@/lib/pipeline/mock-content";
 import { estimateRevenueUsd } from "@/lib/adapters/youtube";
-import { directedWarnings, parseDirectedScript } from "@studio/core";
+import { directedWarnings, paceIssues, parseDirectedScript } from "@studio/core";
 import {
+  approveHook,
   directedMedia,
   estimateDirected,
   importDirectedScript,
@@ -34,6 +35,7 @@ import {
 } from "@/lib/pipeline/directed";
 import { designVoice, saveDesignedVoice } from "@/lib/adapters/voice-design";
 import { makeCharacterImage } from "@/lib/pipeline/character-image";
+import { getFormat, listFormats, recordFormat, updateFormat } from "@/lib/pipeline/formats";
 import { getSignedMediaUrl, uploadMedia } from "@/lib/storage";
 import { allLedgerRows } from "@/lib/pipeline/ledger";
 import {
@@ -586,21 +588,80 @@ export const TOOLS: Tool[] = [
     inputSchema: obj({ script: { type: "object" } }, ["script"]),
     handler: async (a) => {
       const parsed = parseDirectedScript(a.script);
-      return parsed.ok
-        ? { ok: true, estimate: estimateDirected(parsed.script), warnings: directedWarnings(parsed.script) }
-        : { ok: false, errors: parsed.errors };
+      if (!parsed.ok) return { ok: false, errors: parsed.errors };
+      const pace = paceIssues(parsed.script);
+      if (pace.errors.length) return { ok: false, errors: pace.errors };
+      return { ok: true, estimate: estimateDirected(parsed.script), warnings: directedWarnings(parsed.script) };
     },
   },
   {
     name: "import_script",
     description:
-      "Create a DIRECTED video from a brief's full section script, executed verbatim (no Claude rewrite, no art-director pass). script = { format: short|long, title, altTitles?, description?, tags?, cast?: {Speaker:{color}}, sections: [{ sec (4–120), lines: [{speaker, text, at}], videoPrompt, keyframePrompt? | keyframeImage? (a media-bucket storage path used verbatim as the first frame, e.g. an operator still uploaded via operator-stills/), endFrame?: {fromSection}|{prompt}, model?: hf-cinema-studio-4|hf-seedance-2-5, controls?, refs?: [storage paths], generateAudio?, sfx?: [{at, prompt, durationSec?, gainDb?}], labels?: [{at, durationSec, text, position?, style?, color?}], zooms?: [{at, toScale?, overSec?, holdSec?}], highlightWords?, transitionOut?: cut|whip|crossfade|dipToBlack, reuse?: {videoId, sectionIdx, fromSec?} }], music?: {prompt, gainDb?, underVoDb?}, sting?: {at, sec}, outro?: {mode: card|overlay, sec, cta?}, watermark?, captions?, qc?, snippets?: {NAME: text} }. snippets: shared prompt text written once; {{NAME}} in any string expands to it before validation (the stored script holds the full text). reuse copies an existing clip at no cost; fromSec (default 0) picks the second of the source clip the section starts from, so a cutdown can take any window of a long-form section (fromSec + sec must fit inside the source clip, or the cut is held; set generateAudio: true to keep the clip's own sound). Lands at the Script gate; nothing is spent.",
-    inputSchema: obj({ projectId: { type: "string" }, script: { type: "object" } }, ["projectId", "script"]),
+      "Create a DIRECTED video from a brief's full section script, executed verbatim (no Claude rewrite, no art-director pass). script = { format: short|long, title, altTitles?, description?, tags?, cast?: {Speaker:{color}}, sections: [{ sec (4–120), lines: [{speaker, text, at}], videoPrompt, keyframePrompt? | keyframeImage? (a media-bucket storage path used verbatim as the first frame, e.g. an operator still uploaded via operator-stills/), endFrame?: {fromSection}|{prompt}, model?: hf-cinema-studio-4|hf-seedance-2-5, controls?, refs?: [storage paths], generateAudio?, sfx?: [{at, prompt, durationSec?, gainDb?}], labels?: [{at, durationSec, text, position?, style?, color?}], zooms?: [{at, toScale?, overSec?, holdSec?}], highlightWords?, transitionOut?: cut|whip|crossfade|dipToBlack, reuse?: {videoId, sectionIdx, fromSec?} }], music?: {prompt, gainDb?, underVoDb?}, sting?: {at, sec}, outro?: {mode: card|overlay, sec, cta?}, watermark?, captions?, qc?, snippets?: {NAME: text} }. hookFirst?: true renders section 1 (the hook) alone, holds the video until approve_hook, then queues the rest. snippets: shared prompt text written once; {{NAME}} in any string expands to it before validation (the stored script holds the full text). Spoken pace: each line gets the time until the next line starts; above 3.5 words/s is a warning, above 4.5 words/s is rejected. formatId links the video to a format-library entry it was written from. reuse copies an existing clip at no cost; fromSec (default 0) picks the second of the source clip the section starts from, so a cutdown can take any window of a long-form section (fromSec + sec must fit inside the source clip, or the cut is held; set generateAudio: true to keep the clip's own sound). Lands at the Script gate; nothing is spent.",
+    inputSchema: obj(
+      { projectId: { type: "string" }, script: { type: "object" }, formatId: { type: "string", description: "format-library id this script was written from" } },
+      ["projectId", "script"],
+    ),
     handler: async (a, db) => {
-      const r = await importDirectedScript(db, { projectId: str(a.projectId), script: a.script });
+      const r = await importDirectedScript(db, { projectId: str(a.projectId), script: a.script, formatId: str(a.formatId) || undefined });
       const parsed = parseDirectedScript(a.script);
       return r.ok && parsed.ok ? { ...r, warnings: directedWarnings(parsed.script) } : r;
     },
+  },
+  {
+    name: "approve_hook",
+    description:
+      "Hook-first directed video: approve section 1 (the hook clip, once it has landed — check it with get_video_media) and queue every other section. To redo the hook instead, use revise_sections on section 1.",
+    inputSchema: obj({ videoId: { type: "string" } }, ["videoId"]),
+    handler: async (a, db) => approveHook(db, str(a.videoId)),
+  },
+  {
+    name: "record_format",
+    description:
+      "Format library: save a winning short-form video as a reusable template. Capture record: sourceUrl (required; the same video by link updates its existing entry — scrapers return duplicates), platform (tiktok|instagram|youtube|facebook|x|other; inferred from the link), source (manual|apify|scrape_creators|other), creator, postedAt, stats {views, likes, shares, comments, saves}, title, durationSec. Persuasion record (the reusable part): hook (word for word), beatMap [{at, beat, onScreen?, audio?}] second by second, productMoment, whyItWorks. Plus niche, tags, notes, status (candidate|approved|retired; approved requires hook, beatMap and whyItWorks). Scripts are written FROM the beat map for our own character; never reuse the source footage.",
+    inputSchema: obj(
+      {
+        format: { type: "object", description: "the fields above" },
+        projectId: { type: "string", description: "optional project this research is for" },
+      },
+      ["format"],
+    ),
+    handler: async (a, db) => recordFormat(db, a.format, { projectId: str(a.projectId) || null }),
+  },
+  {
+    name: "list_formats",
+    description: "Format library: list formats, best traction first (plays and shares, then comments). Filters: projectId, niche (substring), platform, status (default: all but retired), tag, limit (default 25, max 100).",
+    inputSchema: obj({
+      projectId: { type: "string" },
+      niche: { type: "string" },
+      platform: { type: "string" },
+      status: { type: "string" },
+      tag: { type: "string" },
+      limit: { type: "number" },
+    }),
+    handler: async (a, db) => ({
+      ok: true,
+      formats: await listFormats(db, {
+        projectId: str(a.projectId) || undefined,
+        niche: str(a.niche) || undefined,
+        platform: str(a.platform) || undefined,
+        status: str(a.status) || undefined,
+        tag: str(a.tag) || undefined,
+        limit: typeof a.limit === "number" ? a.limit : undefined,
+      }),
+    }),
+  },
+  {
+    name: "get_format",
+    description: "Format library: one format with its full persuasion record and a sectionPlan — the beat map split into directed-script sections (≤ maxSectionSec, default 15, cut at beat boundaries) to write an import_script from (pass formatId to import_script).",
+    inputSchema: obj({ formatId: { type: "string" }, maxSectionSec: { type: "number" } }, ["formatId"]),
+    handler: async (a, db) => getFormat(db, str(a.formatId), typeof a.maxSectionSec === "number" ? a.maxSectionSec : undefined),
+  },
+  {
+    name: "update_format",
+    description: "Format library: edit a format by id — any record_format field except sourceUrl (e.g. status: approved|retired, hook, beatMap, whyItWorks, notes, tags, stats). Approving checks the merged entry has hook, beatMap and whyItWorks.",
+    inputSchema: obj({ formatId: { type: "string" }, patch: { type: "object" } }, ["formatId", "patch"]),
+    handler: async (a, db) => updateFormat(db, str(a.formatId), (a.patch ?? {}) as Record<string, unknown>),
   },
   {
     name: "produce_directed",
@@ -943,6 +1004,9 @@ const MUTATING_TOOLS = new Set([
   "stage_directed_cut",
   "make_reference_still",
   "make_character_image",
+  "approve_hook",
+  "record_format",
+  "update_format",
   "design_voice",
   "save_voice",
   "add_lesson",

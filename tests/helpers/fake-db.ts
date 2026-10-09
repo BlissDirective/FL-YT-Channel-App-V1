@@ -121,6 +121,18 @@ class QueryBuilder implements PromiseLike<{
     return this;
   }
 
+  ilike(col: string, pattern: string) {
+    const re = new RegExp(`^${pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/%/g, ".*")}$`, "i");
+    this.filters.push((r) => re.test(String(r[col] ?? "")));
+    return this;
+  }
+
+  /** Array column contains every given value. */
+  contains(col: string, vals: unknown[]) {
+    this.filters.push((r) => Array.isArray(r[col]) && vals.every((v) => (r[col] as unknown[]).includes(v)));
+    return this;
+  }
+
   /** .not("col", "like", "mock:%") — the only `not` form the engine uses. */
   not(col: string, operator: string, pattern: string) {
     if (operator === "like") {
