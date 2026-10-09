@@ -389,3 +389,25 @@ standing rules (Full-App-Development-plan.md §5).
   t2v+i2v via fal; Remotion render farm) — no new providers. Feature-flagged,
   flag-off byte-identical to today, money rails + Director isolation unchanged.
   Full phased spec w/ per-phase testing: Fable-5-Visual-Craft-Engine-Build-Spec.md.
+
+## AI Influencer: format library, pace check, hook-first (2026-10-09)
+
+- **Third-party scrapers allowed for trend research (operator decision).**
+  For the AI Influencer project, TikTok and Instagram research may use
+  third-party scrapers (Apify, Scrape Creators) to collect links, stats,
+  captions and transcripts. Scraped data feeds the **format library**
+  (`formats`, migration 0088) as capture and persuasion records only. The
+  existing footage rule still holds: scripts are written from a format's
+  beat map for our own character, and source footage is never reused,
+  re-uploaded or used as a Motion Transfer reference.
+- **Format library.** One row per winning video, deduped by normalized link
+  (scrapers return duplicates). Approving a format requires the hook, a beat
+  map and why it worked. `record_format` / `list_formats` / `get_format` /
+  `update_format`; `import_script` takes `formatId`.
+- **Spoken-pace check.** Each line gets the time until the next line starts
+  on the whole-video timeline. Above 3.5 words/s warns; above 4.5 words/s is
+  rejected on import and estimate (never when a stored script is re-parsed —
+  older script versions would otherwise stop loading).
+- **Hook-first.** `hookFirst: true` renders section 1 alone and holds the
+  video (auto_finish off, paused at "hook review") until `approve_hook`,
+  which requires the hook clip to have landed and then queues the rest.

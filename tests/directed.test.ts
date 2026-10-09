@@ -472,3 +472,82 @@ describe("revisions while the asset stage runs", async () => {
     expect(db.inserts("scripts")).toEqual([]);
   });
 });
+
+describe("spoken pace", async () => {
+  const { paceIssues, countWords } = await import("@studio/core");
+  const words = (n: number) => Array.from({ length: n }, (_, i) => `w${i}`).join(" ");
+  const script = (lines: { text: string; at: number }[][], secs: number[]) =>
+    parseDirectedScript({
+      format: "short",
+      title: "t",
+      sections: secs.map((sec, i) => ({ sec, videoPrompt: P, keyframePrompt: "k", lines: lines[i].map((l) => ({ speaker: "N", ...l })) })),
+    });
+
+  it("counts words, not punctuation", () => {
+    expect(countWords("Wait — what?! It's 3 a.m. …")).toBe(5);
+  });
+
+  it("gives each line the time until the next line starts, across sections", () => {
+    // 15 words at 6s of a 10s section, next line at 2s of the next section →
+    // a 6s window (2.5 w/s): fine, although it crosses the section boundary.
+    const ok = script([[{ text: words(15), at: 4 }], [{ text: "next", at: 0 }]], [10, 5]);
+    expect(ok.ok && paceIssues(ok.script)).toEqual({ warnings: [], errors: [] });
+  });
+
+  it("warns above 3.5 words/s and rejects above 4.5", () => {
+    const warn = script([[{ text: words(16), at: 0 }]], [4]); // 4.0 w/s
+    expect(warn.ok && paceIssues(warn.script).warnings).toHaveLength(1);
+    expect(warn.ok && directedWarnings(warn.script).some((w) => w.includes("words/s"))).toBe(true);
+    const bad = script([[{ text: words(12), at: 0 }, { text: "two", at: 2 }]], [8]); // 6 w/s
+    expect(bad.ok && paceIssues(bad.script).errors[0]).toContain("section 1 line 1: 12 words in 2.0s");
+  });
+});
+
+describe("hook-first", async () => {
+  const { enqueueDirectedClips, approveHook, HOOK_REVIEW } = await import("@/lib/pipeline/directed");
+  const { fakeDb } = await import("./helpers/fake-db");
+  const hookScript = () => ({ ...(s01() as Record<string, unknown>), hookFirst: true });
+  const seeded = (extra: Record<string, unknown[]> = {}, video: Record<string, unknown> = {}) =>
+    fakeDb({
+      videos: [{ id: "v1", project_id: "p1", directed: true, status: "GENERATING_ASSETS", ...video }],
+      projects: [{ id: "p1", brand_kit: {} }],
+      scripts: [{ id: "s1", video_id: "v1", version: 1, metadata: { directed: hookScript() } }],
+      assets: [],
+      clip_jobs: [],
+      ...extra,
+    });
+
+  it("parses only with more than one section", () => {
+    const one = parseDirectedScript({ format: "short", title: "t", hookFirst: true, sections: [{ sec: 5, videoPrompt: P, lines: [] }] });
+    expect(one.ok && one.script.hookFirst).toBeUndefined();
+    const many = parseDirectedScript(hookScript());
+    expect(many.ok && many.script.hookFirst).toBe(true);
+  });
+
+  it("queues only the hook and holds the video", async () => {
+    const db = seeded();
+    const r = await enqueueDirectedClips(db as never, "v1");
+    expect(r).toEqual({ ok: true, queued: 1, status: "ASSETS_READY" });
+    expect(db.inserts("clip_jobs").map((j) => j.beat_idx)).toEqual([0]);
+    expect(db.row("videos", "v1")).toEqual(expect.objectContaining({ auto_finish: false, paused_reason: HOOK_REVIEW }));
+  });
+
+  it("keeps holding on a revision of another section", async () => {
+    const db = seeded();
+    await enqueueDirectedClips(db as never, "v1", [1]);
+    expect(db.inserts("clip_jobs")).toEqual([]);
+    expect(db.row("videos", "v1")?.auto_finish).toBe(false);
+  });
+
+  it("approves only once the hook clip has landed, then queues the rest", async () => {
+    const early = seeded();
+    expect(await approveHook(early as never, "v1")).toEqual({ ok: false, error: "the hook clip (section 1) hasn't landed yet" });
+
+    const db = seeded({ assets: [{ id: "a0", video_id: "v1", kind: "clip", beat_index: 0, meta: {} }] });
+    const r = await approveHook(db as never, "v1");
+    expect(r).toEqual(expect.objectContaining({ ok: true }));
+    expect(db.row("videos", "v1")).toEqual(expect.objectContaining({ hook_approved_at: expect.any(String), auto_finish: true, paused_reason: null }));
+    expect(db.inserts("clip_jobs").map((j) => j.beat_idx).sort()).toEqual([0, 1, 2]);
+    expect(await approveHook(db as never, "v1")).toEqual({ ok: false, error: "hook already approved" });
+  });
+});

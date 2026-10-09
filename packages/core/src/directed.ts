@@ -120,6 +120,10 @@ export type DirectedScript = {
   captions?: boolean;
   /** The brief's QC acceptance criteria, kept with the script for review. */
   qc?: string;
+  /** Render section 1 (the hook) alone first and hold the video until the
+      operator approves it (approve_hook), then queue the rest. A weak hook
+      costs one clip instead of the whole video. */
+  hookFirst?: boolean;
 };
 
 // ── Parser / validator ────────────────────────────────────────────────
@@ -370,6 +374,7 @@ export function parseDirectedScript(input: unknown): DirectedParse {
       watermark: raw.watermark !== false,
       captions: raw.captions !== false,
       qc: str(raw.qc),
+      ...(raw.hookFirst === true && sections.length > 1 ? { hookFirst: true } : {}),
     },
   };
 }
@@ -387,6 +392,46 @@ export function directedRuntimeSec(script: Pick<DirectedScript, "sections" | "ou
 /** Spoken text of a section (captions, QC, beat.text). */
 export function sectionSpokenText(s: Pick<DirectedSection, "lines">): string {
   return s.lines.map((l) => l.text).join(" ");
+}
+
+/** Comfortable spoken pace for a generated clip (3.5 words/s ≈ 210 wpm is
+    already brisk); above it lines get rushed and sound robotic. */
+export const PACE_TARGET_WPS = 3.5;
+/** Above this no voice says the lines cleanly — rejected before any spend. */
+export const PACE_MAX_WPS = 4.5;
+
+/** Spoken words (tokens with a letter or digit; punctuation-only tokens skipped). */
+export function countWords(text: string): number {
+  return text.split(/\s+/).filter((t) => /[\p{L}\p{N}]/u.test(t)).length;
+}
+
+/**
+ * Spoken-pace check. Each line gets the time from its start to the next line's
+ * start on the whole-video timeline (a line near a section's end may run on
+ * into the next section), or to the end of the body for the last line.
+ * Above PACE_TARGET_WPS → warning; above PACE_MAX_WPS → error. Enforced on
+ * import/estimate only, never when a stored script is re-parsed.
+ */
+export function paceIssues(script: Pick<DirectedScript, "sections">): { warnings: string[]; errors: string[] } {
+  const timed: { sectionIdx: number; lineIdx: number; start: number; words: number }[] = [];
+  let t = 0;
+  for (const s of script.sections) {
+    s.lines.forEach((l, j) => timed.push({ sectionIdx: s.idx, lineIdx: j, start: t + l.at, words: countWords(l.text) }));
+    t += s.sec;
+  }
+  timed.sort((a, b) => a.start - b.start);
+  const warnings: string[] = [];
+  const errors: string[] = [];
+  timed.forEach((l, k) => {
+    const window = (timed[k + 1]?.start ?? t) - l.start;
+    if (window <= 0 || l.words === 0) return;
+    const wps = l.words / window;
+    if (wps <= PACE_TARGET_WPS) return;
+    const msg = `section ${l.sectionIdx + 1} line ${l.lineIdx + 1}: ${l.words} words in ${window.toFixed(1)}s before the next line (${wps.toFixed(1)} words/s)`;
+    if (wps > PACE_MAX_WPS) errors.push(`${msg} — over the ${PACE_MAX_WPS}/s limit; shorten it or give it more time`);
+    else warnings.push(`${msg} — above the ${PACE_TARGET_WPS}/s target, it may sound rushed`);
+  });
+  return { warnings, errors };
 }
 
 // ── Compiler → EDD ────────────────────────────────────────────────────
@@ -777,6 +822,7 @@ export function directedWarnings(script: DirectedScript): string[] {
       out.push(`${w}: ${s.sec}s is stitched from ${Math.ceil(s.sec / 30)} segments — check the seam at 30s in QC`);
     }
   }
+  out.push(...paceIssues(script).warnings);
   return out;
 }
 
