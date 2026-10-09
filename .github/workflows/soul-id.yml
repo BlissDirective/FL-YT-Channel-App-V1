@@ -1,0 +1,29 @@
+name: Soul ID
+
+# Trains a Higgsfield Soul ID (POST /v1/custom-references) for a locked
+# character from a request file soul-id/<slug>.json:
+#   {"characterId": "...", "name": "...", "modelVersions": ["v1", "v2"], "images": ["refs/..."]}
+# Images are media-bucket storage paths, signed for 2h at run time. The result
+# is saved on characters.higgsfield_soul per model version. Idempotent: a
+# version already completed is skipped, and one still training is polled
+# instead of trained again.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - soul-id/**
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Train Soul IDs
+        env:
+          SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SECRET_KEY }}
+          HIGGSFIELD_API_KEY: ${{ secrets.HIGGSFIELD_API_KEY }}
+        run: python3 .github/scripts/soul_id.py
